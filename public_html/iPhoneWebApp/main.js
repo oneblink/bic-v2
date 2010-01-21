@@ -284,7 +284,7 @@ function showSecondLevelAnswerView(keyword, arg0)
     
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
-    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&args=' + arg0;
+    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&args=' + arg0.replace("&", "|^^|s|");
     httpAnswerRequest.open('GET', url, true);
     httpAnswerRequest.onreadystatechange = function(evt) {
       /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
