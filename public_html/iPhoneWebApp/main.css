@@ -629,7 +629,64 @@ body {
     opacity: 1;
 }
 
+#navBox2b {
+    border-color: black;
+    border-width: 1px;
+    position: relative;
+    -webkit-margin-top-collapse: separate;
+    -webkit-margin-bottom-collapse: separate;
+    margin-right: 0px;
+    margin-left: 0px;
+    width: auto;
+    min-height: 42px;
+    height: auto;
+    background-color: rgb(230, 230, 230);
+    margin-top: 0px;
+    opacity: 1;
+}
+
 #backButton2 {
+    font-family: Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    text-shadow: rgba(0, 0, 0, 0.210938) 0px -1px 0px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 60px;
+    -webkit-dashboard-region: dashboard-region(control rectangle);
+    cursor: default;
+    -webkit-user-select: none;
+    -webkit-margin-top-collapse: separate;
+    -webkit-margin-bottom-collapse: separate;
+    margin-top: 0px;
+    height: 30px;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    top: 6px;
+    left: 16px;
+    letter-spacing: 0px;
+}
+
+#navBox2b {
+    border-color: black;
+    border-width: 1px;
+    position: relative;
+    -webkit-margin-top-collapse: separate;
+    -webkit-margin-bottom-collapse: separate;
+    margin-right: 0px;
+    margin-left: 0px;
+    width: auto;
+    min-height: 42px;
+    height: auto;
+    background-color: rgb(230, 230, 230);
+    margin-top: 0px;
+    opacity: 1;
+}
+
+#backButton2b {
     font-family: Helvetica;
     font-weight: bold;
     font-size: 12px;
@@ -885,7 +942,48 @@ body {
     height: auto;
 }
 
+#navBox3b {
+    border-color: black;
+    border-width: 1px;
+    position: relative;
+    -webkit-margin-top-collapse: separate;
+    -webkit-margin-bottom-collapse: separate;
+    background-color: rgb(230, 230, 230);
+    opacity: 1;
+    margin-top: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    width: auto;
+    min-height: 42px;
+    height: auto;
+}
+
 #backButton3 {
+    font-family: Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    text-shadow: rgba(0, 0, 0, 0.207031) 0px -1px 0px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 60px;
+    -webkit-dashboard-region: dashboard-region(control rectangle);
+    cursor: default;
+    -webkit-user-select: none;
+    -webkit-margin-top-collapse: separate;
+    -webkit-margin-bottom-collapse: separate;
+    margin-top: 0px;
+    height: 30px;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    top: 6px;
+    left: 16px;
+    letter-spacing: 0px;
+}
+
+#backButton3b {
     font-family: Helvetica;
     font-weight: bold;
     font-size: 12px;

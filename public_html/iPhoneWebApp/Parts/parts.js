@@ -6523,7 +6523,25 @@ var dashcodePartSpecs = {
 		"text" :"Back",
 		"view" :"DC.PushButton"
 	},
+	"backButton2b" : {
+		"initialHeight" :30,
+		"initialWidth" :60,
+		"leftImageWidth" :16,
+		"onclick" :"goBackToKeywordListView",
+		"rightImageWidth" :5,
+ 		"text" :"Back",
+ 		"view" :"DC.PushButton"
+ 	},
 	"backButton3" : {
+		"initialHeight" :30,
+		"initialWidth" :60,
+		"leftImageWidth" :16,
+		"onclick" :"goBackToTopLevelAnswerView",
+		"rightImageWidth" :5,
+		"text" :"Back",
+		"view" :"DC.PushButton"
+	},
+	"backButton3b" : {
 		"initialHeight" :30,
 		"initialWidth" :60,
 		"leftImageWidth" :16,
