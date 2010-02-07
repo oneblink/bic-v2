@@ -28,7 +28,7 @@ var keywordController = {
        //alert(url);
        if (currentCategory)
        {
-         url += "&category=" + currentCategory;
+         url += "&category=" + encodeURIComponent(currentCategory);
        }
 
        httpRequest.open('GET', url, true);
@@ -238,7 +238,6 @@ function showAnswerView(rowIndex)
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
     var url = '../iPhoneUtil/GetAnswer.php?' + createParamsAndArgs(rowIndex);
-    //alert(url);
     httpAnswerRequest.open('GET', url, true);
     httpAnswerRequest.onreadystatechange = function(evt) {
       /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
@@ -284,7 +283,7 @@ function showSecondLevelAnswerView(keyword, arg0)
     
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
-    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&args=' + arg0.replace("&", "|^^|s|");
+    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&args=' + arg0.replace(/&/g, "|^^|s|");
     httpAnswerRequest.open('GET', url, true);
     httpAnswerRequest.onreadystatechange = function(evt) {
       /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
