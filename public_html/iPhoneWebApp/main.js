@@ -28,7 +28,7 @@ var keywordController = {
        //alert(url);
        if (currentCategory)
        {
-         url += "&category=" + encodeURIComponent(currentCategory);
+         url += "&category=" + currentCategory;
        }
 
        httpRequest.open('GET', url, true);
@@ -238,6 +238,7 @@ function showAnswerView(rowIndex)
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
     var url = '../iPhoneUtil/GetAnswer.php?' + createParamsAndArgs(rowIndex);
+    //alert(url);
     httpAnswerRequest.open('GET', url, true);
     httpAnswerRequest.onreadystatechange = function(evt) {
       /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
@@ -283,7 +284,7 @@ function showSecondLevelAnswerView(keyword, arg0)
     
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
-    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&args=' + arg0.replace(/&/g, "|^^|s|");
+    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&args=' + arg0.replace("&", "|^^|s|");
     httpAnswerRequest.open('GET', url, true);
     httpAnswerRequest.onreadystatechange = function(evt) {
       /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
@@ -577,12 +578,18 @@ function submitForm() {
         
    }
    str = str.substring(1);
-   var arr = document.forms[0].action.split("/");
+   //alert(document.forms[0].action);
+   formaction = document.forms[0].action;
+   var arr = formaction.split("/");
 
     
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
-    var url = '../iPhoneUtil/GetAnswer.php?' + "answerSpace=" + arr[1] + "&keyword=" + arr[2];
+    if(formaction.substring(0,3)=="../")
+      var url = '../iPhoneUtil/GetAnswer.php?' + "answerSpace=" + answerSpace + "&keyword=" + arr[1] + "&args=" + arr[2].substring(1);
+   else
+      var url = '../iPhoneUtil/GetAnswer.php?' + "answerSpace=" + arr[1] + "&keywodrd=" + arr[2];
+      
     //alert(url);
     
     if(document.forms[0].method.toLowerCase()=="get") {
