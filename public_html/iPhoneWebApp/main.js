@@ -587,7 +587,7 @@ function submitForm() {
     if(formaction.substring(0,3)=="../")
       var url = '../iPhoneUtil/GetAnswer.php?' + "answerSpace=" + answerSpace + "&keyword=" + arr[1] + "&args=" + arr[2].substring(1);
    else
-      var url = '../iPhoneUtil/GetAnswer.php?' + "answerSpace=" + arr[1] + "&keywodrd=" + arr[2];
+      var url = '../iPhoneUtil/GetAnswer.php?' + "answerSpace=" + arr[1] + "&keyword=" + arr[2];
       
     //alert(url);
     
