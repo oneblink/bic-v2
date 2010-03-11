@@ -6578,11 +6578,11 @@ var dashcodePartSpecs = {
 	},
 	"getAnswerButton" : {
 		"initialHeight" :30,
-		"initialWidth" :109,
+		"initialWidth" :55,
 		"leftImageWidth" :15,
 		"onclick" :"getAnswer",
 		"rightImageWidth" :15,
-		"text" :"Get Answer",
+		"text" :"Go",
 		"view" :"DC.PushButton"
 	},
 	"login_button" : {
