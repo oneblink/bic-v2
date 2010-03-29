@@ -116,6 +116,7 @@ dashcode.preProcessBindings = function(A) {
 		}
 	}
 };
+// *** Here ***
 if (window.addEventListener) {
 	window.addEventListener("load", dashcode.setupParts, false)
 } else {
@@ -6490,6 +6491,9 @@ DC.Page = Class.create(DC.Responder,
 		 * the changes will be lost.
 		 */
 var dashcodePartSpecs = {
+	"activityIndicator0" : {
+		"view" :"DC.ActivityIndicator"
+	},
 	"activityIndicator1" : {
 		"view" :"DC.ActivityIndicator"
 	},
@@ -6529,9 +6533,9 @@ var dashcodePartSpecs = {
 		"leftImageWidth" :16,
 		"onclick" :"goBackToKeywordListView",
 		"rightImageWidth" :5,
- 		"text" :"Back",
- 		"view" :"DC.PushButton"
- 	},
+		"text" :"Back",
+		"view" :"DC.PushButton"
+	},
 	"backButton3" : {
 		"initialHeight" :30,
 		"initialWidth" :60,
@@ -6557,6 +6561,33 @@ var dashcodePartSpecs = {
 		"onclick" :"goBackToKeywordListView",
 		"rightImageWidth" :5,
 		"text" :"Back",
+		"view" :"DC.PushButton"
+	},
+	"pendingFormButton0" : {
+		"initialHeight" :30,
+		"initialWidth" :109,
+		"leftImageWidth" :15,
+		"onclick" :"processCachedFormData",
+		"rightImageWidth" :15,
+		"text" :"OK",
+		"view" :"DC.PushButton"
+	},
+	"pendingFormButton2" : {
+		"initialHeight" :30,
+		"initialWidth" :109,
+		"leftImageWidth" :15,
+		"onclick" :"processCachedFormData",
+		"rightImageWidth" :15,
+		"text" :"OK",
+		"view" :"DC.PushButton"
+	},
+	"pendingFormButton3" : {
+		"initialHeight" :30,
+		"initialWidth" :109,
+		"leftImageWidth" :15,
+		"onclick" :"processCachedFormData",
+		"rightImageWidth" :15,
+		"text" :"OK",
 		"view" :"DC.PushButton"
 	},
 	"button" : {
@@ -6591,7 +6622,7 @@ var dashcodePartSpecs = {
 		"leftImageWidth" :15,
 		"onclick" :"alert('hi!')",
 		"rightImageWidth" :15,
-		"text" :"Get Answer",
+		"text" :"Go",
 		"view" :"DC.PushButton"
 	},
 	"helpTitle" : {

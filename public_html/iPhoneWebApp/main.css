@@ -890,7 +890,15 @@ body {
     color: white;
 }
 
-#activityIndicator2 {
+#answerView2 {
+    width: 100%;
+    display: none;
+    position: relative;
+    background-color: rgb(255, 255, 255);
+    min-height: 700px;
+}
+
+#activityIndicator0 {
     width: 32px;
     height: 32px;
     display: block;
@@ -905,25 +913,19 @@ body {
     left: 273px;
 }
 
-#answerView2 {
-    width: 100%;
-    display: none;
-    position: relative;
-    background-color: rgb(255, 255, 255);
-    min-height: 700px;
-}
-
 #activityIndicator1 {
-    -webkit-animation-name: none;
-    -webkit-animation-duration: 1s;
-    -webkit-animation-iteration-count: infinite;
-    -webkit-animation-timing-function: linear;
+    width: 32px;
+    height: 32px;
+    display: block;
     -webkit-margin-top-collapse: separate;
     -webkit-margin-bottom-collapse: separate;
-    margin-left: 265px;
-    width: 34px;
-    height: 34px;
-    margin-top: 6px;
+    opacity: 0.6;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    margin-top: 0px;
+    top: 6px;
+    left: 273px;
 }
 
 #navBox3 {
@@ -1008,6 +1010,96 @@ body {
     letter-spacing: 0px;
 }
 
+#backButton2 {
+    font-family: Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    text-shadow: rgba(0, 0, 0, 0.210938) 0px -1px 0px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 60px;
+    -webkit-dashboard-region: dashboard-region(control rectangle);
+    cursor: default;
+    -webkit-user-select: none;
+    -webkit-margin-top-collapse: separate;
+    -webkit-margin-bottom-collapse: separate;
+    margin-top: 0px;
+    height: 30px;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    top: 6px;
+    left: 16px;
+    letter-spacing: 0px;
+}
+
+#pendingFormButton0 {
+    font-family: Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: rgba(0, 0, 0, 0.238281) 0px -1px 0px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 30px;
+    -webkit-dashboard-region: dashboard-region(control rectangle);
+    cursor: default;
+    -webkit-user-select: none;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    margin-top: 0px;
+    top: 6px;
+    width: 68px;
+    left: 130px;
+}
+
+#pendingFormButton2 {
+    font-family: Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: rgba(0, 0, 0, 0.238281) 0px -1px 0px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 30px;
+    -webkit-dashboard-region: dashboard-region(control rectangle);
+    cursor: default;
+    -webkit-user-select: none;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    margin-top: 0px;
+    top: 6px;
+    width: 68px;
+    left: 130px;
+}
+
+#pendingFormButton3 {
+    font-family: Helvetica;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: rgba(0, 0, 0, 0.238281) 0px -1px 0px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 30px;
+    -webkit-dashboard-region: dashboard-region(control rectangle);
+    cursor: default;
+    -webkit-user-select: none;
+    position: absolute;
+    right: auto;
+    bottom: auto;
+    margin-top: 0px;
+    top: 6px;
+    width: 68px;
+    left: 130px;
+}
 
 #keywordHeading1 {
     color: black;
@@ -1028,21 +1120,6 @@ body {
 
 .selected #keywordHeading1 {
     color: white;
-}
-
-#activityIndicator2 {
-    width: 32px;
-    height: 32px;
-    display: block;
-    -webkit-margin-top-collapse: separate;
-    -webkit-margin-bottom-collapse: separate;
-    opacity: 0.6;
-    position: absolute;
-    right: auto;
-    bottom: auto;
-    margin-top: 0px;
-    top: 6px;
-    left: 273px;
 }
 
 #activityIndicator2 {
