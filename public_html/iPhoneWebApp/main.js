@@ -172,7 +172,8 @@ var keywordController = {
     
     setRowData: function() {
        if (!navigator.onLine) {
-	 alert("Network not connected(1)...");
+	 console.log("Network not connected(1)...");
+	 //alert("Network not connected(1)...");
 	 //return;
        }
        var httpRequest = new XMLHttpRequest();
@@ -300,18 +301,18 @@ function updateCache()
 {
   console.log("updateCache: " + webappCache.status);
   if (webappCache.status != window.applicationCache.IDLE) {
-    alert("swapCache()");
+    //alert("swapCache()");
     webappCache.swapCache();
     console.log("Cache has been updated due to a change found in the manifest");
   } else {
-    alert("update()");
+    //alert("update()");
     webappCache.update();
     console.log("Cache update requested");
   }
 }
 function errorCache()
 {
-  alert("errorCache(): " + webappCache.status);
+  //alert("errorCache(): " + webappCache.status);
   console.log("errorCache: " + webappCache.status);
   console.log("You're either offline or something has gone horribly wrong.");
 }
@@ -375,7 +376,8 @@ function loaded()
     
     console.log("loaded(4a): ");
     if (!navigator.onLine) {
-      alert("Network not connected(2)...");
+      //alert("Network not connected(2)...");
+      console.log("Network not connected(2)...");
       //return;
     }
     // Get and set-up the categories
