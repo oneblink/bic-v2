@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# Cache manifest version 0.0.24
+# Cache manifest version 0.0.31
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -88,8 +88,34 @@ Parts/core/external/sizzle_c.js
 NETWORK: 
 # All URLs that start with the following lines 
 # are whitelisted. 
+http://131940.qld.gov.au/
+http://assets.finda.co.nz/
+http://belleproperty.com.au/
+http://datasearch3.uts.edu.au/
+http://db.auth.usyd.edu.au/
+http://elibcat.library.brisbane.qld.gov.au/
+http://harveynorman.com.au/
+http://hfgapps.hubb.com/
+http://media.hubonline.com.au/
+http://transactions.brisbane.qld.gov.au/
+http://weather.com.au/
+http://www.airnewzealand.co.nz/
+http://www.belleproperty.com.au/
 http://www.cometothecoast.com.au/
 http://www.ecruising.travel/
+http://www.harveynorman.com.au/
+http://www.houseandgarden.com.au/
+http://www.melbourneairport.com.au/
+http://www.mthotham.com.au/
+http://www.odms.net.au/
+http://www.ourbrisbane.com/
+http://www.rta.nsw.gov.au/
+http://www.setpoint.com.au/
+http://www.sydneytheatre.com.au/
+http://www.tsc.nsw.edu.au/
+http://www.visitcentralcoast.com.au/
+http://www.weather.com.au/
+http://www.crust.com.au/
 /iPhoneUtil/
 ../login/
 /images/
