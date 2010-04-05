@@ -435,7 +435,7 @@ function loaded()
 
 	}
       },
-      5000) ;
+      20000) ;
 
 
     // Set the "bling' (banner image etc.)
@@ -553,13 +553,17 @@ function showAnswerView(rowIndex)
     httpAnswerRequest.open('GET', url, true);
     httpAnswerRequest.send();
     timer = setTimeout(function() {
+	var answerItem;
+
 	console.log("timeout(11a): " + timer);
 	httpAnswerRequest.abort();
-	document.getElementById('innerAnswerBox').innerHTML = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
+	answerItem = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
+	console.log("timeout(11b): " + answerItem);
+	document.getElementById('innerAnswerBox').innerHTML = answerItem == undefined ? "No result available" : answerItem;
 	document.getElementById('activityIndicator2').style.visibility = 'hidden';
 	document.getElementById('activityIndicator0').style.visibility = 'hidden';
       },
-      5000);
+      20000);
     
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('answerView', false, true);
@@ -1146,7 +1150,7 @@ function submitFormWithRetry() {
 	alert("Form data not submitted, retry when you are in coverage");
 	goBackToKeywordListView();
       },
-      30000);
+      60000);
     console.log("Running timer (3b): " + timer);           
 
 }
