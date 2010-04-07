@@ -9,7 +9,6 @@ var currentKeywordNumber = 0;
 var httpCategoriesRequest = false;
 var httpAnswerRequest = false;
 var httpBlingRequest = false;
-var navbarHeight = 2;
 var disconnectedDataStore = new Array();
 
 var webappCache = window.applicationCache;
@@ -209,6 +208,7 @@ var keywordController = {
 		  currentCategory = getAnswerSpaceItem("_currentCategory");
 		  setAnswerSpaceItem(currentCategory + "_rawKeywordData", rawKeywordData);
 		  parseKeywordData();
+		  window.scrollTo(0, 1);
                 }
                 else
                 {
@@ -235,7 +235,9 @@ var keywordController = {
 		document.getElementById('list').object.reloadData();
 		document.getElementById('startUp').style.display = 'none';
 		document.getElementById('content').style.display = 'block';
-		//window.scrollTo(1, 50);
+		setTimeout(function() {
+		    window.scrollTo(0, 1);
+		  }, 1);
 	      }, 1000);
           }
        };
@@ -435,7 +437,7 @@ function loaded()
 
 	}
       },
-      20000) ;
+      30000) ;
 
 
     // Set the "bling' (banner image etc.)
@@ -490,12 +492,13 @@ function loaded()
             }
         }
 	dashcode.setupParts();
-	window.scrollTo(1, navbarHeight);
+	window.scrollTo(0, 1);
       }
     };
     httpBlingRequest.open('GET', url, true);
     httpBlingRequest.setRequestHeader("Cache-Control", "no-cache");
     httpBlingRequest.send();
+    window.scrollTo(0, 1);
 }
 
 function getAnswer(event)
@@ -563,11 +566,11 @@ function showAnswerView(rowIndex)
 	document.getElementById('activityIndicator2').style.visibility = 'hidden';
 	document.getElementById('activityIndicator0').style.visibility = 'hidden';
       },
-      20000);
+      30000);
     
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('answerView', false, true);
-    window.scrollTo(1, navbarHeight);
+    window.scrollTo(0, 1);
 }
 
 
@@ -615,7 +618,7 @@ function showSecondLevelAnswerView(keyword, arg0)
     
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('answerView2', false, true);   
-    window.scrollTo(1, navbarHeight);
+    window.scrollTo(0, 1);
 }
 
 function showKeywordView(rowIndex) 
@@ -627,7 +630,7 @@ function showKeywordView(rowIndex)
     document.getElementById('descriptionTextBox').innerHTML = descriptions[rowIndex];
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('keywordView', false, true);
-    window.scrollTo(1, navbarHeight);
+    window.scrollTo(0, 1);
 }
 
 function goBackToKeywordListView(event)
@@ -637,7 +640,7 @@ function goBackToKeywordListView(event)
     setSubmitCachedFormButton('pendingFormButton0');
     setSubmitCachedFormButton('pendingFormButton2');
     stackLayout.setCurrentView('keywordListView', true, true);
-    window.scrollTo(1, navbarHeight);
+    window.scrollTo(0, 1);
 }
 
 function createParamsAndArgs(rowIndex)
@@ -719,7 +722,7 @@ function showHelpView(event)
     
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('helpView', false, true); 
-    window.scrollTo(1, navbarHeight);
+    window.scrollTo(0, 1);
 }
 
 function showLoginView(event)
@@ -747,7 +750,7 @@ function showLoginView(event)
             
             var stackLayout = document.getElementById('stackLayout').object;
             stackLayout.setCurrentView('loginView', false, true); 
-	    window.scrollTo(1, navbarHeight);
+	    window.scrollTo(0, 1);
         }
       }
     };
@@ -853,7 +856,7 @@ function submitLogout()
             
             var stackLayout = document.getElementById('stackLayout').object;
             stackLayout.setCurrentView('loginView', false, true); 
-	    window.scrollTo(1, navbarHeight);
+	    window.scrollTo(0, 1);
         }
       }
       updateLoginBar();
@@ -881,7 +884,7 @@ function goBackToTopLevelAnswerView(event)
 {
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('answerView', true, true);
-    window.scrollTo(1, navbarHeight);
+    window.scrollTo(0, 1);
 }
 
 var newKeyword = "";
@@ -946,7 +949,7 @@ function submitForm() {
    str = str.substring(1);
    console.log("submitForm(2): " + document.forms[0].action);
    queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid());
-   window.scrollTo(1, 1);
+   window.scrollTo(0, 1);
    submitFormWithRetry();
 }
 
@@ -1121,7 +1124,7 @@ function submitFormWithRetry() {
          
          var stackLayout = document.getElementById('stackLayout').object;
          stackLayout.setCurrentView('answerView', false, true);
-	 window.scrollTo(1, navbarHeight);
+         window.scrollTo(0, 1);
  	 console.log("X1: " + localKeyword);
 	//alert("X1: " + localKeyword);
       }
