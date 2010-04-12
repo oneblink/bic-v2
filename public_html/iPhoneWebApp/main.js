@@ -237,7 +237,7 @@ var keywordController = {
 		document.getElementById('content').style.display = 'block';
 		setTimeout(function() {
 		    window.scrollTo(0, 1);
-		  }, 1);
+		  }, 1000);
 	      }, 1000);
           }
        };
@@ -331,6 +331,7 @@ function parseOptions(options) {
 	{
 	  console.log("GetCategories(1c): " + options); 
 	  document.getElementById("columnLayout1").style.display = 'none';
+	  document.getElementById("categoriesBox").style.display = 'none';
 	}
     }
   else
@@ -478,6 +479,7 @@ function loaded()
                  document.getElementById('keywordView').style.backgroundColor = backgroundColor;
                  document.getElementById('helpView').style.backgroundColor = backgroundColor;
                  document.getElementById('answerView').style.backgroundColor = backgroundColor;
+                 document.getElementById('keywordListView').style.backgroundColor = backgroundColor;
                }
                
                var login = blingArray[7];
