@@ -438,7 +438,7 @@ function loaded()
 
 	}
       },
-      30000) ;
+      5000) ;
 
 
     // Set the "bling' (banner image etc.)
@@ -463,7 +463,7 @@ function loaded()
 	       console.log("logoFileName: " + logoFileName);
                if (logoFileName)
                {
-                 document.getElementById('bannerImage').src = logoFileName;
+                 //document.getElementById('bannerImage').src = logoFileName;
                  //document.getElementById('bannerImage').src = '../' + 'images/1/BlinkAnswerSpace1.jpg';
                }
                var welcomeMessage = blingArray[1];

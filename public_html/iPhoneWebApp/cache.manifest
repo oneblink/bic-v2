@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# Cache manifest version 0.0.31
+# Cache manifest version 0.0.32
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -102,7 +102,6 @@ http://weather.com.au/
 http://www.airnewzealand.co.nz/
 http://www.belleproperty.com.au/
 http://www.cometothecoast.com.au/
-http://www.ecruising.travel/
 http://www.harveynorman.com.au/
 http://www.houseandgarden.com.au/
 http://www.melbourneairport.com.au/
@@ -122,6 +121,7 @@ http://www.crust.com.au/
 
 CACHE: 
 # Additional items to cache. 
+/images/1047/MarrickvilleIPHONELOGO.png
 
 
 #FALLBACK: 
