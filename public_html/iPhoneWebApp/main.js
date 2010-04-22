@@ -10,6 +10,10 @@ var httpCategoriesRequest = false;
 var httpAnswerRequest = false;
 var httpBlingRequest = false;
 var disconnectedDataStore = new Array();
+var row1;
+var row2;
+var answerSpaceCategories = true;
+var answerSpaceOneKeyword = false;
 
 var webappCache = window.applicationCache;
 
@@ -146,15 +150,18 @@ function parseKeywordData() {
   console.log("currentCategory(1): " + currentCategory + " _currentCategory: " + getAnswerSpaceItem("_currentCategory"));
   if (!getAnswerSpaceItem(currentCategory + "_rawKeywordData"))
     return;
-  var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("|||");
+  //var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("|||");
+    var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("&");
   
+  answerSpaceOneKeyword = keywordDataArray.length == 2;
   keywords = new Array(keywordDataArray.length - 1);
   descriptions = new Array(keywordDataArray.length - 1);
   helpText = new Array(keywordDataArray.length - 1);
   keywordArgumentsHtml = new Array(keywordDataArray.length - 1);
   for (var i = 1; i < keywordDataArray.length; i++) 
     {
-      keywordAttributes = keywordDataArray[i].split("###");
+      // keywordAttributes = keywordDataArray[i].split("###");
+      keywordAttributes = decodeURIComponent(keywordDataArray[i]).split("&");
       keywords[i-1] = keywordAttributes[0];
       descriptions[i-1] = keywordAttributes[1];
       helpText[i-1] = keywordAttributes[2];
@@ -203,7 +210,6 @@ var keywordController = {
 
 		if (rawKeywordData && rawKeywordData != "ERROR") 
                 {
-                  var keywordDataArray = rawKeywordData.split("|||");
 		  console.log("currentCategory(2): " + currentCategory  + " _currentCategory: " + getAnswerSpaceItem("_currentCategory"));
 		  currentCategory = getAnswerSpaceItem("_currentCategory");
 		  setAnswerSpaceItem(currentCategory + "_rawKeywordData", rawKeywordData);
@@ -232,7 +238,11 @@ var keywordController = {
             }
 	    setTimeout(function() {
 		console.log("reloadData(1): ");
-		document.getElementById('list').object.reloadData();
+		if (answerSpaceOneKeyword) {
+		  showKeywordView(0);
+		} else {
+		  document.getElementById('list').object.reloadData();
+		}
 		document.getElementById('startUp').style.display = 'none';
 		document.getElementById('content').style.display = 'block';
 		setTimeout(function() {
@@ -286,6 +296,7 @@ var keywordController = {
  		if (templateElements.keywordLabel) {
 		  templateElements.keywordLabel.innerHTML = this._rowData[rowIndex];
 		  templateElements.keywordDescription.innerHTML = descriptions[rowIndex];
+		  rowElement.style.backgroundColor = rowIndex % 2 ? row2 : row1;
 		}
 		
 		// Assign a click event handler for the row.
@@ -303,18 +314,15 @@ function updateCache()
 {
   console.log("updateCache: " + webappCache.status);
   if (webappCache.status != window.applicationCache.IDLE) {
-    //alert("swapCache()");
     webappCache.swapCache();
     console.log("Cache has been updated due to a change found in the manifest");
   } else {
-    //alert("update()");
     webappCache.update();
     console.log("Cache update requested");
   }
 }
 function errorCache()
 {
-  //alert("errorCache(): " + webappCache.status);
   console.log("errorCache: " + webappCache.status);
   console.log("You're either offline or something has gone horribly wrong.");
 }
@@ -326,12 +334,14 @@ function parseOptions(options) {
 	{
 	  console.log("GetCategories(1b): " + options); 
 	  document.getElementById("categoriesMenu").innerHTML = options;
+	  answerSpaceCategories = true;
 	}
       else
 	{
 	  console.log("GetCategories(1c): " + options); 
 	  document.getElementById("columnLayout1").style.display = 'none';
 	  document.getElementById("categoriesBox").style.display = 'none';
+	  answerSpaceCategories = false;
 	}
     }
   else
@@ -345,10 +355,13 @@ function parseOptions(options) {
 // Function: loaded()
 // Called by Window's load event when the web application is ready to start
 //
-function loaded()
+function loaded(row1String, row2String)
+//function loaded()
 {
     var timer = null;
     var requestActive = false;
+    row1 = row1String;
+    row2 = row2String;
 
     console.log("loaded(1): ");
     //document.getElementById('startUp').style.display = 'none';
@@ -412,7 +425,7 @@ function loaded()
 	    setAnswerSpaceItem("_currentCategory", currentCategory);
 	    setAnswerSpaceItem("_options", options);
 	    console.log("GetCategories(1e): " + currentCategory); 
-	    console.log("loaded(5aaa): ");    
+	    console.log("loaded(5aaa): ");
 	    keywordController.setRowData();
 	    console.log("loaded(5bbb): ");
 
@@ -432,74 +445,18 @@ function loaded()
 	  requestActive = false;
 	  console.log("Settng category menu"); 
 	  parseOptions(getAnswerSpaceItem("_options"));
-	  console.log("loaded(5aa): ");    
+	  console.log("loaded(5aa): ");
 	  keywordController.setRowData();
 	  console.log("loaded(5bb): ");
-
 	}
       },
       5000) ;
 
 
-    // Set the "bling' (banner image etc.)
-    httpBlingRequest = new XMLHttpRequest();
-    url = "../iPhoneUtil/GetBling.php?answerSpace=" + localStorage.getItem("_answerSpace");
-
-    httpBlingRequest.onreadystatechange = function(evt) {
-      /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
-      if (httpBlingRequest.readyState == 4 && (httpBlingRequest.status == 200 || httpBlingRequest.status == 500)) 
-      {
-        if (httpBlingRequest.status == 500)
-        {
-            alert("Error getting bling." + httpBlingRequest.responseText);
-        }
-        else
-        {
-            var blingData =  httpBlingRequest.responseText;
-            if (blingData != "ERROR")
-            {
-               var blingArray = blingData.split("|||");
-               var logoFileName = blingArray[0];
-	       console.log("logoFileName: " + logoFileName);
-               if (logoFileName)
-               {
-                 //document.getElementById('bannerImage').src = logoFileName;
-                 //document.getElementById('bannerImage').src = '../' + 'images/1/BlinkAnswerSpace1.jpg';
-               }
-               var welcomeMessage = blingArray[1];
-               if (welcomeMessage)
-               {
-                 document.getElementById('welcomeMsgArea').style.display = 'block';
-                 document.getElementById('welcomeMessage').innerHTML = welcomeMessage;
-               }
-               
-               var backgroundColor = blingArray[2];
-               if (backgroundColor)
-               {
-                 document.getElementById('keywordView').style.backgroundColor = backgroundColor;
-                 document.getElementById('helpView').style.backgroundColor = backgroundColor;
-                 document.getElementById('answerView').style.backgroundColor = backgroundColor;
-                 document.getElementById('keywordListView').style.backgroundColor = backgroundColor;
-               }
-               
-               var login = blingArray[7];
-               if (login)
-               {
-                 document.getElementById('loginBar').innerHTML = login;
-               }
-            }
-            else
-            {
-               alert("Error getting bling.");
-            }
-        }
-	dashcode.setupParts();
-	window.scrollTo(0, 1);
-      }
-    };
-    httpBlingRequest.open('GET', url, true);
-    httpBlingRequest.setRequestHeader("Cache-Control", "no-cache");
-    httpBlingRequest.send();
+    dashcode.setupParts();
+    if (answerSpaceOneKeyword) {
+      showKeywordView(1);
+    }
     window.scrollTo(0, 1);
 }
 
@@ -626,6 +583,8 @@ function showSecondLevelAnswerView(keyword, arg0)
 function showKeywordView(rowIndex) 
 {
     setSubmitCachedFormButton('pendingFormButton0');
+    document.getElementById('backButton').style.visibility = answerSpaceOneKeyword ? 'hidden' : 'visible';
+    document.getElementById('button').style.visibility = helpText[rowIndex] ? 'visible' : 'hidden';
     document.getElementById('activityIndicator0').style.visibility = 'hidden'
     //document.getElementById('keywordHeading2').innerHTML = keywords[rowIndex]; //***** Here ****
     document.getElementById('argsBox').innerHTML = keywordArgumentsHtml[rowIndex];
@@ -638,6 +597,10 @@ function showKeywordView(rowIndex)
 function goBackToKeywordListView(event)
 {
     //document.getElementById('list').object.setSelectionIndexes(new Array(keywords.length), true);
+    if (answerSpaceOneKeyword) {
+      showKeywordView(0);
+      return;
+    }
     var stackLayout = document.getElementById('stackLayout').object;
     setSubmitCachedFormButton('pendingFormButton0');
     setSubmitCachedFormButton('pendingFormButton2');
@@ -714,11 +677,7 @@ function showHelpView(event)
 {
     document.getElementById('keywordHeading3').innerHTML = keywords[currentKeywordNumber]; //**** Here ****
     
-    var helpContents = "Sorry, no help is available.";
-    if (helpText[currentKeywordNumber])
-    {
-        helpContents = helpContents;
-    }
+    var helpContents = helpText[currentKeywordNumber] ? helpText[currentKeywordNumber] : "Sorry, no help is available.";
     
     document.getElementById('helpBox').innerHTML = helpContents;
     

@@ -112,6 +112,16 @@ body {
     min-height: 700px;
 }
 
+#keywordVisualView {
+    width: 100%;
+    display: none;
+    position: relative;
+    border-color: rgb(76, 76, 76);
+    border-width: 0px;
+    height: auto;
+    min-height: 700px;
+}
+
 .keywordDescription_template {
     color: black;
     font-family: Helvetica;
