@@ -588,7 +588,12 @@ function showKeywordView(rowIndex)
     document.getElementById('activityIndicator0').style.visibility = 'hidden'
     //document.getElementById('keywordHeading2').innerHTML = keywords[rowIndex]; //***** Here ****
     document.getElementById('argsBox').innerHTML = keywordArgumentsHtml[rowIndex];
-    document.getElementById('descriptionTextBox').innerHTML = descriptions[rowIndex];
+    if (descriptions[rowIndex]) {
+      document.getElementById('descriptionTextBox').innerHTML = descriptions[rowIndex];
+      document.getElementById('descriptionBox').style.visibility = 'visible';
+    } else {
+      document.getElementById('descriptionBox').style.visibility = 'hidden';
+    }
     var stackLayout = document.getElementById('stackLayout').object;
     stackLayout.setCurrentView('keywordView', false, true);
     window.scrollTo(0, 1);
