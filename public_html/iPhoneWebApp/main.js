@@ -165,7 +165,7 @@ function parseKeywordData() {
       keywords[i-1] = keywordAttributes[0];
       descriptions[i-1] = keywordAttributes[1];
       helpText[i-1] = keywordAttributes[2];
-      keywordArgumentsHtml[i-1] = keywordAttributes[3];
+      keywordArgumentsHtml[i-1] = decodeURIComponent(keywordAttributes[3]);
     }
 }
 
