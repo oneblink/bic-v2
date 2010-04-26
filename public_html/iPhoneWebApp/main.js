@@ -162,9 +162,9 @@ function parseKeywordData() {
     {
       // keywordAttributes = keywordDataArray[i].split("###");
       keywordAttributes = decodeURIComponent(keywordDataArray[i]).split("&");
-      keywords[i-1] = keywordAttributes[0];
-      descriptions[i-1] = keywordAttributes[1];
-      helpText[i-1] = keywordAttributes[2];
+      keywords[i-1] = decodeURIComponent(keywordAttributes[0]);
+      descriptions[i-1] = decodeURIComponent(keywordAttributes[1]);
+      helpText[i-1] = decodeURIComponent(keywordAttributes[2]);
       keywordArgumentsHtml[i-1] = decodeURIComponent(keywordAttributes[3]);
     }
 }
