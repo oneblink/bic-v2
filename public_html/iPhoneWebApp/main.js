@@ -153,6 +153,7 @@ function parseKeywordData() {
   //var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("|||");
     var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("&");
   
+  console.log("-: " + getAnswerSpaceItem(currentCategory + "_rawKeywordData"));
   answerSpaceOneKeyword = keywordDataArray.length == 2;
   keywords = new Array(keywordDataArray.length - 1);
   descriptions = new Array(keywordDataArray.length - 1);
@@ -332,8 +333,31 @@ function parseOptions(options) {
     {
       if (options != "NO_CATEGORIES")
 	{
+	  var optionsComponents = options.split("&");
+	  answerSpaceCategories = true;
 	  console.log("GetCategories(1b): " + options); 
-	  document.getElementById("categoriesMenu").innerHTML = options;
+	  console.log("GetCategories(1ba): " + optionsComponents[0]); 
+	  console.log("GetCategories(1bb): " + optionsComponents[1]); 
+	  switch (optionsComponents[0]) {
+	  case "listview":
+	    document.getElementById("categoriesMenu").innerHTML = decodeURIComponent(optionsComponents[1]);
+	    break;
+
+	  case "visualview":
+	    console.log("GetCategories(1c): " + options); 
+	    document.getElementById("columnLayout1").style.display = 'none';
+	    document.getElementById("categoriesBox").style.display = 'none';
+	    answerSpaceCategories = false;
+	    ;
+	    break;
+
+	  default:
+	    options = '<option class="apple-hidden" value="Error">Error</option>';
+	    console.log("GetCategories(1ddd): " + options); 
+	    document.getElementById("categoriesMenu").innerHTML = options;
+	    answerSpaceCategories = false;
+	    break;
+	  }
 	  answerSpaceCategories = true;
 	}
       else
