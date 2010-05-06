@@ -639,68 +639,30 @@ function goBackToKeywordListView(event)
 
 function createParamsAndArgs(rowIndex)
 {
-//     var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keywords[rowIndex];
-//     var num = document.forms[0].elements.length;
-//     var str = '';
-//     console.log("createParamsAndArgs(0): num = " + num);
-//     for (var i=0; i<num; i++) {
-        
-//       if(document.forms[0].elements[i].name){
-       
-// 	//alert(document.forms[0].elements[i].type.toLowerCase());
-// 	if(document.forms[0].elements[i].type.toLowerCase()=="radio" && document.forms[0].elements[i].checked==false) {
-// 	  //alert(document.forms[0].elements[i].checked);
-// 	}
-//         else {
-           
-// 	  str += "&" + document.forms[0].elements[i].name + "=" + document.forms[0].elements[i].value;
-//         }
-      
-//       }
-        
-//     }
-//     console.log("createParamsAndArgs(1): " + str);
-//     returnValue  += str.substring(1);
-//     console.log("createParamsAndArgs(2): " + returnValue);
-//     return returnValue;
-    var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keywords[rowIndex];
-    
-    var quit = false;
-    var failures = 0;
-    var allowedFailues = 2;
-    var args = "";
-    var flag = 0;
-    var xx = document.getElementsByTagName("*");
-    //for (i = 0; i < xx.length; i++) {
-    //	console.log("Tag Name: " + xx[i]);
-    //}
-    for (var i = 0; !quit; i++)
+	// rewritten by Ron to "walk the DOM"
+   var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keywords[rowIndex];
+   var args = "";
+
+	// current structure is <div id="argsBox"><br><br><center>...</center></div>
+	var argElements = document.getElementById("argsBox").lastChild.childNodes;
+   for (i in argElements) {
+      if(argElements[i].name){
+         if(argElements[i].type && (argElements[i].type.toLowerCase()=="radio" || argElements[i].type.toLowerCase()=="checkbox") && argElements[i].checked==false) {
+            // do nothing for unchecked radio or checkbox
+         }else if(argElements[i].value){
+				// name is of the form "args[" + number + "]"
+				args += "&" + argElements[i].name + "=" + argElements[i].value;
+			}
+      }
+   }
+
+	 if (args)
     {
-       var inputElement = document.getElementById("arg" + i);
-       if (inputElement)
-       {
-         if (flag) 
-         {
-           args += '|||^^^|';
-         }
-         args += inputElement.value;
-         flag = 1;
-       }
-       else
-       {
-         failures++;
-         if(failures>allowedFailues) {
-            quit = true;
-         }
-       }       
-    }
-    
-    if (args)
-    {
-       returnValue += '&args=' + args;
+       returnValue += encodeURI(args);
     }
     return returnValue;
 }
+
 
 function showHelpView(event)
 {
