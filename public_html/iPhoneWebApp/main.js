@@ -880,19 +880,17 @@ function submitForm() {
    document.getElementById('activityIndicator2').style.visibility = 'visible';
    document.getElementById('activityIndicator1').style.visibility = 'visible';
    document.getElementById('activityIndicator0').style.visibility = 'visible';
-   var num = document.forms[0].elements.length;
    var str = '';
-   for (var i=0; i<num; i++) {
-        
-      if(document.forms[0].elements[i].name){
+   for (i in document.forms[0].elements) {
+      var thisElement = document.forms[0].elements[i];
+      if(thisElement.name){
        
        //alert(document.forms[0].elements[i].type.toLowerCase());
-         if(document.forms[0].elements[i].type.toLowerCase()=="radio" && document.forms[0].elements[i].checked==false) {
-            //alert(document.forms[0].elements[i].checked);
+         if(thisElement.type && (thisElement.type.toLowerCase()=="radio" || thisElement.type.toLowerCase()=="checkbox") && thisElement.checked==false) {
+            // do nothing for unchecked radio or checkbox
          }
         else {
-           
-           str += "&" + document.forms[0].elements[i].name + "=" + document.forms[0].elements[i].value;
+           str += "&" + thisElement.name + "=" + thisElement.value;
         }
       
       }
