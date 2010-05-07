@@ -6509,6 +6509,15 @@ var dashcodePartSpecs = {
 		"text" :"Back",
 		"view" :"DC.PushButton"
 	},
+	"backButton0" : {
+		"initialHeight" :30,
+		"initialWidth" :60,
+		"leftImageWidth" :16,
+		"onclick" :"showVisualCategoryView",
+		"rightImageWidth" :5,
+		"text" :"Back",
+		"view" :"DC.PushButton"
+	},
 	"backButton1" : {
 		"initialHeight" :30,
 		"initialWidth" :60,
@@ -6689,6 +6698,11 @@ var dashcodePartSpecs = {
 			"duration" :"",
 			"timing" :"ease-in-out",
 			"type" :"push"
+		}, {
+			"direction" :"right-left",
+			"duration" :"0.75",
+			"timing" :"linear",
+			"type" :"cube"
 		}, {
 			"direction" :"right-left",
 			"duration" :"0.75",

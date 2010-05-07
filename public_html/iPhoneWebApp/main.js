@@ -329,6 +329,7 @@ function errorCache()
 }
 
 function parseOptions(options) {
+  var result = "list";
   if (options != "ERROR")
     {
       if (options != "NO_CATEGORIES")
@@ -341,21 +342,26 @@ function parseOptions(options) {
 	  switch (optionsComponents[0]) {
 	  case "listview":
 	    document.getElementById("categoriesMenu").innerHTML = decodeURIComponent(optionsComponents[1]);
+	    document.getElementById("navBox0").style.visibility = 'hidden';
 	    break;
 
 	  case "visualview":
 	    console.log("GetCategories(1c): " + options); 
 	    document.getElementById("columnLayout1").style.display = 'none';
 	    document.getElementById("categoriesBox").style.display = 'none';
-	    answerSpaceCategories = false;
-	    ;
+	    document.getElementById("categoriesBox").style.visibility = 'hidden';
+	    document.getElementById("categoryVisualDisplay").innerHTML = decodeURIComponent(optionsComponents[1]);
+	    document.getElementById("categoryVisualDisplay").style.display = 'block';
+	    answerSpaceCategories = true;
+	    result = "visual";
 	    break;
 
 	  default:
 	    options = '<option class="apple-hidden" value="Error">Error</option>';
 	    console.log("GetCategories(1ddd): " + options); 
-	    document.getElementById("categoriesMenu").innerHTML = options;
+	    document.getElementById("categoriesMenu").innerHTML = decodeURIComponent(optionsComponents[1]);
 	    answerSpaceCategories = false;
+	    result = "list";
 	    break;
 	  }
 	  answerSpaceCategories = true;
@@ -374,6 +380,7 @@ function parseOptions(options) {
       console.log("GetCategories(1d): " + options); 
       document.getElementById("categoriesMenu").innerHTML = options;
     }
+  return result;
 }
  
 // Function: loaded()
@@ -440,19 +447,26 @@ function loaded(row1String, row2String)
         {
             var options =  httpCategoriesRequest.responseText;
 
-	    parseOptions(options);
-	    if (document.getElementById("columnLayout1").style.display != 'none') { 
-	      currentCategory = categoriesMenu.options[categoriesMenu.selectedIndex].value;
+	    if (parseOptions(options) == "visual") {
+	      document.getElementById('startUp').style.display = 'none';
+	      document.getElementById('content').style.display = 'block';
+	      setAnswerSpaceItem("_currentCategory", "");
+	      setAnswerSpaceItem("_options", options);
+	      document.getElementById('stackLayout').object.setCurrentView('categoryVisualView', false, true);
+	      window.scrollTo(0, 0);
 	    } else {
-	      currentCategory = "";
+	      if (document.getElementById("columnLayout1").style.display != 'none') { 
+		currentCategory = categoriesMenu.options[categoriesMenu.selectedIndex].value;
+	      } else {
+		currentCategory = "";
+	      }
+	      setAnswerSpaceItem("_currentCategory", currentCategory);
+	      setAnswerSpaceItem("_options", options);
+	      console.log("GetCategories(1e): " + currentCategory); 
+	      console.log("loaded(5aaa): ");
+	      keywordController.setRowData();
+	      console.log("loaded(5bbb): ");
 	    }
-	    setAnswerSpaceItem("_currentCategory", currentCategory);
-	    setAnswerSpaceItem("_options", options);
-	    console.log("GetCategories(1e): " + currentCategory); 
-	    console.log("loaded(5aaa): ");
-	    keywordController.setRowData();
-	    console.log("loaded(5bbb): ");
-
         }
       }
     };
@@ -468,10 +482,12 @@ function loaded(row1String, row2String)
 	if (requestActive) {
 	  requestActive = false;
 	  console.log("Settng category menu"); 
-	  parseOptions(getAnswerSpaceItem("_options"));
-	  console.log("loaded(5aa): ");
-	  keywordController.setRowData();
-	  console.log("loaded(5bb): ");
+	  if (parseOptions(getAnswerSpaceItem("_options")) == "visual") {
+	  } else {
+	    console.log("loaded(5aa): ");
+	    keywordController.setRowData();
+	    console.log("loaded(5bb): ");
+	  }
 	}
       },
       5000) ;
@@ -481,7 +497,10 @@ function loaded(row1String, row2String)
     if (answerSpaceOneKeyword) {
       showKeywordView(1);
     }
-    window.scrollTo(0, 1);
+    setTimeout(function() {
+	window.scrollTo(0, 1);
+      },
+      1000);
 }
 
 function getAnswer(event)
@@ -499,6 +518,20 @@ function dumpLocalStorage() {
   }
 }
 
+function showCategoryKeywords(selectedCategory) {
+  setAnswerSpaceItem("_currentCategory", selectedCategory);
+  keywordController.setRowData();
+
+  setSubmitCachedFormButton('pendingFormButton0');
+  setSubmitCachedFormButton('pendingFormButton2');
+  document.getElementById("navBox0").style.visibility = 'visible';
+  document.getElementById("activityIndicator0").style.visibility = 'hidden';
+  document.getElementById("navBox0").style.display = 'block';
+  document.getElementById("categoriesBox").style.display = 'none';
+  document.getElementById('stackLayout').object.setCurrentView('keywordListView', true, true);
+  window.scrollTo(0, 1);
+}
+
 function showAnswerView(rowIndex)
 {
     var timer;
@@ -512,7 +545,7 @@ function showAnswerView(rowIndex)
     var indicatorImage = document.getElementById('activityIndicator2');
     if (indicatorImage.style.visibility == 'hidden')
     {
-        indicatorImage.style.visibility = 'visible';
+      indicatorImage.style.visibility = 'visible';
     }
     document.getElementById('activityIndicator0').style.visibility = 'hidden';
     
@@ -532,6 +565,7 @@ function showAnswerView(rowIndex)
 	console.log("showAnswerView(1): " + html);
         document.getElementById('innerAnswerBox').innerHTML = html;
         document.getElementById('activityIndicator2').style.visibility = 'hidden';
+	document.getElementById('activityIndicator1').style.visibility = 'hidden';
 	document.getElementById('activityIndicator0').style.visibility = 'hidden';
 	setSubmitCachedFormButton('pendingFormButton2');
      }
@@ -560,14 +594,13 @@ function showAnswerView(rowIndex)
 
 function gotoNextScreen(rowIndex)
 {
-    if (!keywordArgumentsHtml[rowIndex])
-    {
-        showAnswerView(rowIndex);
-    }
-    else
-    {
-        showKeywordView(rowIndex);
-    }
+  if (!keywordArgumentsHtml[rowIndex]) {
+    console.log("nextScreen(1): " + rowIndex);
+    showAnswerView(rowIndex);
+  } else {
+    console.log("nextScreen(2): " + rowIndex);
+    showKeywordView(rowIndex);
+  }
 }
 
 function showSecondLevelAnswerView(keyword, arg0)
@@ -604,12 +637,19 @@ function showSecondLevelAnswerView(keyword, arg0)
     window.scrollTo(0, 1);
 }
 
+function showVisualCategoryView()
+{
+  document.getElementById('stackLayout').object.setCurrentView('categoryVisualView', false, true);
+}
+
 function showKeywordView(rowIndex) 
 {
     setSubmitCachedFormButton('pendingFormButton0');
     document.getElementById('backButton').style.visibility = answerSpaceOneKeyword ? 'hidden' : 'visible';
     document.getElementById('button').style.visibility = helpText[rowIndex] ? 'visible' : 'hidden';
-    document.getElementById('activityIndicator0').style.visibility = 'hidden'
+    document.getElementById('activityIndicator0').style.visibility = 'hidden';
+    document.getElementById('activityIndicator1').style.visibility = 'hidden';
+    document.getElementById('activityIndicator2').style.visibility = 'hidden';
     //document.getElementById('keywordHeading2').innerHTML = keywords[rowIndex]; //***** Here ****
     document.getElementById('argsBox').innerHTML = keywordArgumentsHtml[rowIndex];
     if (descriptions[rowIndex]) {
