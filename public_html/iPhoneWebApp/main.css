@@ -196,7 +196,7 @@ body {
     margin-top: 0px;
     background-color: rgb(255, 255, 255);
     opacity: 1;
-    min-height: 48px;
+    min-height: 10px;
     height: auto;
     margin-left: 0px;
     -webkit-margin-top-collapse: separate;
