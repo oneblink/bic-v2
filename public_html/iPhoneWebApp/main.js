@@ -699,6 +699,11 @@ function createParamsAndArgs(rowIndex)
 	 if (args)
     {
        returnValue += encodeURI(args);
+    } else {
+     var oneArgElement = document.getElementById("arg1");
+     if (oneArgElement) {
+       returnValue += "&" + encodeURI("args=" + oneArgElement.value);
+     }
     }
     return returnValue;
 }
