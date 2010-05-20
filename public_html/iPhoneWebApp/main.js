@@ -681,33 +681,53 @@ function createParamsAndArgs(rowIndex)
 {
 	// rewritten by Ron to "walk the DOM"
    var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keywords[rowIndex];
+	var argsBox = document.getElementById('argsBox');
    var args = "";
-
-	// current structure is <div id="argsBox"><br><br><center>...</center></div>
-	var argElements = document.getElementById("argsBox").lastChild.childNodes;
-   for (i in argElements) {
-      if(argElements[i].name){
-         if(argElements[i].type && (argElements[i].type.toLowerCase()=="radio" || argElements[i].type.toLowerCase()=="checkbox") && argElements[i].checked==false) {
-            // do nothing for unchecked radio or checkbox
-         }else if(argElements[i].value){
-				// name is of the form "args[" + number + "]"
-				args += "&" + argElements[i].name + "=" + argElements[i].value;
+	var argsArray = [];
+	var inputElements = argsBox.getElementsByTagName('input');
+	for (i in inputElements)
+	{
+		if (inputElements.item(i))
+		{
+			if(inputElements.item(i).type && (inputElements.item(i).type.toLowerCase()=="radio" || inputElements.item(i).type.toLowerCase()=="checkbox") && inputElements.item(i).checked==false)
+			{
 			}
-      }
-   }
-
+			else
+			{
+				argsArray[inputElements.item(i).id.match(/\d+/)[0]] = inputElements.item(i).value;
+			}
+		}
+	}
+	var inputElements = argsBox.getElementsByTagName('textarea');
+	for (i in inputElements)
+	{
+		if (inputElements.item(i))
+			argsArray[inputElements.item(i).id.match(/\d+/)[0]] = inputElements.item(i).value;
+	}
+	var inputElements = argsBox.getElementsByTagName('select');
+	for (i in inputElements)
+	{
+		if (inputElements.item(i))
+			argsArray[inputElements.item(i).id.match(/\d+/)[0]] = inputElements.item(i).value;
+	}
+	// next parse is necessary to trim out the missing numbers
+	// current format allows for arg0, arg1, arg3, arg5, etc
+	var argNum = 0
+	for (var i = 0; i < argsArray.length; i++)
+	{
+		if (argsArray[i])
+		{
+			args += "&args[" + argNum + "]=" + argsArray[i];
+			argNum++;
+		}
+	}
 	 if (args)
     {
        returnValue += encodeURI(args);
     } else {
-     var oneArgElement = document.getElementById("arg1");
-     if (oneArgElement) {
-       returnValue += "&" + encodeURI("args=" + oneArgElement.value);
-     }
     }
     return returnValue;
 }
-
 
 function showHelpView(event)
 {
