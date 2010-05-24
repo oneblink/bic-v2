@@ -683,29 +683,36 @@ function createParamsAndArgs(rowIndex)
    var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keywords[rowIndex];
    var args = "";
 
-	// current structure is <div id="argsBox"><br><br><center>...</center></div>
-	var argElements = document.getElementById("argsBox").lastChild.childNodes;
-   for (i in argElements) {
-      if(argElements[i].name){
-         if(argElements[i].type && (argElements[i].type.toLowerCase()=="radio" || argElements[i].type.toLowerCase()=="checkbox") && argElements[i].checked==false) {
-            // do nothing for unchecked radio or checkbox
-         }else if(argElements[i].value){
+	var argElements = $("#argsBox").find('input, select, textarea');
+	if (argElements.length == 1)
+	{
+		args += "&args=" + argElements[0].value;
+	}
+	else
+	{
+		for (i in argElements)
+		{
+			if(argElements[i].type && (argElements[i].type.toLowerCase()=="radio" || argElements[i].type.toLowerCase()=="checkbox") && argElements[i].checked==false)
+			{
+				// do nothing for unchecked radio or checkbox
+			}
+			else if (argElements[i].name && argElements[i].value)
+			{
 				// name is of the form "args[" + number + "]"
 				args += "&" + argElements[i].name + "=" + argElements[i].value;
 			}
-      }
-   }
-
-	 if (args)
-    {
-       returnValue += encodeURI(args);
-    } else {
-     var oneArgElement = document.getElementById("arg1");
-     if (oneArgElement) {
-       returnValue += "&" + encodeURI("args=" + oneArgElement.value);
-     }
-    }
-    return returnValue;
+			else if (argElements[i].id)
+			{
+				args += "&args[" + argElements[i].id.match(/\d+/g) + "]=" + argElements[1].value;
+			}
+		}
+	}
+	
+	if (args)
+	{
+		returnValue += encodeURI(args);
+	}
+	return returnValue;
 }
 
 
