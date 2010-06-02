@@ -205,15 +205,8 @@ function populateLeftBoxWithCategories()
 	 }
 	 else
 	 {
-		// text only categories in the sidebar
-		/* $('#leftContent').html('<ul id="categoriesList"></ul>');
-		$('#categoriesView > a').clone().appendTo('#categoriesList');
-		$('#categoriesList > a').find('img').each(function(index, element) {
-		  var categoryName = $(this).attr('title');
-		  $(this).replaceWith('<li title="' +  categoryName + '">' + categoryName + '</li>');
-		});
-	   $('#categoriesList li[title=' + currentCategory + ']').addClass('selected'); */
 		$('#leftContent').html(textonlyLeftList);
+		$('#leftContent li[title=' + currentCategory + ']').addClass('selected');
 	 }
   }
 }

@@ -182,7 +182,8 @@ function getKeywordList(category) {
   $('#mainLabel').html(category);
   currentCategory = category;
   setAnswerSpaceItem("_currentCategory", currentCategory);
-  $('#leftContent .selected').removeClass('selected');
+  //alert($('#leftContent .selected').attr('title'));
+  //$('#leftContent .selected').removeClass('selected');
   $('#leftContent li[title=' + category + ']').addClass('selected');
   
   var keywordsUrl = "util/GetKeywords.php";
@@ -269,12 +270,10 @@ function parseOptions(options) {
 	 switch (result) {
 		case 'masterview':
 		  $('#categoriesView').html(categoryContent);
-		  $('#categoriesView .selected').removeClass('selected');
 		  hasMasterCategories = true;
 		  break;
 		case "visualview":
 		  $('#categoriesView').html(categoryContent);
-		  $('#categoriesView .selected').removeClass('selected');
 		  hasVisualCategories = true;
 		  break;
 		case "listview":
