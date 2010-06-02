@@ -264,8 +264,8 @@ function parseOptions(options) {
 	 answerSpaceCategories = true;
 	 result = optionsComponents[0];
 	 leftListStyle = optionsComponents[2];
-	 textonlyLeftList = optionsComponents[3] ? decodeURIComponent(optionsComponents[3]) : "";
 	 var categoryContent = decodeURIComponent(optionsComponents[1]);
+	 textonlyLeftList = optionsComponents[3] ? decodeURIComponent(optionsComponents[3]) : categoryContent;
 	 console.log("parseOptions(): " + result + ", " + categoryContent + ", " + leftListStyle);
 	 switch (result) {
 		case 'masterview':

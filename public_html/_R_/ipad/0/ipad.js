@@ -206,8 +206,15 @@ function populateLeftBoxWithCategories()
 	 else
 	 {
 		$('#leftContent').html(textonlyLeftList);
+		$('#leftContent .selected').removeClass('selected');
 		$('#leftContent li[title=' + currentCategory + ']').addClass('selected');
 	 }
+  }
+  else
+  {
+	 $('#leftContent').html(textonlyLeftList);
+	 $('#leftContent .selected').removeClass('selected');
+	 $('#leftContent li[title=' + currentCategory + ']').addClass('selected');
   }
 }
 
