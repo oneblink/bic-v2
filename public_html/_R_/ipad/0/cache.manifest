@@ -1,0 +1,65 @@
+CACHE MANIFEST 
+# This is a comment. 
+# Cache manifest version 0.0.32
+# If you change the version number in this comment, 
+# the cache manifest is no longer byte-for-byte 
+# identical.
+
+index.php
+main.css
+main.js
+Math.uuid.js
+Images/ActivityIndicator.png
+Images/ActivityIndicatorWhite.png
+Images/BlinkAnswerSpace1.jpg
+Images/WebClipIcon.png
+Images/backgroundStripes.png
+Images/blink-logo.gif
+Images/blink-mydot-intro.jpg
+Images/blink-mydot-intro.png
+Images/chevron.png
+Images/chevron_white.png
+Images/selectedRowiPhone.png
+
+NETWORK: 
+# All URLs that start with the following lines 
+# are whitelisted. 
+http://131940.qld.gov.au/
+http://assets.finda.co.nz/
+http://belleproperty.com.au/
+http://datasearch3.uts.edu.au/
+http://db.auth.usyd.edu.au/
+http://elibcat.library.brisbane.qld.gov.au/
+http://harveynorman.com.au/
+http://hfgapps.hubb.com/
+http://media.hubonline.com.au/
+http://transactions.brisbane.qld.gov.au/
+http://weather.com.au/
+http://www.airnewzealand.co.nz/
+http://www.belleproperty.com.au/
+http://www.cometothecoast.com.au/
+http://www.harveynorman.com.au/
+http://www.houseandgarden.com.au/
+http://www.melbourneairport.com.au/
+http://www.mthotham.com.au/
+http://www.odms.net.au/
+http://www.ourbrisbane.com/
+http://www.rta.nsw.gov.au/
+http://www.setpoint.com.au/
+http://www.sydneytheatre.com.au/
+http://www.tsc.nsw.edu.au/
+http://www.visitcentralcoast.com.au/
+http://www.weather.com.au/
+http://www.crust.com.au/
+/iPhoneUtil/
+../login/
+/images/
+
+CACHE: 
+# Additional items to cache. 
+#/images/1047/MarrickvilleIPHONELOGO.png
+
+#FALLBACK: 
+#demoimages/ 
+#images/
+#Images/
