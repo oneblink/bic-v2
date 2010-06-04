@@ -39,6 +39,7 @@ body {
 .bordered {
 	 border: 1px solid #B7B7BC;
     background-color: white;
+    -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
 }
 
@@ -57,7 +58,8 @@ body {
 	 min-height: 100%;
 	 width: 250px;
 	 z-index: 5;
-	 -webkit-user-select: none;
+	 -o-transition: -o-transform 0.4s ease;
+	 -moz-transition: -moz-transform 0.4s ease;
 	 -webkit-transition: -webkit-transform 0.4s ease;
 	 background-color: #E3E4EA;
 }
@@ -67,6 +69,8 @@ body {
 }
 
 #leftBox.leftShown {
+	 -o-transform: translateX(99%);
+	 -moz-transform: translateX(99%);
 	 -webkit-transform: translateX(99%);
 	 border-right: 1px solid black;
 }
@@ -77,6 +81,8 @@ body {
 }
 
 #rightBox.leftShown {
+	 -o-transform: translateX(-99%);
+	 -moz-transform: translateX(-99%);
 	 -webkit-transform: translateX(-99%);
 	 border-left: 1px solid black;
 }
@@ -113,6 +119,8 @@ body {
 	 position: relative;
 	 top: 0;
 	 right: 0;
+	 -o-transition: margin 0.4s ease;
+	 -moz-transition: margin 0.4s ease;
 	 -webkit-transition: margin 0.4s ease;
 }
 
@@ -127,7 +135,6 @@ body {
 .navBar {
 	 position: relative;
 	 width: 100%;
-	 -webkit-user-select: none;
 	 color: #73777F;
 	 font-size: large;
 	 font-weight: bolder;
@@ -259,16 +266,22 @@ body {
 	 display: none;
 	 background: none;
     margin: 30px;
+	 -o-transition: -o-transform 0.3s ease;
+	 -moz-transition: -moz-transform 0.3s ease;
 	 -webkit-transition: -webkit-transform 0.3s ease;
 }
 
 .view.slidingLeft {
 	 position: absolute;
+	 -o-transform: translateX(-105%);
+	 -moz-transform: translateX(-105%);
 	 -webkit-transform: translateX(-105%);
 }
 
 .view.slidingRight {
 	 position: absolute;
+	 -o-transform: translateX(105%);
+	 -moz-transform: translateX(105%);
 	 -webkit-transform: translateX(105%);
 }
 

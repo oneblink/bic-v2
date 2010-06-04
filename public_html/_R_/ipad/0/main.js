@@ -3,7 +3,6 @@ var descriptions = ["Please wait..."];
 var keywordAttributes = null;
 var helpText = null;
 var keywordArgumentsHtml = null;
-var categories = null;
 var currentCategory = "";
 var currentKeywordNumber = 0;
 var httpAnswerRequest = false;
@@ -11,9 +10,9 @@ var httpBlingRequest = false;
 var disconnectedDataStore = new Array();
 var row1;
 var row2;
-var answerSpaceCategories = true;
 var answerSpaceOneKeyword = false;
 
+var hasCategories = false;
 var hasMasterCategories = false;
 var hasVisualCategories = false;
 
@@ -39,8 +38,11 @@ console.log("main(1): ");
 
 console.log("main(2): ");
 //window.addEventListener("load", loaded, false);
-webappCache.addEventListener("updateready", updateCache, false);
-webappCache.addEventListener("error", errorCache, false);
+if (webappCache)
+{
+  webappCache.addEventListener("updateready", updateCache, false);
+  webappCache.addEventListener("error", errorCache, false);
+}
 
 try {
     if (!window.openDatabase) {
@@ -82,27 +84,30 @@ try {
 //
 // Reload disconnected mode data store from database
 //
-db.transaction(
-	       function (transaction) {
-		 transaction.executeSql("SELECT answerparm, answerParmValue FROM answerSpaceData;",
-					[],
-					function (transaction, resultSet) {
-					  var i;
-					  if (resultSet.rows.length > 0) {
-					    for (i = 0; i < resultSet.rows.length; i++) {
-					      disconnectedDataStore[resultSet.rows.item(i)['answerParm']] = resultSet.rows.item(i)['answerParmValue']; 
-					    }
-					    return true;
-					  } else {
-					    return false;
+if (db && db.transaction)
+{
+  db.transaction(
+				function (transaction) {
+			transaction.executeSql("SELECT answerparm, answerParmValue FROM answerSpaceData;",
+					  [],
+					  function (transaction, resultSet) {
+						 var i;
+						 if (resultSet.rows.length > 0) {
+							for (i = 0; i < resultSet.rows.length; i++) {
+							  disconnectedDataStore[resultSet.rows.item(i)['answerParm']] = resultSet.rows.item(i)['answerParmValue']; 
+							}
+							return true;
+						 } else {
+							return false;
+						 }
+					  }, 
+					  function (transaction, error) {
+						 alert('Database transaction error(3):  ' + error.message + ' (Code ' + error.code +')');
+						 return false;
 					  }
-					}, 
-					function (transaction, error) {
-					  alert('Database transaction error(3):  ' + error.message + ' (Code ' + error.code +')');
-					  return false;
-					}
-					);
-	       });
+					  );
+				});
+}
 
 dumpLocalStorage();
 
@@ -112,21 +117,24 @@ function setAnswerSpaceItem(key, value) {
   //
   // Persist data across application restarts
   //
-  db.transaction(
-     function (transaction) {
-       transaction.executeSql('INSERT INTO answerSpaceData (answerParm, answerParmValue) VALUES ( ?, ? );',
-			      [key, value],
-			      function (transaction, resultSet) {
-				if (!resultSet.rowsAffected) {
-				  alert("REPLACE no rows affected");
-				}
-			      }, 
-			      function (transaction, error) {
-				alert('Database transaction error(2):  ' + error.message + ' (Code ' + error.code +')');
-				return true;
-			      }
-			      );
-     });
+  if (db && db.transaction)
+  {
+	 db.transaction(
+		 function (transaction) {
+			transaction.executeSql('INSERT INTO answerSpaceData (answerParm, answerParmValue) VALUES ( ?, ? );',
+					  [key, value],
+					  function (transaction, resultSet) {
+				  if (!resultSet.rowsAffected) {
+					 alert("REPLACE no rows affected");
+				  }
+					  }, 
+					  function (transaction, error) {
+				  alert('Database transaction error(2):  ' + error.message + ' (Code ' + error.code +')');
+				  return true;
+					  }
+					  );
+		 });
+  }
 }
 
 function getAnswerSpaceItem(key) {
@@ -179,12 +187,17 @@ function getKeywordList(category) {
 	 console.log("Network not connected(1)...");
   }
 
-  $('#mainLabel').html(category);
-  currentCategory = category;
-  setAnswerSpaceItem("_currentCategory", currentCategory);
-  //alert($('#leftContent .selected').attr('title'));
-  //$('#leftContent .selected').removeClass('selected');
-  $('#leftContent li[title=' + category + ']').addClass('selected');
+  if (category.toUpperCase() == 'ALL')
+  {
+	 $('#mainLabel').html('All Keywords');
+  }
+  else
+  {
+	 $('#mainLabel').html(category);
+	 currentCategory = category;
+	 setAnswerSpaceItem("_currentCategory", currentCategory);
+	 $('#leftContent li[title=' + category + ']').addClass('selected');
+  }
   
   var keywordsUrl = "util/GetKeywords.php";
   var requestData = "answerSpace=" + localStorage.getItem("_answerSpace");
@@ -257,16 +270,16 @@ function errorCache()
 }
 
 function parseOptions(options) {
+  console.log("parseOptions(): " + options); 
   var result = "listview";
   if (options != "ERROR" && options != "NO_CATEGORIES")
   {
+	 hasCategories = true;
 	 var optionsComponents = options.split("&");
-	 answerSpaceCategories = true;
 	 result = optionsComponents[0];
 	 leftListStyle = optionsComponents[2];
 	 var categoryContent = decodeURIComponent(optionsComponents[1]);
 	 textonlyLeftList = optionsComponents[3] ? decodeURIComponent(optionsComponents[3]) : categoryContent;
-	 console.log("parseOptions(): " + result + ", " + categoryContent + ", " + leftListStyle);
 	 switch (result) {
 		case 'masterview':
 		  $('#categoriesView').html(categoryContent);
@@ -283,14 +296,10 @@ function parseOptions(options) {
 		  setAnswerSpaceItem("_currentCategory", currentCategory);
 		  break;
 	 }
-	 answerSpaceCategories = true;
   }
-  else // is "ERRORS"
+  else
   {
-	 options = '<option class="apple-hidden" value="Error">Error</option>';
-	 console.log("GetCategories(1d): " + options); 
-	 $("#leftContent").html(options);
-	 answerSpaceCategories = false;
+	 result = options;
   }
   setAnswerSpaceItem("_options", options);
   return result;
@@ -308,26 +317,29 @@ function loaded(row1String, row2String)
 
   console.log("loaded(1): ");
 
-  switch(webappCache.status)
+  if (webappCache)
   {
-	 case 0:
-		console.log("Cache status: Uncached");
-		break;
-	 case 1:
-		console.log("Cache status: Idle");
-		break;
-	 case 2:
-		console.log("Cache status: Checking");
-		break;
-	 case 3:
-		console.log("Cache status: Downloading");
-		break;
-	 case 4:
-		console.log("Cache status: Updateready");
-		break;
-	 case 5:
-		console.log("Cache status: Obsolete");
-		break;
+	 switch(webappCache.status)
+	 {
+		case 0:
+		  console.log("Cache status: Uncached");
+		  break;
+		case 1:
+		  console.log("Cache status: Idle");
+		  break;
+		case 2:
+		  console.log("Cache status: Checking");
+		  break;
+		case 3:
+		  console.log("Cache status: Downloading");
+		  break;
+		case 4:
+		  console.log("Cache status: Updateready");
+		  break;
+		case 5:
+		  console.log("Cache status: Obsolete");
+		  break;
+	 }
   }
 
   console.log("loaded(4a): ");
@@ -421,11 +433,9 @@ function getCategories(masterCategory)
 			 switch(categoriesType)
 			 {
 				case 'masterview':
-				  hasMasterCategories = true;
 				  showMasterCategoriesView();
 				  break;
 				case 'visualview':
-				  hasVisualCategories = true;
 				  showCategoriesView();
 				  break;
 				case 'listview':
@@ -434,6 +444,8 @@ function getCategories(masterCategory)
 				  console.log("GetCategories using: " + currentCategory);
 				  getKeywordList(currentCategory);
 				  break;
+				case 'NO_CATEGORIES':
+				  getKeywordList('ALL');
 			 }
 			 if ($('#startUp:visible'))
 			 {
@@ -604,7 +616,6 @@ function showKeywordView(rowIndex)
 function showKeywordListView()
 {
   prepareKeywordListViewForDevice();
-  $('#mainLabel').html(currentCategory);
   setCurrentView('keywordListView', false);
 }
 
@@ -612,25 +623,29 @@ function goBackToKeywordListView(event)
 {
   console.log('goBackToKeywordListView()');
   if (answerSpaceOneKeyword) {
-	 console.log('goBackToKeywordListView(): only 1 keyword');
 	 showKeywordView(0);
 	 return;
   }
   if (hasMasterCategories && currentMasterCategory == '')
   {
-	 console.log('goBackToKeywordListView(): no master category selected');
 	 goBackToMasterCategoriesView();
 	 return
   }
   if (hasVisualCategories && currentCategory == '')
   {
-	 console.log('goBackToKeywordListView(): no category selected');
 	 goBackToCategoriesView(hasMasterCategories ? currentCategory : '');
 	 return;
   }
   prepareKeywordListViewForDevice();
   setSubmitCachedFormButton('pendingFormButton');
-  $('#mainLabel').html(currentCategory);
+  if (hasCategories)
+  {
+	 $('#mainLabel').html(currentCategory);
+  }
+  else
+  {
+	 $('#mainLabel').html('All Keywords');
+  }
   setCurrentView('keywordListView', true);
 }
 

@@ -59,8 +59,16 @@ function prepareKeywordListViewForDevice()
   {
 	 $('#backButtonHeader').css('display', 'none');
   }
-  populateLeftBoxWithCategories();
-  showLeftBox();
+  if (hasCategories)
+  {
+	 populateLeftBoxWithCategories();
+	 showLeftBox();
+  }
+  else if (hasMasterCategories)
+  {
+	 populateLeftBoxWithMasterCategories();
+	 showLeftBox();
+  }
   $('#helpButton').css('display', 'none');
   $('#pendingFormButton').css('display', 'none');
 }
@@ -192,23 +200,14 @@ function populateLeftBoxWithMasterCategories()
 
 function populateLeftBoxWithCategories()
 {
-  if (hasVisualCategories)
+  console.log('populateLeftBoxWithCategories()');
+  $('#leftLabel').html('Categories');
+  if (hasVisualCategories && leftListStyle == 'auto')
   {
-	 console.log('populateLeftBoxWithCategories()');
-	 $('#leftLabel').html('Categories');
-	 if (leftListStyle == 'auto')
-	 {
-		// visual categories in the sidebar
-		$('#leftContent').empty();
-		$('#categoriesView').children().clone().appendTo('#leftContent');
-		$('#leftContent img').removeAttr('style');
-	 }
-	 else
-	 {
-		$('#leftContent').html(textonlyLeftList);
-		$('#leftContent .selected').removeClass('selected');
-		$('#leftContent li[title=' + currentCategory + ']').addClass('selected');
-	 }
+	 // visual categories in the sidebar
+	 $('#leftContent').empty();
+	 $('#categoriesView').children().clone().appendTo('#leftContent');
+	 $('#leftContent img').removeAttr('style');
   }
   else
   {
