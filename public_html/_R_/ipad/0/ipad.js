@@ -263,11 +263,11 @@ function setupParts()
   console.log('setupParts()');
   $(".backButton, .roundButton, .squareButton").unbind('mousedown');
   $(".backButton, .roundButton, .squareButton").mousedown(function(event) {
-	 $(this).addClass("clicked");
+		$(this).addClass("clicked");
   });
   $(".backButton, .roundButton, .squareButton").unbind('mouseup');
   $(".backButton, .roundButton, .squareButton").mouseup(function(event) {
-	 $(this).removeClass("clicked");
+		$(this).removeClass("clicked");
   });
 }
 
@@ -275,13 +275,13 @@ function setupForms()
 {
   // strip our formatting produced by scrape.php for css
   $("form").find("input, textarea").each(function(index, element) {
-	 if ($(this).attr('style'))
-	 {
+	if ($(this).attr('style'))
+	{
 		$(this).attr('style', $(this).attr('style').replace('width:180px;', ''));
 		$(this).attr('style', $(this).attr('style').replace('height:70px;', ''));
-	 }
+	}
   });
-    // make textareas just a little larger than default
+	// make textareas just a little larger than default
   $("form").find("input, textarea").attr('rows', '3');
   // theme the submit button
   $('form input[type=button]').addClass('roundButton');

@@ -154,7 +154,7 @@ function parseKeywordData() {
     var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("&");
   
   console.log("-: " + getAnswerSpaceItem(currentCategory + "_rawKeywordData"));
-  answerSpaceOneKeyword = keywordDataArray.length == 2;
+  answerSpaceOneKeyword = keywordDataArray.length == 2 && !answerSpaceCategories;
   keywords = new Array(keywordDataArray.length - 1);
   descriptions = new Array(keywordDataArray.length - 1);
   helpText = new Array(keywordDataArray.length - 1);
