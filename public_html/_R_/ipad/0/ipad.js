@@ -37,7 +37,7 @@ function prepareCategoriesViewForDevice()
   $('#pendingFormButton').css('display', 'none');
 }
 
-function prepareKeywordListViewForDevice()
+function prepareKeywordListViewForDevice(category)
 {
   console.log('prepareKeywordListViewForDevice()');
   $('#backButtonHeader').unbind('click');
@@ -61,13 +61,13 @@ function prepareKeywordListViewForDevice()
   }
   if (hasCategories)
   {
-	 populateLeftBoxWithCategories();
-	 showLeftBox();
+		populateLeftBoxWithCategories(currentMasterCategory);
+		showLeftBox();
   }
   else if (hasMasterCategories)
   {
-	 populateLeftBoxWithMasterCategories();
-	 showLeftBox();
+		populateLeftBoxWithMasterCategories();
+		showLeftBox();
   }
   $('#helpButton').css('display', 'none');
   $('#pendingFormButton').css('display', 'none');
@@ -91,7 +91,7 @@ function prepareAnswerViewForDevice()
   $('#backButtonHeader').unbind('click');
   $('#backButtonHeader').css('display', 'block');
   $('#backButtonHeader').click(function(event) {
-	 goBackToKeywordListView();
+	 goBackToKeywordListView(currentCategory);
   });
   $('#helpButton').css('display', 'none');
   $('#pendingFormButton').css('display', 'block');
@@ -150,77 +150,32 @@ function startInProgressAnimation()
   $('#activityIndicator').css('display', 'block');
 }
 
-function showLeftBox()
+function populateTextOnlyCategories(masterCategory)
 {
-  if (!$('#leftBox').hasClass('leftShown'))
-  {
-	 console.log('showLeftBox()');
-	 $('#stackLayout').addClass('leftShown');
-	 $('#leftBox').addClass('leftShown');
-  }
-}
-
-function hideLeftBox()
-{
-  if ($('#leftBox').hasClass('leftShown'))
-  {
-	 console.log('hideLeftBox()');
-	 $('#stackLayout').removeClass('leftShown');
-	 $('#leftBox').removeClass('leftShown');
-  }
-}
-
-function showRightBox(heading)
-{
-  console.log('showRightBox(heading)');
-  $('#rightLabel').html(heading);
-  $('#stackLayout').addClass('rightShown');
-  $('#rightBox').addClass('rightShown');
-}
-
-function hideRightBox()
-{
-  console.log('hideRightBox()');
-  $('#leftBox').hide('fast');
-  $('#stackLayout').removeClass('rightShown');
-  $('#rightBox').removeClass('rightShown');
-}
-
-function populateLeftBoxWithMasterCategories()
-{
-  if (hasMasterCategories)
-  {
-	 console.log('populateLeftBoxWithMasterCategories()');
-	 $('#leftLabel').html('Master Categories');
-	 $('#leftContent').empty();
-	 $('#masterCategoriesView').children().clone().appendTo('#leftContent');
-	 $('#leftContent img').removeAttr('style');
-  }
-}
-
-function populateLeftBoxWithCategories()
-{
-  console.log('populateLeftBoxWithCategories()');
-  $('#leftLabel').html('Categories');
-  if (hasVisualCategories && leftListStyle == 'auto')
-  {
-	 // visual categories in the sidebar
-	 $('#leftContent').empty();
-	 $('#categoriesView').children().clone().appendTo('#leftContent');
-	 $('#leftContent img').removeAttr('style');
-  }
-  else
-  {
-	 $('#leftContent').html(textonlyLeftList);
-	 $('#leftContent .selected').removeClass('selected');
-	 $('#leftContent li[title=' + currentCategory + ']').addClass('selected');
-  }
+	console.log('populateTextOnlyCategories(): ' + masterCategory);
+	$('#leftLabel').html(hasMasterCategories? siteConfig.master_categories[masterCategory].name : 'Categories');
+	var leftContent = $('#leftContent');
+	leftContent.empty();
+	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
+	var list = siteConfig.categories;
+	var html = "<ul id='categoriesList'>"
+	for (id in order)
+	{
+		html += "<a href=\"javascript:showKeywordListView('" + order[id] + "')\">";
+		html += "<li id='leftcategory" + order[id] + "'>" + list[order[id]].name + "</li>";
+		html += "</a>";
+	}
+	html += "</ul>";
+	leftContent.append(html);
+	currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
+	$('#leftcategory' + currentCategory).addClass('selected');
 }
 
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
-  $('.view').width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 60);
+	$('.view').width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 60);
+	$('#categoriesView,#masterCategoriesView').width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 80);
   var entranceDirection = (reverseTransition ? 'slidingLeft' : 'slidingRight');
   var exitDirection = (reverseTransition ? 'slidingRight' : 'slidingLeft');
   var startPosition = (reverseTransition ? 'slidLeft' : 'slidRight');
@@ -285,4 +240,175 @@ function setupForms()
   $("form").find("input, textarea").attr('rows', '3');
   // theme the submit button
   $('form input[type=button]').addClass('roundButton');
+}
+
+/*
+ ABOVE: all methods need implementation per device (directly called from main.js)
+ BELOW: methods assisting the above methods (NOT directly called from main.js)
+*/
+
+function showLeftBox()
+{
+  if (!$('#leftBox').hasClass('leftShown'))
+  {
+	 console.log('showLeftBox()');
+	 $('#stackLayout').addClass('leftShown');
+	 $('#leftBox').addClass('leftShown');
+  }
+}
+
+function hideLeftBox()
+{
+  if ($('#leftBox').hasClass('leftShown'))
+  {
+	 console.log('hideLeftBox()');
+	 $('#stackLayout').removeClass('leftShown');
+	 $('#leftBox').removeClass('leftShown');
+  }
+}
+
+function showRightBox(heading)
+{
+  console.log('showRightBox(heading)');
+  $('#rightLabel').html(heading);
+  $('#stackLayout').addClass('rightShown');
+  $('#rightBox').addClass('rightShown');
+}
+
+function hideRightBox()
+{
+  console.log('hideRightBox()');
+  $('#leftBox').hide('fast');
+  $('#stackLayout').removeClass('rightShown');
+  $('#rightBox').removeClass('rightShown');
+}
+
+function populateLeftBoxWithMasterCategories()
+{
+	console.log('populateLeftBoxWithMasterCategories()');
+	var leftContent = $('#leftContent');
+	var alreadyDone = $('#leftLabel').html() == 'Master Categories';
+	if (alreadyDone)
+	{
+		leftContent.find('.selected').removeClass('selected');
+		var selected = $('#leftmaster' + currentMasterCategory);
+		selected.addClass('selected');
+		selected.addClass('animating hidden');
+		setTimeout(function() {
+			$('#leftmaster' + currentMasterCategory).removeClass('hidden');
+		}, 0.2 * 1000);
+		setTimeout(function() {
+			$('#leftmaster' + currentMasterCategory).removeClass('animating');
+		}, 0.4 * 1000);
+	}
+	else
+	{
+		var order = siteConfig.master_categories_order;
+		var list = siteConfig.master_categories;
+		if (textOnlyLeftList)
+		{
+			leftContent.empty();
+			var html = "<ul>"
+			for (id in order)
+			{
+				html += "<a href=\"javascript:showCategoriesView('" + order[id] + "')\">";
+				html += "<li id='leftmaster" + order[id] + "'>" + list[order[id]].name + "</li>";
+				html += "</a>";
+			}
+			html += "</ul>";
+			leftContent.append(html);
+		}
+		else
+		{
+			hideLeftBoxContents(function() {
+				leftContent.hide();
+				var html = "";
+				for (id in order)
+				{
+					html += "<a href=\"javascript:showCategoriesView('" + order[id] + "')\">";
+					html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" id=\"leftmaster" + order[id] + "\" />";
+					html += "</a>";
+				}
+				leftContent.append(html);
+				leftContent.find('img').removeAttr('style');
+				showLeftBoxContents();
+			});
+		}
+		leftContent.find('.selected').removeClass('selected');
+		$('#leftmaster' + currentMasterCategory).addClass('selected');
+	}
+	$('#leftLabel').html('Master Categories');
+}
+
+function populateLeftBoxWithCategories(masterCategory)
+{
+	console.log('populateLeftBoxWithCategories()');
+	var leftContent = $('#leftContent');
+	var alreadyDone = $('#leftLabel').html() == (hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
+	if (alreadyDone)
+	{
+		leftContent.find('.selected').removeClass('selected');
+		var selected = $('#leftcategory' + currentCategory);
+		selected.addClass('selected');
+		selected.addClass('animating hidden');
+		setTimeout(function() {
+			$('#leftcategory' + currentCategory).removeClass('hidden');
+		}, 0.2 * 1000);
+		setTimeout(function() {
+			$('#leftcategory' + currentCategory).removeClass('animating');
+		}, 0.4 * 1000);
+	}
+	else
+	{
+		if (textOnlyLeftList)
+		{
+			populateTextOnlyCategories(masterCategory);
+		}
+		else
+		{
+			hideLeftBoxContents(function() {
+				leftContent.hide();
+				var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
+				var list = siteConfig.categories;
+				var html = "";
+				for (id in order)
+				{
+					html += "<a href=\"javascript:showKeywordListView('" + order[id] + "')\">";
+					html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" id=\"leftcategory" + order[id] + "\" />";
+					html += "</a>";
+				}
+				leftContent.append(html);
+				leftContent.find('img').removeAttr('style');
+				showLeftBoxContents();
+			});
+		}
+		leftContent.find('.selected').removeClass('selected');
+		$('#leftcategory' + currentCategory).addClass('selected');
+	}
+	$('#leftLabel').html(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
+}
+
+function hideLeftBoxContents(callback)
+{
+	var contents = $('#leftContent img');
+	contents.addClass('animating');
+	contents.addClass('hidden');
+	setTimeout(function() {
+		$('#leftContent').empty();
+		callback();
+	}, 0.2 * 1000);
+}
+
+function showLeftBoxContents(callback)
+{
+	var images = $('#leftContent img');
+	var leftContent = $('#leftContent');
+	images.addClass('hidden');
+	leftContent.show();
+	images.addClass('animating');
+	images.show();
+	images.removeClass('hidden');
+	setTimeout(function() {
+		images.removeClass('animating');
+	}, 0.2 * 1000);
 }

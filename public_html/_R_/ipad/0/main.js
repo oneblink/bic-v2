@@ -1,8 +1,3 @@
-var keywords = ["Loading..."];
-var descriptions = ["Please wait..."];
-var keywordAttributes = null;
-var helpText = null;
-var keywordArgumentsHtml = null;
 var currentCategory = "";
 var currentKeywordNumber = 0;
 var httpAnswerRequest = false;
@@ -16,11 +11,10 @@ var hasCategories = false;
 var hasMasterCategories = false;
 var hasVisualCategories = false;
 
-var masterCategories = null;
 var currentMasterCategory = "";
+var textOnlyLeftList = false;
 
-var leftListStyle = null;
-var textonlyLeftList = "";
+var siteConfig;
 
 var webappCache = window.applicationCache;
 
@@ -160,96 +154,95 @@ function removeAnswerSpaceItem(key) {
   delete disconnectedDataStore[key];
 }
  
-function parseKeywordData() {
-  console.log("currentCategory(1): " + currentCategory + " _currentCategory: " + getAnswerSpaceItem("_currentCategory"));
-  if (!getAnswerSpaceItem(currentCategory + "_rawKeywordData"))
-    return;
-  var keywordDataArray = getAnswerSpaceItem(currentCategory + "_rawKeywordData").split("&");
-  
-  console.log("-: " + getAnswerSpaceItem(currentCategory + "_rawKeywordData"));
-  answerSpaceOneKeyword = keywordDataArray.length == 2;
-  keywords = new Array(keywordDataArray.length - 1);
-  descriptions = new Array(keywordDataArray.length - 1);
-  helpText = new Array(keywordDataArray.length - 1);
-  keywordArgumentsHtml = new Array(keywordDataArray.length - 1);
-  for (var i = 1; i < keywordDataArray.length; i++) 
+// produce the HTML for the list and insert it into #keywordList
+function populateKeywordList(category) {
+	var keywordList = $('#keywordList');
+  keywordList.empty();
+	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order;
+	var list = siteConfig.keywords;
+	for (id in order)
   {
-	 keywordAttributes = decodeURIComponent(keywordDataArray[i]).split("&");
-	 keywords[i-1] = decodeURIComponent(keywordAttributes[0]);
-	 descriptions[i-1] = decodeURIComponent(keywordAttributes[1]);
-	 helpText[i-1] = decodeURIComponent(keywordAttributes[2]);
-	 keywordArgumentsHtml[i-1] = decodeURIComponent(keywordAttributes[3]);
+		var html = "<a href=\"javascript:gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
+		html += "<div class='keywordLabel'>" + list[order[id]].name + "</div>";
+		html += "<div class='nextArrow'></div>";
+		html += "<div class='keywordDescription'>" + list[order[id]].description + "</div>";
+		html += "</li></a>";
+		keywordList.append(html);
   }
 }
 
-function getKeywordList(category) {
-  if (!navigator.onLine) {
-	 console.log("Network not connected(1)...");
-  }
-
-  if (category.toUpperCase() == 'ALL')
-  {
-	 $('#mainLabel').html('All Keywords');
-  }
-  else
-  {
-	 $('#mainLabel').html(category);
-	 currentCategory = category;
-	 setAnswerSpaceItem("_currentCategory", currentCategory);
-	 $('#leftContent li[title=' + category + ']').addClass('selected');
-  }
-  
-  var keywordsUrl = "util/GetKeywords.php";
-  var requestData = "answerSpace=" + localStorage.getItem("_answerSpace");
-  requestData += "&category=" + encodeURIComponent(category);
-  console.log("GetKeywords transaction: " + keywordsUrl + "?" + requestData);
-  $.ajax({
-	 type: 'GET',
-	 cache: "false",
-	 url: keywordsUrl,
-	 data: requestData,
-	 success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		if (data && data != "ERROR")
+// produce XHTML for the master categories view
+function populateMasterCategories()
+{
+	var masterCategoriesView = $('#masterCategoriesView');
+	masterCategoriesView.empty();
+	var order = siteConfig.master_categories_order;
+	var list = siteConfig.master_categories;
+	for (id in order)
+	{
+		var categoryHTML = ""
+		categoryHTML += "<a href=\"javascript:showCategoriesView('" + order[id] + "')\">";
+		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" title=\"" + order[id] + "\" />";
+		categoryHTML += "</a>";
+		masterCategoriesView.append(categoryHTML);
+	}
+	if (siteConfig.master_categories_config != 'auto')
+	{
+		var width;
+		switch (siteConfig.master_categories_config)
 		{
-		  setAnswerSpaceItem(currentCategory + "_rawKeywordData", data);
+			case "1col":
+				width = "90%";
+				break;
+			case "2col":
+				width = "40%";
+				break;
+			case "3col":
+				width = "30%";
+				break;
+			case "4col":
+				width = "20%";
+				break;
 		}
-		else
-		{
-		  keywords = ['Empty category'];
-		  descriptions = ["No available keywords in this category"];
-		}
-	 },
-	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		keywords = ["Network Unreachable"];
-		descriptions = ["Please retry when you are in network coverage"];
-	 },
-	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		console.log("GetKeywords transaction complete: " + textstatus);
-		parseKeywordData();
-		if (answerSpaceOneKeyword) {
-		  showKeywordView(0);
-		} else {
-		  populateKeywordList();
-		  showKeywordListView();
-		}
-	 },
-	 timeout: 5 * 1000 // 5 seconds
-  });
+		masterCategoriesView.find('img').width(width); 
+	}
 }
-	
-  // produce the HTML for the list and insert it into the document element with id listID
-function populateKeywordList() {
-  $('#keywordList').empty();
-  for (r in keywords)
-  {
-	 var rowHTML = "<a href=\"javascript:gotoNextScreen(" + r + ")\"><li id='listrow" + r + "'>";
-	 rowHTML += "<div id='listrow" + r + "label' class='keywordLabel'>" + keywords[r] + "</div>";
-	 rowHTML += "<div class='nextArrow'></div>";
-	 rowHTML += "<div id='listrow" + r + "desc' class='keywordDescription'>" + descriptions[r] + "</div>";
-	 rowHTML += "</li></a>";
-	 $('#keywordList').append(rowHTML);
-	 $("#listrow" + r).css("background-color", r % 2 ? row2 : row1);
-  }
+
+// produce XHTML for the visual categories view
+function populateVisualCategories(masterCategory)
+{
+	var categoriesView = $('#categoriesView');
+	categoriesView.empty();
+	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
+	var list = siteConfig.categories;
+	for (id in order)
+	{
+		var html = ""
+		html += "<a href=\"javascript:showKeywordListView('" + order[id] + "')\">";
+		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" title=\"" + order[id] + "\" />";
+		html += "</a>";
+		categoriesView.append(html);
+	}
+	if (siteConfig.categories_config != 'auto')
+	{
+		var width;
+		switch (siteConfig.categories_config)
+		{
+			case "1col":
+				width = "90%";
+				break;
+			case "2col":
+				width = "40%";
+				break;
+			case "3col":
+				width = "30%";
+				break;
+			case "4col":
+				width = "20%";
+				break;
+		}
+		categoriesView.find('a > img').width(width);
+	}
 }
 
 function updateCache()
@@ -267,42 +260,6 @@ function errorCache()
 {
   console.log("errorCache: " + webappCache.status);
   console.log("You're either offline or something has gone horribly wrong.");
-}
-
-function parseOptions(options) {
-  console.log("parseOptions(): " + options); 
-  var result = "listview";
-  if (options != "ERROR" && options != "NO_CATEGORIES")
-  {
-	 hasCategories = true;
-	 var optionsComponents = options.split("&");
-	 result = optionsComponents[0];
-	 leftListStyle = optionsComponents[2];
-	 var categoryContent = decodeURIComponent(optionsComponents[1]);
-	 textonlyLeftList = optionsComponents[3] ? decodeURIComponent(optionsComponents[3]) : categoryContent;
-	 switch (result) {
-		case 'masterview':
-		  $('#categoriesView').html(categoryContent);
-		  hasMasterCategories = true;
-		  break;
-		case "visualview":
-		  $('#categoriesView').html(categoryContent);
-		  hasVisualCategories = true;
-		  break;
-		case "listview":
-		  $('#leftContent').html(categoryContent);
-		  $('#leftLabel').html('Categories');
-		  currentCategory = $('#leftContent .selected').attr('title');
-		  setAnswerSpaceItem("_currentCategory", currentCategory);
-		  break;
-	 }
-  }
-  else
-  {
-	 result = options;
-  }
-  setAnswerSpaceItem("_options", options);
-  return result;
 }
  
 // Function: loaded()
@@ -352,7 +309,7 @@ function loaded(row1String, row2String)
   if (answerSpaceOneKeyword) {
 	 showKeywordView(0);
   }
-  getCategories();
+  getSiteConfig();
 }
 
 // called from body element when device is rotated
@@ -396,67 +353,61 @@ function updateOrientation()
   }
 }
 
-function getCategories(masterCategory)
+function getSiteConfig()
 {
-  startInProgressAnimation();
-  var categoriesUrl = "util/GetCategories.php"
-  var requestData = "answerSpace=" + localStorage.getItem("_answerSpace");
-  if (hasMasterCategories && masterCategory)
-  {
-	 requestData += "&master_category=" + masterCategory;
-  }
-  console.log("GetCategories transaction: " + categoriesUrl + "?" + requestData);
-  $.ajax({
-	 type: 'GET',
-	 cache: "false",
-	 url: categoriesUrl,
-	 data: requestData,
-	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		if (textstatus == "timeout")
-		{
-		  console.log("GetCategories timed out: " + textstatus); 
-		  parseOptions(getAnswerSpaceItem("_options"));
-		}
-	 },
-	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-	   console.log("GetCategories transaction complete: " + textstatus);
-		stopInProgressAnimation();
-		if (xmlhttprequest.status == 200 || xmlhttprequest == 500)
-		{
-		  if (httpAnswerRequest.status == 500)
-		  {
-			 console.log("GetCategories detected internal error in GetAnswer");
-		  }
-		  else
-		  {
-			 var categoriesType = parseOptions(xmlhttprequest.responseText);
-			 switch(categoriesType)
-			 {
-				case 'masterview':
-				  showMasterCategoriesView();
-				  break;
-				case 'visualview':
-				  showCategoriesView();
-				  break;
-				case 'listview':
-				  currentCategory = $('#leftContent .selected').attr('title');
-				  setAnswerSpaceItem("_currentCategory", currentCategory);
-				  console.log("GetCategories using: " + currentCategory);
-				  getKeywordList(currentCategory);
-				  break;
-				case 'NO_CATEGORIES':
-				  getKeywordList('ALL');
-			 }
-			 if ($('#startUp:visible'))
-			 {
+	startInProgressAnimation();
+	var categoriesUrl = "util/GetSiteConfig.php?answerSpace=" + localStorage.getItem("_answerSpace");
+	console.log("GetSiteConfig transaction: " + categoriesUrl);
+	$.getJSON(categoriesUrl,
+		function(data, textstatus) { // readystate == 4
+			console.log("GetSiteConfig transaction complete: " + textstatus);
+			console.log(data);
+			if (textstatus != 'success') return;
+			stopInProgressAnimation();
+			switch (data[0])
+			{
+				case "ERROR":
+					alert(data[1]);
+					return;
+					break;
+				case "NO_UPDATES":
+					return;
+					break;
+				default:
+					siteConfig = data;
+					hasMasterCategories = siteConfig.master_categories_config != 'no';
+					hasVisualCategories = siteConfig.categories_config != 'yes';
+					hasCategories = siteConfig.categories_config != 'no';
+					textOnlyLeftList = siteConfig.categories_list === 'textonly';
+					break;
+			}
+			if ($('#startUp:visible'))
+			{
+				if (hasMasterCategories)
+				{
+					populateMasterCategories();
+					showMasterCategoriesView();
+				}
+				else if (hasVisualCategories)
+				{
+					populateVisualCategories(currentMasterCategory);
+					showCategoriesView();
+				}
+				else if (hasCategories)
+				{
+					populateTextOnlyCategories();
+					populateKeywordList(siteConfig.default_category);
+					showKeywordListView();
+				}
+				else
+				{
+					populateKeywordList();
+					showKeywordListView();
+				}
 				$('#startUp').hide();
 				$('#content').show();
-			 }
-		  }
-		}
-	 },
-	 timeout: 5 * 1000 // 5 seconds
-  });
+			}
+		});
 }
 
 function showMasterCategoriesView()
@@ -478,16 +429,27 @@ function goBackToMasterCategoriesView()
 function showCategoriesView(masterCategory)
 {
   console.log('showCategoriesView(): ' + masterCategory);
+	currentMasterCategory = masterCategory;
   prepareCategoriesViewForDevice();
-  $("#mainLabel").html(hasMasterCategories ? currentMasterCategory : 'Categories');
-  setCurrentView('categoriesView', false);
+	if (hasVisualCategories)
+	{
+		$("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
+		populateVisualCategories(masterCategory);
+		setCurrentView('categoriesView', false);
+	}
+	else
+	{
+		populateTextOnlyCategories(masterCategory);
+		populateKeywordList(siteConfig.default_category);
+		showKeywordListView();
+	}
 }
 
 function goBackToCategoriesView()
 {
   console.log('goBackToCategoriesView()');
   prepareCategoriesViewForDevice();
-  $("#mainLabel").html(hasMasterCategories ? currentMasterCategory : 'Categories');
+  $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
   setCurrentView('categoriesView', true);
 }
 
@@ -506,13 +468,14 @@ function dumpLocalStorage() {
   }
 }
 
-function showAnswerView(rowIndex)
+function showAnswerView(keywordID)
 {
   prepareAnswerViewForDevice();
-  currentKeywordNumber = rowIndex;
+  currentKeywordNumber = keywordID;
+	var keyword = siteConfig.keywords[keywordID];
   
   var answerUrl = 'util/GetAnswer.php';
-  var requestData = createParamsAndArgs(rowIndex);
+  var requestData = createParamsAndArgs(keywordID);
   $.ajax({
 	 type: 'GET',
 	 url: answerUrl,
@@ -523,7 +486,7 @@ function showAnswerView(rowIndex)
 		startInProgressAnimation();
 		setSubmitCachedFormButton('pendingFormButton');
 		$('#innerAnswerBox').html("Waiting...");
-		$('#mainLabel').html(keywords[rowIndex]);
+		$('#mainLabel').html(keyword.name);
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
 		console.log("GetAnswer failed with error type: " + textstatus);
@@ -538,7 +501,7 @@ function showAnswerView(rowIndex)
 		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		{
 		  var html =  httpAnswerRequest.responseText;
-		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex, html);
+		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
 		  $('#innerAnswerBox').html(html);
 		  setSubmitCachedFormButton('pendingFormButton');
 		}
@@ -551,16 +514,16 @@ function showAnswerView(rowIndex)
   });
 }
 
-function gotoNextScreen(rowIndex)
+function gotoNextScreen(keywordID)
 {
-  console.log("gotoNextScreen(" + rowIndex + ")");
-  if (!keywordArgumentsHtml[rowIndex])
+  console.log("gotoNextScreen(" + keywordID + ")");
+  if (siteConfig.keywords[keywordID].input_config)
   {
-	 showAnswerView(rowIndex);
+		showKeywordView(keywordID);
   }
   else
   {
-	 showKeywordView(rowIndex);
+		showAnswerView(keywordID);
   }
 }
 
@@ -598,25 +561,58 @@ function showSecondLevelAnswerView(keyword, arg0)
   setCurrentView('answerView2', false, true);   
 }
 
-function showKeywordView(rowIndex) 
+function showKeywordView(keywordID) 
 {
-  currentKeywordNumber = rowIndex;
-  prepareKeywordViewForDevice(answerSpaceOneKeyword, helpText[rowIndex]);
+	var keyword = siteConfig.keywords[keywordID];
+  currentKeywordNumber = keywordID;
+  prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help);
   setSubmitCachedFormButton('pendingFormButton');
-  $('#argsBox').html(keywordArgumentsHtml[rowIndex]);
-  if (descriptions[rowIndex]) {
-	 $('#descriptionTextBox').html(descriptions[rowIndex]);
-	 $('#descriptionBox').css("visibility", "visible");
+  $('#argsBox').html(keyword.input_config);
+  if (keyword.description) {
+	 $('#descriptionTextBox').html(keyword.description);
+	 $('#descriptionBox').show();
   } else {
-	 $('#descriptionBox').css("visibility", "hidden");
+	 $('#descriptionBox').hide();
   }
   setCurrentView('keywordView', false, true);
 }
 
-function showKeywordListView()
+function showKeywordListView(category)
 {
-  prepareKeywordListViewForDevice();
+	currentCategory = category;
+	var mainLabel;
+	if (hasCategories && category)
+	{
+		mainLabel = siteConfig.categories[category].name;
+	}
+	else if (hasMasterCategories && currentMasterCategory)
+	{
+		mainLabel = siteConfig.master_categories[currentMasterCategory].name;
+	}
+	else
+	{
+		mainLabel = "Keywords";
+	}
+	$('#mainLabel').html(mainLabel);
+  prepareKeywordListViewForDevice(category);
+	populateKeywordList(category);
   setCurrentView('keywordListView', false);
+}
+
+function goBackToHome()
+{
+	if (hasMasterCategories)
+	{
+		goBackToMasterCategoriesView();
+	}
+	else if (hasVisualCategories)
+	{
+		goBackToCategoriesView();
+	}
+	else
+	{
+		goBackToKeywordListView();
+	}
 }
 
 function goBackToKeywordListView(event)
@@ -638,20 +634,13 @@ function goBackToKeywordListView(event)
   }
   prepareKeywordListViewForDevice();
   setSubmitCachedFormButton('pendingFormButton');
-  if (hasCategories)
-  {
-	 $('#mainLabel').html(currentCategory);
-  }
-  else
-  {
-	 $('#mainLabel').html('All Keywords');
-  }
+	$('#mainLabel').html(hasCategories ? siteConfig.categories[currentCategory].name : 'All Keywords');
   setCurrentView('keywordListView', true);
 }
 
-function createParamsAndArgs(rowIndex)
+function createParamsAndArgs(keywordID)
 {
-  var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keywords[rowIndex];
+  var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
   var args = "";
   var argElements = $('#argsBox').find('input, textarea, select');
   argElements.each(function(index, element) {
@@ -712,26 +701,26 @@ function showLoginView(event)
   $('#mainHeading').html("Login");
   var loginUrl = '../../../login/index_iphone.php'
   $.ajax({
-	 type: 'GET',
-	 cache: "false",
-	 url: loginUrl,
-	 beforeSend: function(xmlhttprequest) {
-		console.log("iPhoneLogin transaction: " + loginUrl);
-		httpBlingRequest = xmlhttprequest;
-	 },
-	 success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-	   console.log("iPhoneLogin transaction successful");
-		$('#loginBox').html(data);
-		setCurrentView('loginView', false, true); 
-	 },
-	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		console.log("iPhoneLogin failed with error type: " + textstatus);
-		alert("Error getting bling." + xmlhttprequest.responseText);
-	 },
-	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		console.log("iPhoneLogin transaction complete: " + textstatus);
-	 }
-	 // timeout: 20 * 1000
+		type: 'GET',
+		cache: "false",
+		url: loginUrl,
+		beforeSend: function(xmlhttprequest) {
+			console.log("iPhoneLogin transaction: " + loginUrl);
+			httpBlingRequest = xmlhttprequest;
+		},
+		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
+			console.log("iPhoneLogin transaction successful");
+			$('#loginBox').html(data);
+			setCurrentView('loginView', false, true); 
+		},
+		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
+			console.log("iPhoneLogin failed with error type: " + textstatus);
+			alert("Error getting bling." + xmlhttprequest.responseText);
+		},
+		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+			console.log("iPhoneLogin transaction complete: " + textstatus);
+		}
+		// timeout: 20 * 1000
   });
     //****
     // Todo: Timout GET in case network goes away and display appropriate alert box

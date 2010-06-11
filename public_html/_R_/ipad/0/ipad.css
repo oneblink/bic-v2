@@ -38,17 +38,23 @@ body {
 
 .bordered {
 	border: 1px solid #B7B7BC;
-	background-color: white;
+	background-color: #FFF;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 }
 
-#categoriesView {
+#masterCategoriesView, #categoriesView {
 	line-height: 0px;
 	padding: 10px
 }
 
+#masterCategoriesView > a > img {
+	display: inline-block;
+	padding: 5px;
+}
+
 #categoriesView > a > img {
+	display: inline-block;
 	padding: 5px;
 }
 
@@ -115,6 +121,20 @@ body {
 	text-shadow: 0px -1px 1px #1D2863;
 }
 
+#leftContent > a > img.animating {
+	-o-transition: opacity 0.2s ease;
+	-moz-transition: opacity 0.2s ease;
+	-webkit-transition: -webkit-transform 0.2s ease;
+}
+
+#leftContent > a > img.hidden {
+	-webkit-transform: translateX(-100%);
+}
+
+#leftContent > a > img.selected {
+	-webkit-border-left-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6)) 10 10 10 10 repeat repeat;
+}
+
 #stackLayout {
 	position: relative;
 	top: 0;
@@ -138,7 +158,7 @@ body {
 	color: #73777F;
 	font-size: large;
 	font-weight: bolder;
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFFFFF), to(#AAAAB8));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFF), to(#AAAAB8));
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
 	height: 41px;
@@ -375,10 +395,7 @@ body {
 }
 
 .answerBox {
-	border: 1px solid #B7B7BC;
-	background-color: white;
 	padding: 10px;
-	-webkit-border-radius: 10px;
 	position: relative;
 	min-height: 50px;
 	height: auto;

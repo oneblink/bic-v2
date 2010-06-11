@@ -32,6 +32,7 @@ header {
 	float: left;
 	overflow: hidden;
 	width: 100%;
+	background-color: #FFF;
 }
 
 header img {
@@ -205,9 +206,6 @@ header img {
 }
 
 #descriptionBox {
-	border: 1px solid #B7B7BC;
-	background-color: white;
-	-webkit-border-radius: 10px;
 	position: relative;
 	margin: 0px;
 	margin-bottom: 30px;
