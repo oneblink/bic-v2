@@ -64,9 +64,9 @@ body {
 	min-height: 100%;
 	width: 250px;
 	z-index: 5;
-	-o-transition: -o-transform 0.4s ease;
-	-moz-transition: -moz-transform 0.4s ease;
-	-webkit-transition: -webkit-transform 0.4s ease;
+	-o-transition: -o-transform 0.4s linear;
+	-moz-transition: -moz-transform 0.4s linear;
+	-webkit-transition: -webkit-transform 0.4s linear;
 	background-color: #E3E4EA;
 }
 
@@ -139,9 +139,9 @@ body {
 	position: relative;
 	top: 0;
 	right: 0;
-	-o-transition: margin 0.4s ease;
-	-moz-transition: margin 0.4s ease;
-	-webkit-transition: margin 0.4s ease;
+	-o-transition: margin 0.4s linear;
+	-moz-transition: margin 0.4s linear;
+	-webkit-transition: margin 0.4s linear;
 }
 
 #stackLayout.leftShown {
@@ -210,7 +210,7 @@ body {
 	white-space: nowrap;
 	height: 30px;
 	width: 68px;
-	background-image: url("./Images/squareButton_clicked_mid.png");
+	background-image: url("./Images/squareButton_mid.png");
 	background-repeat: repeat-x;
 	-webkit-background-clip: padding-box;
 	-webkit-background-origin: padding-box;
@@ -219,11 +219,6 @@ body {
 	-webkit-border-image: url("./Images/squareButton.png") 0 5 0 5 repeat stretch;
 	margin: 5px;
 	z-index: 2;
-}
-
-.squareButton.clicked {
-	background-image: url("./Images/squareButton_clicked_mid.png");
-	-webkit-border-image: url("./Images/squareButton_clicked.png") 0 5 0 5 repeat stretch;
 }
 
 .roundButton {
@@ -245,11 +240,6 @@ body {
 	-webkit-border-image: url("./Images/roundButton.png") 0 15 0 15 repeat stretch;
 	margin: 5px;
 	z-index: 2;
-}
-
-.roundButton.clicked {
-	background-image: url("./Images/roundButton_clicked_mid.png");
-	-webkit-border-image: url("./Images/roundButton_clicked.png") 0 15 0 15 repeat stretch;
 }
 
 .roundButton[disabled] {
@@ -275,11 +265,6 @@ body {
 	-webkit-border-image: url("./Images/backButton.png") 0 5 0 16 repeat stretch;
 	margin: 5px;
 	z-index: 2;
-}
-
-.backButton.clicked {
-	background-image: url("./Images/backButton_clicked_mid.png");
-	-webkit-border-image: url("./Images/backButton_clicked.png") 0 5 0 16 repeat stretch;
 }
 
 .view {
@@ -311,6 +296,10 @@ body {
 
 .view.slidRight {
 	right: -105%;
+}
+
+#keywordVisualView {
+	margin-bottom: 30px;
 }
 
 #keywordList a:link { color: inherit; text-decoration: none; }

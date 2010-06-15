@@ -65,16 +65,6 @@ header img {
 	width: auto;
 }
 
-#keywordVisualView {
-	width: 100%;
-	display: none;
-	position: relative;
-	border-color: rgb(76, 76, 76);
-	border-width: 0px;
-	height: auto;
-	min-height: 700px;
-}
-
 .navLeft { /* position a button on the left of the parent nav bar */
 	float:left;
 }
@@ -245,10 +235,11 @@ header img {
 	color: white;
 }
 
-input[type="textbox"],textarea {
-	font-size: small;
-}
-
 hr {
 	margin: 15px 0px;
+}
+
+#keywordVisualView > a > img {
+	display: inline-block;
+	padding: 10px;
 }

@@ -174,13 +174,13 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
-	$('.view').width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 60);
-	$('#categoriesView,#masterCategoriesView').width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 80);
   var entranceDirection = (reverseTransition ? 'slidingLeft' : 'slidingRight');
   var exitDirection = (reverseTransition ? 'slidingRight' : 'slidingLeft');
   var startPosition = (reverseTransition ? 'slidLeft' : 'slidRight');
   var currentView = '#' + $('.view:visible').attr('id');
   var newView = '#' + view;
+	$(newView).width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 60);
+	$('#categoriesView,#masterCategoriesView').width($(window).width() - ($('#leftBox').hasClass('leftShown') ? $('#leftBox').width() - 1 : 0) - 80);
   if ($(currentView).size() == 0)
   {
 	 $(newView).show();
@@ -209,37 +209,7 @@ function setCurrentView(view, reverseTransition)
 		$(newView).removeClass(startPosition + ' ' + entranceDirection);
 	 }, 0.3 * 1000);
   }
-  $(".clicked").removeClass("clicked");
   window.scrollTo(0, 0);
-}
-
-function setupParts()
-{
-  console.log('setupParts()');
-  $(".backButton, .roundButton, .squareButton").unbind('mousedown');
-  $(".backButton, .roundButton, .squareButton").mousedown(function(event) {
-		$(this).addClass("clicked");
-  });
-  $(".backButton, .roundButton, .squareButton").unbind('mouseup');
-  $(".backButton, .roundButton, .squareButton").mouseup(function(event) {
-		$(this).removeClass("clicked");
-  });
-}
-
-function setupForms()
-{
-  // strip our formatting produced by scrape.php for css
-  $("form").find("input, textarea").each(function(index, element) {
-	if ($(this).attr('style'))
-	{
-		$(this).attr('style', $(this).attr('style').replace('width:180px;', ''));
-		$(this).attr('style', $(this).attr('style').replace('height:70px;', ''));
-	}
-  });
-	// make textareas just a little larger than default
-  $("form").find("input, textarea").attr('rows', '3');
-  // theme the submit button
-  $('form input[type=button]').addClass('roundButton');
 }
 
 /*

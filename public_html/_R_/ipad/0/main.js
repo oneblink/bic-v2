@@ -158,17 +158,62 @@ function removeAnswerSpaceItem(key) {
 function populateKeywordList(category) {
 	var keywordList = $('#keywordList');
   keywordList.empty();
+	var keywordVisualView = $('#keywordVisualView');
+  keywordVisualView.empty();
+	var width;
+	switch (siteConfig.keywords_config)
+	{
+		case "1col":
+			width = "90%";
+			break;
+		case "2col":
+			width = "40%";
+			break;
+		case "3col":
+			width = "30%";
+			break;
+		case "4col":
+			width = "20%";
+			break;
+	}
 	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order;
 	var list = siteConfig.keywords;
 	for (id in order)
   {
-		var html = "<a href=\"javascript:gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
-		html += "<div class='keywordLabel'>" + list[order[id]].name + "</div>";
-		html += "<div class='nextArrow'></div>";
-		html += "<div class='keywordDescription'>" + list[order[id]].description + "</div>";
-		html += "</li></a>";
-		keywordList.append(html);
+		if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
+		{
+			var html = "<a href=\"javascript:gotoNextScreen('" + order[id] + "')\">";
+			html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
+			html += "</a>";
+			keywordVisualView.append(html);
+		}
+		else
+		{
+			var html = "<a href=\"javascript:gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
+			html += "<div class='keywordLabel'>" + list[order[id]].name + "</div>";
+			html += "<div class='nextArrow'></div>";
+			html += "<div class='keywordDescription'>" + list[order[id]].description + "</div>";
+			html += "</li></a>";
+			keywordList.append(html);
+		}
   }
+	if (keywordVisualView.children().size() > 0)
+	{
+		keywordVisualView.find('img').width(width); 
+		keywordVisualView.show();
+	}
+	else
+	{
+		keywordVisualView.hide();
+	}
+	if (keywordList.children().size() > 0)
+	{
+		keywordList.show();
+	}
+	else
+	{
+		keywordList.hide();
+	}
 }
 
 // produce XHTML for the master categories view
@@ -376,9 +421,10 @@ function getSiteConfig()
 				default:
 					siteConfig = data;
 					hasMasterCategories = siteConfig.master_categories_config != 'no';
-					hasVisualCategories = siteConfig.categories_config != 'yes';
+					hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
 					hasCategories = siteConfig.categories_config != 'no';
 					textOnlyLeftList = siteConfig.categories_list === 'textonly';
+					answerSpaceOneKeyword = siteConfig.keywords.length == 1;
 					break;
 			}
 			if ($('#startUp:visible'))
@@ -506,8 +552,7 @@ function showAnswerView(keywordID)
 		  setSubmitCachedFormButton('pendingFormButton');
 		}
 		stopInProgressAnimation();
-		setupForms();
-		setupParts();
+		prepareAnswerViewForDevice();
 	   setCurrentView("answerView", false, true);
 	 },
 	 timeout: 30 * 1000 // 30 seconds
@@ -532,7 +577,7 @@ function showSecondLevelAnswerView(keyword, arg0)
   prepareSecondLevelAnswerViewForDevice();
   
   var answerUrl = 'util/GetAnswer.php'
-  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + '&args=' + arg0.replace(/&/g, "|^^|s|");
+  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&args=' + arg0.replace(/&/g, "|^^|s|");
   $.ajax({
 	 type: 'GET',
 	 url: answerUrl,
@@ -634,7 +679,7 @@ function goBackToKeywordListView(event)
   }
   prepareKeywordListViewForDevice();
   setSubmitCachedFormButton('pendingFormButton');
-	$('#mainLabel').html(hasCategories ? siteConfig.categories[currentCategory].name : 'All Keywords');
+	$('#mainLabel').html(hasCategories ? siteConfig.categories[currentCategory].name : 'Keywords');
   setCurrentView('keywordListView', true);
 }
 
@@ -788,7 +833,6 @@ function submitLogin()
 		console.log("iPhoneLogin transaction complete: " + textstatus);
 		stopInProgressAnimation();
       updateLoginBar();
-      refreshKeywords();
 	 }
   });
 }
@@ -816,24 +860,13 @@ function submitLogout()
 	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
 		console.log("iPhoneLogin transaction complete: " + textstatus);
       updateLoginBar();
-      refreshKeywords();
 	 }
   });
 }
 
-
-function refreshKeywords(event)
-{
-    console.log("currentCategory(4): " + currentCategory);
-    currentCategory = $('#leftContent .selected').first().attr('title');
-    setAnswerSpaceItem("_currentCategory", currentCategory);
-    console.log("currentCategory(5): " + currentCategory);
-    //keywordController.setRowData();
-    console.log("currentCategory(6): " + currentCategory);
-}
-
 function goBackToTopLevelAnswerView(event)
 {
+	prepareAnswerViewForDevice();
   console.log('goBackToTopLevelAnswerView()');
   setCurrentView('answerView', true, true);
 }
@@ -1051,6 +1084,7 @@ function submitFormWithRetry() {
 			 delHeadPendingFormData();
 			 $('#innerAnswerBox').html(httpAnswerRequest.responseText);
 			 setSubmitCachedFormButton('pendingFormButton');
+			 prepareAnswerViewForDevice();
 			 setCurrentView('answerView', false, true);
 		  }
 		  stopInProgressAnimation();
@@ -1073,6 +1107,7 @@ function submitFormWithRetry() {
 		  $('#innerAnswerBox').html(httpAnswerRequest.responseText);
 		  stopInProgressAnimation();
 		  setSubmitCachedFormButton('pendingFormButton');
+			prepareAnswerViewForDevice();
 		  setCurrentView('answerView', false, true);
 		},
 		timeout: 60 * 1000 // 60 seconds
