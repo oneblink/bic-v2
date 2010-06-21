@@ -243,3 +243,12 @@ hr {
 	display: inline-block;
 	padding: 10px;
 }
+
+.invalidInput {
+	border: 5px solid red;
+}
+
+.formError {
+	font-size: smaller;
+	color: red;
+}
