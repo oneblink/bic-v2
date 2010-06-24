@@ -190,10 +190,10 @@ body {
 	height: 32px;
 	display: none;
 	opacity: 0.6;
-	-webkit-animation-name: spinner;
+	/*-webkit-animation-name: spinner;
 	-webkit-animation-duration: 1s;
 	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: linear;
+	-webkit-animation-timing-function: linear; */
 	background-image: url("Images/ActivityIndicator.png");
 	background-repeat: no-repeat;
 	-webkit-background-size: 100% 100%;
@@ -243,23 +243,28 @@ body {
 	display: none;
 	background: none;
 	margin: 30px;
-	-o-transition: -o-transform 0.3s ease;
-	-moz-transition: -moz-transform 0.3s ease;
-	-webkit-transition: -webkit-transform 0.3s ease;
+/*	-o-transition: -o-transform 0.3s linear;
+	-moz-transition: -moz-transform 0.3s linear;
+	-webkit-transition: -webkit-transform 0.3s linear; */
+	-o-transition: left,right 0.3s linear;
+	-moz-transition: left,right 0.3s linear;
+	-webkit-transition: left,right 0.3s linear;
 }
 
 .view.slidingLeft {
 	position: absolute;
-	-o-transform: translateX(-105%);
+	left:-105%;
+	/* -o-transform: translateX(-105%);
 	-moz-transform: translateX(-105%);
-	-webkit-transform: translateX(-105%);
+	-webkit-transform: translateX(-105%); */
 }
 
 .view.slidingRight {
 	position: absolute;
-	-o-transform: translateX(105%);
+	right:-105%;
+	/* -o-transform: translateX(105%);
 	-moz-transform: translateX(105%);
-	-webkit-transform: translateX(105%);
+	-webkit-transform: translateX(105%); */
 }
 
 .view.slidLeft {
