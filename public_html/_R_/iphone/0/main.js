@@ -16,6 +16,7 @@ var currentMasterCategory = "";
 var textOnlyLeftList = false;
 
 var siteConfig;
+var siteConfigHash;
 
 var webappCache = window.applicationCache;
 

@@ -194,6 +194,11 @@ body {
 	-webkit-animation-duration: 1s;
 	-webkit-animation-iteration-count: infinite;
 	-webkit-animation-timing-function: linear; */
+	-webkit-animation-name: pulse;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: ease-in-out;
 	background-image: url("Images/ActivityIndicator.png");
 	background-repeat: no-repeat;
 	-webkit-background-size: 100% 100%;
@@ -393,6 +398,15 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	width: 90%;
 	border: 1px solid #AAAAAA;
 	-webkit-border-radius: 5px;
+}
+
+@-webkit-keyframes pulse {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 @-webkit-keyframes spinner {
