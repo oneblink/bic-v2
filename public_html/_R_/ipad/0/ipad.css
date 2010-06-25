@@ -62,7 +62,7 @@ body {
 	position: absolute;
 	top: 0px;
 	min-height: 100%;
-	width: 250px;
+	width: 200px;
 	z-index: 5;
 	-o-transition: -o-transform 0.4s linear;
 	-moz-transition: -moz-transform 0.4s linear;
@@ -71,7 +71,7 @@ body {
 }
 
 #leftBox {
-	left: -250px;
+	left: -200px;
 }
 
 #leftBox.leftShown {
@@ -83,7 +83,7 @@ body {
 
 #rightBox {
 	display: none;
-	right: -250px;
+	right: -200px;
 }
 
 #rightBox.leftShown {
@@ -145,11 +145,11 @@ body {
 }
 
 #stackLayout.leftShown {
-	margin-left: 250px;
+	margin-left: 200px;
 }
 
 #stackLayout.rightShown {
-	margin-right: 250px;
+	margin-right: 200px;
 }
 
 .navBar {
@@ -190,18 +190,21 @@ body {
 	height: 32px;
 	display: none;
 	opacity: 0.6;
-	/*-webkit-animation-name: spinner;
-	-webkit-animation-duration: 1s;
-	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: linear; */
+	background-image: url("Images/ActivityIndicator.png");
+	background-repeat: no-repeat;
+	-webkit-background-size: 100% 100%;
+}
+
+#activityIndicator.animating {
 	-webkit-animation-name: pulse;
 	-webkit-animation-duration: 0.5s;
 	-webkit-animation-direction: alternate;
 	-webkit-animation-iteration-count: infinite;
 	-webkit-animation-timing-function: ease-in-out;
-	background-image: url("Images/ActivityIndicator.png");
-	background-repeat: no-repeat;
-	-webkit-background-size: 100% 100%;
+/*	-webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear; */
 }
 
 .button {
@@ -251,33 +254,10 @@ body {
 /*	-o-transition: -o-transform 0.3s linear;
 	-moz-transition: -moz-transform 0.3s linear;
 	-webkit-transition: -webkit-transform 0.3s linear; */
-	-o-transition: left,right 0.3s linear;
-	-moz-transition: left,right 0.3s linear;
-	-webkit-transition: left,right 0.3s linear;
 }
 
-.view.slidingLeft {
+.view.sliding {
 	position: absolute;
-	left:-105%;
-	/* -o-transform: translateX(-105%);
-	-moz-transform: translateX(-105%);
-	-webkit-transform: translateX(-105%); */
-}
-
-.view.slidingRight {
-	position: absolute;
-	right:-105%;
-	/* -o-transform: translateX(105%);
-	-moz-transform: translateX(105%);
-	-webkit-transform: translateX(105%); */
-}
-
-.view.slidLeft {
-	left: -105%;
-}
-
-.view.slidRight {
-	right: -105%;
 }
 
 #keywordVisualView {
@@ -386,6 +366,10 @@ body {
 
 .innerView a {
 	padding: 4px;
+}
+
+#descriptionBox, #argsBox {
+	text-align: center;
 }
 
 textarea, select, input {

@@ -91,6 +91,9 @@ function prepareKeywordViewForDevice(showBack, showHelp)
   });
   helpButton.css("display", showHelp ? 'block' : 'none');
   pendingFormButton.css('display', 'block');
+	setTimeout(function() {
+		$('#keywordView').width($('#navBoxHeader').width() - 60);
+	}, 0.0 * 1000);
 }
 
 function prepareAnswerViewForDevice()
@@ -173,14 +176,17 @@ function prepareActivateLoginViewForDevice()
   pendingFormButton.css('display', 'none');
 }
 
+var activityIndicator = $('#activityIndicator');
 function stopInProgressAnimation()
 {
-  $('#activityIndicator').css('display', 'none');
+  activityIndicator.css('display', 'none');
+	activityIndicator.removeClass('animating');
 }
 
 function startInProgressAnimation()
 {
-  $('#activityIndicator').css('display', 'block');
+	activityIndicator.addClass('animating');
+  activityIndicator.css('display', 'block');
 }
 
 function populateTextOnlyCategories(masterCategory)
@@ -207,38 +213,36 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
-  var entranceDirection = (reverseTransition ? 'slidingLeft' : 'slidingRight');
-  var exitDirection = (reverseTransition ? 'slidingRight' : 'slidingLeft');
-  var startPosition = (reverseTransition ? 'slidLeft' : 'slidRight');
+  var entranceDirection = (reverseTransition ? 'left' : 'right');
+  var exitDirection = (reverseTransition ? 'right' : 'left');
+  var startPosition = (reverseTransition ? 'left' : 'right');
   var currentView = $('#' + $('.view:visible').attr('id'));
   var newView = $('#' + view);
   if (currentView.size() == 0)
   {
-	 newView.show();
+/*		newView.show('slide', { direction: entranceDirection }, 300, function() {
+			newView.removeClass('sliding');
+		}); */
+		newView.show();
   }
   else if (currentView.attr('id') == newView.attr('id'))
   {
-	 currentView.hide();
-	 newView.addClass(startPosition);
-	 newView.show();
-	 newView.addClass(entranceDirection);
-	 setTimeout(function() {
-		newView.removeClass(startPosition + ' ' + entranceDirection);
-	 }, 0.3 * 1000);
+		newView.hide();
+		newView.addClass('sliding');
+		newView.show('slide', { direction: entranceDirection }, 300, function() {
+			newView.removeClass('sliding');
+		});
   }
   else
   {
-	 currentView.addClass(exitDirection);
-	 setTimeout(function() {
-		currentView.hide();
-		currentView.removeClass(exitDirection);
-	 }, 0.3 * 1000);
-	 newView.addClass(startPosition);
-	 newView.show();
-	 newView.addClass(entranceDirection);
-	 setTimeout(function() {
-		newView.removeClass(startPosition + ' ' + entranceDirection);
-	 }, 0.3 * 1000);
+		currentView.addClass('sliding');
+		currentView.hide('slide', { direction: exitDirection }, 300, function() {
+			currentView.removeClass('sliding');
+		});
+		newView.addClass('sliding');
+		newView.show('slide', { direction: entranceDirection }, 300, function() {
+			newView.removeClass('sliding');
+		});
   }
   window.scrollTo(0, 0);
 }
