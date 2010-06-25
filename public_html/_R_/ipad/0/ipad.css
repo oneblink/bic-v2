@@ -251,9 +251,6 @@ body {
 	display: none;
 	background: none;
 	margin: 30px;
-/*	-o-transition: -o-transform 0.3s linear;
-	-moz-transition: -moz-transform 0.3s linear;
-	-webkit-transition: -webkit-transform 0.3s linear; */
 }
 
 .view.sliding {

@@ -20,18 +20,6 @@ body {
 	font-weight: bold;
 }
 
-#loginBar {
-	padding: 4px;
-	font-size: small;
-	text-align: center;
-	text-shadow: 1px 1px 1px #DEDEE4;
-}
-
-#loginBar > a:link { font-size: medium; color: blue; text-decoration: none; }
-#loginBar > a:visited { font-size: medium; color: blue; text-decoration: none; }
-#loginBar > a:hover { font-size: medium; color: blue; text-decoration: none; }
-#loginBar > a:active { font-size: medium; color: blue; text-decoration: none; }
-
 .bordered {
 	border: 1px solid #B7B7BC;
 	background-color: #FFF;
@@ -93,7 +81,7 @@ body {
 	font-weight: bold;
 	font-size: 12px;
 	color: white;
-	text-shadow: rgba(0, 0, 0, 0.238281) 0px -1px 0px;
+	text-shadow: rgba(0, 0, 0, 0.25) 0px -1px 0px;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	text-align: center;
@@ -138,31 +126,10 @@ body {
 	display: none;
 	background: none;
 	margin: 10px;
-	-o-transition: -o-transform 0.3s ease;
-	-moz-transition: -moz-transform 0.3s ease;
-	-webkit-transition: -webkit-transform 0.3s ease;
 }
 
-.view.slidingLeft {
+.view.sliding {
 	position: absolute;
-	-o-transform: translateX(-105%);
-	-moz-transform: translateX(-105%);
-	-webkit-transform: translateX(-105%);
-}
-
-.view.slidingRight {
-	position: absolute;
-	-o-transform: translateX(105%);
-	-moz-transform: translateX(105%);
-	-webkit-transform: translateX(105%);
-}
-
-.view.slidLeft {
-	left: -105%;
-}
-
-.view.slidRight {
-	right: -105%;
 }
 
 #masterCategoriesView, #categoriesView {
@@ -281,6 +248,10 @@ body {
 
 .innerView a {
 	padding: 4px;
+}
+
+#descriptionBox, #argsBox {
+	text-align: center;
 }
 
 textarea, select, input {

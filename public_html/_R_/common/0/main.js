@@ -83,7 +83,7 @@ try {
 if (db && db.transaction)
 {
   db.transaction(
-				function (transaction) {
+		function (transaction) {
 			transaction.executeSql("SELECT answerparm, answerParmValue FROM answerSpaceData;",
 					  [],
 					  function (transaction, resultSet) {
@@ -411,25 +411,24 @@ function getSiteConfig()
 			console.log(data);
 			if (textstatus != 'success') return;
 			stopInProgressAnimation();
-			switch (data[0])
+			if (data.errorMessage)
 			{
-				case "ERROR":
-					alert(data[1]);
-					return;
-					break;
-				case "NO_UPDATES":
-					return;
-					break;
-				default:
-					siteConfig = data;
-					hasMasterCategories = siteConfig.master_categories_config != 'no';
-					hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
-					hasCategories = siteConfig.categories_config != 'no';
-					textOnlyLeftList = siteConfig.categories_list === 'textonly';
-					answerSpaceOneKeyword = siteConfig.keywords.length == 1;
-					break;
+				console.log("GetSiteConfig error: " + data.errorMessage);
 			}
-			if ($('#startUp:visible'))
+			else if (data.statusMessage && data.statusMessage == "NO UPDATES")
+			{
+			}
+			else
+			{
+				siteConfigHash = data.siteHash;
+				siteConfig = data.siteConfig;
+				hasMasterCategories = siteConfig.master_categories_config != 'no';
+				hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
+				hasCategories = siteConfig.categories_config != 'no';
+				textOnlyLeftList = siteConfig.categories_list === 'textonly';
+				answerSpaceOneKeyword = siteConfig.keywords.length == 1;
+			}
+			if ($('#startUp').size() > 0)
 			{
 				if (hasMasterCategories)
 				{
@@ -453,7 +452,7 @@ function getSiteConfig()
 					populateKeywordList();
 					showKeywordListView();
 				}
-				$('#startUp').hide();
+				$('#startUp').remove();
 				$('#content').show();
 			}
 		});
