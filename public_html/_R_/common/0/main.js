@@ -158,6 +158,7 @@ function removeAnswerSpaceItem(key) {
  
 // produce the HTML for the list and insert it into #keywordList
 function populateKeywordList(category) {
+	console.log('populateKeywordList(): ' +  category);
 	var keywordList = $('#keywordList');
   keywordList.empty();
 	var keywordVisualView = $('#keywordVisualView');
@@ -353,9 +354,6 @@ function loaded(row1String, row2String)
 	 //return;
   }
 
-  if (answerSpaceOneKeyword) {
-	 showKeywordView(0);
-  }
   getSiteConfig();
 }
 
@@ -404,8 +402,9 @@ function getSiteConfig()
 {
 	startInProgressAnimation();
 	var categoriesUrl = "util/GetSiteConfig.php?answerSpace=" + localStorage.getItem("_answerSpace");
+	var requestData = siteConfigHash ? siteConfigHash : "";
 	console.log("GetSiteConfig transaction: " + categoriesUrl);
-	$.getJSON(categoriesUrl,
+	$.getJSON(categoriesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
 			console.log("GetSiteConfig transaction complete: " + textstatus);
 			console.log(data);
@@ -417,6 +416,7 @@ function getSiteConfig()
 			}
 			else if (data.statusMessage && data.statusMessage == "NO UPDATES")
 			{
+				console.log("GetSiteConfig status: " + data.errorMessage);
 			}
 			else
 			{
@@ -425,12 +425,15 @@ function getSiteConfig()
 				hasMasterCategories = siteConfig.master_categories_config != 'no';
 				hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
 				hasCategories = siteConfig.categories_config != 'no';
-				textOnlyLeftList = siteConfig.categories_list === 'textonly';
 				answerSpaceOneKeyword = siteConfig.keywords.length == 1;
 			}
 			if ($('#startUp').size() > 0)
 			{
-				if (hasMasterCategories)
+				if (answerSpaceOneKeyword)
+				{
+					showKeywordView(0);
+				}
+				else if (hasMasterCategories)
 				{
 					populateMasterCategories();
 					showMasterCategoriesView();
@@ -443,13 +446,13 @@ function getSiteConfig()
 				else if (hasCategories)
 				{
 					currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
-					populateTextOnlyCategories();
-					populateKeywordList(currentCategory);
+//					populateTextOnlyCategories();
+//					populateKeywordList(currentCategory);
 					showKeywordListView(currentCategory);
 				}
 				else
 				{
-					populateKeywordList();
+//					populateKeywordList();
 					showKeywordListView();
 				}
 				$('#startUp').remove();
@@ -626,8 +629,9 @@ function showSecondLevelAnswerView(keyword, arg0)
 function showKeywordView(keywordID) 
 {
 	var keyword = siteConfig.keywords[keywordID];
+	$('#mainLabel').html(keyword.name);
   currentKeywordNumber = keywordID;
-  prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help);
+  prepareKeywordViewForDevice(!answerSpaceOneKeyword, keyword.help);
   setSubmitCachedFormButton('pendingFormButton');
   $('#argsBox').html(keyword.input_config);
   if (keyword.description) {
@@ -643,7 +647,7 @@ function showKeywordListView(category)
 {
 	currentCategory = category;
 	var mainLabel;
-	if (hasCategories && category)
+	if (hasCategories)
 	{
 		mainLabel = siteConfig.categories[category].name;
 	}
@@ -654,6 +658,10 @@ function showKeywordListView(category)
 	else
 	{
 		mainLabel = "Keywords";
+	}
+	if (hasCategories && !hasVisualCategories)
+	{
+		populateTextOnlyCategories(currentMasterCategory);
 	}
 	$('#mainLabel').html(mainLabel);
   prepareKeywordListViewForDevice(category);
@@ -730,7 +738,6 @@ function createParamsAndArgs(keywordID)
   return returnValue;
 }
 
-
 function showHelpView(event)
 {
   prepareHelpViewForDevice();
@@ -744,7 +751,7 @@ function showNewLoginView(isActivating)
 {
   prepareNewLoginViewForDevice();
   $('#mainHeading').html("Login");
-  var loginUrl = 'util/CreateLogin.php';
+  var loginUrl = '../../common/0/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
 	console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
   $.ajax({
@@ -769,7 +776,7 @@ function showActivateLoginView(event)
 {
   prepareActivateLoginViewForDevice();
   $('#mainHeading').html("Login");
-  var loginUrl = 'util/ActivateLogin.php'
+  var loginUrl = '../../common/0/util/ActivateLogin.php'
 	console.log("ActivateLogin transaction: " + loginUrl);
   $.ajax({
 		type: 'GET',
@@ -792,7 +799,7 @@ function showLoginView(event)
 {
   prepareLoginViewForDevice();
   $('#mainHeading').html("Login");
-  var loginUrl = 'util/DoLogin.php'
+  var loginUrl = '../../common/0/util/DoLogin.php'
 	console.log("DoLogin transaction: " + loginUrl);
   $.ajax({
 		type: 'GET',
@@ -813,7 +820,7 @@ function showLoginView(event)
 
 function updateLoginBar(){
 	startInProgressAnimation();
-  var loginUrl = "util/GetLogin.php";
+  var loginUrl = "../../common/0/util/GetLogin.php";
 	console.log("GetLogin transaction: " + loginUrl);
   $.ajax({
 	 type: 'GET',
@@ -845,7 +852,7 @@ function updateLoginBar(){
 function submitLogin()
 {
 	startInProgressAnimation();
-  var loginUrl = 'util/DoLogin.php'
+  var loginUrl = '../../common/0/util/DoLogin.php'
   var requestData = "action=login&mobile_number=" + document.getElementById('mobile_number').value + "&password=" + document.getElementById('password').value;
 	console.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
   $.ajax({
@@ -870,7 +877,7 @@ function submitLogin()
 
 function submitLogout()
 {
-  var loginUrl = 'util/DoLogin.php'
+  var loginUrl = '../../common/0/util/DoLogin.php'
   var requestData = 'action=logout';
 	console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
   $.ajax({

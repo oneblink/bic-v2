@@ -64,8 +64,10 @@ html, body {
 	text-align: center;
 }
 
-#categoriesBox {
-	position: relative;
+#categorySelectorArea {
+	font-weight: bold;
+	margin: 10px;
+	text-align: center;
 }
 
 #stackLayout {
@@ -253,11 +255,23 @@ hr {
 	padding: 10px;
 }
 
-.invalidInput {
-	border: 5px solid red;
+select {
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
-.formError {
-	font-size: smaller;
-	color: red;
+textarea, select, input {
+	max-width: 90%;
+	margin: 5px;
+	font-size: medium;
+}
+
+.innerView table {
+	max-width: 100%;
+/*	width: 100%; */
+	text-align: left;
+}
+
+.innerView table tr > td {
+	margin: 4px;
 }

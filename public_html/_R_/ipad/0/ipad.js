@@ -179,13 +179,13 @@ function prepareActivateLoginViewForDevice()
 var activityIndicator = $('#activityIndicator');
 function stopInProgressAnimation()
 {
-  activityIndicator.css('display', 'none');
+  activityIndicator.hide();
 	activityIndicator.removeClass('animating');
 }
 
 function startInProgressAnimation()
 {
-	activityIndicator.addClass('animating');
+	activityIndicator.show();
   activityIndicator.css('display', 'block');
 }
 
