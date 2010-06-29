@@ -68,9 +68,6 @@ function prepareKeywordListViewForDevice(category)
 		hideNavBoxHeader();
 		showWelcomeMessage();
   }
-	setTimeout(function() {
-		$('#keywordListView').width($('#stackLayout').width() - 20);
-	}, 0.0 * 1000);
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
@@ -275,9 +272,6 @@ function setupParts()
 
 function showWelcomeMessage()
 {
-	setTimeout(function() {
-		welcomeMessage.width($('#stackLayout').width() - 20);
-	}, 0.0 * 1000);
 	welcomeMessage.filter(':hidden').addClass('sliding').show('slide', { direction: 'left' }, 300, function() {
 		welcomeMessage.removeClass('sliding');
 	});

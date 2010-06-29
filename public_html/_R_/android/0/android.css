@@ -1,6 +1,6 @@
 body {
-	background-color: #E3E4EA;
-	font-family: Helvetica;
+	background-color: #FFF;
+	font-family: sans-serif;
 	font-size: medium;
 }
 
@@ -18,13 +18,6 @@ body {
 	position: relative;
 	padding: 15px;
 	font-weight: bold;
-}
-
-.bordered {
-	border: 1px solid #B7B7BC;
-	background-color: #FFF;
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
 }
 
 .navBar {
@@ -49,8 +42,7 @@ body {
 	padding: 10px 0px;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	color: #73777F;
-	font-size: large;
+	color: #000;
 	font-weight: bolder;
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
@@ -183,7 +175,6 @@ body {
 .view {
 	display: none;
 	background: none;
-	margin: 10px;
 }
 
 .view.sliding {
@@ -225,25 +216,13 @@ body {
 	position: relative;
 	overflow: hidden;
 	padding: 10px;
-	border-bottom: 1px solid rgb(224, 224, 224);
-	border-left: 1px solid #B7B7BC;
-	border-right: 1px solid #B7B7BC;
+	border-top: 1px solid #AAA;
 }
 
 #keywordList > a:first-child > li {
-	border-left: 1px solid #B7B7BC;
-	border-top: 1px solid #B7B7BC;
-	border-right: 1px solid #B7B7BC;
-	-webkit-border-top-left-radius: 10px;
-	-webkit-border-top-right-radius: 10px;
 }
 
 #keywordList > a:last-child > li {
-	border-right: 1px solid #B7B7BC;
-	border-bottom: 1px solid #B7B7BC;
-	border-left: 1px solid #B7B7BC;
-	-webkit-border-bottom-left-radius: 10px;
-	-webkit-border-bottom-right-radius: 10px;
 }
 
 #keywordList .keywordLabel {
