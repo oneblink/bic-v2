@@ -203,7 +203,7 @@ function populateTextOnlyCategories(masterCategory)
 	var html = "<select id='categoriesList' onchange=\"showKeywordListView(this.options[this.selectedIndex].value)\">"
 	for (id in order)
 	{
-		html += "<option value=\"" + order[id] + "\">" + list[order[id]].name + "</option>";
+		html += "<option value=\"" + order[id] + "\"" + (order[id] == currentCategory ? " selected" : "") + ">" + list[order[id]].name + "</option>";
 	}
 	html += "</select>";
 	$('#categorySelector').html(html);
