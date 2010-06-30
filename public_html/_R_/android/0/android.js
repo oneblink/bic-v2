@@ -191,8 +191,8 @@ function stopInProgressAnimation()
 
 function startInProgressAnimation()
 {
-	activityIndicator.show();
   activityIndicator.addClass('animating');
+	activityIndicator.show();
 }
 
 function populateTextOnlyCategories(masterCategory)
@@ -213,7 +213,6 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
-	setupParts();
   var entranceDirection = (reverseTransition ? 'left' : 'right');
   var exitDirection = (reverseTransition ? 'right' : 'left');
   var startPosition = (reverseTransition ? 'left' : 'right');
@@ -249,26 +248,6 @@ function setCurrentView(view, reverseTransition)
  ABOVE: all methods need implementation per device (directly called from main.js)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
-
-function setupParts()
-{
-	var backButtons = $('.backButton');
-	backButtons.each(function(index, element) {
-		var thisElement = $(element);
-		thisElement.html('<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
-	});
-	var roundButtons = $('.roundButton');
-	roundButtons.each(function(index, element) {
-		var thisElement = $(element);
-		thisElement.html('<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
-	});
-	var squareButtons = $('.squareButton');
-	squareButtons.each(function(index, element) {
-		var thisElement = $(element);
-		thisElement.html('<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
-	});
-	squareButtons.show();
-}
 
 function showWelcomeMessage()
 {

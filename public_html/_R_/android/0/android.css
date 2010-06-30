@@ -27,10 +27,12 @@ body {
 	color: #73777F;
 	font-size: large;
 	font-weight: bolder;
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFF), to(#AAAAB8));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFF), to(#CCC));
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
-	height: 41px;
+	height: 30px;
+	-webkit-box-shadow: 0px 2px 4px #666;
+	z-index: 1;
 }
 
 #navButtonsHolder {
@@ -50,9 +52,9 @@ body {
 }
 
 #activityIndicator {
-	margin: 4px;
-	width: 32px;
-	height: 32px;
+	margin: 3px;
+	width: 24px;
+	height: 24px;
 	opacity: 0.6;
 	background-image: url("Images/ActivityIndicator.png");
 	background-repeat: no-repeat;
@@ -60,116 +62,35 @@ body {
 }
 
 #activityIndicator.animating {
-/*	-webkit-animation-name: spinner;
+	-webkit-animation-name: spinner;
 	-webkit-animation-duration: 1s;
 	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: linear; */
-	-webkit-animation-name: pulse;
+	-webkit-animation-timing-function: linear;
+	/* -webkit-animation-name: pulse;
 	-webkit-animation-duration: 0.5s;
 	-webkit-animation-direction: alternate;
 	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: ease-in-out;
+	-webkit-animation-timing-function: ease-in-out; */
 }
 
-.button {
+.navBar .button {
 	position: relative;
-	margin: 5px;
-	height: 30px;
+	height: 100%;
 	background: none;
 	border-style: none;
 	z-index: 2;
-}
-
-.buttonLabel {
-	position: relative;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 30px;
-	padding-top: 7px;
-	background-image: url("./Images/button.png");
-	background-repeat: repeat-x;
-	font-family: Helvetica;
+	padding: 8px 12px;
 	font-weight: bold;
-	font-size: 12px;
-	color: white;
-	text-shadow: rgba(0, 0, 0, 0.25) 0px -1px 0px;
+	color: #222;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	text-align: center;
+	border-left: 1px solid #FFF;
+	border-right: 1px solid #BBB;
 }
 
-.button[disabled] {
+.navBar .button[disabled] {
 	opacity: 0.5;
-}
-
-.squareButtonLeft, .roundButtonLeft, .backButtonLeft {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
-	background-position: left top;
-}
-
-.squareButtonRight, .roundButtonRight, .backButtonRight {
-	position: absolute;
-	top: 0;
-	right: 0;
-	height: 100%;
-	background-position: right top;
-}
-
-.squareButton {
-	padding: 0px 5px;
-}
-
-.squareButtonLeft {
-	width: 5px;
-	background-image: url("./Images/squareButton.png");
-	background-repeat: no-repeat;
-}
-
-.squareButtonRight {
-	width: 5px;
-	background-image: url("./Images/squareButton.png");
-	background-repeat: no-repeat;
-}
-
-.roundButton {
-	padding: 0px 11px 0px 15px;
-}
-
-.roundButtonLeft {
-	width: 15px;
-	background-image: url("./Images/roundButton.png");
-	background-repeat: no-repeat;
-}
-
-.roundButtonRight {
-	width: 11px;
-	background-image: url("./Images/roundButton.png");
-	background-repeat: no-repeat;
-}
-
-.backButton {
-	padding: 0px 5px 0px 16px;
-}
-
-.backButton > .buttonLabel {
-	padding-left: 4px;
-	padding-right: 2px;
-}
-
-.backButtonLeft {
-	width: 16px;
-	background-image: url("./Images/backButton.png");
-	background-repeat: no-repeat;
-}
-
-.backButtonRight {
-	width: 5px;
-	background-image: url("./Images/backButton.png");
-	background-repeat: no-repeat;
 }
 
 .view {
@@ -299,7 +220,6 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	}
 }
 
-/*
 @-webkit-keyframes spinner {
 	from {
 		-webkit-transform: rotate(0deg);
@@ -377,4 +297,3 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 		-webkit-transform: rotate(360deg);
 	}
 }
-*/
