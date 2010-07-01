@@ -390,7 +390,7 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	}
 }
 
-@-webkit-keyframes spinner {
+/* @-webkit-keyframes spinner {
 	from {
 		-webkit-transform: rotate(0deg);
 	}
@@ -466,4 +466,4 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	to {
 		-webkit-transform: rotate(360deg);
 	}
-}
+} */

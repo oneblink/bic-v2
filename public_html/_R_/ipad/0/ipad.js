@@ -185,8 +185,8 @@ function stopInProgressAnimation()
 
 function startInProgressAnimation()
 {
+	activityIndicator.addClass('animating');
 	activityIndicator.show();
-  activityIndicator.css('display', 'block');
 }
 
 function populateTextOnlyCategories(masterCategory)
