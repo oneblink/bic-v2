@@ -15,6 +15,9 @@ var row2;
 var answerSpaceCategories = true;
 var answerSpaceOneKeyword = false;
 
+var answerSpaceVisualCategories = false;
+var defaultCategoryIndex;
+
 var webappCache = window.applicationCache;
 
 
@@ -343,6 +346,8 @@ function parseOptions(options) {
 	  case "listview":
 	    document.getElementById("categoriesMenu").innerHTML = decodeURIComponent(optionsComponents[1]);
 	    document.getElementById("navBox0").style.visibility = 'hidden';
+			defaultCategoryIndex = categoriesMenu.selectedIndex;
+	 	  answerSpaceCategories = true;
 	    break;
 
 	  case "visualview":
@@ -353,6 +358,7 @@ function parseOptions(options) {
 	    document.getElementById("categoryVisualDisplay").innerHTML = decodeURIComponent(optionsComponents[1]);
 	    document.getElementById("categoryVisualDisplay").style.display = 'block';
 	    answerSpaceCategories = true;
+			answerSpaceVisualCategories = true;
 	    result = "visual";
 	    break;
 
@@ -364,7 +370,6 @@ function parseOptions(options) {
 	    result = "list";
 	    break;
 	  }
-	  answerSpaceCategories = true;
 	}
       else
 	{
@@ -886,6 +891,22 @@ function refreshKeywords(event)
 
     console.log("currentCategory(6): " + currentCategory);
 
+}
+
+function goBackToHome() {
+	 if (answerSpaceVisualCategories)
+	 {
+			document.getElementById('stackLayout').object.setCurrentView('categoryVisualView', true, true);
+	 }
+	 else
+	 {
+			currentCategory = defaultCategoryIndex ? categoriesMenu.options[defaultCategoryIndex].value : categoriesMenu.options[0].value;
+			categoriesMenu.selectedIndex = defaultCategoryIndex;
+			setAnswerSpaceItem("_currentCategory", currentCategory);
+			console.log("currentCategory(5): " + currentCategory);
+			keywordController.setRowData();
+			goBackToKeywordListView();
+	 }
 }
 
 function goBackToTopLevelAnswerView(event)
