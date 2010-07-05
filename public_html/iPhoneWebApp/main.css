@@ -191,29 +191,22 @@ body {
 }
 
 #bannerBox {
+		margin: 0;
     border-color: black;
     border-width: 1px;
-    margin-top: 0px;
     background-color: rgb(255, 255, 255);
     opacity: 1;
     min-height: 10px;
     height: auto;
-    margin-left: 0px;
-    -webkit-margin-top-collapse: separate;
-    -webkit-margin-bottom-collapse: separate;
     position: relative;
     width: auto;
-    margin-right: 0px;
 }
 
 #bannerImage {
     display: block;
-    -webkit-margin-top-collapse: separate;
-    -webkit-margin-bottom-collapse: separate;
-    margin-top: 0px;
     position: relative;
-    margin-left: 0px;
-    margin-right: 0px;
+		margin: 0;
+		width: 100%;
 }
 
 #navBox {

@@ -622,9 +622,10 @@ function showSecondLevelAnswerView(keyword, arg0)
     
     // Get and set-up the answer
     httpAnswerRequest = new XMLHttpRequest();
-    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + '&args=' + arg0.replace(/&/g, "|^^|s|");
-
-    httpAnswerRequest.onreadystatechange = function(evt) {
+    //var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + '&args=' + arg0.replace(/&/g, "|^^|s|");
+    var url = '../iPhoneUtil/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + '&' + arg0;
+    
+		httpAnswerRequest.onreadystatechange = function(evt) {
       /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
       if (httpAnswerRequest.readyState == 4 && (httpAnswerRequest.status == 200 || httpAnswerRequest.status == 500)) 
       {
@@ -943,24 +944,14 @@ function showLocationX(position) {
 }
 
 function submitForm() {
-   //alert('HI!');
-   
-   /*
-    document.getElementById('keywordHeading').innerHTML = keywords[rowIndex];
-    document.getElementById('innerAnswerBox').innerHTML = "Waiting...";
-    var indicatorImage = document.getElementById('activityIndicator2');
-    if (indicatorImage.style.visibility == 'hidden')
-    {
-        indicatorImage.style.visibility = 'visible';
-    }
-   */
    document.getElementById('activityIndicator2').style.visibility = 'visible';
    document.getElementById('activityIndicator1').style.visibility = 'visible';
    document.getElementById('activityIndicator0').style.visibility = 'visible';
    var str = '';
    for (i in document.forms[0].elements) {
       var thisElement = document.forms[0].elements[i];
-      if(thisElement.name){
+      if(thisElement.name
+						&& (thisElement.tagName == 'INPUT' || thisElement.tagName == 'SELECT' || thisElement.tagName == 'TEXTAREA')){
        
        //alert(document.forms[0].elements[i].type.toLowerCase());
          if(thisElement.type && (thisElement.type.toLowerCase()=="radio" || thisElement.type.toLowerCase()=="checkbox") && thisElement.checked==false) {
@@ -1153,6 +1144,101 @@ function submitFormWithRetry() {
          stackLayout.setCurrentView('answerView', false, true);
          window.scrollTo(0, 1);
  	 console.log("X1: " + localKeyword);
+	//alert("X1: " + localKeyword);
+      }
+    };
+    console.log("Checking method(0):");
+    if(method == "get") {
+      console.log("Checking method(1a): Before send get");
+      httpAnswerRequest.send();
+      console.log("Checking method(1b): After send get");      
+    }
+    else {
+      console.log("Checking method(2a): Before send put");     
+      httpAnswerRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      httpAnswerRequest.send(str);
+      console.log("Checking method(2b): After send put");           
+    }
+    document.getElementById('activityIndicator2').style.visibility = 'visible';
+    document.getElementById('activityIndicator1').style.visibility = 'visible';
+    document.getElementById('activityIndicator0').style.visibility = 'visible';
+
+    console.log("Starting timer (3a): " + timer);
+    timer = setTimeout(function() {
+	console.log("timout(10a): " + timer);
+	timer = null;
+	httpAnswerRequest.abort();
+	alert("Form data not submitted, retry when you are in coverage");
+	goBackToKeywordListView();
+      },
+      60000);
+    console.log("Running timer (3b): " + timer);           
+
+}
+
+function submitAction(keyword, action) {
+	 console.log('submitVote: ' + keyword + ', ' + action);
+	 var timer;
+	 var method = document.forms[0].method;
+   document.getElementById('activityIndicator2').style.visibility = 'visible';
+   document.getElementById('activityIndicator1').style.visibility = 'visible';
+   document.getElementById('activityIndicator0').style.visibility = 'visible';
+   var str = '';
+	 if (action != 'cancel')
+	 {
+			for (i in document.forms[0].elements) {
+				 var thisElement = document.forms[0].elements[i];
+				 if(thisElement.name
+							 && (thisElement.tagName == 'INPUT' || thisElement.tagName == 'SELECT' || thisElement.tagName == 'TEXTAREA')){
+					
+					//alert(document.forms[0].elements[i].type.toLowerCase());
+						if(thisElement.type && (thisElement.type.toLowerCase()=="radio" || thisElement.type.toLowerCase()=="checkbox") && thisElement.checked==false) {
+							 // do nothing for unchecked radio or checkbox
+						}
+					 else {
+							str += "&" + thisElement.name + "=" + thisElement.value;
+					 }
+				 
+				 }
+					 
+			}
+	 }
+   console.log("submitForm(2): " + document.forms[0].action);
+   console.log(document.forms[0].action);
+   window.scrollTo(0, 1);
+    // Get and set-up the answer
+    httpAnswerRequest = new XMLHttpRequest();
+    var url = '/iPhoneUtil/GetAnswer.php?';
+	 url += "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + "&" + action;
+    if(method == "get") {
+      url += "?" + str;
+      httpAnswerRequest.open('GET', url, true);      
+    } else {
+      
+      httpAnswerRequest.open('POST', url, true);
+      
+    }
+    console.log("str = " + str);
+    //console.log("action = " +  document.forms[0].action);
+    httpAnswerRequest.onreadystatechange = function(evt) {
+      /* readyState 4 indicates the transaction is complete; status 200 indicates "OK" */
+      if (httpAnswerRequest.readyState == 4 && (httpAnswerRequest.status == 200 || httpAnswerRequest.status == 500)) 
+      {
+        var html =  httpAnswerRequest.responseText;
+	console.log("Clearing timer(10): " + timer);
+	clearTimeout(timer);
+	timer = null;
+
+	console.log("html = " + html);
+        document.getElementById('innerAnswerBox').innerHTML = html;
+        document.getElementById('activityIndicator2').style.visibility = 'hidden';
+        document.getElementById('activityIndicator1').style.visibility = 'hidden';
+        document.getElementById('activityIndicator0').style.visibility = 'hidden';
+	setSubmitCachedFormButton('pendingFormButton2');
+         
+         var stackLayout = document.getElementById('stackLayout').object;
+         stackLayout.setCurrentView('answerView', false, true);
+         window.scrollTo(0, 1);
 	//alert("X1: " + localKeyword);
       }
     };
