@@ -23,12 +23,40 @@ body {
 .bordered {
 	border: 1px solid #B7B7BC;
 	background-color: #FFF;
+	border-radius: 10px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 }
 
+.roundedTopLeft {
+	border: none;
+	border-top-left-radius: 10px;
+	-moz-border-top-left-radius: 10px;
+	-webkit-border-top-left-radius: 10px;
+}
+
+.roundedTopRight {
+	border: none;
+	border-top-right-radius: 10px;
+	-moz-border-top-right-radius: 10px;
+	-webkit-border-top-right-radius: 10px;
+}
+
+.roundedBottomLeft {
+	border: none;
+	border-bottom-left-radius: 10px;
+	-moz-border-bottom-left-radius: 10px;
+	-webkit-border-bottom-left-radius: 10px;
+}
+
+.roundedBottomRight {
+	border: none;
+	border-bottom-right-radius: 10px;
+	-moz-border-bottom-right-radius: 10px;
+	-webkit-border-bottom-right-radius: 10px;
+}
+
 .navBar {
-	display: none;
 	position: relative;
 	width: 100%;
 	color: #73777F;
@@ -40,7 +68,7 @@ body {
 	height: 41px;
 }
 
-#navButtonsHolder {
+.navButtonsHolder {
 	position: absolute;
 	width: 100%;
 }
@@ -182,31 +210,19 @@ body {
 
 .view {
 	display: none;
-	background: none;
-	margin: 10px;
 }
 
 .view.sliding {
 	position: absolute;
 }
 
-#masterCategoriesView, #categoriesView {
-	line-height: 0px;
-	padding: 5px
+.box {
+	margin: 10px;
 }
 
-#masterCategoriesView > a > img {
-	display: inline-block;
-	padding: 5px;
-}
-
-#categoriesView > a > img {
-	display: inline-block;
-	padding: 5px;
-}
-
-#keywordVisualView {
-	margin-bottom: 10px;
+.paddedBox {
+	padding: 10px;
+	text-align: left;
 }
 
 #keywordList a:link { color: inherit; text-decoration: none; }

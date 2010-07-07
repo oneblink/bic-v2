@@ -161,24 +161,28 @@ function populateKeywordList(category) {
 	console.log('populateKeywordList(): ' +  category);
 	var keywordList = $('#keywordList');
   keywordList.empty();
-	var keywordVisualView = $('#keywordVisualView');
-  keywordVisualView.empty();
+	var keywordBox = $('#keywordBox');
+  keywordBox.empty();
 	var width;
 	switch (siteConfig.keywords_config)
-	{
-		case "1col":
-			width = "90%";
-			break;
-		case "2col":
-			width = "40%";
-			break;
-		case "3col":
-			width = "30%";
-			break;
-		case "4col":
-			width = "20%";
-			break;
-	}
+		{
+			case "1col":
+				columns = 1;
+				width = "100%";
+				break;
+			case "2col":
+				columns = 2;
+				width = "50%";
+				break;
+			case "3col":
+				columns = 3;
+				width = "33%";
+				break;
+			case "4col":
+				columns = 4;
+				width = "25%";
+				break;
+		}
 	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order;
 	var list = siteConfig.keywords;
 	for (id in order)
@@ -188,7 +192,7 @@ function populateKeywordList(category) {
 			var html = "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
 			html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 			html += "</a>";
-			keywordVisualView.append(html);
+			keywordBox.append(html);
 		}
 		else
 		{
@@ -200,30 +204,49 @@ function populateKeywordList(category) {
 			keywordList.append(html);
 		}
   }
-	if (keywordVisualView.children().size() > 0)
+	if (keywordBox.children().size() > 0)
 	{
-		keywordVisualView.find('img').width(width); 
-		keywordVisualView.show();
+		var images = keywordBox.find('img');
+		images.width(width);
+		switch (siteConfig.categories_config)
+		{
+			case "1col":
+				images.first().addClass('roundedTopLeft roundedTopRight');
+				images.last().addClass('roundedBottomLeft roundedBottomRight');
+				break;
+			default:
+				images.first().addClass('roundedTopLeft');
+				if (images.size() >= columns)
+				{
+					images.eq(columns - 1).addClass('roundedTopRight');
+				}
+				if (images.size() % columns == 0)
+				{
+					images.eq(0 - columns).addClass('roundedBottomLeft');
+					images.last().addClass('roundedBottomRight');
+				}
+		}
+		keywordBox.removeClass('hidden');
 	}
 	else
 	{
-		keywordVisualView.hide();
+		keywordBox.addClass('hidden');
 	}
 	if (keywordList.children().size() > 0)
 	{
-		keywordList.show();
+		keywordList.removeClass('hidden');
 	}
 	else
 	{
-		keywordList.hide();
+		keywordList.addClass('hidden');
 	}
 }
 
 // produce XHTML for the master categories view
 function populateMasterCategories()
 {
-	var masterCategoriesView = $('#masterCategoriesView');
-	masterCategoriesView.empty();
+	var masterCategoriesBox = $('#masterCategoriesBox');
+	masterCategoriesBox.empty();
 	var order = siteConfig.master_categories_order;
 	var list = siteConfig.master_categories;
 	for (id in order)
@@ -232,7 +255,7 @@ function populateMasterCategories()
 		categoryHTML += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
 		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" title=\"" + order[id] + "\" />";
 		categoryHTML += "</a>";
-		masterCategoriesView.append(categoryHTML);
+		masterCategoriesBox.append(categoryHTML);
 	}
 	if (siteConfig.master_categories_config != 'auto')
 	{
@@ -240,27 +263,50 @@ function populateMasterCategories()
 		switch (siteConfig.master_categories_config)
 		{
 			case "1col":
-				width = "90%";
+				columns = 1;
+				width = "100%";
 				break;
 			case "2col":
-				width = "40%";
+				columns = 2;
+				width = "50%";
 				break;
 			case "3col":
-				width = "30%";
+				columns = 3;
+				width = "33%";
 				break;
 			case "4col":
-				width = "20%";
+				columns = 4;
+				width = "25%";
 				break;
 		}
-		masterCategoriesView.find('img').width(width); 
+		var images = masterCategoriesBox.find('img');
+		images.width(width);
+		switch (siteConfig.categories_config)
+		{
+			case "1col":
+				images.first().addClass('roundedTopLeft roundedTopRight');
+				images.last().addClass('roundedBottomLeft roundedBottomRight');
+				break;
+			default:
+				images.first().addClass('roundedTopLeft');
+				if (images.size() >= columns)
+				{
+					images.eq(columns - 1).addClass('roundedTopRight');
+				}
+				if (images.size() % columns == 0)
+				{
+					images.eq(0 - columns).addClass('roundedBottomLeft');
+					images.last().addClass('roundedBottomRight');
+				}
+		}
 	}
 }
 
 // produce XHTML for the visual categories view
 function populateVisualCategories(masterCategory)
 {
-	var categoriesView = $('#categoriesView');
-	categoriesView.empty();
+	var categoriesBox = $('#categoriesBox');
+	categoriesBox.empty();
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
 	for (id in order)
@@ -269,27 +315,50 @@ function populateVisualCategories(masterCategory)
 		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
 		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" title=\"" + order[id] + "\" />";
 		html += "</a>";
-		categoriesView.append(html);
+		categoriesBox.append(html);
 	}
 	if (siteConfig.categories_config != 'auto')
 	{
-		var width;
+		var width, columns;
 		switch (siteConfig.categories_config)
 		{
 			case "1col":
-				width = "90%";
+				columns = 1;
+				width = "100%";
 				break;
 			case "2col":
-				width = "40%";
+				columns = 2;
+				width = "50%";
 				break;
 			case "3col":
-				width = "30%";
+				columns = 3;
+				width = "33%";
 				break;
 			case "4col":
-				width = "20%";
+				columns = 4;
+				width = "25%";
 				break;
 		}
-		categoriesView.find('a > img').width(width);
+		var images = categoriesBox.find('img');
+		images.width(width);
+		switch (siteConfig.categories_config)
+		{
+			case "1col":
+				images.first().addClass('roundedTopLeft roundedTopRight');
+				images.last().addClass('roundedBottomLeft roundedBottomRight');
+				break;
+			default:
+				images.first().addClass('roundedTopLeft');
+				if (images.size() >= columns)
+				{
+					images.eq(columns - 1).addClass('roundedTopRight');
+				}
+				if (images.size() % columns == 0)
+				{
+					images.eq(0 - columns).addClass('roundedBottomLeft');
+					images.last().addClass('roundedBottomRight');
+				}
+		}
 	}
 }
 
@@ -541,7 +610,7 @@ function showAnswerView(keywordID)
   currentKeywordNumber = keywordID;
 	var keyword = siteConfig.keywords[keywordID];
   
-  var answerUrl = 'util/GetAnswer.php';
+  var answerUrl = '../../common/0/util/GetAnswer.php';
   var requestData = createParamsAndArgs(keywordID);
   $.ajax({
 	 type: 'GET',
@@ -552,7 +621,7 @@ function showAnswerView(keywordID)
 		httpAnswerRequest = xmlhttprequest;
 		startInProgressAnimation();
 		setSubmitCachedFormButton('pendingFormButton');
-		$('#answerView').html("Waiting...");
+		$('#answerBox').html("Waiting...");
 		$('#mainLabel').html(keyword.name);
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -560,7 +629,7 @@ function showAnswerView(keywordID)
 		if (textstatus == "timeout")
 		{
 		  answerItem = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
-		  $('#answerView').html(answerItem == undefined ? "No result available" : answerItem);
+		  $('#answerBox').html(answerItem == undefined ? "No result available" : answerItem);
 		}
 	 },
 	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
@@ -569,7 +638,7 @@ function showAnswerView(keywordID)
 		{
 		  var html =  httpAnswerRequest.responseText;
 		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
-		  $('#answerView').html(html);
+		  $('#answerBox').html(html);
 		  setSubmitCachedFormButton('pendingFormButton');
 		}
 		stopInProgressAnimation();
@@ -597,8 +666,9 @@ function showSecondLevelAnswerView(keyword, arg0)
 {
   prepareSecondLevelAnswerViewForDevice();
   
-  var answerUrl = 'util/GetAnswer.php'
-  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&args=' + arg0.replace(/&/g, "|^^|s|");
+  var answerUrl = '../../common/0/util/GetAnswer.php'
+  //var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&args=' + arg0.replace(/&/g, "|^^|s|");
+  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&' + arg0;
   $.ajax({
 	 type: 'GET',
 	 url: answerUrl,
@@ -607,7 +677,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 		console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
 		httpAnswerRequest = xmlhttprequest;
 		setSubmitCachedFormButton('pendingFormButton');
-		$('#answerView2').html("Waiting...");
+		$('#answerBox2').html("Waiting...");
 		startInProgressAnimation();
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -618,7 +688,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		{
 		  var html =  httpAnswerRequest.responseText;
-        $('#answerView2').html(html);
+        $('#answerBox2').html(html);
 		}
 		stopInProgressAnimation();
 	 }
@@ -634,11 +704,12 @@ function showKeywordView(keywordID)
   prepareKeywordViewForDevice(!answerSpaceOneKeyword, keyword.help);
   setSubmitCachedFormButton('pendingFormButton');
   $('#argsBox').html(keyword.input_config);
+	var descriptionBox = $('#descriptionBox');
   if (keyword.description) {
-	 $('#descriptionTextBox').html(keyword.description);
-	 $('#descriptionBox').show();
+	 descriptionBox.html(keyword.description);
+	 descriptionBox.removeClass('hidden');
   } else {
-	 $('#descriptionBox').hide();
+	 descriptionBox.addClass('hidden');
   }
   setCurrentView('keywordView', false, true);
 }
@@ -760,7 +831,7 @@ function showNewLoginView(isActivating)
 		url: loginUrl,
 		data: requestData,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#newLoginView').html(data);
+			$('#newLoginBox').html(data);
 			setCurrentView('newLoginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -783,7 +854,7 @@ function showActivateLoginView(event)
 		cache: "false",
 		url: loginUrl,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#activateLoginView').html(data);
+			$('#activateLoginBox').html(data);
 			setCurrentView('activateLoginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -806,7 +877,7 @@ function showLoginView(event)
 		cache: "false",
 		url: loginUrl,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#loginView').html(data);
+			$('#loginBox').html(data);
 			setCurrentView('loginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -861,7 +932,7 @@ function submitLogin()
 		url: loginUrl,
 		data: requestData,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#loginView').html(data);
+			$('#loginBox').html(data);
 			setCurrentView('loginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -888,7 +959,7 @@ function submitLogout()
 		beforeSend: function(xmlhttprequest) {
 		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#loginView').html(data);
+			$('#loginBox').html(data);
 			setCurrentView('loginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -1018,8 +1089,8 @@ function processCachedFormData() {
 
 function setSubmitCachedFormButton(formButton) {
   var queueCount = countPendingFormData();
-  if (formButton.substr(0,1) != "#")
-	 formButton = "#" + formButton;
+  if (formButton.substr(0,1) != ".")
+	 formButton = "." + formButton;
   if (queueCount != 0) {
     console.log("setSubmitCachedFormButton: Cached items");
     $(formButton).button("option", "label", "(" + queueCount + ")");
@@ -1055,7 +1126,6 @@ function submitFormWithRetry() {
   var arr;
   var method;
   var uuid;
-  var timer;
   var localKeyword;
 
   if (checkFormRetryData()) {
@@ -1107,7 +1177,7 @@ function submitFormWithRetry() {
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
 			 delHeadPendingFormData();
-			 $('#innerAnswerBox').html(httpAnswerRequest.responseText);
+			 $('#answerBox').html(httpAnswerRequest.responseText);
 			 setSubmitCachedFormButton('pendingFormButton');
 			 prepareAnswerViewForDevice();
 			 setCurrentView('answerView', false, true);
@@ -1132,6 +1202,65 @@ function submitFormWithRetry() {
 		  $('#innerAnswerBox').html(httpAnswerRequest.responseText);
 		  stopInProgressAnimation();
 		  setSubmitCachedFormButton('pendingFormButton');
+			prepareAnswerViewForDevice();
+		  setCurrentView('answerView', false, true);
+		},
+		timeout: 60 * 1000 // 60 seconds
+	 });
+  }
+}
+
+function submitAction(keyword, action) {
+	var form = $('form').first();
+  var str = form.find('input, textarea, select').serialize();
+	var method = form.attr('method');
+  var answerUrl = 'util/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + "&" + action;
+
+  if (method == "get")
+  {
+	 $.ajax({
+		type: 'GET',
+		cache: "false",
+		url: answerUrl,
+		data: "?" + str,
+		beforeSend: function(xmlhttprequest) {
+		  console.log("GetAnswer transaction: " + keywordsUrl + "?" + requestData);
+		  httpAnswerRequest = xmlhttprequest;
+		  startInProgressAnimation();
+		},
+		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
+		  if (textstatus == "timeout")
+		  {
+			 alert("Form data not submitted, retry when you are in coverage");
+			 goBackToKeywordListView();
+		  }
+		},
+		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+		  console.log("GetAnswer transaction complete: " + textstatus);
+		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+		  {
+			 $('#innerAnswerBox').html(httpAnswerRequest.responseText);
+			 prepareAnswerViewForDevice();
+			 setCurrentView('answerView', false, true);
+		  }
+		  stopInProgressAnimation();
+		},
+		timeout: 60 * 1000 // 60 seconds
+	 });
+  }
+  else
+  {	 
+	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
+	 startInProgressAnimation();
+	 $.ajax({
+		type: "POST",
+		url: answerUrl,
+		data: str,
+		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
+		  console.log("GetAnswer transaction successful");
+		  httpAnswerRequest = xmlhttprequest;
+		  $('#innerAnswerBox').html(httpAnswerRequest.responseText);
+		  stopInProgressAnimation();
 			prepareAnswerViewForDevice();
 		  setCurrentView('answerView', false, true);
 		},
