@@ -4,6 +4,28 @@ body {
 	font-size: larger;
 }
 
+#activityIndicator {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin-left: -30px;
+	padding: 10px;
+	background: rgba(0, 0, 0, 0.75);
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	z-index: 5;
+}
+
+#activityIndicator img {
+	display: block;
+	-webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear; */
+}
+
+
 #bannerBox {
 	float: left;
 	width: 50%;
@@ -43,19 +65,28 @@ body {
 	-webkit-border-radius: 10px;
 }
 
-#masterCategoriesView, #categoriesView {
-	line-height: 0px;
-	padding: 10px
+.roundedTopLeft {
+	border: none;
+	-moz-border-top-left-radius: 10px;
+	-webkit-border-top-left-radius: 10px;
 }
 
-#masterCategoriesView > a > img {
-	display: inline-block;
-	padding: 5px;
+.roundedTopRight {
+	border: none;
+	-moz-border-top-right-radius: 10px;
+	-webkit-border-top-right-radius: 10px;
 }
 
-#categoriesView > a > img {
-	display: inline-block;
-	padding: 5px;
+.roundedBottomLeft {
+	border: none;
+	-moz-border-bottom-left-radius: 10px;
+	-webkit-border-bottom-left-radius: 10px;
+}
+
+.roundedBottomRight {
+	border: none;
+	-moz-border-bottom-right-radius: 10px;
+	-webkit-border-bottom-right-radius: 10px;
 }
 
 #leftBox, #rightBox {
@@ -184,29 +215,6 @@ body {
 	margin: 0px 200px;
 }
 
-#activityIndicator {
-	margin: 4px;
-	width: 32px;
-	height: 32px;
-	display: none;
-	opacity: 0.6;
-	background-image: url("Images/ActivityIndicator.png");
-	background-repeat: no-repeat;
-	-webkit-background-size: 100% 100%;
-}
-
-#activityIndicator.animating {
-	-webkit-animation-name: pulse;
-	-webkit-animation-duration: 0.5s;
-	-webkit-animation-direction: alternate;
-	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: ease-in-out;
-/*	-webkit-animation-name: spinner;
-	-webkit-animation-duration: 1s;
-	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: linear; */
-}
-
 .button {
 	margin: 5px;
 	height: 30px;
@@ -249,13 +257,20 @@ body {
 
 .view {
 	display: none;
-	background: none;
-	margin: 30px;
 }
 
 .view.sliding {
 	position: absolute;
 }
+
+.box {
+	margin: 30px;
+}
+
+.paddedBox {
+	padding: 10px;
+}
+
 
 #keywordVisualView {
 	margin-bottom: 30px;
@@ -381,16 +396,7 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	-webkit-border-radius: 5px;
 }
 
-@-webkit-keyframes pulse {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-/* @-webkit-keyframes spinner {
+@-webkit-keyframes spinner {
 	from {
 		-webkit-transform: rotate(0deg);
 	}
@@ -466,4 +472,4 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	to {
 		-webkit-transform: rotate(360deg);
 	}
-} */
+}

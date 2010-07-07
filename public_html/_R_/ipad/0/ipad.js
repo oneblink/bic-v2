@@ -76,9 +76,6 @@ function prepareKeywordListViewForDevice(category)
   }
   helpButton.css('display', 'none');
   pendingFormButton.css('display', 'none');
-	setTimeout(function() {
-		$('#keywordListView').width($('#navBoxHeader').width() - 60);
-	}, 0.0 * 1000);
 }
 
 function prepareKeywordViewForDevice(showBack, showHelp)
@@ -91,9 +88,6 @@ function prepareKeywordViewForDevice(showBack, showHelp)
   });
   helpButton.css("display", showHelp ? 'block' : 'none');
   pendingFormButton.css('display', 'block');
-	setTimeout(function() {
-		$('#keywordView').width($('#navBoxHeader').width() - 60);
-	}, 0.0 * 1000);
 }
 
 function prepareAnswerViewForDevice()
@@ -179,14 +173,12 @@ function prepareActivateLoginViewForDevice()
 var activityIndicator = $('#activityIndicator');
 function stopInProgressAnimation()
 {
-  activityIndicator.hide();
-	activityIndicator.removeClass('animating');
+	activityIndicator.addClass('hidden');
 }
 
 function startInProgressAnimation()
 {
-	activityIndicator.addClass('animating');
-	activityIndicator.show();
+	activityIndicator.removeClass('hidden');
 }
 
 function populateTextOnlyCategories(masterCategory)
@@ -270,22 +262,6 @@ function hideLeftBox()
 	 $('#stackLayout').removeClass('leftShown');
 	 $('#leftBox').removeClass('leftShown');
   }
-}
-
-function showRightBox(heading)
-{
-  console.log('showRightBox(heading)');
-  $('#rightLabel').html(heading);
-  $('#stackLayout').addClass('rightShown');
-  $('#rightBox').addClass('rightShown');
-}
-
-function hideRightBox()
-{
-  console.log('hideRightBox()');
-  $('#leftBox').hide('fast');
-  $('#stackLayout').removeClass('rightShown');
-  $('#rightBox').removeClass('rightShown');
 }
 
 function populateLeftBoxWithMasterCategories()
