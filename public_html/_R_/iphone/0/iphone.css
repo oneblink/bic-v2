@@ -4,6 +4,27 @@ body {
 	font-size: medium;
 }
 
+#activityIndicator {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin-left: -30px;
+	padding: 10px;
+	background: rgba(0, 0, 0, 0.75);
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	z-index: 5;
+}
+
+#activityIndicator img {
+	display: block;
+	-webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear; */
+}
+
 #stackLayout {
 	position: relative;
 	top: 0;
@@ -83,28 +104,6 @@ body {
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
 	z-index: 0;
-}
-
-#activityIndicator {
-	margin: 4px;
-	width: 32px;
-	height: 32px;
-	opacity: 0.6;
-	background-image: url("Images/ActivityIndicator.png");
-	background-repeat: no-repeat;
-	-webkit-background-size: 100% 100%;
-}
-
-#activityIndicator.animating {
-/*	-webkit-animation-name: spinner;
-	-webkit-animation-duration: 1s;
-	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: linear; */
-	-webkit-animation-name: pulse;
-	-webkit-animation-duration: 0.5s;
-	-webkit-animation-direction: alternate;
-	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-timing-function: ease-in-out;
 }
 
 .button {
@@ -222,7 +221,6 @@ body {
 
 .paddedBox {
 	padding: 10px;
-	text-align: left;
 }
 
 #keywordList a:link { color: inherit; text-decoration: none; }
@@ -302,20 +300,6 @@ body {
 	background-image: url(Images/chevron_white.png);
 }
 
-.innerView {
-	position: relative;
-	padding: 10px;
-	min-height: 50px;
-	text-align: left;
-	position: relative;
-	width: auto;
-	height: auto;
-}
-
-.innerView a {
-	padding: 4px;
-}
-
 #descriptionBox, #argsBox {
 	text-align: center;
 }
@@ -327,16 +311,6 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	-webkit-border-radius: 5px;
 }
 
-@-webkit-keyframes pulse {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 0.6;
-	}
-}
-
-/*
 @-webkit-keyframes spinner {
 	from {
 		-webkit-transform: rotate(0deg);
@@ -414,4 +388,3 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 		-webkit-transform: rotate(360deg);
 	}
 }
-*/

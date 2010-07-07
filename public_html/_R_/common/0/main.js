@@ -158,7 +158,7 @@ function removeAnswerSpaceItem(key) {
  
 // produce the HTML for the list and insert it into #keywordList
 function populateKeywordList(category) {
-	console.log('populateKeywordList(): ' +  category);
+	console.log('populateKeywordList(): category=' +  category + '; hasCategories=' + hasCategories);
 	var keywordList = $('#keywordList');
   keywordList.empty();
 	var keywordBox = $('#keywordBox');
@@ -208,7 +208,7 @@ function populateKeywordList(category) {
 	{
 		var images = keywordBox.find('img');
 		images.width(width);
-		switch (siteConfig.categories_config)
+		switch (siteConfig.keywords_config)
 		{
 			case "1col":
 				images.first().addClass('roundedTopLeft roundedTopRight');
@@ -281,7 +281,7 @@ function populateMasterCategories()
 		}
 		var images = masterCategoriesBox.find('img');
 		images.width(width);
-		switch (siteConfig.categories_config)
+		switch (siteConfig.master_categories_config)
 		{
 			case "1col":
 				images.first().addClass('roundedTopLeft roundedTopRight');
@@ -515,13 +515,10 @@ function getSiteConfig()
 				else if (hasCategories)
 				{
 					currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
-//					populateTextOnlyCategories();
-//					populateKeywordList(currentCategory);
 					showKeywordListView(currentCategory);
 				}
 				else
 				{
-//					populateKeywordList();
 					showKeywordListView();
 				}
 				$('#startUp').remove();

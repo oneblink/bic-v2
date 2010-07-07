@@ -3,7 +3,7 @@ var navBoxHeader = $('#navBoxHeader');
 var pendingFormButton = $('#pendingFormButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
-var activityIndicators = $('activityIndicator');
+var activityIndicator = $('#activityIndicator');
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -62,7 +62,7 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
   console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
 	var keywordView = $('#keywordView');
-	if (!oneKeyword)
+	if (oneKeyword)
 	{
 		keywordView.find('.backButton').removeClass('hidden');
 	}
@@ -149,14 +149,12 @@ function prepareActivateLoginViewForDevice()
 
 function stopInProgressAnimation()
 {
-  activityIndicators.hide();
-	activityIndicators.removeClass('animating');
+	activityIndicator.addClass('hidden');
 }
 
 function startInProgressAnimation()
 {
-	activityIndicators.show();
-  activityIndicators.addClass('animating');
+  activityIndicator.removeClass('hidden');
 }
 
 function populateTextOnlyCategories(masterCategory)

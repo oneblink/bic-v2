@@ -63,11 +63,16 @@ html, body {
 .view {
 	position: relative;
 	width: 100%;
+	text-align: center;
 }
 
 .box {
 	position: relative;
 	text-align: center;
+}
+
+.paddedBox {
+	text-align: left;
 }
 
 #categorySelectorArea {
@@ -212,21 +217,6 @@ html, body {
 	height: auto;
 }
 
-#descriptionBox {
-	position: relative;
-	margin: 0px;
-	margin-bottom: 30px;
-	width: auto;
-	height: auto;
-}
-
-#descriptionTextBox {
-	color: black;
-	font-size: larger;
-	position: relative;
-	margin: 10px;
-}
-
 .selected #descriptionTextBox {
 	color: white;
 }
@@ -270,17 +260,17 @@ select {
 }
 
 textarea, select, input {
-	max-width: 90%;
+	max-width: 95%;
 	margin: 5px;
 	font-size: medium;
 }
 
-.innerView table {
+form, table {
 	max-width: 100%;
-/*	width: 100%; */
 	text-align: left;
+	overflow: hidden;
 }
 
-.innerView table tr > td {
+table td {
 	margin: 4px;
 }
