@@ -12,6 +12,11 @@ var activityIndicator = $('#activityIndicator');
  The visibility of the welcome/intro message is also controlled at this stage.
 */
 
+function prepareAnswerSpacesListViewForDevice()
+{
+  console.log('prepareAnswerSpacesListViewForDevice()');
+}
+
 function prepareMasterCategoriesViewForDevice()
 {
   console.log('prepareMasterCategoriesViewForDevice()');

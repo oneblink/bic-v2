@@ -10,10 +10,19 @@ var helpButton = $('#helpButton');
  The visibility of the leftBox is also controlled at this stage.
 */
 
+function prepareAnswerSpacesListViewForDevice()
+{
+  console.log('prepareAnswerSpacesListViewForDevice()');
+  backButtonHeader.css('display', 'none');
+  helpButton.css("display", 'none');
+  pendingFormButton.css('display', 'none');
+  hideLeftBox();
+	$('#mainLabel').html('answerSpaces');
+}
+
 function prepareMasterCategoriesViewForDevice()
 {
   console.log('prepareMasterCategoriesViewForDevice()');
-  backButtonHeader.unbind('click');
   backButtonHeader.css('display', 'none');
   helpButton.css("display", 'none');
   pendingFormButton.css('display', 'none');

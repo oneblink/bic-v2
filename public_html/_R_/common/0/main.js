@@ -1,8 +1,7 @@
 var currentKeywordNumber = 0;
 var httpAnswerRequest = false;
 var disconnectedDataStore = new Array();
-var row1;
-var row2;
+var row1, row2;
 
 var inputValid = false;
 
@@ -15,8 +14,9 @@ var currentCategory = "";
 var currentMasterCategory = "";
 var textOnlyLeftList = false;
 
-var siteConfig;
-var siteConfigHash;
+var siteConfig, siteConfigHash;
+var answerSpacesList, answerSpacesHash;
+var answerSpace;
 
 var webappCache = window.applicationCache;
 
@@ -25,11 +25,12 @@ if (localStorage.getItem("_answerSpace") != answerSpace) {
   //alert("answerSpace(1) changed - clearing local storage");
   localStorage.clear();
 }
+/*
 if (!answerSpace || answerSpace == "<?=$_REQUEST['answerSpace']?>")
 {
    answerSpace = 'blink';
    localStorage.setItem("_answerSpace", answerSpace);
-} 
+} */
 console.log("main(1): ");
 
 console.log("main(2): ");
@@ -197,9 +198,9 @@ function populateKeywordList(category) {
 		else
 		{
 			var html = "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
-			html += "<div class='keywordLabel'>" + list[order[id]].name + "</div>";
+			html += "<div class='label'>" + list[order[id]].name + "</div>";
 			html += "<div class='nextArrow'></div>";
-			html += "<div class='keywordDescription'>" + list[order[id]].description + "</div>";
+			html += "<div class='description'>" + list[order[id]].description + "</div>";
 			html += "</li></a>";
 			keywordList.append(html);
 		}
@@ -239,6 +240,40 @@ function populateKeywordList(category) {
 	else
 	{
 		keywordList.addClass('hidden');
+	}
+}
+
+function populateAnswerSpacesList() {
+	console.log('populateAnswerSpacesList()');
+	var welcome = $('#answerSpacesListView').find('.welcomeBox');
+	var listBox = $('#answerSpacesList');
+  listBox.empty();
+	var width;
+	var list = answerSpacesList.answerSpaces;
+	for (a in list)
+  {
+		var html = "<a href=\"/" + list[a].name + "\"><li>";
+		html += list[a].icon ? "<img src=\"" + list[a].icon + "\" alt=\"" + list[a].title + "\" />" : "";
+		html += "<div class='label'" + (!list[a].icon ? "style=\"width:90%\"" : "") + ">" + list[a].title + "</div>";
+		html += "<div class='description'>" + list[a].name + "</div>";
+		html += "</li></a>";
+		listBox.append(html);
+  }
+	if (listBox.children().size() > 0)
+	{
+		listBox.removeClass('hidden');
+		if (answerSpace)
+		{
+			welcome.html('Please check the address you have entered, or choose from a range of answerSpaces below.');
+		}
+		else
+		{
+			welcome.html('Please choose from a range of answerSpaces below.');
+		}
+	}
+	else
+	{
+		welcome.html('Please check the address you have entered.');
 	}
 }
 
@@ -422,8 +457,14 @@ function loaded(row1String, row2String)
 	 console.log("Network not connected(2)...");
 	 //return;
   }
-
-  getSiteConfig();
+	if (answerSpace)
+	{
+		getSiteConfig();
+	}
+	else
+	{
+		getAnswerSpacesList();
+	}
 }
 
 // called from body element when device is rotated
@@ -467,62 +508,104 @@ function updateOrientation()
   }
 }
 
+function getAnswerSpacesList()
+{
+	startInProgressAnimation();
+	var answerSpacesUrl = "../../common/0/util/GetAnswerSpaces.php";
+	var requestData = answerSpacesHash ? "sha1=" + answerSpacesHash : "";
+	console.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
+	$.getJSON(answerSpacesUrl, requestData,
+		function(data, textstatus) { // readystate == 4
+			console.log("GetAnswerSpaces transaction complete: " + textstatus);
+			console.log(data);
+			stopInProgressAnimation();
+			if (textstatus != 'success') return;
+			if (data.errorMessage)
+			{
+				console.log("GetAnswerSpaces error: " + data.errorMessage);
+			}
+			else
+			{
+				console.log("GetAnswerSpaces status: " + data.statusMessage);
+				if (!data.statusMessage || data.statusMessage != "NO UPDATES")
+				{
+					answerSpacesHash = data.listHash;
+					answerSpacesList = data.list;
+				}
+				var startUp = $('#startUp');
+				if (startUp.size() > 0)
+				{
+					populateAnswerSpacesList();
+					showAnswerSpacesListView();
+					startUp.remove();
+					$('#content').show();
+				}
+			}
+		});
+}
+
 function getSiteConfig()
 {
 	startInProgressAnimation();
 	var categoriesUrl = "util/GetSiteConfig.php?answerSpace=" + localStorage.getItem("_answerSpace");
-	var requestData = siteConfigHash ? siteConfigHash : "";
-	console.log("GetSiteConfig transaction: " + categoriesUrl);
+	var requestData = siteConfigHash ? "sha1=" + siteConfigHash : "";
+	console.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
 	$.getJSON(categoriesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
 			console.log("GetSiteConfig transaction complete: " + textstatus);
 			console.log(data);
-			if (textstatus != 'success') return;
 			stopInProgressAnimation();
-			if (data.errorMessage)
+			if (textstatus != 'success') return;
+			if (data.errorMessage && data.errorMessage == "NOT FOUND")
+			{
+				console.log("GetSiteConfig error: " + data.errorMessage);
+				getAnswerSpacesList();
+			}
+			else if (data.errorMessage)
 			{
 				console.log("GetSiteConfig error: " + data.errorMessage);
 			}
-			else if (data.statusMessage && data.statusMessage == "NO UPDATES")
-			{
-				console.log("GetSiteConfig status: " + data.errorMessage);
-			}
 			else
 			{
-				siteConfigHash = data.siteHash;
-				siteConfig = data.siteConfig;
+				console.log("GetSiteConfig status: " + data.statusMessage);
+				if (!data.statusMessage || data.statusMessage != "NO UPDATES")
+				{
+					siteConfigHash = data.siteHash;
+					siteConfig = data.siteConfig;
+				}
 				hasMasterCategories = siteConfig.master_categories_config != 'no';
 				hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
 				hasCategories = siteConfig.categories_config != 'no';
 				answerSpaceOneKeyword = siteConfig.keywords.length == 1;
-			}
-			if ($('#startUp').size() > 0)
-			{
-				if (answerSpaceOneKeyword)
+				var startUp = $('#startUp');
+				if (startUp.size() > 0)
 				{
-					showKeywordView(0);
+					if (answerSpaceOneKeyword)
+					{
+						showKeywordView(0);
+					}
+					else if (hasMasterCategories)
+					{
+						populateMasterCategories();
+						showMasterCategoriesView();
+					}
+					else if (hasVisualCategories)
+					{
+						populateVisualCategories(currentMasterCategory);
+						showCategoriesView();
+					}
+					else if (hasCategories)
+					{
+						currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
+						showKeywordListView(currentCategory);
+					}
+					else
+					{
+						showKeywordListView();
+					}
+					startUp.remove();
+					$('#content').show();
 				}
-				else if (hasMasterCategories)
-				{
-					populateMasterCategories();
-					showMasterCategoriesView();
-				}
-				else if (hasVisualCategories)
-				{
-					populateVisualCategories(currentMasterCategory);
-					showCategoriesView();
-				}
-				else if (hasCategories)
-				{
-					currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
-					showKeywordListView(currentCategory);
-				}
-				else
-				{
-					showKeywordListView();
-				}
-				$('#startUp').remove();
-				$('#content').show();
 			}
 		});
 }
@@ -735,6 +818,12 @@ function showKeywordListView(category)
   prepareKeywordListViewForDevice(category);
 	populateKeywordList(category);
   setCurrentView('keywordListView', false);
+}
+
+function showAnswerSpacesListView()
+{
+	prepareAnswerSpacesListViewForDevice();
+	setCurrentView('answerSpacesListView', false);
 }
 
 function goBackToHome()
