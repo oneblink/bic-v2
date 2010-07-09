@@ -19,10 +19,19 @@ body {
 
 #activityIndicator img {
 	display: block;
-	-webkit-animation-name: spinner;
-	-webkit-animation-duration: 1s;
 	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-name: pulse;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-timing-function: ease-in-out;
+	-webkit-animation-direction: alternate;
+	/* -webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
 	-webkit-animation-timing-function: linear; */
+}
+
+#activityIndicator.hidden img {
+	display: none;
+	-webkit-animation-name: none;
 }
 
 #stackLayout {
@@ -297,9 +306,16 @@ ul.box li.selected .nextArrow {
 	text-align: center;
 }
 
-textarea, input[type=text], input[type=password], input[type=telephone] {
+td {
+	padding: 4px;
+}
+
+textarea, select, input {
+	font-size: medium;
+}
+
+textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
 	padding: 5px;
-	width: 90%;
 	border: 1px solid #AAAAAA;
 	-webkit-border-radius: 5px;
 }

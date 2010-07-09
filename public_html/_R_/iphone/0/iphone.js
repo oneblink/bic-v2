@@ -69,11 +69,11 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 	var keywordView = $('#keywordView');
 	if (oneKeyword)
 	{
-		keywordView.find('.backButton').removeClass('hidden');
+		keywordView.find('.backButton').addClass('hidden');
 	}
 	else
 	{
-		keywordView.find('.backButton').addClass('hidden');
+		keywordView.find('.backButton').removeClass('hidden');
 	}
 	if (showHelp)
 	{
@@ -93,63 +93,54 @@ function prepareAnswerViewForDevice()
 function prepareSecondLevelAnswerViewForDevice()
 {
   console.log('prepareSecondLevelAnswerViewForDevice()');
-  backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
-  backButtonHeader.click(function(event) {
+	var answerView = $('#answerView2');
+	var backButton = answerView.find('.backButton');
+  backButton.unbind('click');
+  backButton.removeClass('hidden');
+  backButton.click(function(event) {
 	 goBackToTopLevelAnswerView();
   });
-  helpButton.css('display', 'none');
-  pendingFormButton.css('display', 'block');
-}
-
-function prepareOldViewForDevice()
-{
-  console.log('prepareOldViewForDevice()');
-  var oldView = $('#oldView');
-  var currentView = $('#stackLayout > .view:visible');
-  oldView.empty();
-  oldView.show();
-  currentView.contents().clone().appendTo(oldView);
-  currentView.hide();
+  answerView.find('.helpButton').addClass('hidden');
+  answerView.find('.pendingFormButton').removeClass('hidden');
 }
 
 function prepareHelpViewForDevice()
 {
   console.log('prepareHelpViewForDevice()');
-  backButtonHeader.css('display', 'none');
-  helpButton.css('display', 'block');
-  pendingFormButton.css('display', 'none');
+	var helpView = $('#helpView');
+  helpView.find('#backButton').addClass('hidden');
+  helpView.find('#helpButton').removeClass('hidden');
+  helpView.find('#pendingFormButton').addClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-	hideNavBoxHeader();
 }
 
 function prepareNewLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 		prepareLoginViewForDevice();
 		setCurrentView('loginView', true, true); 
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 	 goBackToKeywordListView();
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function stopInProgressAnimation()

@@ -457,14 +457,14 @@ function loaded(row1String, row2String)
 	 console.log("Network not connected(2)...");
 	 //return;
   }
-	if (answerSpace)
-	{
+/*	if (answerSpace)
+	{ */
 		getSiteConfig();
-	}
+	/* }
 	else
 	{
 		getAnswerSpacesList();
-	}
+	}*/
 }
 
 // called from body element when device is rotated
@@ -559,7 +559,7 @@ function getSiteConfig()
 			if (data.errorMessage && data.errorMessage == "NOT FOUND")
 			{
 				console.log("GetSiteConfig error: " + data.errorMessage);
-				getAnswerSpacesList();
+				//getAnswerSpacesList();
 			}
 			else if (data.errorMessage)
 			{
@@ -700,7 +700,7 @@ function showAnswerView(keywordID)
 		console.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
 		httpAnswerRequest = xmlhttprequest;
 		startInProgressAnimation();
-		setSubmitCachedFormButton('pendingFormButton');
+		setSubmitCachedFormButton();
 		$('#answerBox').html("Waiting...");
 		$('#mainLabel').html(keyword.name);
 	 },
@@ -719,14 +719,30 @@ function showAnswerView(keywordID)
 		  var html =  httpAnswerRequest.responseText;
 		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
 		  $('#answerBox').html(html);
-		  setSubmitCachedFormButton('pendingFormButton');
+		  setSubmitCachedFormButton();
 		}
-		stopInProgressAnimation();
 		prepareAnswerViewForDevice();
 		setCurrentView("answerView", false, true);
+		stopInProgressAnimation();
+		setupForms();
 	 },
 	 timeout: 30 * 1000 // 30 seconds
   });
+}
+
+function setupForms()
+{
+	var form = $('form');
+	var totalWidth = form.width();
+	var firstColumnWidth = form.find('tr td').first().width();
+	var targetWidth = totalWidth - firstColumnWidth - 32;
+	form.find('textarea, input[type=text], input[type=email], input[type=url], input[type=tel]').each(function(index, element) {
+		$(element).width(targetWidth);
+	});
+	form.find('select').each(function(index, element) {
+		if ($(element).width() > targetWidth)
+			$(element).width(targetWidth);
+	});
 }
 
 function gotoNextScreen(keywordID)
@@ -756,7 +772,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 	 beforeSend: function(xmlhttprequest) {
 		console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
 		httpAnswerRequest = xmlhttprequest;
-		setSubmitCachedFormButton('pendingFormButton');
+		setSubmitCachedFormButton();
 		$('#answerBox2').html("Waiting...");
 		startInProgressAnimation();
 	 },
@@ -781,8 +797,8 @@ function showKeywordView(keywordID)
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
   currentKeywordNumber = keywordID;
-  prepareKeywordViewForDevice(!answerSpaceOneKeyword, keyword.help);
-  setSubmitCachedFormButton('pendingFormButton');
+  prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help.length > 0);
+  setSubmitCachedFormButton();
   $('#argsBox').html(keyword.input_config);
 	var descriptionBox = $('#descriptionBox');
   if (keyword.description) {
@@ -796,6 +812,7 @@ function showKeywordView(keywordID)
 
 function showKeywordListView(category)
 {
+	console.log('showKeywordListView(): ' + category);
 	currentCategory = category;
 	var mainLabel;
 	if (hasCategories)
@@ -860,7 +877,7 @@ function goBackToKeywordListView(event)
 	 return;
   }
   prepareKeywordListViewForDevice();
-  setSubmitCachedFormButton('pendingFormButton');
+  setSubmitCachedFormButton();
 	$('#mainLabel').html(hasCategories ? siteConfig.categories[currentCategory].name : 'Keywords');
   setCurrentView('keywordListView', true);
 }
@@ -898,9 +915,11 @@ function createParamsAndArgs(keywordID)
 function showHelpView(event)
 {
   prepareHelpViewForDevice();
-  $('#mainHeading').html(keywords[currentKeywordNumber]); //**** Here ****
-  var helpContents = helpText[currentKeywordNumber] ? helpText[currentKeywordNumber] : "Sorry, no help is available.";
+	var keyword = siteConfig.keywords[currentKeywordNumber];
+  $('#mainHeading').html(keyword.name); //**** Here ****
+  var helpContents = keyword.help ? keyword.help : "Sorry, no help is available.";
   $('#helpBox').html(helpContents);
+	$('#helpTitle').html(keyword.name);
   setCurrentView('helpView', false, true); 
 }
 
@@ -1173,20 +1192,19 @@ function processCachedFormData() {
   }
 }
 
-function setSubmitCachedFormButton(formButton) {
+function setSubmitCachedFormButton() {
   var queueCount = countPendingFormData();
-  if (formButton.substr(0,1) != ".")
-	 formButton = "." + formButton;
+	var button = $('.pendingFormButton');
   if (queueCount != 0) {
     console.log("setSubmitCachedFormButton: Cached items");
-    $(formButton).button("option", "label", "(" + queueCount + ")");
-    $(formButton).button("option", "disabled", "false");
-	 $(formButton).removeAttr("disabled");
+    button.button("option", "label", "(" + queueCount + ")");
+    button.button("option", "disabled", "false");
+	  button.removeAttr("disabled");
   } else {
     console.log("setSubmitCachedFormButton: NO Cached items");
-    $(formButton).button("option", "label", "Ok");
-    $(formButton).button("option", "disabled", "true");
-	 $(formButton).attr("disabled", "true");
+    button.button("option", "label", "Ok");
+    button.button("option", "disabled", "true");
+	  button.attr("disabled", "true");
   }
 }
 
@@ -1195,9 +1213,7 @@ function removeFormRetryData() {
     removeAnswerSpaceItem("_pendingFormDataArrayAsString");  
     removeAnswerSpaceItem("_pendingFormMethod");  
     removeAnswerSpaceItem("_pendingFormUUID");  
-    setSubmitCachedFormButton('pendingFormButton');
-    setSubmitCachedFormButton('pendingFormButton');
-    setSubmitCachedFormButton('pendingFormButton');
+    setSubmitCachedFormButton();
     console.log("removeFormRetryData: Clearing local storage"); 
 }
 
@@ -1264,7 +1280,7 @@ function submitFormWithRetry() {
 		  {
 			 delHeadPendingFormData();
 			 $('#answerBox').html(httpAnswerRequest.responseText);
-			 setSubmitCachedFormButton('pendingFormButton');
+			 setSubmitCachedFormButton();
 			 prepareAnswerViewForDevice();
 			 setCurrentView('answerView', false, true);
 		  }
@@ -1287,7 +1303,7 @@ function submitFormWithRetry() {
 		  delHeadPendingFormData();
 		  $('#innerAnswerBox').html(httpAnswerRequest.responseText);
 		  stopInProgressAnimation();
-		  setSubmitCachedFormButton('pendingFormButton');
+		  setSubmitCachedFormButton();
 			prepareAnswerViewForDevice();
 		  setCurrentView('answerView', false, true);
 		},

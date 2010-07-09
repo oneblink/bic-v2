@@ -19,12 +19,21 @@ body {
 
 #activityIndicator img {
 	display: block;
-	-webkit-animation-name: spinner;
-	-webkit-animation-duration: 1s;
 	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-name: pulse;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-timing-function: ease-in-out;
+	-webkit-animation-direction: alternate;
+	/* -webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
 	-webkit-animation-timing-function: linear; */
 }
 
+#activityIndicator.hidden img {
+	display: none;
+	-webkit-animation-name: none;
+	-webkit-animation-iteration-count: 1;
+}
 
 #bannerBox {
 	float: left;
@@ -376,14 +385,16 @@ ul.box li.selected .nextArrow {
 	text-align: center;
 }
 
+td {
+	padding: 4px;
+}
+
 textarea, select, input {
-	margin: 5px;
 	font-size: medium;
 }
 
-textarea, input[type=text], input[type=password], input[type=telephone] {
+textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
 	padding: 5px;
-	width: 90%;
 	border: 1px solid #AAAAAA;
 	-webkit-border-radius: 5px;
 }

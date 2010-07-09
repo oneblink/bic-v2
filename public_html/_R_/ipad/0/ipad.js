@@ -1,6 +1,6 @@
 // caching frequently-accessed selectors
 var backButtonHeader = $('#backButtonHeader');
-var pendingFormButton = $('#pendingFormButton');
+var pendingFormButton = $('.pendingFormButton');
 var helpButton = $('#helpButton');
 
 /*
@@ -13,9 +13,9 @@ var helpButton = $('#helpButton');
 function prepareAnswerSpacesListViewForDevice()
 {
   console.log('prepareAnswerSpacesListViewForDevice()');
-  backButtonHeader.css('display', 'none');
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  backButtonHeader.addClass('hidden');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
   hideLeftBox();
 	$('#mainLabel').html('answerSpaces');
 }
@@ -23,9 +23,9 @@ function prepareAnswerSpacesListViewForDevice()
 function prepareMasterCategoriesViewForDevice()
 {
   console.log('prepareMasterCategoriesViewForDevice()');
-  backButtonHeader.css('display', 'none');
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  backButtonHeader.addClass('hidden');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
   hideLeftBox();
 }
 
@@ -35,7 +35,7 @@ function prepareCategoriesViewForDevice()
   backButtonHeader.unbind('click');
   if (hasMasterCategories)
   {
-	 backButtonHeader.css('display', 'block');
+	 backButtonHeader.removeClass('hidden');
 	 backButtonHeader.click(function(event) {
 		goBackToMasterCategoriesView();
 	 });
@@ -45,10 +45,10 @@ function prepareCategoriesViewForDevice()
   else
   {
 	 hideLeftBox();
-	 backButtonHeader.css('display', 'none');
+	 backButtonHeader.addClass('hidden');
   }
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function prepareKeywordListViewForDevice(category)
@@ -57,21 +57,21 @@ function prepareKeywordListViewForDevice(category)
   backButtonHeader.unbind('click');
   if (hasVisualCategories)
   {
-		backButtonHeader.css('display', 'block');
+		backButtonHeader.removeClass('hidden');
 		backButtonHeader.click(function(event) {
 			goBackToCategoriesView();
 		});
   }
   else if (hasMasterCategories)
   {
-		backButtonHeader.css('display', 'block');
+		backButtonHeader.removeClass('hidden');
 		backButtonHeader.click(function(event) {
 		goBackToMasterCategoriesView();
     });
   }
   else
   {
-		backButtonHeader.css('display', 'none');
+		backButtonHeader.addClass('hidden');
   }
   if (hasCategories)
   {
@@ -83,100 +83,103 @@ function prepareKeywordListViewForDevice(category)
 		populateLeftBoxWithMasterCategories();
 		showLeftBox();
   }
-  helpButton.css('display', 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
-function prepareKeywordViewForDevice(showBack, showHelp)
+function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
-  console.log('prepareKeywordViewForDevice(): ' + showBack + ' ' + showHelp);
-  backButtonHeader.unbind('click');
-  backButtonHeader.css("display", !showBack ? 'block' : 'none');
-  backButtonHeader.click(function(event) {
-	 goBackToKeywordListView();
-  });
-  helpButton.css("display", showHelp ? 'block' : 'none');
-  pendingFormButton.css('display', 'block');
+  console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
+	if (oneKeyword)
+	{
+		backButtonHeader.addClass('hidden');
+	}
+	else
+	{
+		backButtonHeader.unbind('click');
+		backButtonHeader.removeClass('hidden');
+		backButtonHeader.click(function(event) {
+		 goBackToKeywordListView();
+		});
+	}
+	if (showHelp)
+	{
+		helpButton.removeClass('hidden');
+	}
+	else
+	{
+		helpButton.addClass('hidden');
+	}
+  pendingFormButton.removeClass('hidden');
 }
 
 function prepareAnswerViewForDevice()
 {
   console.log('prepareAnswerViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 	 goBackToKeywordListView(currentCategory);
   });
-  helpButton.css('display', 'none');
-  pendingFormButton.css('display', 'block');
+  helpButton.addClass('hidden');
+  pendingFormButton.removeClass('hidden');
 }
 
 function prepareSecondLevelAnswerViewForDevice()
 {
   console.log('prepareSecondLevelAnswerViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 	 goBackToTopLevelAnswerView();
   });
-  helpButton.css('display', 'none');
-  pendingFormButton.css('display', 'block');
-}
-
-function prepareOldViewForDevice()
-{
-  console.log('prepareOldViewForDevice()');
-  var oldView = $('#oldView');
-  var currentView = $('.view:visible');
-  oldView.empty();
-  oldView.show();
-  currentView.contents().clone().appendTo(oldView);
-  currentView.hide();
+  helpButton.addClass('hidden');
+  pendingFormButton.removeClass('hidden');
 }
 
 function prepareHelpViewForDevice()
 {
   console.log('prepareHelpViewForDevice()');
-  backButtonHeader.css('display', 'none');
-  helpButton.css('display', 'block');
-  pendingFormButton.css('display', 'none');
+  backButtonHeader.addClass('hidden');
+  helpButton.removeClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 	 goBackToKeywordListView();
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function prepareNewLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 		prepareLoginViewForDevice();
 		setCurrentView('loginView', true, true); 
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 	 goBackToKeywordListView();
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 var activityIndicator = $('#activityIndicator');

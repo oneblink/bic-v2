@@ -11,7 +11,9 @@ html, body {
 }
 
 .hidden {
-	display: none;
+	display: none !important;
+	z-index: -1 !important;
+	visibility: hidden !important;
 }
 
 #startUp {
@@ -75,7 +77,7 @@ html, body {
 	text-align: left;
 }
 
-#answerSpacesListView .welcomeBox {
+#answerSpacesListView .welcomeBox, #helpTitle {
 	text-align: center;
 }
 
@@ -153,50 +155,6 @@ html, body {
 	margin-top: 2px;
 }
 
-#helpBox {
-	border-width: 1px;
-	border-style: solid;
-	border-color: rgb(172, 172, 172);
-	background-color: white;
-	-webkit-border-top-right-radius: 8px 8px;
-	-webkit-border-top-left-radius: 8px 8px;
-	-webkit-border-bottom-left-radius: 8px 8px;
-	-webkit-border-bottom-right-radius: 8px 8px;
-	position: relative;
-	-webkit-margin-top-collapse: separate;
-	-webkit-margin-bottom-collapse: separate;
-	margin-left: 13px;
-	margin-right: 20px;
-	width: auto;
-	min-height: 177px;
-	height: auto;
-	margin-bottom: 15px;
-	margin-top: 15px;
-}
-
-#helpTitle {
-	color: black;
-	font-family: Helvetica;
-	font-size: 17px;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	position: relative;
-	-webkit-margin-top-collapse: separate;
-	-webkit-margin-bottom-collapse: separate;
-	margin-top: 39px;
-	text-align: center;
-	background-color: white;
-	-webkit-border-top-left-radius: 4px 4px;
-	-webkit-border-top-right-radius: 4px 4px;
-	-webkit-border-bottom-left-radius: 4px 4px;
-	-webkit-border-bottom-right-radius: 4px 4px;
-	margin-left: 13px;
-	width: auto;
-	margin-right: 18px;
-	min-height: 20px;
-	height: auto;
-}
-
 .selected #helpTitle {
 	color: white;
 }
@@ -254,7 +212,7 @@ hr {
 	line-height: 0px;
 }
 
-#masterCategoriesBox img, #categoriesBox img, #keywordVisualBox img {
+#masterCategoriesBox img, #categoriesBox img, #keywordVisualBox img, #answerSpacesList img {
 	display: inline-block;
 }
 
@@ -264,19 +222,15 @@ select {
 }
 
 textarea, select, input {
-	max-width: 95%;
-	margin: 5px;
+	max-width: 99.99%;
 	font-size: medium;
 }
 
-form, table {
+form, table, tbody, tr {
 	max-width: 100%;
+	width: 100%;
 	text-align: left;
 	overflow: hidden;
-}
-
-table td {
-	margin: 4px;
 }
 
 ul.box a:link { color: inherit; text-decoration: none; }
@@ -314,4 +268,14 @@ ul.box .description {
 #answerSpacesList .label, #answerSpacesList .description {
 	width: 70%;
 }
+
+@-webkit-keyframes pulse {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
 
