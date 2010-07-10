@@ -1246,9 +1246,9 @@ function submitFormWithRetry() {
 	 return;
   }
 
-  var answerUrl = 'util/GetAnswer.php?';
+  var answerUrl = '../../common/0/util/GetAnswer.php?';
   if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + arr[1] + "&" + arr[2].substring(1);
+	 answerUrl += "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + arr[1] + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
   } else {
 	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2];
@@ -1316,7 +1316,7 @@ function submitAction(keyword, action) {
 	var form = $('form').first();
   var str = form.find('input, textarea, select').serialize();
 	var method = form.attr('method');
-  var answerUrl = 'util/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + "&" + action;
+  var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + "&" + action;
 
   if (method == "get")
   {
