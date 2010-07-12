@@ -16,6 +16,10 @@ html, body {
 	visibility: hidden !important;
 }
 
+a[onclick] {
+	cursor: pointer;
+}
+
 #startUp {
 	padding-top: 20%;
 	width: 100%;
@@ -46,13 +50,13 @@ html, body {
 	width: 100%;
 }
 
-#loginBar {
+/*#loginBar {
 	float: right;
 	text-align: right;
 	padding: 4px;
 }
 
-#loginBar a[onclick] { color: blue; text-decoration: underline; }
+#loginBar a[onclick] { color: blue; text-decoration: underline; }*/
 
 #activeContent {
 	position: relative;
@@ -88,7 +92,6 @@ html, body {
 }
 
 #stackLayout {
-	position: relative;
 	min-height: 100%;
 	width: auto;
 }
@@ -263,6 +266,14 @@ ul.box .label {
 
 ul.box .description {
 	font-size: smaller;
+}
+
+.box ul, .box p {
+	margin: 1em 20px;
+}
+
+.box p {
+	margin: 1em 0;
 }
 
 #answerSpacesList .label, #answerSpacesList .description {

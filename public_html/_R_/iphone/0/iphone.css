@@ -6,7 +6,6 @@ body {
 
 #activityIndicator {
 	position: fixed;
-	top: 50%;
 	left: 50%;
 	margin-left: -30px;
 	padding: 10px;
@@ -15,6 +14,7 @@ body {
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	z-index: 5;
+	-webkit-transition: top 0.5s ease-in-out;
 }
 
 #activityIndicator img {
@@ -33,6 +33,14 @@ body {
 	display: none;
 	-webkit-animation-name: none;
 }
+
+#loginStatus, #loginButton {
+	float: right;
+	text-align: right;
+	padding: 4px;
+}
+
+#loginStatus a[onclick], #loginButton a[onclick] { color: blue; text-decoration: underline; }*/
 
 #stackLayout {
 	position: relative;
@@ -90,6 +98,8 @@ body {
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
 	height: 41px;
+	z-index: 1;
+	-webkit-transition: top 0.5s ease-in-out;
 }
 
 .navButtonsHolder {

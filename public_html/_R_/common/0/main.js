@@ -460,6 +460,7 @@ function loaded(row1String, row2String)
 /*	if (answerSpace)
 	{ */
 		getSiteConfig();
+		updateLoginBar();
 	/* }
 	else
 	{
@@ -469,6 +470,7 @@ function loaded(row1String, row2String)
 
 // called from body element when device is rotated
 // updates the viewport tag with the correct width
+/*
 function updateOrientation()
 {
   var isPortrait = true;
@@ -507,6 +509,7 @@ function updateOrientation()
 	 }
   }
 }
+*/
 
 function getAnswerSpacesList()
 {
@@ -998,31 +1001,25 @@ function updateLoginBar(){
 	startInProgressAnimation();
   var loginUrl = "../../common/0/util/GetLogin.php";
 	console.log("GetLogin transaction: " + loginUrl);
-  $.ajax({
-	 type: 'GET',
-	 cache: "false",
-	 url: loginUrl,
-	 success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		$('#loginBar').html(httpLoginBarRequest.responseText);
-	 },
-	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		alert("Error preparing login:" + xmlhttprequest.responseText);
-	 },
-	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		console.log("GetLogin transaction complete: " + textstatus);
-		stopInProgressAnimation();
-		if (xmlhttprequest.responseText == "")
-		{
-		  $('#loginBar').css('display', 'none');
-		  $('#loginButton').css('display', 'block');
-		}
-		else
-		{
-		  $('#loginButton').css('display', 'none');
-		  $('#loginBar').css('display', 'block');
-		}
-	 }
-  });
+  $.getJSON(loginUrl,
+		function(data, textstatus) { // readystate == 4
+			stopInProgressAnimation();
+			if (textstatus != 'success')
+			{
+				alert("Error preparing login:" + xmlhttprequest.responseText);
+				return;
+			}
+			if (data.status == "LOGGED IN")
+			{
+				$('#loginStatus').html(data.html).removeClass('hidden');
+				$('#loginButton').addClass('hidden');
+			}
+			else
+			{
+				$('#loginStatus').addClass('hidden');
+				$('#loginButton').removeClass('hidden');
+			}
+	 });
 }
 
 function submitLogin()
@@ -1263,7 +1260,7 @@ function submitFormWithRetry() {
 		url: answerUrl,
 		data: "?" + str,
 		beforeSend: function(xmlhttprequest) {
-		  console.log("GetAnswer transaction: " + keywordsUrl + "?" + requestData);
+		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
 		  httpAnswerRequest = xmlhttprequest;
 		  startInProgressAnimation();
 		},
@@ -1301,7 +1298,7 @@ function submitFormWithRetry() {
 		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
 		  delHeadPendingFormData();
-		  $('#innerAnswerBox').html(httpAnswerRequest.responseText);
+		  $('#answerBox').html(data);
 		  stopInProgressAnimation();
 		  setSubmitCachedFormButton();
 			prepareAnswerViewForDevice();
@@ -1326,7 +1323,7 @@ function submitAction(keyword, action) {
 		url: answerUrl,
 		data: "?" + str,
 		beforeSend: function(xmlhttprequest) {
-		  console.log("GetAnswer transaction: " + keywordsUrl + "?" + requestData);
+		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
 		  httpAnswerRequest = xmlhttprequest;
 		  startInProgressAnimation();
 		},
@@ -1361,7 +1358,7 @@ function submitAction(keyword, action) {
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
-		  $('#innerAnswerBox').html(httpAnswerRequest.responseText);
+		  $('#answerBox').html(data);
 		  stopInProgressAnimation();
 			prepareAnswerViewForDevice();
 		  setCurrentView('answerView', false, true);

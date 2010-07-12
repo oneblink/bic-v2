@@ -4,6 +4,7 @@ var pendingFormButton = $('#pendingFormButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
 var activityIndicator = $('#activityIndicator');
+var activityIndicatorTop = $(window).height() / 2;
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -202,12 +203,37 @@ function setCurrentView(view, reverseTransition)
 		});
   }
   window.scrollTo(0, 0);
+	$('.navBar').css('top', '0px');
+	activityIndicator.css('top', activityIndicatorTop);
 }
 
 /*
  ABOVE: all methods need implementation per device (directly called from main.js)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
+
+var loginButton = $('#loginButton');
+var loginStatus = $('#loginStatus');
+function onScroll()
+{
+	var headerHeight = $('.header').height();
+	if (!loginButton.hasClass('hidden'))
+		headerHeight += loginButton.height();
+	if (!loginStatus.hasClass('hidden'))
+		headerHeight += loginStatus.height();
+	var scrollTop = $(window).scrollTop();
+	var navBars = $('.navBar');
+	if (scrollTop > headerHeight)
+	{
+		var offset = scrollTop - headerHeight - 8;
+		navBars.css('top', offset + 'px');
+	}
+	else
+	{
+		navBars.css('top', '0px');
+	}
+	activityIndicator.css('top', activityIndicatorTop + scrollTop);
+}
 
 function setupParts()
 {

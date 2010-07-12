@@ -55,17 +55,18 @@ body {
 	font-weight: bold;
 }
 
-#loginBar {
+#loginStatus {
 	padding: 4px;
 	font-size: small;
 	text-align: center;
 	text-shadow: 1px 1px 1px #DEDEE4;
 }
 
-#loginBar > a:link { font-size: medium; color: blue; text-decoration: none; }
-#loginBar > a:visited { font-size: medium; color: blue; text-decoration: none; }
-#loginBar > a:hover { font-size: medium; color: blue; text-decoration: none; }
-#loginBar > a:active { font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:link { display: block; ffont-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:visited { display: block; ffont-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:hover { display: block; ffont-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:active { display: block; ffont-size: medium; color: blue; text-decoration: none; }
 
 .bordered {
 	border: 1px solid #B7B7BC;

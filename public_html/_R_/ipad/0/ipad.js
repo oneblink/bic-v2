@@ -151,7 +151,7 @@ function prepareLoginViewForDevice()
   backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
-	 goBackToKeywordListView();
+	 goBackToHome();
   });
   helpButton.addClass('hidden');
   pendingFormButton.addClass('hidden');
@@ -176,7 +176,7 @@ function prepareActivateLoginViewForDevice()
   backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
-	 goBackToKeywordListView();
+	 goBackToHome();
   });
   helpButton.addClass('hidden');
   pendingFormButton.addClass('hidden');
