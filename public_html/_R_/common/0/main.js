@@ -891,11 +891,7 @@ function createParamsAndArgs(keywordID)
   var args = "";
   var argElements = $('#argsBox').find('input, textarea, select');
   argElements.each(function(index, element) {
-	 if (argElements.size() == 1 && this.value)
-	 {
-		returnValue += "&args=" + encodeURIComponent(this.value);
-	 }
-	 else if (this.type && (this.type.toLowerCase() == "radio" || this.type.toLowerCase() == "checkbox") && !this.checked)
+	if (this.type && (this.type.toLowerCase() == "radio" || this.type.toLowerCase() == "checkbox") && !this.checked)
 	 {
 		// do nothing for unchecked radio or checkbox
 	 }
@@ -903,15 +899,19 @@ function createParamsAndArgs(keywordID)
 	 {
 		args += "&" + this.name + "=" + (this.value ? encodeURIComponent(this.value) : "");
 	 }
-	 else if (this.id)
+	 else if (this.id && this.id.match(/\d+/g))
 	 {
 		args += "&args[" + this.id.match(/\d+/g) + "]=" + (this.value ? encodeURIComponent(this.value) : "");
 	 }
   });
-  if (args)
+  if (args.length > 0)
   {
 	 returnValue += encodeURI(args);
   }
+	else if (argElements.size() == 1 && this.value)
+	{
+		returnValue += "&args=" + encodeURIComponent(this.value);
+	}
   return returnValue;
 }
 
