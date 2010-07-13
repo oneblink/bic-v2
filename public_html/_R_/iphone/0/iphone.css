@@ -20,13 +20,6 @@ body {
 #activityIndicator img {
 	display: block;
 	-webkit-animation-iteration-count: infinite;
-	-webkit-animation-name: pulse;
-	-webkit-animation-duration: 0.5s;
-	-webkit-animation-timing-function: ease-in-out;
-	-webkit-animation-direction: alternate;
-	/* -webkit-animation-name: spinner;
-	-webkit-animation-duration: 1s;
-	-webkit-animation-timing-function: linear; */
 }
 
 #activityIndicator.hidden img {
@@ -99,7 +92,6 @@ body {
 	text-align: center;
 	height: 41px;
 	z-index: 1;
-	-webkit-transition: top 0.5s ease-in-out;
 }
 
 .navButtonsHolder {

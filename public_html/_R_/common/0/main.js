@@ -541,7 +541,7 @@ function getAnswerSpacesList()
 					populateAnswerSpacesList();
 					showAnswerSpacesListView();
 					startUp.remove();
-					$('#content').show();
+					$('#content').removeClass('hidden');
 				}
 			}
 		});
@@ -607,7 +607,7 @@ function getSiteConfig()
 						showKeywordListView();
 					}
 					startUp.remove();
-					$('#content').show();
+					$('#content').removeClass('hidden');
 				}
 			}
 		});
@@ -712,7 +712,7 @@ function showAnswerView(keywordID)
 		if (textstatus == "timeout")
 		{
 		  answerItem = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
-		  $('#answerBox').html(answerItem == undefined ? "No result available" : answerItem);
+		  insertHTML($('#answerBox'), answerItem == undefined ? "No result available" : answerItem);
 		}
 	 },
 	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
@@ -721,7 +721,7 @@ function showAnswerView(keywordID)
 		{
 		  var html =  httpAnswerRequest.responseText;
 		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
-		  $('#answerBox').html(html);
+		  insertHTML($('#answerBox'), html);
 		  setSubmitCachedFormButton();
 		}
 		prepareAnswerViewForDevice();
@@ -776,7 +776,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 		console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
 		httpAnswerRequest = xmlhttprequest;
 		setSubmitCachedFormButton();
-		$('#answerBox2').html("Waiting...");
+		insertHTML($('#answerBox2'), "Waiting...");
 		startInProgressAnimation();
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -787,7 +787,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		{
 		  var html =  httpAnswerRequest.responseText;
-        $('#answerBox2').html(html);
+        insertHTML($('#answerBox2'), html);
 		}
 		stopInProgressAnimation();
 	 }
@@ -1275,8 +1275,8 @@ function submitFormWithRetry() {
 		  console.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
-			 delHeadPendingFormData();
-			 $('#answerBox').html(httpAnswerRequest.responseText);
+				delHeadPendingFormData();
+				$('#answerBox').html(xmlhttprequest.responseText);
 			 setSubmitCachedFormButton();
 			 prepareAnswerViewForDevice();
 			 setCurrentView('answerView', false, true);
@@ -1298,7 +1298,7 @@ function submitFormWithRetry() {
 		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
 		  delHeadPendingFormData();
-		  $('#answerBox').html(data);
+			$('#answerBox').html(data);
 		  stopInProgressAnimation();
 		  setSubmitCachedFormButton();
 			prepareAnswerViewForDevice();
@@ -1338,9 +1338,9 @@ function submitAction(keyword, action) {
 		  console.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
-			 $('#innerAnswerBox').html(httpAnswerRequest.responseText);
-			 prepareAnswerViewForDevice();
-			 setCurrentView('answerView', false, true);
+				$('#answerBox').html(xmlhttprequest.responseText);
+				prepareAnswerViewForDevice();
+				setCurrentView('answerView', false, true);
 		  }
 		  stopInProgressAnimation();
 		},
@@ -1358,7 +1358,7 @@ function submitAction(keyword, action) {
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
-		  $('#answerBox').html(data);
+			$('#answerBox').html(data);
 		  stopInProgressAnimation();
 			prepareAnswerViewForDevice();
 		  setCurrentView('answerView', false, true);
@@ -1366,4 +1366,12 @@ function submitAction(keyword, action) {
 		timeout: 60 * 1000 // 60 seconds
 	 });
   }
+}
+
+// allow us to experiment with more fool-proof methods of DOM manipulate
+function insertHTML(element, html)
+{
+	element.html(html);
+	element.children().addClass('hidden');
+	element.children().removeClass('hidden');
 }

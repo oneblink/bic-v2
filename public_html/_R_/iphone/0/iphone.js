@@ -4,7 +4,9 @@ var pendingFormButton = $('#pendingFormButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
 var activityIndicator = $('#activityIndicator');
-var activityIndicatorTop = $(window).height() / 2;
+var navBar = $('.navBar');
+var activityIndicatorTop = Math.floor($(window).height() / 2);
+console.log(activityIndicatorTop);
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -203,8 +205,8 @@ function setCurrentView(view, reverseTransition)
 		});
   }
   window.scrollTo(0, 0);
-	$('.navBar').css('top', '0px');
-	activityIndicator.css('top', activityIndicatorTop);
+	updatePartCSS(navBar, scrollProperty, '0', scrollValue);
+	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
 }
 
 /*
@@ -212,27 +214,28 @@ function setCurrentView(view, reverseTransition)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
 
-var loginButton = $('#loginButton');
-var loginStatus = $('#loginStatus');
 function onScroll()
 {
-	var headerHeight = $('.header').height();
-	if (!loginButton.hasClass('hidden'))
-		headerHeight += loginButton.height();
-	if (!loginStatus.hasClass('hidden'))
-		headerHeight += loginStatus.height();
+	var headerBottom = $('.header').height() + $('#loginButton').height() + $('#loginStatus').height();
 	var scrollTop = $(window).scrollTop();
-	var navBars = $('.navBar');
-	if (scrollTop > headerHeight)
+	console.log(scrollTop + ' ' + headerBottom);
+	if (scrollTop > headerBottom)
 	{
-		var offset = scrollTop - headerHeight - 8;
-		navBars.css('top', offset + 'px');
+		var offset = scrollTop - headerBottom - 8;
+		updatePartCSS(navBar, scrollProperty, offset, scrollValue);
 	}
 	else
 	{
-		navBars.css('top', '0px');
+		updatePartCSS(navBar, scrollProperty, '0', scrollValue);
 	}
-	activityIndicator.css('top', activityIndicatorTop + scrollTop);
+	updatePartCSS(activityIndicator, scrollProperty, (activityIndicatorTop + scrollTop), scrollValue);
+}
+
+function updatePartCSS(element, property, value, valueFormat)
+{
+	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
+	element.css(property, formattedValue);
+	console.log(property + ": " + formattedValue);
 }
 
 function setupParts()
@@ -252,5 +255,4 @@ function setupParts()
 		var thisElement = $(element);
 		thisElement.html('<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
 	});
-	squareButtons.show();
 }
