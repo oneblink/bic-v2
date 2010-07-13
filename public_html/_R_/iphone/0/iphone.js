@@ -213,13 +213,14 @@ function setCurrentView(view, reverseTransition)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
 
+var loginButton = $('#loginButton');
 function onScroll()
 {
-	var headerBottom = $('.header').height() + $('#loginButton').height() + $('#loginStatus').height();
+	var headerBottom = $('.header').height() + loginButton.height() + $('#loginStatus').height();
 	var scrollTop = $(window).scrollTop();
 	if (scrollTop > headerBottom)
 	{
-		var offset = scrollTop - headerBottom - 8;
+		var offset = scrollTop - headerBottom - (loginButton.size() > 0 ? 8 : 0);
 		updatePartCSS(navBar, scrollProperty, offset, scrollValue);
 	}
 	else

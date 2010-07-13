@@ -721,13 +721,12 @@ function showAnswerView(keywordID)
 		{
 		  var html =  httpAnswerRequest.responseText;
 		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
-		  insertHTML($('#answerBox'), html);
+		  insertHTML($('#answerBox'), html, setupForms);
 		  setSubmitCachedFormButton();
 		}
 		prepareAnswerViewForDevice();
 		setCurrentView("answerView", false, true);
 		stopInProgressAnimation();
-		setupForms();
 	 },
 	 timeout: 30 * 1000 // 30 seconds
   });
@@ -1194,12 +1193,28 @@ function setSubmitCachedFormButton() {
 	var button = $('.pendingFormButton');
   if (queueCount != 0) {
     console.log("setSubmitCachedFormButton: Cached items");
-    button.button("option", "label", "(" + queueCount + ")");
+		buttonLabel = button.find('.buttonLabel');
+		if (buttonLabel.size() > 0)
+		{
+			buttonLabel.html(queueCount + ' Pending');
+		}
+		else
+		{
+			button.button("option", "label", queueCount + ' Pending');
+		}
     button.button("option", "disabled", "false");
 	  button.removeAttr("disabled");
   } else {
     console.log("setSubmitCachedFormButton: NO Cached items");
-    button.button("option", "label", "Ok");
+		buttonLabel = button.find('.buttonLabel');
+		if (buttonLabel.size() > 0)
+		{
+			buttonLabel.html('OK');
+		}
+		else
+		{
+			button.button("option", "label", "Ok");
+		}
     button.button("option", "disabled", "true");
 	  button.attr("disabled", "true");
   }
@@ -1369,9 +1384,10 @@ function submitAction(keyword, action) {
 }
 
 // allow us to experiment with more fool-proof methods of DOM manipulate
-function insertHTML(element, html)
+function insertHTML(element, html, callback)
 {
-	element.html(html);
-	element.children().addClass('hidden');
-	element.children().removeClass('hidden');
+	setTimeout(function() {
+		element.html(html);
+		callback();
+	}, 200);
 }
