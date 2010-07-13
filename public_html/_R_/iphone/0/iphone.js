@@ -6,7 +6,6 @@ var mainLabel = $('#mainLabel');
 var activityIndicator = $('#activityIndicator');
 var navBar = $('.navBar');
 var activityIndicatorTop = Math.floor($(window).height() / 2);
-console.log(activityIndicatorTop);
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -218,7 +217,6 @@ function onScroll()
 {
 	var headerBottom = $('.header').height() + $('#loginButton').height() + $('#loginStatus').height();
 	var scrollTop = $(window).scrollTop();
-	console.log(scrollTop + ' ' + headerBottom);
 	if (scrollTop > headerBottom)
 	{
 		var offset = scrollTop - headerBottom - 8;
@@ -235,7 +233,6 @@ function updatePartCSS(element, property, value, valueFormat)
 {
 	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
 	element.css(property, formattedValue);
-	console.log(property + ": " + formattedValue);
 }
 
 function setupParts()
