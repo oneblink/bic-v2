@@ -736,8 +736,13 @@ function setupForms()
 {
 	var form = $('form');
 	var totalWidth = form.width();
-	var firstColumnWidth = form.find('tr td').first().width();
+	var firstColumnWidth = form.find('td').first().width();
 	var targetWidth = totalWidth - firstColumnWidth - 32;
+	form.find('td, select, input, textarea').each(function(index, element) {
+		if ($(element).width() > targetWidth)
+			$(element).width(targetWidth);
+	});
+	/*
 	form.find('textarea, input[type=text], input[type=email], input[type=url], input[type=tel]').each(function(index, element) {
 		$(element).width(targetWidth);
 	});
@@ -745,6 +750,7 @@ function setupForms()
 		if ($(element).width() > targetWidth)
 			$(element).width(targetWidth);
 	});
+	*/
 }
 
 function gotoNextScreen(keywordID)
