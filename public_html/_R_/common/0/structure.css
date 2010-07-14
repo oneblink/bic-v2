@@ -224,15 +224,18 @@ select {
 }
 
 textarea, select, input {
-	max-width: 99.99%;
+	max-width: 100%;
 	font-size: medium;
 }
 
 form, table, tbody, tr {
 	max-width: 100%;
-	width: 100%;
 	text-align: left;
+}
+
+form, table, tbody {
 	overflow: hidden;
+	width: 100%;
 }
 
 ul.box a:link { color: inherit; text-decoration: none; }

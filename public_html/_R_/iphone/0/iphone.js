@@ -160,13 +160,21 @@ function populateTextOnlyCategories(masterCategory)
 	console.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
-	var html = "<select id='categoriesList' onchange=\"showKeywordListView(this.options[this.selectedIndex].value)\">"
+	var select = document.createElement('select');
+	$(select).attr('id', 'categoriesList');
+	$(select).bind('change', function() {
+	 showKeywordListView(this.options[this.selectedIndex].value);
+	});
 	for (id in order)
 	{
-		html += "<option value=\"" + order[id] + "\"" + (order[id] == currentCategory ? " selected" : "") + ">" + list[order[id]].name + "</option>";
+		var option = document.createElement('option');
+		$(option).attr('value', order[id]);
+		if (order[id] == currentCategory)
+			$(option).attr('selected', 'true');
+		$(option).html(list[order[id]].name);
+		$(option).appendTo(select);
 	}
-	html += "</select>";
-	insertHTML($('#categorySelector'), html);
+	$('#categorySelector').empty().append(select);
 	$('#categorySelectorArea').removeClass('hidden');
 	//currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
 }

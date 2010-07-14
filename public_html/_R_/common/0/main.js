@@ -186,25 +186,27 @@ function populateKeywordList(category) {
 		}
 	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order;
 	var list = siteConfig.keywords;
+	var htmlBox = "";
+	var htmlList = "";
 	for (id in order)
   {
 		if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 		{
-			var html = "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
-			html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
-			html += "</a>";
-			keywordBox.append(html);
+			htmlBox += "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
+			htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
+			htmlBox += "</a>";
 		}
 		else
 		{
-			var html = "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
-			html += "<div class='label'>" + list[order[id]].name + "</div>";
-			html += "<div class='nextArrow'></div>";
-			html += "<div class='description'>" + list[order[id]].description + "</div>";
-			html += "</li></a>";
-			keywordList.append(html);
+			htmlList += "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
+			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
+			htmlList += "<div class='nextArrow'></div>";
+			htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
+			htmlList += "</li></a>";
 		}
   }
+	keywordBox.append(htmlBox);
+	keywordList.append(htmlList);
 	if (keywordBox.children().size() > 0)
 	{
 		var images = keywordBox.find('img');
@@ -288,7 +290,7 @@ function populateMasterCategories()
 	{
 		var categoryHTML = ""
 		categoryHTML += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
-		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" title=\"" + order[id] + "\" />";
+		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		categoryHTML += "</a>";
 		masterCategoriesBox.append(categoryHTML);
 	}
@@ -348,7 +350,7 @@ function populateVisualCategories(masterCategory)
 	{
 		var html = ""
 		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
-		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" title=\"" + order[id] + "\" />";
+		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		html += "</a>";
 		categoriesBox.append(html);
 	}
@@ -712,7 +714,7 @@ function showAnswerView(keywordID)
 		if (textstatus == "timeout")
 		{
 		  answerItem = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
-		  insertHTML($('#answerBox'), answerItem == undefined ? "No result available" : answerItem);
+		  $('#answerBox').html(answerItem == undefined ? "No result available" : answerItem);
 		}
 	 },
 	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
@@ -721,10 +723,11 @@ function showAnswerView(keywordID)
 		{
 		  var html =  httpAnswerRequest.responseText;
 		  setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
-		  insertHTML($('#answerBox'), html, setupForms);
+		  $('#answerBox').html(html);
 		  setSubmitCachedFormButton();
 		}
 		prepareAnswerViewForDevice();
+		setupForms();
 		setCurrentView("answerView", false, true);
 		stopInProgressAnimation();
 	 },
@@ -734,23 +737,16 @@ function showAnswerView(keywordID)
 
 function setupForms()
 {
-	var form = $('form');
-	var totalWidth = form.width();
-	var firstColumnWidth = form.find('td').first().width();
-	var targetWidth = totalWidth - firstColumnWidth - 32;
-	form.find('td, select, input, textarea').each(function(index, element) {
-		if ($(element).width() > targetWidth)
-			$(element).width(targetWidth);
-	});
-	/*
-	form.find('textarea, input[type=text], input[type=email], input[type=url], input[type=tel]').each(function(index, element) {
-		$(element).width(targetWidth);
-	});
-	form.find('select').each(function(index, element) {
-		if ($(element).width() > targetWidth)
-			$(element).width(targetWidth);
-	});
-	*/
+	setTimeout(function() {
+		var form = $('form');
+		var totalWidth = form.width();
+		var firstColumnWidth = form.find('td').first().width();
+		var targetWidth = totalWidth - firstColumnWidth - 32;
+		form.find('td, select, input, textarea').each(function(index, element) {
+			if ($(element).width() > targetWidth)
+				$(element).width(targetWidth);
+		});
+	}, 0);
 }
 
 function gotoNextScreen(keywordID)
@@ -781,7 +777,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 		console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
 		httpAnswerRequest = xmlhttprequest;
 		setSubmitCachedFormButton();
-		insertHTML($('#answerBox2'), "Waiting...");
+		$('#answerBox2').html("Waiting...");
 		startInProgressAnimation();
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -792,7 +788,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		{
 		  var html =  httpAnswerRequest.responseText;
-        insertHTML($('#answerBox2'), html);
+        $('#answerBox2').html(html);
 		}
 		stopInProgressAnimation();
 	 }
@@ -1389,13 +1385,23 @@ function submitAction(keyword, action) {
   }
 }
 
-// allow us to experiment with more fool-proof methods of DOM manipulate
+/*
+ // allow us to experiment with more fool-proof methods of DOM manipulate
 function insertHTML(element, html, callback)
 {
+	
 	setTimeout(function() {
-		element.html(html);
+		var html2 = html;
+		html2 = html2.replace(/<td style\=\"/g, '<div class="table-cell" style="display:table-cell;');
+		html2 = html2.replace(/<\/td>/g, '</div>');
+		html2 = html2.replace(/<tr>/g, '<div class="table-row" style="display:table-row;">');
+		html2 = html2.replace(/<\/tr>/g, '</div>');
+		html2 = html2.replace(/<table><tbody>/g, '<div class="table" style="display:table">');
+		html2 = html2.replace(/<\/tbody><\/table>/g, '</div>');
+		//html2 = html2.replace('tbody', 'div');
+		element.html(html2);
 		if (callback)
-			element.html(html);
 			callback();
-	}, 200);
+	}, 500);
 }
+*/
