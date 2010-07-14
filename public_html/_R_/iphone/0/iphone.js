@@ -166,7 +166,7 @@ function populateTextOnlyCategories(masterCategory)
 		html += "<option value=\"" + order[id] + "\"" + (order[id] == currentCategory ? " selected" : "") + ">" + list[order[id]].name + "</option>";
 	}
 	html += "</select>";
-	$('#categorySelector').html(html);
+	insertHTML($('#categorySelector'), html);
 	$('#categorySelectorArea').removeClass('hidden');
 	//currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
 }

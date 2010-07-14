@@ -1389,6 +1389,7 @@ function insertHTML(element, html, callback)
 	setTimeout(function() {
 		element.html(html);
 		if (callback)
+			element.html(html);
 			callback();
 	}, 200);
 }
