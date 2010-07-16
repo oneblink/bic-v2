@@ -211,7 +211,9 @@ function setCurrentView(view, reverseTransition)
 			newView.removeClass('sliding');
 		});
   }
-  window.scrollTo(0, 0);
+	setTimeout(function() {
+		window.scrollTo(0, 0);
+	}, 0);
 	updatePartCSS(navBar, scrollProperty, '0', scrollValue);
 	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
 }
