@@ -271,7 +271,8 @@ ul.box .description {
 }
 
 .box ul, .box ol {
-	margin: 1em 20px;
+	margin: 1em 0;
+	padding-left: 2em;
 }
 
 .box p {
