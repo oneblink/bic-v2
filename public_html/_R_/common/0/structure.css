@@ -270,7 +270,7 @@ ul.box .description {
 	font-size: smaller;
 }
 
-.box ul, .box p {
+.box ul, .box ol {
 	margin: 1em 20px;
 }
 
