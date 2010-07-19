@@ -696,7 +696,7 @@ function showAnswerView(keywordID)
 	var keyword = siteConfig.keywords[keywordID];
   
   var answerUrl = '../../common/0/util/GetAnswer.php';
-  var requestData = createParamsAndArgs(keywordID);
+  var requestData = createParamsAndArgs(keywordID) + (device ? '&_device=' + device : '');
   $.ajax({
 	 type: 'GET',
 	 url: answerUrl,
@@ -768,7 +768,7 @@ function showSecondLevelAnswerView(keyword, arg0)
   
   var answerUrl = '../../common/0/util/GetAnswer.php'
   //var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&args=' + arg0.replace(/&/g, "|^^|s|");
-  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&' + arg0;
+  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
   $.ajax({
 	 type: 'GET',
 	 url: answerUrl,
@@ -1262,10 +1262,10 @@ function submitFormWithRetry() {
 
   var answerUrl = '../../common/0/util/GetAnswer.php?';
   if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + arr[1] + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+	 answerUrl += "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + arr[1] + (device ? '&_device=' + device : '') + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
   } else {
-	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2];
+	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2] + (device ? '&_device=' + device : '');
 	 localKeyword = arr[2];
   }
 
@@ -1330,7 +1330,7 @@ function submitAction(keyword, action) {
 	var form = $('form').first();
   var str = form.find('input, textarea, select').serialize();
 	var method = form.attr('method');
-  var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + "&" + action;
+  var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + (device ? '&_device=' + device : '') + "&" + action;
 
   if (method == "get")
   {
