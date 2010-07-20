@@ -1044,6 +1044,7 @@ function submitLogin()
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			console.log("iPhoneLogin transaction complete: " + textstatus);
 			stopInProgressAnimation();
+			getSiteConfig();
 			updateLoginBar();
 		}
   });
@@ -1070,6 +1071,7 @@ function submitLogout()
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			console.log("iPhoneLogin transaction complete: " + textstatus);
+			getSiteConfig();
 			updateLoginBar();
 		}
   });
@@ -1385,23 +1387,3 @@ function submitAction(keyword, action) {
   }
 }
 
-/*
- // allow us to experiment with more fool-proof methods of DOM manipulate
-function insertHTML(element, html, callback)
-{
-	
-	setTimeout(function() {
-		var html2 = html;
-		html2 = html2.replace(/<td style\=\"/g, '<div class="table-cell" style="display:table-cell;');
-		html2 = html2.replace(/<\/td>/g, '</div>');
-		html2 = html2.replace(/<tr>/g, '<div class="table-row" style="display:table-row;">');
-		html2 = html2.replace(/<\/tr>/g, '</div>');
-		html2 = html2.replace(/<table><tbody>/g, '<div class="table" style="display:table">');
-		html2 = html2.replace(/<\/tbody><\/table>/g, '</div>');
-		//html2 = html2.replace('tbody', 'div');
-		element.html(html2);
-		if (callback)
-			callback();
-	}, 500);
-}
-*/

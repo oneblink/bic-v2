@@ -6,20 +6,36 @@ CACHE MANIFEST
 # identical.
 
 index.php
-main.css
-main.js
-Math.uuid.js
+ipad.css
+ipad.js
 Images/ActivityIndicator.png
 Images/ActivityIndicatorWhite.png
-Images/BlinkAnswerSpace1.jpg
-Images/WebClipIcon.png
+Images/backButton.png
 Images/backgroundStripes.png
 Images/blink-logo.gif
 Images/blink-mydot-intro.jpg
 Images/blink-mydot-intro.png
-Images/chevron.png
+Images/BlinkAnswerSpace1.jpg
+Images/button.png
 Images/chevron_white.png
-Images/selectedRowiPhone.png
+Images/chevron.png
+Images/nextButton.png
+Images/roundButton.png
+Images/squareButton.png
+Images/WebClipIcon.png
+util/GetSiteConfig.php
+../../common/0/browser-compat.js
+../../common/0/jquery-1.4.2.min.js
+../../common/0/jquery-ui-1.8.2.custom.min.js
+../../common/0/main.js
+../../common/0/Math.uuid.js
+../../common/0/structure.css
+../../common/0/util/ActivateLogin.php
+../../common/0/util/CreateLogin.php
+../../common/0/util/DoLogin.php
+../../common/0/util/GetAnswer.php
+../../common/0/util/GetAnswerSpaces.php
+../../common/0/util/GetLogin.php
 
 NETWORK: 
 # All URLs that start with the following lines 
@@ -51,8 +67,6 @@ http://www.tsc.nsw.edu.au/
 http://www.visitcentralcoast.com.au/
 http://www.weather.com.au/
 http://www.crust.com.au/
-/iPhoneUtil/
-../login/
 /images/
 
 CACHE: 
