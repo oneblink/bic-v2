@@ -561,14 +561,16 @@ function getSiteConfig()
 			console.log(data);
 			stopInProgressAnimation();
 			if (textstatus != 'success') return;
-			if (data.errorMessage && data.errorMessage == "NOT FOUND")
+/*			if (data.errorMessage && data.errorMessage == "NOT FOUND")
 			{
 				console.log("GetSiteConfig error: " + data.errorMessage);
 				//getAnswerSpacesList();
 			}
-			else if (data.errorMessage)
+			else */
+			if (data.errorMessage)
 			{
 				console.log("GetSiteConfig error: " + data.errorMessage);
+				window.location = "/demos";
 			}
 			else
 			{
