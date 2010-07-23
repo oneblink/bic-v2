@@ -1,7 +1,6 @@
 body {
 	background-color: #E3E4EA;
 	font-family: Helvetica;
-	font-size: medium;
 }
 
 #activityIndicator {
@@ -48,37 +47,37 @@ body {
 .bordered {
 	border: 1px solid #B7B7BC;
 	background-color: #FFF;
-	border-radius: 10px;
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
 }
 
 .roundedTopLeft {
 	border: none;
-	border-top-left-radius: 10px;
-	-moz-border-top-left-radius: 10px;
-	-webkit-border-top-left-radius: 10px;
+	border-top-left-radius: 8px;
+	-moz-border-top-left-radius: 8px;
+	-webkit-border-top-left-radius: 8px;
 }
 
 .roundedTopRight {
 	border: none;
-	border-top-right-radius: 10px;
-	-moz-border-top-right-radius: 10px;
-	-webkit-border-top-right-radius: 10px;
+	border-top-right-radius: 8px;
+	-moz-border-top-right-radius: 8px;
+	-webkit-border-top-right-radius: 8px;
 }
 
 .roundedBottomLeft {
 	border: none;
-	border-bottom-left-radius: 10px;
-	-moz-border-bottom-left-radius: 10px;
-	-webkit-border-bottom-left-radius: 10px;
+	border-bottom-left-radius: 8px;
+	-moz-border-bottom-left-radius: 8px;
+	-webkit-border-bottom-left-radius: 8px;
 }
 
 .roundedBottomRight {
 	border: none;
-	border-bottom-right-radius: 10px;
-	-moz-border-bottom-right-radius: 10px;
-	-webkit-border-bottom-right-radius: 10px;
+	border-bottom-right-radius: 8px;
+	-moz-border-bottom-right-radius: 8px;
+	-webkit-border-bottom-right-radius: 8px;
 }
 
 .navBar {
@@ -234,7 +233,7 @@ ul.box {
 
 ul.box li {
 	overflow: hidden;
-	padding: 10px;
+	padding: 8px;
 	border-bottom: 1px solid rgb(224, 224, 224);
 	border-left: 1px solid #B7B7BC;
 	border-right: 1px solid #B7B7BC;
@@ -245,16 +244,16 @@ ul.box > a:first-child > li {
 	border-left: 1px solid #B7B7BC;
 	border-top: 1px solid #B7B7BC;
 	border-right: 1px solid #B7B7BC;
-	-webkit-border-top-left-radius: 10px;
-	-webkit-border-top-right-radius: 10px;
+	-webkit-border-top-left-radius: 8px;
+	-webkit-border-top-right-radius: 8px;
 }
 
 ul.box > a:last-child > li {
 	border-right: 1px solid #B7B7BC;
 	border-bottom: 1px solid #B7B7BC;
 	border-left: 1px solid #B7B7BC;
-	-webkit-border-bottom-left-radius: 10px;
-	-webkit-border-bottom-right-radius: 10px;
+	-webkit-border-bottom-left-radius: 8px;
+	-webkit-border-bottom-right-radius: 8px;
 }
 
 ul.box .label {
@@ -279,7 +278,7 @@ ul.box .description {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
-	margin-top: 5px;
+	margin-top: 2px;
 	font-size: smaller;
 }
 
@@ -319,7 +318,7 @@ textarea, select, input {
 textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
 	padding: 5px;
 	border: 1px solid #AAAAAA;
-	-webkit-border-radius: 5px;
+	-webkit-border-radius: 4px;
 }
 
 @-webkit-keyframes spinner {
