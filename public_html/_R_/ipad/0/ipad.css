@@ -15,6 +15,7 @@ body {
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	z-index: 5;
+	color: white;
 }
 
 #activityIndicator img {
@@ -56,10 +57,10 @@ body {
 }
 
 #loginStatus > a { display: block; font-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:link { display: block; ffont-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:visited { display: block; ffont-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:hover { display: block; ffont-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:active { display: block; ffont-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:link { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:visited { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:hover { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:active { display: block; font-size: medium; color: blue; text-decoration: none; }
 
 .bordered {
 	border: 1px solid #B7B7BC;
@@ -381,10 +382,6 @@ ul.box li.selected .nextArrow {
 
 td {
 	padding: 4px;
-}
-
-textarea, select, input {
-	font-size: medium;
 }
 
 textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {

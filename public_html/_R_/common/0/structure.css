@@ -214,6 +214,10 @@ hr {
 	display: inline-block;
 }
 
+form > table {
+	font-size: smaller;
+}
+
 select {
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -234,9 +238,10 @@ form, table, tbody {
 	width: 100%;
 }
 
-form > table {
-	font-size: smaller;
+td > textarea, td > input[type=text] {
+	width: 95%;
 }
+
 
 ul.box > a:link { color: inherit; text-decoration: none; }
 ul.box > a:hover { color: blue; text-decoration: none; }
@@ -271,12 +276,12 @@ ul.box .description {
 }
 
 .box ul, .box ol {
-	margin: 1em 0;
+	margin: .8em 0;
 	padding-left: 1.75em;
 }
 
 .box p {
-	margin: 1em 0;
+	margin: .8em 0;
 }
 
 #answerSpacesList .label, #answerSpacesList .description {

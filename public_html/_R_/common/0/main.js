@@ -729,7 +729,7 @@ function showAnswerView(keywordID)
 		  setSubmitCachedFormButton();
 		}
 		prepareAnswerViewForDevice();
-		setupForms();
+		setupForms($('#answerView'));
 		setCurrentView("answerView", false, true);
 		stopInProgressAnimation();
 	 },
@@ -737,10 +737,10 @@ function showAnswerView(keywordID)
   });
 }
 
-function setupForms()
+function setupForms(view)
 {
 	setTimeout(function() {
-		var form = $('form');
+		var form = view.find('form');
 		var totalWidth = form.width();
 		var firstColumnWidth = form.find('td').first().width();
 		var targetWidth = totalWidth - firstColumnWidth - 32;
@@ -790,7 +790,8 @@ function showSecondLevelAnswerView(keyword, arg0)
 		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		{
 		  var html =  httpAnswerRequest.responseText;
-        $('#answerBox2').html(html);
+      $('#answerBox2').html(html);
+			setupForms($("#answerView2"));
 		}
 		stopInProgressAnimation();
 	 }
