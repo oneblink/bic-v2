@@ -462,7 +462,6 @@ function loaded(row1String, row2String)
 /*	if (answerSpace)
 	{ */
 		getSiteConfig();
-		updateLoginBar();
 	/* }
 	else
 	{
@@ -613,6 +612,7 @@ function getSiteConfig()
 					startUp.remove();
 					$('#content').removeClass('hidden');
 				}
+				updateLoginBar();
 			}
 		});
 }
@@ -1047,7 +1047,6 @@ function submitLogin()
 			console.log("iPhoneLogin transaction complete: " + textstatus);
 			stopInProgressAnimation();
 			getSiteConfig();
-			updateLoginBar();
 		}
   });
 }
@@ -1074,7 +1073,6 @@ function submitLogout()
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			console.log("iPhoneLogin transaction complete: " + textstatus);
 			getSiteConfig();
-			updateLoginBar();
 		}
   });
 }
