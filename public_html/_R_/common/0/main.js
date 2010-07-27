@@ -471,10 +471,9 @@ function loaded(row1String, row2String)
 
 // called from body element when device is rotated
 // updates the viewport tag with the correct width
-/*
 function updateOrientation()
 {
-  var isPortrait = true;
+  /*var isPortrait = true;
   switch(window.orientation)
   {
 	 case 0:
@@ -508,9 +507,9 @@ function updateOrientation()
 		}
 		metatags[i].setAttribute("content", viewportstring);
 	 }
-  }
+  }*/
 }
-*/
+
 
 function getAnswerSpacesList()
 {
@@ -739,6 +738,7 @@ function showAnswerView(keywordID)
 
 function setupForms(view)
 {
+	var hasHiddenColumns = false;
 	setTimeout(function() {
 		var form = view.find('form');
 		var totalWidth = form.width();
@@ -748,7 +748,27 @@ function setupForms(view)
 			if ($(element).width() > targetWidth)
 				$(element).width(targetWidth);
 		});
+		var results = view.find('table.results');
+		results.find('.hidden').removeClass('hidden');
+		var columns = results.find('tr').first().find('td, th').size();
+		while (results.width() > view.width()) {
+			var hideColumn = columns - 1; 
+			results.find('td:nth-child(' + hideColumn + '), th:nth-child(' + hideColumn + ')').addClass('hidden');
+			hasHiddenColumns = true;
+			columns--;
+		}
 	}, 0);
+	setTimeout(function() {
+		if (hasHiddenColumns)
+			if (window.orientation == -90 || window.orientation == 90)
+			{
+				alert('One or more columns has been hidden to fit this display.');
+			}
+			else
+			{
+				alert('Rotating your device may allow more columns to be displayed.');
+			}
+	}, 600);
 }
 
 function gotoNextScreen(keywordID)

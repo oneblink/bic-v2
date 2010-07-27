@@ -13,8 +13,6 @@ html, body {
 
 form > table, table.results {
 	font-size: smaller;
-	text-wrap: normal;
-	word-wrap: break-word;
 }
 
 select {

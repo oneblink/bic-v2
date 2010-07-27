@@ -3,6 +3,16 @@ body {
 	font-family: Helvetica;
 }
 
+td {
+	padding: 4px;
+}
+
+textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
+	padding: 5px;
+	border: 1px solid #AAAAAA;
+	-webkit-border-radius: 4px;
+}
+
 #activityIndicator {
 	position: fixed;
 	left: 50%;
@@ -308,15 +318,6 @@ ul.box li.selected .nextArrow {
 	text-align: center;
 }
 
-td {
-	padding: 4px;
-}
-
-textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
-	padding: 5px;
-	border: 1px solid #AAAAAA;
-	-webkit-border-radius: 4px;
-}
 
 @-webkit-keyframes spinner {
 	from {
