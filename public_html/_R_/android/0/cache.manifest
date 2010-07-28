@@ -1,10 +1,11 @@
 CACHE MANIFEST 
 # This is a comment. 
-# Cache manifest version 0.0.32
+# svn revision 401
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
 
+CACHE:
 index.php
 android.css
 android.js
@@ -24,48 +25,9 @@ util/GetSiteConfig.php
 ../../common/0/main.js
 ../../common/0/Math.uuid.js
 ../../common/0/structure.css
-../../common/0/util/ActivateLogin.php
-../../common/0/util/CreateLogin.php
-../../common/0/util/DoLogin.php
-../../common/0/util/GetAnswer.php
-../../common/0/util/GetAnswerSpaces.php
-../../common/0/util/GetLogin.php
 
 NETWORK: 
-# All URLs that start with the following lines 
-# are whitelisted. 
-http://131940.qld.gov.au/
-http://assets.finda.co.nz/
-http://belleproperty.com.au/
-http://datasearch3.uts.edu.au/
-http://db.auth.usyd.edu.au/
-http://elibcat.library.brisbane.qld.gov.au/
-http://harveynorman.com.au/
-http://hfgapps.hubb.com/
-http://media.hubonline.com.au/
-http://transactions.brisbane.qld.gov.au/
-http://weather.com.au/
-http://www.airnewzealand.co.nz/
-http://www.belleproperty.com.au/
-http://www.cometothecoast.com.au/
-http://www.harveynorman.com.au/
-http://www.houseandgarden.com.au/
-http://www.melbourneairport.com.au/
-http://www.mthotham.com.au/
-http://www.odms.net.au/
-http://www.ourbrisbane.com/
-http://www.rta.nsw.gov.au/
-http://www.setpoint.com.au/
-http://www.sydneytheatre.com.au/
-http://www.tsc.nsw.edu.au/
-http://www.visitcentralcoast.com.au/
-http://www.weather.com.au/
-http://www.crust.com.au/
-/images/
-
-CACHE: 
-# Additional items to cache. 
-#/images/1047/MarrickvilleIPHONELOGO.png
+*
 
 #FALLBACK: 
 #demoimages/ 
