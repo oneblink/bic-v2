@@ -1,11 +1,11 @@
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
-var backButtonHeader = $('#backButtonHeader');
-var backButtonHeaderFn;
 var pendingFormButton = $('#pendingFormButton');
-var helpButton = $('#helpButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
+var activityIndicator = $('#activityIndicator');
+var navBar = $('.navBar');
+var activityIndicatorTop = Math.floor($(window).height() / 2);
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -14,185 +14,145 @@ var mainLabel = $('#mainLabel');
  The visibility of the welcome/intro message is also controlled at this stage.
 */
 
+function prepareAnswerSpacesListViewForDevice()
+{
+  console.log('prepareAnswerSpacesListViewForDevice()');
+}
+
 function prepareMasterCategoriesViewForDevice()
 {
   console.log('prepareMasterCategoriesViewForDevice()');
-/*  backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'none');
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none'); */
-	hideNavBoxHeader();
-  showWelcomeMessage();
 }
 
 function prepareCategoriesViewForDevice()
 {
   console.log('prepareCategoriesViewForDevice()');
+	var categoriesView = $('#categoriesView');
   if (hasMasterCategories)
   {
-	  backButtonHeader.unbind('click', backButtonHeaderFn);
-		backButtonHeaderFn = function(event) {
-			goBackToMasterCategoriesView();
-		};
-		backButtonHeader.bind('click', backButtonHeaderFn);
-		backButtonHeader.show();
-		hideWelcomeMessage();
-		showNavBoxHeader();
+		categoriesView.find('.welcomeBox').addClass('hidden');
+		categoriesView.find('.navBar').removeClass('hidden');
   }
   else
   {
-		hideNavBoxHeader();
-		showWelcomeMessage();
-		//backButtonHeader.css('display', 'none');
+		categoriesView.find('.welcomeBox').removeClass('hidden');
+		categoriesView.find('.navBar').addClass('hidden');
   }
-  //helpButton.css("display", 'none');
-  //pendingFormButton.css('display', 'none');
 }
 
 function prepareKeywordListViewForDevice(category)
 {
   console.log('prepareKeywordListViewForDevice():' + (hasVisualCategories ? ' hasVisualCategories' : '')  + (hasMasterCategories ? ' hasMaterCategories' : ''));
-  if (hasVisualCategories || hasMasterCategories)
+	var keywordListView = $('#keywordListView');
+	if (hasVisualCategories)
+	{
+		$('#backToMasterCategories').addClass('hidden');
+		$('#backToCategories').removeClass('hidden');
+		keywordListView.find('.welcomeBox').addClass('hidden');
+		keywordListView.find('.navBar').removeClass('hidden');
+	}
+  else if (hasMasterCategories)
   {
-	  backButtonHeader.unbind('click', backButtonHeaderFn);
-		backButtonHeaderFn = hasMasterCategories ? goBackToMasterCategoriesView : goBackToCategoriesView;
-		backButtonHeader.bind('click', backButtonHeaderFn);
-		backButtonHeader.show();
-	  helpButton.hide();
-		pendingFormButton.hide();
-		hideWelcomeMessage();
-		showNavBoxHeader();
+		$('#backToMasterCategories').removeClass('hidden');
+		$('#backToCategories').addClass('hidden');
+		keywordListView.find('.welcomeBox').addClass('hidden');
+		keywordListView.find('.navBar').removeClass('hidden');
   }
   else
   {
-		hideNavBoxHeader();
-		showWelcomeMessage();
+		keywordListView.find('.welcomeBox').removeClass('hidden');
+		keywordListView.find('.navBar').addClass('hidden');
   }
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
   console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
-	hideWelcomeMessage();
-	if (!oneKeyword)
+	var keywordView = $('#keywordView');
+	if (oneKeyword)
 	{
-	  backButtonHeader.unbind('click', backButtonHeaderFn);
-		backButtonHeaderFn = function(event) {
-		 goBackToKeywordListView();
-		};
-		backButtonHeader.bind('click', backButtonHeaderFn);
-		backButtonHeader.show();
+		keywordView.find('.backButton').addClass('hidden');
 	}
 	else
 	{
-		backButtonHeader.hide();
+		keywordView.find('.backButton').removeClass('hidden');
 	}
 	if (showHelp)
 	{
-		helpButton.show();
+		keywordView.find('.helpButton').removeClass('hidden');
 	}
 	else
 	{
-		helpButton.hide();
+		keywordView.find('.helpButton').addClass('hidden');
 	}
-  pendingFormButton.show();
-	showNavBoxHeader();
 }
 
 function prepareAnswerViewForDevice()
 {
   console.log('prepareAnswerViewForDevice()');
-	hideWelcomeMessage();
-  backButtonHeader.unbind('click', backButtonHeaderFn);
-  backButtonHeaderFn = function(event) {
-	 goBackToKeywordListView(currentCategory);
-  };
-	backButtonHeader.bind('click', backButtonHeaderFn);
-  backButtonHeader.show();
-  helpButton.hide();
-  pendingFormButton.show();
-	showNavBoxHeader();
 }
 
 function prepareSecondLevelAnswerViewForDevice()
 {
   console.log('prepareSecondLevelAnswerViewForDevice()');
-	hideWelcomeMessage();
-  backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
-  backButtonHeader.click(function(event) {
+	var answerView = $('#answerView2');
+	var backButton = answerView.find('.backButton');
+  backButton.unbind('click');
+  backButton.removeClass('hidden');
+  backButton.click(function(event) {
 	 goBackToTopLevelAnswerView();
   });
-  helpButton.css('display', 'none');
-  pendingFormButton.css('display', 'block');
-}
-
-function prepareOldViewForDevice()
-{
-  console.log('prepareOldViewForDevice()');
-	hideWelcomeMessage();
-  var oldView = $('#oldView');
-  var currentView = $('#stackLayout > .view:visible');
-  oldView.empty();
-  oldView.show();
-  currentView.contents().clone().appendTo(oldView);
-  currentView.hide();
+  answerView.find('.helpButton').addClass('hidden');
+  answerView.find('.pendingFormButton').removeClass('hidden');
 }
 
 function prepareHelpViewForDevice()
 {
   console.log('prepareHelpViewForDevice()');
-	hideWelcomeMessage();
-  backButtonHeader.css('display', 'none');
-  helpButton.css('display', 'block');
-  pendingFormButton.css('display', 'none');
+	var helpView = $('#helpView');
+  helpView.find('#backButton').addClass('hidden');
+  helpView.find('#helpButton').removeClass('hidden');
+  helpView.find('#pendingFormButton').addClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-	hideWelcomeMessage();
-	hideNavBoxHeader();
 }
 
 function prepareNewLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-	hideWelcomeMessage();
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 		prepareLoginViewForDevice();
 		setCurrentView('loginView', true, true); 
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-	hideWelcomeMessage();
   backButtonHeader.unbind('click');
-  backButtonHeader.css('display', 'block');
+  backButtonHeader.removeClass('hidden');
   backButtonHeader.click(function(event) {
 	 goBackToKeywordListView();
   });
-  helpButton.css("display", 'none');
-  pendingFormButton.css('display', 'none');
+  helpButton.addClass('hidden');
+  pendingFormButton.addClass('hidden');
 }
 
-var activityIndicator = $('#activityIndicator');
 function stopInProgressAnimation()
 {
-  activityIndicator.hide();
-	activityIndicator.removeClass('animating');
+	activityIndicator.addClass('hidden');
 }
 
 function startInProgressAnimation()
 {
-  activityIndicator.addClass('animating');
-	activityIndicator.show();
+  activityIndicator.removeClass('hidden');
 }
 
 function populateTextOnlyCategories(masterCategory)
@@ -200,19 +160,29 @@ function populateTextOnlyCategories(masterCategory)
 	console.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
-	var html = "<select id='categoriesList' onchange=\"showKeywordListView(this.options[this.selectedIndex].value)\">"
+	var select = document.createElement('select');
+	$(select).attr('id', 'categoriesList');
+	$(select).bind('change', function() {
+	 showKeywordListView(this.options[this.selectedIndex].value);
+	});
 	for (id in order)
 	{
-		html += "<option value=\"" + order[id] + "\"" + (order[id] == currentCategory ? " selected" : "") + ">" + list[order[id]].name + "</option>";
+		var option = document.createElement('option');
+		$(option).attr('value', order[id]);
+		if (order[id] == currentCategory)
+			$(option).attr('selected', 'true');
+		$(option).html(list[order[id]].name);
+		$(option).appendTo(select);
 	}
-	html += "</select>";
-	$('#categorySelector').html(html);
-	currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
+	$('#categorySelector').empty().append(select);
+	$('#categorySelectorArea').removeClass('hidden');
+	//currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
 }
 
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+	setupParts();
   var entranceDirection = (reverseTransition ? 'left' : 'right');
   var exitDirection = (reverseTransition ? 'right' : 'left');
   var startPosition = (reverseTransition ? 'left' : 'right');
@@ -241,7 +211,11 @@ function setCurrentView(view, reverseTransition)
 			newView.removeClass('sliding');
 		});
   }
-  window.scrollTo(0, 0);
+	setTimeout(function() {
+		window.scrollTo(0, 0);
+	}, 0);
+	updatePartCSS(navBar, scrollProperty, '0', scrollValue);
+	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
 }
 
 /*
@@ -249,30 +223,29 @@ function setCurrentView(view, reverseTransition)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
 
-function showWelcomeMessage()
+var loginButton = $('#loginButton');
+function onScroll()
 {
-	welcomeMessage.filter(':hidden').addClass('sliding').show('slide', { direction: 'left' }, 300, function() {
-		welcomeMessage.removeClass('sliding');
-	});
+	var headerBottom = $('.header').height() + loginButton.height() + $('#loginStatus').height();
+	var scrollTop = $(window).scrollTop();
+	if (scrollTop > headerBottom)
+	{
+		var offset = scrollTop - headerBottom - (loginButton.size() > 0 ? 8 : 0);
+		updatePartCSS(navBar, scrollProperty, offset, scrollValue);
+	}
+	else
+	{
+		updatePartCSS(navBar, scrollProperty, '0', scrollValue);
+	}
+	updatePartCSS(activityIndicator, scrollProperty, (activityIndicatorTop + scrollTop), scrollValue);
 }
 
-function hideWelcomeMessage()
+function updatePartCSS(element, property, value, valueFormat)
 {
-	welcomeMessage.filter(':visible').addClass('sliding').hide('slide', { direction: 'right' }, 300, function() {
-		welcomeMessage.removeClass('sliding');
-	});
+	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
+	element.css(property, formattedValue);
 }
 
-function showNavBoxHeader()
+function setupParts()
 {
-	navBoxHeader.filter(':hidden').addClass('sliding').show('slide', { direction: 'left' }, 300, function() {
-		navBoxHeader.removeClass('sliding');
-	});
-}
-
-function hideNavBoxHeader()
-{
-	navBoxHeader.filter(':visible').addClass('sliding').hide('slide', { direction: 'right' }, 300, function() {
-		navBoxHeader.removeClass('sliding');
-	});
 }
