@@ -778,8 +778,7 @@ function setupForms(view)
 		var columns = results.find('tr').first().find('td, th').size();
 		var attempts = 5;
 		while (results.width() > view.width() && columns >= 2 && attempts > 0) {
-			var hideColumn = columns - 1; 
-			results.find('td:nth-child(' + hideColumn + '), th:nth-child(' + hideColumn + ')').addClass('hidden');
+			results.find('td:nth-child(' + columns + '), th:nth-child(' + columns + ')').addClass('hidden');
 			hasHiddenColumns = true;
 			columns--;
 			attempts--;
