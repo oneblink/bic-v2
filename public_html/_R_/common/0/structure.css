@@ -44,7 +44,7 @@ hr {
 }
 
 td > textarea, td > input[type=text] {
-	width: 95%;
+	/* width: 95%;*/
 }
 
 a[onclick] {
