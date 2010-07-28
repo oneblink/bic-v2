@@ -17,6 +17,7 @@ var textOnlyLeftList = false;
 var siteConfig, siteConfigHash;
 var answerSpacesList, answerSpacesHash;
 var answerSpace;
+var backStack;
 
 var webappCache = window.applicationCache;
 
@@ -461,6 +462,7 @@ function loaded(row1String, row2String)
   }
 /*	if (answerSpace)
 	{ */
+		backStack = new Array();
 		getSiteConfig();
 	/* }
 	else
@@ -619,6 +621,7 @@ function getSiteConfig()
 function showMasterCategoriesView()
 {
   console.log('showMasterCategoriesView()');
+	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
   $("#mainLabel").html('Master Categories');
   setCurrentView('masterCategoriesView', false);
@@ -627,6 +630,7 @@ function showMasterCategoriesView()
 function goBackToMasterCategoriesView()
 {
   console.log('goBackToMasterCategoriesView()');
+	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
   $("#mainLabel").html('Master Categories');
   setCurrentView('masterCategoriesView', true);
@@ -635,6 +639,7 @@ function goBackToMasterCategoriesView()
 function showCategoriesView(masterCategory)
 {
 	console.log('showCategoriesView(): ' + masterCategory);
+	addBackHistory("goBackToCategoriesView();");
 	if (masterCategory && siteConfig.master_categories[masterCategory])
 	{
 		currentMasterCategory = masterCategory;
@@ -670,14 +675,10 @@ function showCategoriesView(masterCategory)
 function goBackToCategoriesView()
 {
   console.log('goBackToCategoriesView()');
+	addBackHistory("goBackToCategoriesView();");
   prepareCategoriesViewForDevice();
   $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
   setCurrentView('categoriesView', true);
-}
-
-function getAnswer(event)
-{
-  showAnswerView(currentKeywordNumber);
 }
 
 function dumpLocalStorage() {
@@ -690,8 +691,31 @@ function dumpLocalStorage() {
   }
 }
 
+function addBackHistory(item)
+{
+	if (backStack.indexOf(item) == -1)
+		backStack.push(item);
+	console.log(backStack);
+}
+
+function goBack()
+{
+	backStack.pop();
+	if (backStack.length >= 1)
+		eval(backStack[backStack.length-1]);
+	else
+		goBackToHome();
+	console.log(backStack);
+}
+
+function getAnswer(event)
+{
+  showAnswerView(currentKeywordNumber);
+}
+
 function showAnswerView(keywordID)
 {
+	addBackHistory("goBackToTopLevelAnswerView();");
   prepareAnswerViewForDevice();
   currentKeywordNumber = keywordID;
 	var keyword = siteConfig.keywords[keywordID];
@@ -740,6 +764,7 @@ function setupForms(view)
 {
 	var hasHiddenColumns = false;
 	setTimeout(function() {
+		startInProgressAnimation();
 		var form = view.find('form');
 		var totalWidth = form.width();
 		var firstColumnWidth = form.find('td').first().width();
@@ -759,6 +784,7 @@ function setupForms(view)
 			columns--;
 			attempts--;
 		}
+		stopInProgressAnimation();
 	}, 0);
 	setTimeout(function() {
 		if (hasHiddenColumns)
@@ -776,6 +802,16 @@ function setupForms(view)
 function gotoNextScreen(keywordID)
 {
   console.log("gotoNextScreen(" + keywordID + ")");
+	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not code
+		for (k in siteConfig.keywords)
+		{
+			if (keywordID == siteConfig.keywords[k].name)
+			{
+				keywordID = k;
+				break;
+			}
+		}
+	}
   if (siteConfig.keywords[keywordID].input_config)
   {
 		showKeywordView(keywordID);
@@ -786,9 +822,10 @@ function gotoNextScreen(keywordID)
   }
 }
 
-function showSecondLevelAnswerView(keyword, arg0)
+function showSecondLevelAnswerView(keyword, arg0, reverse)
 {
   prepareSecondLevelAnswerViewForDevice();
+	addBackHistory("showSecondLevelAnswerView(\"" + keyword + "\", \"" + arg0 + "\", true);");
   
   var answerUrl = '../../common/0/util/GetAnswer.php'
   //var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&args=' + arg0.replace(/&/g, "|^^|s|");
@@ -823,6 +860,7 @@ function showSecondLevelAnswerView(keyword, arg0)
 
 function showKeywordView(keywordID) 
 {
+	addBackHistory("goBackToKeywordView(\"" + keywordID + "\");");
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
   currentKeywordNumber = keywordID;
@@ -839,9 +877,20 @@ function showKeywordView(keywordID)
   setCurrentView('keywordView', false, true);
 }
 
+function goBackToKeywordView(keywordID)
+{
+	var keyword = siteConfig.keywords[keywordID];
+	$('#mainLabel').html(keyword.name);
+  currentKeywordNumber = keywordID;
+  prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help.length > 0);
+  setSubmitCachedFormButton();
+  setCurrentView('keywordView', true, true);
+}
+
 function showKeywordListView(category)
 {
 	console.log('showKeywordListView(): ' + category);
+	addBackHistory("goBackToKeywordListView();");
 	currentCategory = category;
 	var mainLabel;
 	if (hasCategories)
@@ -874,18 +923,13 @@ function showAnswerSpacesListView()
 
 function goBackToHome()
 {
+	backStack = new Array();
 	if (hasMasterCategories)
-	{
 		goBackToMasterCategoriesView();
-	}
 	else if (hasVisualCategories)
-	{
 		goBackToCategoriesView();
-	}
 	else
-	{
 		goBackToKeywordListView();
-	}
 }
 
 function goBackToKeywordListView(event)
@@ -944,6 +988,7 @@ function createParamsAndArgs(keywordID)
 function showHelpView(event)
 {
   prepareHelpViewForDevice();
+	addBackHistory("showHelpView();");
 	var keyword = siteConfig.keywords[currentKeywordNumber];
   $('#mainHeading').html(keyword.name); //**** Here ****
   var helpContents = keyword.help ? keyword.help : "Sorry, no help is available.";
@@ -955,6 +1000,7 @@ function showHelpView(event)
 function showNewLoginView(isActivating)
 {
   prepareNewLoginViewForDevice();
+	addBackHistory("showNewLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
@@ -980,6 +1026,7 @@ function showNewLoginView(isActivating)
 function showActivateLoginView(event)
 {
   prepareActivateLoginViewForDevice();
+	addBackHistory("showActivateLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/ActivateLogin.php'
 	console.log("ActivateLogin transaction: " + loginUrl);
@@ -1003,6 +1050,7 @@ function showActivateLoginView(event)
 function showLoginView(event)
 {
   prepareLoginViewForDevice();
+	addBackHistory("showLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/DoLogin.php'
 	console.log("DoLogin transaction: " + loginUrl);

@@ -4,6 +4,16 @@ body {
 	font-size: larger;
 }
 
+td {
+	padding: 4px;
+}
+
+textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
+	padding: 5px;
+	border: 1px solid #AAAAAA;
+	-webkit-border-radius: 5px;
+}
+
 #activityIndicator {
 	position: fixed;
 	top: 50%;
@@ -378,16 +388,6 @@ ul.box li.selected .nextArrow {
 
 #descriptionBox, #argsBox {
 	text-align: center;
-}
-
-td {
-	padding: 4px;
-}
-
-textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
-	padding: 5px;
-	border: 1px solid #AAAAAA;
-	-webkit-border-radius: 5px;
 }
 
 @-webkit-keyframes spinner {

@@ -8,7 +8,7 @@ td {
 }
 
 textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
-	padding: 5px;
+	padding: 4px;
 	border: 1px solid #AAAAAA;
 	-webkit-border-radius: 4px;
 }
