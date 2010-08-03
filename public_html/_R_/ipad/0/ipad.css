@@ -363,29 +363,6 @@ ul.box li.selected .nextArrow {
 	background-image: url(Images/chevron_white.png);
 }
 
-.innerView {
-	position: relative;
-	padding: 10px;
-	min-height: 50px;
-	text-align: left;
-	position: relative;
-	width: auto;
-	height: auto;
-}
-
-.innerView table {
-	width: 100%;
-	text-align: left;
-}
-
-.innerView table tr > td {
-	padding: 4px;
-}
-
-.innerView a {
-	padding: 4px;
-}
-
 #descriptionBox, #argsBox {
 	text-align: center;
 }
