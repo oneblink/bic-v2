@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# svn revision 401
+# svn revision 403
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -31,9 +31,10 @@ util/GetSiteConfig.php
 ../../common/0/main.js
 ../../common/0/Math.uuid.js
 ../../common/0/structure.css
+../../common/0/util/GetAnswer.php
 
 NETWORK: 
-*
+http://*
 
 #FALLBACK: 
 #demoimages/ 
