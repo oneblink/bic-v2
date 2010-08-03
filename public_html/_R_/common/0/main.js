@@ -32,9 +32,6 @@ if (!answerSpace || answerSpace == "<?=$_REQUEST['answerSpace']?>")
    answerSpace = 'blink';
    localStorage.setItem("_answerSpace", answerSpace);
 } */
-console.log("main(1): ");
-
-console.log("main(2): ");
 //window.addEventListener("load", loaded, false);
 if (webappCache)
 {
@@ -289,7 +286,7 @@ function populateMasterCategories()
 	var list = siteConfig.master_categories;
 	for (id in order)
 	{
-		var categoryHTML = ""
+		var categoryHTML = "";
 		categoryHTML += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
 		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		categoryHTML += "</a>";
@@ -349,7 +346,7 @@ function populateVisualCategories(masterCategory)
 	var list = siteConfig.categories;
 	for (id in order)
 	{
-		var html = ""
+		var html = "";
 		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
 		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		html += "</a>";
@@ -463,6 +460,12 @@ function loaded(row1String, row2String)
 /*	if (answerSpace)
 	{ */
 		backStack = new Array();
+		if (localStorage && localStorage.getItem('siteConfigMessage'))
+		{
+			var message = JSON.parse(localStorage.getItem('siteConfigMessage')) 
+			siteConfig = message.siteConfig;
+			siteConfigHash = message.siteHash;
+		}
 		getSiteConfig();
 	/* }
 	else
@@ -478,16 +481,11 @@ function updateOrientation()
   /*var isPortrait = true;
   switch(window.orientation)
   {
-	 case 0:
-		isPortrait = true;
-		break;
 	 case -90:
-		isPortrait = false;
-		break;
 	 case 90:
 		isPortrait = false;
 		break;
-	 case 180:
+	 default:
 		isPortrait = true;
 		break;
   }
@@ -552,8 +550,8 @@ function getAnswerSpacesList()
 function getSiteConfig()
 {
 	startInProgressAnimation();
-	var categoriesUrl = "util/GetSiteConfig.php?answerSpace=" + localStorage.getItem("_answerSpace");
-	var requestData = siteConfigHash ? "sha1=" + siteConfigHash : "";
+	var categoriesUrl = "util/GetSiteConfig.php";
+	var requestData = "answerSpace=" + localStorage.getItem("_answerSpace") + (siteConfigHash ? "&sha1=" + siteConfigHash : "");
 	console.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
 	$.getJSON(categoriesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
@@ -575,10 +573,12 @@ function getSiteConfig()
 			else
 			{
 				console.log("GetSiteConfig status: " + data.statusMessage);
-				if (!data.statusMessage || data.statusMessage != "NO UPDATES")
+				if (data.statusMessage != "NO UPDATES")
 				{
-					siteConfigHash = data.siteHash;
+					if (localStorage)
+						localStorage.setItem('siteConfigMessage', JSON.stringify(data));
 					siteConfig = data.siteConfig;
+					siteConfigHash = data.siteHash;
 				}
 				hasMasterCategories = siteConfig.master_categories_config != 'no';
 				hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
@@ -639,7 +639,6 @@ function goBackToMasterCategoriesView()
 function showCategoriesView(masterCategory)
 {
 	console.log('showCategoriesView(): ' + masterCategory);
-	addBackHistory("goBackToCategoriesView();");
 	if (masterCategory && siteConfig.master_categories[masterCategory])
 	{
 		currentMasterCategory = masterCategory;
@@ -657,6 +656,7 @@ function showCategoriesView(masterCategory)
 	{
 		currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
 	}
+	addBackHistory("goBackToCategoriesView();");
   prepareCategoriesViewForDevice();
 	if (hasVisualCategories)
 	{
@@ -687,7 +687,9 @@ function dumpLocalStorage() {
   var key;
   for (i = 0; i < numElements; i++) {
     key = localStorage.key(i);
-    console.log("dumpLocalStorage: key = " + key + "; value = " + localStorage.getItem(key) + ";");
+		value = localStorage.getItem(key);
+		value = value.length > 20 ? value.substring(0, 20) + "..." : value;
+    console.log("dumpLocalStorage: key = " + key + "; value = " + value + ";");
   }
 }
 
@@ -889,7 +891,6 @@ function goBackToKeywordView(keywordID)
 function showKeywordListView(category)
 {
 	console.log('showKeywordListView(): ' + category);
-	addBackHistory("goBackToKeywordListView();");
 	currentCategory = category;
 	var mainLabel;
 	if (hasCategories)
@@ -908,6 +909,12 @@ function showKeywordListView(category)
 	{
 		populateTextOnlyCategories(currentMasterCategory);
 	}
+	if (siteConfig.categories[currentCategory].keywords.length == 1) {
+		console.log('category only has one keyword, jumping to that keyword');
+		gotoNextScreen(siteConfig.categories[currentCategory].keywords[0]);
+		return;
+	}
+	addBackHistory("goBackToKeywordListView();");
 	$('#mainLabel').html(mainLabel);
   prepareKeywordListViewForDevice(category);
 	populateKeywordList(category);
