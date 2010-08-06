@@ -1,0 +1,280 @@
+body {
+	background-color: #FFF;
+	font-family: sans-serif;
+	font-size: medium;
+	max-height: 100%;
+}
+
+td {
+	padding: 4px;
+}
+
+textarea, input[type=text], input[type=password], input[type=tel] {
+	padding: 2px;
+}
+
+#activityIndicator {
+	max-width: 100%;
+	width: 100%;
+	padding: 10px;
+	text-align: center;
+	background-color: #FFF;
+	background-image: -webkit-gradient(radial, center center, 120, center center, 500, from(#FFF), to(rgba(255, 255, 255, 0)));
+	background-image: -moz-radial-gradient(center 0deg, circle farthest-side, #FFF 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+#activityIndicator img {
+	margin: .5em auto;
+	width: 54px;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear;
+}
+
+#activityIndicator p {
+	font-size: small;
+}
+
+#loginStatus, #loginButton {
+	float: right;
+	text-align: right;
+	padding: 4px;
+}
+
+#loginStatus a[onclick], #loginButton a[onclick] { color: blue; text-decoration: underline; }
+
+.header {
+	position: relative;
+	overflow: hidden;
+	z-index: 50;
+}
+
+#activeContent {
+	min-height: 110%;
+}
+
+#stackLayout {
+	position: relative;
+}
+
+.welcomeBox {
+	font-weight: bold;
+}
+
+.navBar {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	color: #73777F;
+	font-size: large;
+	font-weight: bolder;
+	background: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#CCC));
+	background: -moz-linear-gradient(top, #FFF, #CCC);
+	text-shadow: 1px 1px 1px #DEDEE4;
+	text-align: center;
+	/* box-shadow: 0px 2px 4px #666; TODO: make this appear only when not at top, similarly for bottom*/
+}
+
+.navLabel {
+	margin: 0px 50px;
+	padding: 10px 1em;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #000;
+	font-weight: bolder;
+	text-shadow: 1px 1px 1px #DEDEE4;
+	text-align: left;
+	z-index: 0;
+}
+
+
+.navBar .button {
+	position: relative;
+	height: 100%;
+	background: none;
+	border-style: none;
+	z-index: 2;
+	padding: 8px 12px;
+	font-weight: bold;
+	color: #222;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: center;
+	border-left: 1px solid #FFF;
+	border-right: 1px solid #BBB;
+}
+
+.navBar .button[disabled] {
+	opacity: 0.5;
+}
+
+.navBar .backButton {
+	margin: 4px;
+	height: 33px;
+	width: 33px;
+	border: none;
+	background-image: url(Images/chevron_back.png);
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.view {
+	display: none;
+}
+
+.view.sliding {
+	position: absolute;
+}
+
+.paddedBox {
+	padding: 10px;
+}
+
+ul.box {
+	background: none;
+}
+
+ul.box li {
+	overflow: hidden;
+	padding: 8px;
+	border-top: 1px solid #FFF;
+	border-bottom: 1px solid #BBB;
+	background: #FFF;
+}
+
+ul.box .label {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	font-size: larger;
+	font-weight: bold;
+}
+
+#answerSpacesList .label {
+	overflow: auto;
+	white-space: normal;
+}
+
+#keywordList .label, #keywordList .description {
+	margin-right: 50px;
+}
+
+ul.box .description {
+	position: relative;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	margin-top: 2px;
+	font-size: smaller;
+}
+
+ul.box .nextArrow {
+	position: absolute;
+	right: 15px;
+	top: 50%;
+	margin-top: -17px; /* half height */
+	width: 33px;
+	height: 33px;
+	background-image: url(Images/chevron.png);
+	background-repeat: no-repeat;
+}
+
+ul.box li.selected {
+	background: -webkit-gradient(linear, left top, left bottom, from(#058CF5), to(#015DE6));
+	background: -moz-linear-gradient(top, #058CF5, #015DE6);
+	color: white;
+	text-shadow: 0px -1px 1px #1D2863;
+}
+
+#descriptionBox, #argsBox {
+	text-align: center;
+}
+
+@-webkit-keyframes pulse {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 0.6;
+	}
+}
+
+@-webkit-keyframes spinner {
+	from {
+		-webkit-transform: rotate(0deg);
+	}
+	8.32% {
+		-webkit-transform: rotate(0deg);
+	}
+	8.33% {
+		-webkit-transform: rotate(30deg);
+	}
+	16.65% {
+		-webkit-transform: rotate(30deg);
+	}
+	16.66% {
+		-webkit-transform: rotate(60deg);
+	}
+	24.99% {
+		-webkit-transform: rotate(60deg);
+	}
+	25% {
+		-webkit-transform: rotate(90deg);
+	}
+	33.32% {
+		-webkit-transform: rotate(90deg);
+	}
+	33.33% {
+		-webkit-transform: rotate(120deg);
+	}
+	41.65% {
+		-webkit-transform: rotate(120deg);
+	}
+	41.66% {
+		-webkit-transform: rotate(150deg);
+	}
+	49.99% {
+		-webkit-transform: rotate(150deg);
+	}
+	50% {
+		-webkit-transform: rotate(180deg);
+	}
+	58.32% {
+		-webkit-transform: rotate(180deg);
+	}
+	58.33% {
+		-webkit-transform: rotate(210deg);
+	}
+	66.65% {
+		-webkit-transform: rotate(210deg);
+	}
+	66.66% {
+		-webkit-transform: rotate(240deg);
+	}
+	74.99% {
+		-webkit-transform: rotate(240deg);
+	}
+	75% {
+		-webkit-transform: rotate(270deg);
+	}
+	83.32% {
+		-webkit-transform: rotate(270deg);
+	}
+	83.33% {
+		-webkit-transform: rotate(300deg);
+	}
+	91.65% {
+		-webkit-transform: rotate(300deg);
+	}
+	91.66% {
+		-webkit-transform: rotate(330deg);
+	}
+	99.99% {
+		-webkit-transform: rotate(330deg);
+	}
+	to {
+		-webkit-transform: rotate(360deg);
+	}
+}
