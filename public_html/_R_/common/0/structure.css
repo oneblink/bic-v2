@@ -11,6 +11,10 @@ html, body {
 	font-size: medium;
 }
 
+button, input[type=submit] {
+	padding: .5em 1em;
+}
+
 form > table, table.results {
 	font-size: smaller;
 }
@@ -25,9 +29,9 @@ textarea, select, input, label {
 	font-size: medium;
 }
 
-input[type=checkbox], input[type=radio] {
-	margin: .5em;
-}
+textarea { height: 5em; min-height: 5em; }
+
+input[type=checkbox], input[type=radio] { margin: .4em; }
 
 form, table, tbody, tr {
 	max-width: 100%;
@@ -39,13 +43,17 @@ form, table, tbody {
 	width: 100%;
 }
 
-hr {
-	margin: 15px 0px;
+form > table .radiooption, form table .checkoption { display: table-row; }
+form > table label { display: table-cell; }
+form > table input[type=radio], form table td input[type=checkbox] { display: table-cell; }
+
+td > input[type=text], td > input[type=email], td > textarea {
+	width: 95%;
 }
 
-a[onclick] {
-	cursor: pointer;
-}
+hr { margin: 15px 0px; }
+
+a[onclick] { cursor: pointer; }
 
 .hidden {
 	display: none !important;
@@ -61,7 +69,7 @@ a[onclick] {
 	background-color: white;
 	color: black;
 	text-align: center;
-	z-index: 100;
+	z-index: 50;
 }
 
 #content {
@@ -72,7 +80,6 @@ a[onclick] {
 }
 
 .header {
-	float: left;
 	overflow: hidden;
 	width: 100%;
 	background-color: #FFF;
