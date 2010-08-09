@@ -1,10 +1,8 @@
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
-var pendingFormButton = $('#pendingFormButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
 var activityIndicator = $('#activityIndicator');
-var navBar = $('.navBar');
 var activityIndicatorTop = Math.floor($(window).height() / 2);
 
 /*
@@ -16,133 +14,114 @@ var activityIndicatorTop = Math.floor($(window).height() / 2);
 
 function prepareAnswerSpacesListViewForDevice()
 {
-  console.log('prepareAnswerSpacesListViewForDevice()');
 }
 
 function prepareMasterCategoriesViewForDevice()
 {
-  console.log('prepareMasterCategoriesViewForDevice()');
+	$.bbq.removeState();
+	categoriesView.find('.welcomeBox').removeClass('hidden');
+	navBoxHeader.addClass('hidden');
 }
 
 function prepareCategoriesViewForDevice()
 {
-  console.log('prepareCategoriesViewForDevice()');
 	var categoriesView = $('#categoriesView');
   if (hasMasterCategories)
   {
+		$.bbq.pushState({ m: currentMasterCategory }, 2);
 		categoriesView.find('.welcomeBox').addClass('hidden');
-		categoriesView.find('.navBar').removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
   }
   else
   {
+		$.bbq.removeState();
 		categoriesView.find('.welcomeBox').removeClass('hidden');
-		categoriesView.find('.navBar').addClass('hidden');
+		navBoxHeader.addClass('hidden');
   }
 }
 
 function prepareKeywordListViewForDevice(category)
 {
-  console.log('prepareKeywordListViewForDevice():' + (hasVisualCategories ? ' hasVisualCategories' : '')  + (hasMasterCategories ? ' hasMaterCategories' : ''));
 	var keywordListView = $('#keywordListView');
+	var hashState = {};
+	if (hasCategories)
+		hashState['c'] = currentCategory;
 	if (hasVisualCategories)
 	{
-		$('#backToMasterCategories').addClass('hidden');
-		$('#backToCategories').removeClass('hidden');
 		keywordListView.find('.welcomeBox').addClass('hidden');
-		keywordListView.find('.navBar').removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
 	}
   else if (hasMasterCategories)
   {
-		$('#backToMasterCategories').removeClass('hidden');
-		$('#backToCategories').addClass('hidden');
 		keywordListView.find('.welcomeBox').addClass('hidden');
-		keywordListView.find('.navBar').removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+		hashState['m'] = currentMasterCategory;
   }
   else
   {
 		keywordListView.find('.welcomeBox').removeClass('hidden');
-		keywordListView.find('.navBar').addClass('hidden');
+		navBoxHeader.addClass('hidden');
   }
+	$.bbq.pushState(hashState, 2);
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
-  console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
-	var keywordView = $('#keywordView');
+	$.bbq.pushState({ k: currentKeyword }, 2);
 	if (oneKeyword)
-	{
-		keywordView.find('.backButton').addClass('hidden');
-	}
+		navBoxHeader.addClass('hidden');
 	else
-	{
-		keywordView.find('.backButton').removeClass('hidden');
-	}
+		navBoxHeader.removeClass('hidden');
 	if (showHelp)
-	{
-		keywordView.find('.helpButton').removeClass('hidden');
-	}
+		navBoxHeader.find('.helpButton').removeClass('hidden');
 	else
-	{
-		keywordView.find('.helpButton').addClass('hidden');
-	}
+		navBoxHeader.find('.helpButton').addClass('hidden');
 }
 
 function prepareAnswerViewForDevice()
 {
-  console.log('prepareAnswerViewForDevice()');
+	$.bbq.pushState({ a: currentKeyword }, 2);
+	if (answerSpaceOneKeyword)
+		navBoxHeader.addClass('hidden');
+	else
+		navBoxHeader.removeClass('hidden');
 }
 
-function prepareSecondLevelAnswerViewForDevice()
+function prepareSecondLevelAnswerViewForDevice(keyword, arg)
 {
-  console.log('prepareSecondLevelAnswerViewForDevice()');
-	var answerView = $('#answerView2');
-	var backButton = answerView.find('.backButton');
-  backButton.unbind('click');
-  backButton.removeClass('hidden');
-  backButton.click(function(event) {
-	 goBackToTopLevelAnswerView();
-  });
-  answerView.find('.helpButton').addClass('hidden');
-  answerView.find('.pendingFormButton').removeClass('hidden');
+	$.bbq.pushState({ a2k: keyword, a2a: arg }, 2);
+	navBoxHeader.removeClass('hidden');
+  navBoxHeader.find('.helpButton').addClass('hidden');
 }
 
 function prepareHelpViewForDevice()
 {
-  console.log('prepareHelpViewForDevice()');
+	$.bbq.pushState({ h: 'H' });
 	var helpView = $('#helpView');
+	navBoxHeader.removeClass('hidden');
   helpView.find('#backButton').addClass('hidden');
   helpView.find('#helpButton').removeClass('hidden');
-  helpView.find('#pendingFormButton').addClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+	$.bbq.pushState({ l: 'L' }, 2);
+	navBoxHeader.removeClass('hidden');
+  navBoxHeader.find('.helpButton').addClass('hidden');
 }
 
 function prepareNewLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
-  backButtonHeader.unbind('click');
-  backButtonHeader.removeClass('hidden');
-  backButtonHeader.click(function(event) {
-		prepareLoginViewForDevice();
-		setCurrentView('loginView', true, true); 
-  });
-  helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
+	$.bbq.pushState({ l: 'N' }, 2);
+	navBoxHeader.removeClass('hidden');
+  navBoxHeader.find('.helpButton').addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
-  backButtonHeader.unbind('click');
-  backButtonHeader.removeClass('hidden');
-  backButtonHeader.click(function(event) {
-	 goBackToKeywordListView();
-  });
-  helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
+	$.bbq.pushState({ l: 'A' }, 2);
+	navBoxHeader.removeClass('hidden');
+  navBoxHeader.find('.helpButton').addClass('hidden');
 }
 
 function stopInProgressAnimation()
@@ -157,7 +136,6 @@ function startInProgressAnimation()
 
 function populateTextOnlyCategories(masterCategory)
 {
-	console.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
 	var select = document.createElement('select');
@@ -192,30 +170,36 @@ function setCurrentView(view, reverseTransition)
   {
 		newView.show();
   }
-	else if (currentView.attr('id') == newView.attr('id'))
+  else if (currentView.attr('id') == newView.attr('id'))
   {
 		newView.hide();
-		newView.addClass('sliding');
-		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		});
+		newView.show('slide', { direction: entranceDirection }, 300);
+  }
+	else if ((newView.find('#keywordBox > a, #categoriesBox > a, #masterCategoriesBox > a').size() > 0)
+					 || (currentView.find('#keywordBox > a, #categoriesBox > a, #masterCategoriesBox > a').size() > 0))
+  {
+		var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
+		var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
+		currentView.addClass('animating old');
+		currentView.addClass(zoomExit);
+		newView.addClass(zoomEntrance);
+		newView.addClass('animating new');
+		newView.removeClass(zoomEntrance);
+		newView.show();
+		setTimeout(function() {
+			currentView.hide();
+			currentView.removeClass('animating old ' + zoomExit);
+			newView.removeClass('animating new');
+		}, 300);
   }
   else
   {
-		currentView.addClass('sliding');
-		currentView.hide('slide', { direction: exitDirection }, 300, function() {
-			currentView.removeClass('sliding');
-		});
-		newView.addClass('sliding');
-		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		});
+		currentView.hide('slide', { direction: exitDirection }, 300);
+		newView.show('slide', { direction: entranceDirection }, 300);
   }
 	setTimeout(function() {
-		window.scrollTo(0, 0);
+		window.scrollTo(0, 1);
 	}, 0);
-	updatePartCSS(navBar, scrollProperty, '0', scrollValue);
-	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
 }
 
 /*
@@ -223,29 +207,61 @@ function setCurrentView(view, reverseTransition)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
 
-var loginButton = $('#loginButton');
-function onScroll()
-{
-	var headerBottom = $('.header').height() + loginButton.height() + $('#loginStatus').height();
-	var scrollTop = $(window).scrollTop();
-	if (scrollTop > headerBottom)
-	{
-		var offset = scrollTop - headerBottom - (loginButton.size() > 0 ? 8 : 0);
-		updatePartCSS(navBar, scrollProperty, offset, scrollValue);
-	}
-	else
-	{
-		updatePartCSS(navBar, scrollProperty, '0', scrollValue);
-	}
-	updatePartCSS(activityIndicator, scrollProperty, (activityIndicatorTop + scrollTop), scrollValue);
-}
-
-function updatePartCSS(element, property, value, valueFormat)
-{
-	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
-	element.css(property, formattedValue);
-}
-
 function setupParts()
 {
 }
+
+function showUnreadBulletins()
+{
+	var bulletins = $.jStore.get('bulletins') || new Array();
+	$('#bulletins').find('.bulletin').each(function(index, element) {
+		var bulletin = $(element);
+		var name = bulletin.attr('id');
+		if (bulletins.indexOf(name) == -1)
+			bulletin.show('slide', 300).removeClass('hidden');
+	});
+}
+
+function dismissBulletin()
+{
+	var bulletin = $(this);
+	bulletin.hide('slide', 300);
+	var name = bulletin.attr('id');
+	var bulletins = $.jStore.get('bulletins') || new Array();
+	if (typeof(bulletins) == 'string')
+		bulletins = JSON.parse(bulletins);
+	bulletins.push(name);
+	$.jStore.set('bulletins', JSON.stringify(bulletins));
+	return false;
+}
+
+function onHashChange(event)
+{
+	console.log(location.hash);
+	console.log(hashStack);
+	var hashState = event.getState();
+	var hashString = JSON.stringify(hashState);
+	if (location.hash.length > 1 && hashStack.indexOf(hashString) == -1)
+		hashStack.push(hashString);
+	else if (hashStack.length == 0 || location.hash.length <= 1)
+		goBackToHome();
+	else
+	{
+		hashStack.pop();
+		goBack()
+	}
+}
+
+/*
+ using jQuery BBQ, courtesy of Ben Alman
+ storing state in the hash
+ m = current master category
+ c = current category
+ k = current keyword
+ a = current answer
+ a2k = keyword for second level answer
+ a2a = argument for second level answer
+ l = Activate | New | Login
+ h = Help
+*/
+

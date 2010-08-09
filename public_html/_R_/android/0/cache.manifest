@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# svn revision 401
+# svn revision 449
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -9,27 +9,36 @@ CACHE:
 index.php
 android.css
 android.js
+util/GetSiteConfig.php
+../../common/0/browser-compat.js
+../../common/0/jquery-1.4.2.min.js
+../../common/0/jquery-ui-1.8.2.custom.min.js
+../../common/0/jquery.benalman.min.js
+../../common/0/jquery.jstore-1.2.0-min.js
+../../common/0/main.js
+../../common/0/Math.uuid.js
+../../common/0/structure.css
+../../common/0/util/GetAnswer.php
+http://code.google.com/apis/gears/gears_init.js
+
+NETWORK: 
+http://*
+
+#FALLBACK: 
+#demoimages/ 
+#images/
+#Images/
+
+CACHE:
 Images/ActivityIndicator.png
 Images/ActivityIndicatorWhite.png
 Images/blink-logo.gif
 Images/blink-mydot-intro.jpg
 Images/blink-mydot-intro.png
 Images/BlinkAnswerSpace1.jpg
-Images/chevron_white.png
+Images/bulletin.png
 Images/chevron.png
+Images/chevron_back.png
+Images/chevron_down.png
+Images/chevron_white.png
 Images/WebClipIcon.png
-util/GetSiteConfig.php
-../../common/0/browser-compat.js
-../../common/0/jquery-1.4.2.min.js
-../../common/0/jquery-ui-1.8.2.custom.min.js
-../../common/0/main.js
-../../common/0/Math.uuid.js
-../../common/0/structure.css
-
-NETWORK: 
-*
-
-#FALLBACK: 
-#demoimages/ 
-#images/
-#Images/

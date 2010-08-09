@@ -2,28 +2,38 @@ body {
 	background-color: #FFF;
 	font-family: sans-serif;
 	font-size: medium;
+	max-width: 100%;
+}
+
+body, #content {
+	width: 100%;
+	max-width: 100%;
 }
 
 td {
 	padding: 4px;
 }
 
-textarea, input[type=text], input[type=password], input[type=telephone] {
+textarea, input[type=text], input[type=password], input[type=tel] {
 	padding: 2px;
 }
 
 #activityIndicator {
-	position: fixed;
+	position: absolute;
+	top: 50%;
+	max-width: 100%;
 	width: 100%;
 	padding: 10px;
-	background: #FFF;
-	z-index: 5;
-	-webkit-transition: top 0.5s ease-in-out;
 	text-align: center;
+	/* background-color: #FFF; */
+	background-image: -webkit-gradient(radial, center center, 60, center center, 300, from(#FFF), to(rgba(255, 255, 255, 0)));
+	/* background-image: -moz-radial-gradient(center 0deg, circle farthest-side, #FFF 0%, rgba(255, 255, 255, 0) 100%); */
+	z-index: 50;
 }
 
 #activityIndicator img {
-	display: inline-block;
+	margin-left: -20px;
+	width: 54px;
 	-webkit-animation-iteration-count: infinite;
 	-webkit-animation-name: spinner;
 	-webkit-animation-duration: 1s;
@@ -31,9 +41,8 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	-webkit-animation-timing-function: linear;
 }
 
-#activityIndicator.hidden img {
-	display: none;
-	-webkit-animation-name: none;
+#activityIndicator p {
+	font-size: small;
 }
 
 #loginStatus, #loginButton {
@@ -42,12 +51,47 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	padding: 4px;
 }
 
-#loginStatus a[onclick], #loginButton a[onclick] { color: blue; text-decoration: underline; }*/
+#loginStatus a[onclick], #loginButton a[onclick] { color: blue; text-decoration: underline; }
+
+#activeContent {
+	min-height: 110%;
+}
 
 #stackLayout {
 	position: relative;
-	top: 0;
-	right: 0;
+}
+
+#bulletins {
+	position: absolute;
+}
+
+.bulletin {
+	position: relative;
+	margin: 10px;
+	font-size: smaller;
+	background-color: #ABABAB;
+	color: #FFF;
+	z-index: 10;
+	max-height: 82px;
+	overflow: hidden;
+	text-align: left;
+}
+
+.bulletin > p {
+	padding: .6em;
+}
+
+.bulletin > img {
+	float: right;
+}
+
+.bulletin > .instruction {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	font-size: smaller;
+	text-align: right;
+	color: black;
 }
 
 .welcomeBox {
@@ -57,31 +101,23 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 .navBar {
 	position: relative;
 	width: 100%;
+	overflow: hidden;
 	color: #73777F;
 	font-size: large;
 	font-weight: bolder;
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFF), to(#CCC));
+	background: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#CCC));
+	background: -moz-linear-gradient(top, #FFF, #CCC);
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
-	height: 30px;
-	-webkit-box-shadow: 0px 2px 4px #666;
-	z-index: 1;
-}
-
-.navButtonsHolder {
-	position: absolute;
-	width: 100%;
 }
 
 .navLabel {
-	padding: 10px 0px;
+	padding: 10px 1em;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	color: #000;
-	font-weight: bolder;
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
-	z-index: 0;
 }
 
 
@@ -90,7 +126,6 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	height: 100%;
 	background: none;
 	border-style: none;
-	z-index: 2;
 	padding: 8px 12px;
 	font-weight: bold;
 	color: #222;
@@ -105,12 +140,50 @@ textarea, input[type=text], input[type=password], input[type=telephone] {
 	opacity: 0.5;
 }
 
+.navBar .backButton {
+	margin: 4px;
+	height: 33px;
+	width: 33px;
+	border: none;
+	background-image: url(Images/chevron_back.png);
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
 .view {
+	position: absolute;
 	display: none;
 }
 
-.view.sliding {
-	position: absolute;
+.view.animating {
+	transition: opacity 0.3s linear, transform 0.3s ease-in-out;
+	-o-transition: opacity 0.3s linear, -o-transform 0.3s ease-in-out;
+	-moz-transition: opacity 0.3s linear, -moz-transform 0.3s ease-in-out;
+	-webkit-transition: opacity 0.3s linear, -webkit-transform 0.3s ease-in-out;
+}
+
+.view.zoomingin {
+	opacity: 0;
+	transform: scale(2.0);
+	-o-transform: scale(2.0);
+	-moz-transform: scale(2.0);
+	-webkit-transform: scale(2.0);
+}
+
+.view.zoomingout {
+	opacity: 0;
+	transform: scale(0.2);
+	-o-transform: scale(0.2);
+	-moz-transform: scale(0.2);
+	-webkit-transform: scale(0.2);
+}
+
+.view.old {
+	z-index: 50
+}
+
+.view.new {
+	z-index: 0;
 }
 
 .paddedBox {
@@ -143,7 +216,7 @@ ul.box .label {
 }
 
 #keywordList .label, #keywordList .description {
-	margin-right: 30px;
+	margin-right: 50px;
 }
 
 ul.box .description {
@@ -157,23 +230,20 @@ ul.box .description {
 
 ul.box .nextArrow {
 	position: absolute;
-	right: 20px;
+	right: 14px;
 	top: 50%;
-	margin-top: -7px; /* half height */
-	width: 48px;
-	height: 54px;
+	margin-top: -17px; /* half height */
+	width: 33px;
+	height: 33px;
 	background-image: url(Images/chevron.png);
 	background-repeat: no-repeat;
 }
 
 ul.box li.selected {
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
+	background: -webkit-gradient(linear, left top, left bottom, from(#058CF5), to(#015DE6));
+	background: -moz-linear-gradient(top, #058CF5, #015DE6);
 	color: white;
 	text-shadow: 0px -1px 1px #1D2863;
-}
-
-ul.box li.selected .nextArrow {
-	background-image: url(Images/chevron_white.png);
 }
 
 #descriptionBox, #argsBox {
