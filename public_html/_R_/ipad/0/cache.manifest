@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# svn revision 403
+# svn revision 449
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -9,6 +9,27 @@ CACHE:
 index.php
 ipad.css
 ipad.js
+util/GetSiteConfig.php
+../../common/0/browser-compat.js
+../../common/0/jquery-1.4.2.min.js
+../../common/0/jquery-ui-1.8.2.custom.min.js
+../../common/0/jquery.ba-hashchange-1.3.min.js
+../../common/0/jquery.jstore-1.2.0-min.js
+../../common/0/json2.js
+../../common/0/main.js
+../../common/0/Math.uuid.js
+../../common/0/structure.css
+../../common/0/util/GetAnswer.php
+
+NETWORK: 
+http://*
+
+#FALLBACK: 
+#demoimages/ 
+#images/
+#Images/
+
+CACHE:
 Images/ActivityIndicator.png
 Images/ActivityIndicatorWhite.png
 Images/backButton.png
@@ -24,19 +45,3 @@ Images/nextButton.png
 Images/roundButton.png
 Images/squareButton.png
 Images/WebClipIcon.png
-util/GetSiteConfig.php
-../../common/0/browser-compat.js
-../../common/0/jquery-1.4.2.min.js
-../../common/0/jquery-ui-1.8.2.custom.min.js
-../../common/0/main.js
-../../common/0/Math.uuid.js
-../../common/0/structure.css
-../../common/0/util/GetAnswer.php
-
-NETWORK: 
-http://*
-
-#FALLBACK: 
-#demoimages/ 
-#images/
-#Images/

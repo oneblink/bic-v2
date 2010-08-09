@@ -1,158 +1,61 @@
 var currentKeywordNumber = 0;
 var httpAnswerRequest = false;
-var disconnectedDataStore = new Array();
 var row1, row2;
 
-var inputValid = false;
+var hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, answerSpaceOneKeyword = false;
 
-var hasCategories = false;
-var hasMasterCategories = false;
-var hasVisualCategories = false;
-
-var answerSpaceOneKeyword = false;
-var currentCategory = "";
-var currentMasterCategory = "";
+var currentCategory = "", currentMasterCategory = "";
 var textOnlyLeftList = false;
 
 var siteConfig, siteConfigHash;
 var answerSpacesList, answerSpacesHash;
 var answerSpace;
-var backStack;
+var backStack, hashStack;
 
+var storageReady = false, storageAvailable = false;
 var webappCache = window.applicationCache;
 
-if (localStorage.getItem("_answerSpace") != answerSpace) {
-  console.log("answerSpace(1) changed - clearing local storage");
-  //alert("answerSpace(1) changed - clearing local storage");
-  localStorage.clear();
-}
-/*
-if (!answerSpace || answerSpace == "<?=$_REQUEST['answerSpace']?>")
+// jStore doesn't do this for us, so this function will empty client-side storage
+function clearStorage()
 {
-   answerSpace = 'blink';
-   localStorage.setItem("_answerSpace", answerSpace);
-} */
-//window.addEventListener("load", loaded, false);
-if (webappCache)
+	var storageType = $.jStore.CurrentEngine.jri;
+	storageType = storageType.match(/\.(\w+)$/)[1];
+	switch (storageType)
+	{
+		case 'html5':
+			//window.openDatabase.transaction
+			break;
+		case 'local':
+			window.localStorage.clear();
+			break;
+		case 'flash':
+			break;
+		case 'ie':
+			break;
+		case 'session':
+			break;
+		default:
+			console.log('unidentified jStore engine');
+	}
+}
+
+if (typeof(webappCache) != "undefined")
 {
   webappCache.addEventListener("updateready", updateCache, false);
   webappCache.addEventListener("error", errorCache, false);
 }
 
-try {
-    if (!window.openDatabase) {
-        alert('Unable to create disconnected mode databases');
-    } else {
-        //var shortName = 'mydatabase';
-        var version = '1.0';
-        var displayName = 'myAnswers AnswerSpace: ' + answerSpace;
-        var maxSize = 65536; // in bytes
-        var db = openDatabase(answerSpace, version, displayName, maxSize);
- 
-        // You should have a database instance in db.
-	// Create the required tables if the don't exist
-	db.transaction(
-	   function (transaction) {
-	   /* Creat table to hold persistent data for Answer Space accesses. */
-	   transaction.executeSql('CREATE TABLE IF NOT EXISTS answerSpaceData(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, answerParm TEXT UNIQUE ON CONFLICT REPLACE NOT NULL, answerParmValue TEXT NOT NULL);', 
-				  [], 
-				  function (transaction, results) {
-				  }, 
-				  function (transaction, error) {
-				    alert('Database transaction error(1):  ' + error.message + ' (Code ' + error.code +')');
-				    return true;
-				  }
-				  );
-	   });
-
-    }
-} catch(e) {
-    // Error handling code goes here.
-    if (e == 2) {
-        // Version number mismatch.
-        alert("Invalid myAnswers database version.");
-    } else {
-        alert("Unknown error " + e + ".");
-    }
-//    return;
-}
-//
-// Reload disconnected mode data store from database
-//
-if (db && db.transaction)
-{
-  db.transaction(
-		function (transaction) {
-			transaction.executeSql("SELECT answerparm, answerParmValue FROM answerSpaceData;",
-					  [],
-					  function (transaction, resultSet) {
-						 var i;
-						 if (resultSet.rows.length > 0) {
-							for (i = 0; i < resultSet.rows.length; i++) {
-							  disconnectedDataStore[resultSet.rows.item(i)['answerParm']] = resultSet.rows.item(i)['answerParmValue']; 
-							}
-							return true;
-						 } else {
-							return false;
-						 }
-					  }, 
-					  function (transaction, error) {
-						 alert('Database transaction error(3):  ' + error.message + ' (Code ' + error.code +')');
-						 return false;
-					  }
-					  );
-				});
-}
-
-dumpLocalStorage();
-
 function setAnswerSpaceItem(key, value) {
   console.log("setAnswerSpaceItem(): " + key + ", " + value.substring(0,20) + "...");
-  disconnectedDataStore[key] = value;
-  //
-  // Persist data across application restarts
-  //
-  if (db && db.transaction)
-  {
-	 db.transaction(
-		 function (transaction) {
-			transaction.executeSql('INSERT INTO answerSpaceData (answerParm, answerParmValue) VALUES ( ?, ? );',
-					  [key, value],
-					  function (transaction, resultSet) {
-				  if (!resultSet.rowsAffected) {
-					 alert("REPLACE no rows affected");
-				  }
-					  }, 
-					  function (transaction, error) {
-				  alert('Database transaction error(2):  ' + error.message + ' (Code ' + error.code +')');
-				  return true;
-					  }
-					  );
-		 });
-  }
+  $.jStore.set(key, value);
 }
 
 function getAnswerSpaceItem(key) {
-  return disconnectedDataStore[key];
+  return $.jStore.get(key);
 }
 
 function removeAnswerSpaceItem(key) {
-  db.transaction(
-     function (transaction) {
-       transaction.executeSql("DELETE FROM answerSpaceData WHERE answerParm = '" + key + "';",
-			      [],
-			      function (transaction, resultSet) {
-				if (!resultSet.rowsAffected) {
-				  alert("DELETE no rows affected");
-				}
-			      }, 
-			      function (transaction, error) {
-				alert('Database transaction error(2):  ' + error.message + ' (Code ' + error.code +')');
-				return true;
-			      }
-			      );
-     });
-  delete disconnectedDataStore[key];
+  $.jStore.remove(key);
 }
  
 // produce the HTML for the list and insert it into #keywordList
@@ -190,13 +93,13 @@ function populateKeywordList(category) {
   {
 		if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 		{
-			htmlBox += "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
+			htmlBox += "<a href=\"#keyword" + order[id] + "\" onclick=\"gotoNextScreen('" + order[id] + "')\">";
 			htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 			htmlBox += "</a>";
 		}
 		else
 		{
-			htmlList += "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
+			htmlList += "<a href=\"#keyword" + order[id] + "\" onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
 			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
 			htmlList += "<div class='nextArrow'></div>";
 			htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
@@ -287,7 +190,7 @@ function populateMasterCategories()
 	for (id in order)
 	{
 		var categoryHTML = "";
-		categoryHTML += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
+		categoryHTML += "<a href=\"#categories\" onclick=\"showCategoriesView('" + order[id] + "')\">";
 		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		categoryHTML += "</a>";
 		masterCategoriesBox.append(categoryHTML);
@@ -347,7 +250,7 @@ function populateVisualCategories(masterCategory)
 	for (id in order)
 	{
 		var html = "";
-		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
+		html += "<a href=\"#keywords\" onclick=\"showKeywordListView('" + order[id] + "')\">";
 		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		html += "</a>";
 		categoriesBox.append(html);
@@ -419,14 +322,13 @@ function errorCache()
 //
 function loaded(row1String, row2String)
 {
+	console.log('loaded(): initialising');
   var timer = null;
   var requestActive = false;
   row1 = (row1String === '') ? 'white' : row1String;
   row2 = (row2String === '') ? 'white' : row2String;
 
-  console.log("loaded(1): ");
-
-  if (webappCache)
+  if (typeof(webappCache) != 'undefined')
   {
 	 switch(webappCache.status)
 	 {
@@ -450,22 +352,24 @@ function loaded(row1String, row2String)
 		  break;
 	 }
   }
-
-  console.log("loaded(4a): ");
   if (!navigator.onLine) {
-	 //alert("Network not connected(2)...");
-	 console.log("Network not connected(2)...");
-	 //return;
+	 console.log('loaded(): no network connection');
   }
 /*	if (answerSpace)
 	{ */
 		backStack = new Array();
-		if (localStorage && localStorage.getItem('siteConfigMessage'))
+		hashStack = hashStack || new Array();
+		
+		if (storageReady)
 		{
-			var message = JSON.parse(localStorage.getItem('siteConfigMessage')) 
-			siteConfig = message.siteConfig;
-			siteConfigHash = message.siteHash;
+			var message = $.jStore.get('siteConfigMessage');
+			if (message != null)
+			{
+				siteConfig = message.siteConfig;
+				siteConfigHash = message.siteHash;
+			}					
 		}
+		setSubmitCachedFormButton();
 		getSiteConfig();
 	/* }
 	else
@@ -551,7 +455,7 @@ function getSiteConfig()
 {
 	startInProgressAnimation();
 	var categoriesUrl = "util/GetSiteConfig.php";
-	var requestData = "answerSpace=" + localStorage.getItem("_answerSpace") + (siteConfigHash ? "&sha1=" + siteConfigHash : "");
+	var requestData = "answerSpace=" + answerSpace + (siteConfigHash ? "&sha1=" + siteConfigHash : "");
 	console.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
 	$.getJSON(categoriesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
@@ -575,8 +479,8 @@ function getSiteConfig()
 				console.log("GetSiteConfig status: " + data.statusMessage);
 				if (data.statusMessage != "NO UPDATES")
 				{
-					if (localStorage)
-						localStorage.setItem('siteConfigMessage', JSON.stringify(data));
+					if (storageReady)
+						$.jStore.set('siteConfigMessage', JSON.stringify(data));
 					siteConfig = data.siteConfig;
 					siteConfigHash = data.siteHash;
 				}
@@ -657,6 +561,8 @@ function showCategoriesView(masterCategory)
 		currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
 	}
 	addBackHistory("goBackToCategoriesView();");
+	if (hasMasterCategories)
+		addHashHistory("categories");
   prepareCategoriesViewForDevice();
 	if (hasVisualCategories)
 	{
@@ -676,21 +582,10 @@ function goBackToCategoriesView()
 {
   console.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
+	addHashHistory(hasMasterCategories ? "categories" : "");
   prepareCategoriesViewForDevice();
   $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
   setCurrentView('categoriesView', true);
-}
-
-function dumpLocalStorage() {
-  var numElements = localStorage.length;
-  var i;
-  var key;
-  for (i = 0; i < numElements; i++) {
-    key = localStorage.key(i);
-		value = localStorage.getItem(key);
-		value = value.length > 20 ? value.substring(0, 20) + "..." : value;
-    console.log("dumpLocalStorage: key = " + key + "; value = " + value + ";");
-  }
 }
 
 function addBackHistory(item)
@@ -703,11 +598,26 @@ function addBackHistory(item)
 function goBack()
 {
 	backStack.pop();
+	hashStack.pop();
 	if (backStack.length >= 1)
 		eval(backStack[backStack.length-1]);
 	else
 		goBackToHome();
 	console.log(backStack);
+}
+
+function addHashHistory(item)
+{
+	if (hashStack.indexOf(item) == -1)
+		hashStack.push(item);
+	console.log(hashStack);
+}
+
+function onHashChange()
+{
+	console.log('hash changed: ' + location.hash);
+	//if (hashStack.indexOf(location.hash) != hashStack.length - 1)
+		//goBack();
 }
 
 function getAnswer(event)
@@ -718,6 +628,7 @@ function getAnswer(event)
 function showAnswerView(keywordID)
 {
 	addBackHistory("goBackToTopLevelAnswerView();");
+	addHashHistory("answer" + keywordID);
   prepareAnswerViewForDevice();
   currentKeywordNumber = keywordID;
 	var keyword = siteConfig.keywords[keywordID];
@@ -767,6 +678,7 @@ function setupForms(view)
 	var hasHiddenColumns = false;
 	setTimeout(function() {
 		startInProgressAnimation();
+		// correct input elements that are too large in forms
 		var form = view.find('form');
 		var totalWidth = form.width();
 		var firstColumnWidth = form.find('td').first().width();
@@ -775,6 +687,7 @@ function setupForms(view)
 			if ($(element).width() > targetWidth)
 				$(element).width(targetWidth);
 		});
+		// correct result tables that are too wide
 		var results = view.find('table.results');
 		results.find('.hidden').removeClass('hidden');
 		var columns = results.find('tr').first().find('td, th').size();
@@ -827,10 +740,10 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 {
   prepareSecondLevelAnswerViewForDevice();
 	addBackHistory("showSecondLevelAnswerView(\"" + keyword + "\", \"" + arg0 + "\", true);");
+	addHashHistory("answertoo" + keyword);
   
   var answerUrl = '../../common/0/util/GetAnswer.php'
-  //var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + '&args=' + arg0.replace(/&/g, "|^^|s|");
-  var requestData = 'answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
+  var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
   $.ajax({
 	 type: 'GET',
 	 url: answerUrl,
@@ -862,6 +775,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 function showKeywordView(keywordID) 
 {
 	addBackHistory("goBackToKeywordView(\"" + keywordID + "\");");
+	addHashHistory('keyword' + keywordID);
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
   currentKeywordNumber = keywordID;
@@ -909,12 +823,14 @@ function showKeywordListView(category)
 	{
 		populateTextOnlyCategories(currentMasterCategory);
 	}
-	if (siteConfig.categories[currentCategory].keywords.length == 1) {
+	if ((hasCategories && siteConfig.categories[currentCategory].keywords.length == 1)
+			|| (!hasCategories && siteConfig.keywords.length == 1)) {
 		console.log('category only has one keyword, jumping to that keyword');
 		gotoNextScreen(siteConfig.categories[currentCategory].keywords[0]);
 		return;
 	}
 	addBackHistory("goBackToKeywordListView();");
+	addHashHistory('keywords');
 	$('#mainLabel').html(mainLabel);
   prepareKeywordListViewForDevice(category);
 	populateKeywordList(category);
@@ -930,6 +846,7 @@ function showAnswerSpacesListView()
 function goBackToHome()
 {
 	backStack = new Array();
+	hashStack = new Array();
 	if (hasMasterCategories)
 		goBackToMasterCategoriesView();
 	else if (hasVisualCategories)
@@ -963,7 +880,7 @@ function goBackToKeywordListView(event)
 
 function createParamsAndArgs(keywordID)
 {
-  var returnValue = "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
+  var returnValue = "answerSpace=" + answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
   var args = "";
   var argElements = $('#argsBox').find('input, textarea, select');
   argElements.each(function(index, element) {
@@ -995,6 +912,7 @@ function showHelpView(event)
 {
   prepareHelpViewForDevice();
 	addBackHistory("showHelpView();");
+	addHashHistory('help');
 	var keyword = siteConfig.keywords[currentKeywordNumber];
   $('#mainHeading').html(keyword.name); //**** Here ****
   var helpContents = keyword.help ? keyword.help : "Sorry, no help is available.";
@@ -1007,6 +925,7 @@ function showNewLoginView(isActivating)
 {
   prepareNewLoginViewForDevice();
 	addBackHistory("showNewLoginView();");
+	addHashHistory('newlogin');
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
@@ -1033,6 +952,7 @@ function showActivateLoginView(event)
 {
   prepareActivateLoginViewForDevice();
 	addBackHistory("showActivateLoginView();");
+	addHashHistory('activatelogin');
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/ActivateLogin.php'
 	console.log("ActivateLogin transaction: " + loginUrl);
@@ -1057,6 +977,7 @@ function showLoginView(event)
 {
   prepareLoginViewForDevice();
 	addBackHistory("showLoginView();");
+	addHashHistory('login');
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/DoLogin.php'
 	console.log("DoLogin transaction: " + loginUrl);
@@ -1277,7 +1198,7 @@ function setSubmitCachedFormButton() {
 		buttonLabel = button.find('.buttonLabel');
 		if (buttonLabel.size() > 0)
 		{
-			buttonLabel.html(queueCount + ' Pending');
+			buttonLabel.html(queueCount + ' Unsent Forms');
 		}
 		else
 		{
@@ -1285,19 +1206,13 @@ function setSubmitCachedFormButton() {
 		}
     button.button("option", "disabled", "false");
 	  button.removeAttr("disabled");
+		button.removeClass('hidden');
   } else {
     console.log("setSubmitCachedFormButton: NO Cached items");
 		buttonLabel = button.find('.buttonLabel');
-		if (buttonLabel.size() > 0)
-		{
-			buttonLabel.html('OK');
-		}
-		else
-		{
-			button.button("option", "label", "Ok");
-		}
     button.button("option", "disabled", "true");
 	  button.attr("disabled", "true");
+		button.addClass('hidden');
   }
 }
 
@@ -1341,7 +1256,7 @@ function submitFormWithRetry() {
 
   var answerUrl = '../../common/0/util/GetAnswer.php?';
   if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + localStorage.getItem("_answerSpace") + "&keyword=" + arr[1] + (device ? '&_device=' + device : '') + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+	 answerUrl += "answerSpace=" + answerSpace + "&keyword=" + arr[1] + (device ? '&_device=' + device : '') + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
   } else {
 	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2] + (device ? '&_device=' + device : '');
@@ -1409,7 +1324,7 @@ function submitAction(keyword, action) {
 	var form = $('form').first();
   var str = form.find('input, textarea, select').serialize();
 	var method = form.attr('method');
-  var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + localStorage.getItem("_answerSpace") + "&keyword=" + keyword + (device ? '&_device=' + device : '') + "&" + action;
+  var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '') + "&" + action;
 
   if (method == "get")
   {
