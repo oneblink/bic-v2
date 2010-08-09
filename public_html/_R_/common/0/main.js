@@ -1,16 +1,15 @@
-var currentKeywordNumber = 0;
 var httpAnswerRequest = false;
 var row1, row2;
 
 var hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, answerSpaceOneKeyword = false;
 
-var currentCategory = "", currentMasterCategory = "";
+var currentKeyword, currentCategory, currentMasterCategory;
 var textOnlyLeftList = false;
 
 var siteConfig, siteConfigHash;
 var answerSpacesList, answerSpacesHash;
 var answerSpace;
-var backStack, hashStack;
+var backStack;
 
 var storageReady = false, storageAvailable = false;
 var webappCache = window.applicationCache;
@@ -23,7 +22,7 @@ function clearStorage()
 	switch (storageType)
 	{
 		case 'html5':
-			//window.openDatabase.transaction
+			//window.openDatabase.transaction // TODO SQL DROP command
 			break;
 		case 'local':
 			window.localStorage.clear();
@@ -93,13 +92,13 @@ function populateKeywordList(category) {
   {
 		if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 		{
-			htmlBox += "<a href=\"#keyword" + order[id] + "\" onclick=\"gotoNextScreen('" + order[id] + "')\">";
+			htmlBox += "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
 			htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 			htmlBox += "</a>";
 		}
 		else
 		{
-			htmlList += "<a href=\"#keyword" + order[id] + "\" onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
+			htmlList += "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
 			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
 			htmlList += "<div class='nextArrow'></div>";
 			htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
@@ -190,7 +189,7 @@ function populateMasterCategories()
 	for (id in order)
 	{
 		var categoryHTML = "";
-		categoryHTML += "<a href=\"#categories\" onclick=\"showCategoriesView('" + order[id] + "')\">";
+		categoryHTML += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
 		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		categoryHTML += "</a>";
 		masterCategoriesBox.append(categoryHTML);
@@ -250,7 +249,7 @@ function populateVisualCategories(masterCategory)
 	for (id in order)
 	{
 		var html = "";
-		html += "<a href=\"#keywords\" onclick=\"showKeywordListView('" + order[id] + "')\">";
+		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
 		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
 		html += "</a>";
 		categoriesBox.append(html);
@@ -358,8 +357,6 @@ function loaded(row1String, row2String)
 /*	if (answerSpace)
 	{ */
 		backStack = new Array();
-		hashStack = hashStack || new Array();
-		
 		if (storageReady)
 		{
 			var message = $.jStore.get('siteConfigMessage');
@@ -388,9 +385,6 @@ function updateOrientation()
 	 case -90:
 	 case 90:
 		isPortrait = false;
-		break;
-	 default:
-		isPortrait = true;
 		break;
   }
   metatags = document.getElementsByTagName("meta");
@@ -561,8 +555,6 @@ function showCategoriesView(masterCategory)
 		currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
 	}
 	addBackHistory("goBackToCategoriesView();");
-	if (hasMasterCategories)
-		addHashHistory("categories");
   prepareCategoriesViewForDevice();
 	if (hasVisualCategories)
 	{
@@ -582,7 +574,6 @@ function goBackToCategoriesView()
 {
   console.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
-	addHashHistory(hasMasterCategories ? "categories" : "");
   prepareCategoriesViewForDevice();
   $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
   setCurrentView('categoriesView', true);
@@ -598,7 +589,6 @@ function addBackHistory(item)
 function goBack()
 {
 	backStack.pop();
-	hashStack.pop();
 	if (backStack.length >= 1)
 		eval(backStack[backStack.length-1]);
 	else
@@ -606,31 +596,16 @@ function goBack()
 	console.log(backStack);
 }
 
-function addHashHistory(item)
-{
-	if (hashStack.indexOf(item) == -1)
-		hashStack.push(item);
-	console.log(hashStack);
-}
-
-function onHashChange()
-{
-	console.log('hash changed: ' + location.hash);
-	//if (hashStack.indexOf(location.hash) != hashStack.length - 1)
-		//goBack();
-}
-
 function getAnswer(event)
 {
-  showAnswerView(currentKeywordNumber);
+  showAnswerView(currentKeyword);
 }
 
 function showAnswerView(keywordID)
 {
 	addBackHistory("goBackToTopLevelAnswerView();");
-	addHashHistory("answer" + keywordID);
+	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
-  currentKeywordNumber = keywordID;
 	var keyword = siteConfig.keywords[keywordID];
   
   var answerUrl = '../../common/0/util/GetAnswer.php';
@@ -644,7 +619,6 @@ function showAnswerView(keywordID)
 		httpAnswerRequest = xmlhttprequest;
 		startInProgressAnimation();
 		setSubmitCachedFormButton();
-		$('#answerBox').html("Waiting...");
 		$('#mainLabel').html(keyword.name);
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -664,7 +638,6 @@ function showAnswerView(keywordID)
 		  $('#answerBox').html(html);
 		  setSubmitCachedFormButton();
 		}
-		prepareAnswerViewForDevice();
 		setupForms($('#answerView'));
 		setCurrentView("answerView", false, true);
 		stopInProgressAnimation();
@@ -738,9 +711,8 @@ function gotoNextScreen(keywordID)
 
 function showSecondLevelAnswerView(keyword, arg0, reverse)
 {
-  prepareSecondLevelAnswerViewForDevice();
+  prepareSecondLevelAnswerViewForDevice(keyword, arg0);
 	addBackHistory("showSecondLevelAnswerView(\"" + keyword + "\", \"" + arg0 + "\", true);");
-	addHashHistory("answertoo" + keyword);
   
   var answerUrl = '../../common/0/util/GetAnswer.php'
   var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
@@ -775,10 +747,9 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 function showKeywordView(keywordID) 
 {
 	addBackHistory("goBackToKeywordView(\"" + keywordID + "\");");
-	addHashHistory('keyword' + keywordID);
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
-  currentKeywordNumber = keywordID;
+  currentKeyword = keywordID;
   prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help.length > 0);
   setSubmitCachedFormButton();
   $('#argsBox').html(keyword.input_config);
@@ -796,7 +767,7 @@ function goBackToKeywordView(keywordID)
 {
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
-  currentKeywordNumber = keywordID;
+  currentKeyword = keywordID;
   prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help.length > 0);
   setSubmitCachedFormButton();
   setCurrentView('keywordView', true, true);
@@ -830,7 +801,6 @@ function showKeywordListView(category)
 		return;
 	}
 	addBackHistory("goBackToKeywordListView();");
-	addHashHistory('keywords');
 	$('#mainLabel').html(mainLabel);
   prepareKeywordListViewForDevice(category);
 	populateKeywordList(category);
@@ -912,8 +882,7 @@ function showHelpView(event)
 {
   prepareHelpViewForDevice();
 	addBackHistory("showHelpView();");
-	addHashHistory('help');
-	var keyword = siteConfig.keywords[currentKeywordNumber];
+	var keyword = siteConfig.keywords[currentKeyword];
   $('#mainHeading').html(keyword.name); //**** Here ****
   var helpContents = keyword.help ? keyword.help : "Sorry, no help is available.";
   $('#helpBox').html(helpContents);
@@ -925,7 +894,6 @@ function showNewLoginView(isActivating)
 {
   prepareNewLoginViewForDevice();
 	addBackHistory("showNewLoginView();");
-	addHashHistory('newlogin');
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
@@ -952,7 +920,6 @@ function showActivateLoginView(event)
 {
   prepareActivateLoginViewForDevice();
 	addBackHistory("showActivateLoginView();");
-	addHashHistory('activatelogin');
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/ActivateLogin.php'
 	console.log("ActivateLogin transaction: " + loginUrl);
@@ -977,7 +944,6 @@ function showLoginView(event)
 {
   prepareLoginViewForDevice();
 	addBackHistory("showLoginView();");
-	addHashHistory('login');
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/0/util/DoLogin.php'
 	console.log("DoLogin transaction: " + loginUrl);
