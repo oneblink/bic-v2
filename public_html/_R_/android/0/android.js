@@ -237,15 +237,13 @@ function dismissBulletin()
 
 function onHashChange(event)
 {
-	console.log(location.hash);
-	console.log(hashStack);
 	var hashState = event.getState();
 	var hashString = JSON.stringify(hashState);
 	if (location.hash.length > 1 && hashStack.indexOf(hashString) == -1)
 		hashStack.push(hashString);
 	else if (hashStack.length == 0 || location.hash.length <= 1)
 		goBackToHome();
-	else
+	else if (hashStack[hashStack.length - 2] == hashString)
 	{
 		hashStack.pop();
 		goBack()
