@@ -51,6 +51,10 @@ td > input[type=text], td > input[type=email], td > textarea {
 	width: 95%;
 }
 
+input[type=file] {
+	font-size: smaller;
+}
+
 hr { margin: 15px 0px; }
 
 a[onclick] { cursor: pointer; }
@@ -249,5 +253,4 @@ ul.box .description {
 		opacity: 0;
 	}
 }
-
 

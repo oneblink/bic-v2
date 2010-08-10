@@ -12,6 +12,11 @@ textarea, input[type=text], input[type=password], input[type=tel] {
 	padding: 2px;
 }
 
+/* necessary because Android doesn't like file inputs in tables */
+input[type=file] {
+	position: relative;
+}
+
 #activityIndicator {
 	position: absolute;
 	top: 50%;
@@ -19,9 +24,8 @@ textarea, input[type=text], input[type=password], input[type=tel] {
 	width: 100%;
 	padding: 10px;
 	text-align: center;
-	/* background-color: #FFF; */
 	background-image: -webkit-gradient(radial, center center, 60, center center, 300, from(#FFF), to(rgba(255, 255, 255, 0)));
-	/* background-image: -moz-radial-gradient(center 0deg, circle farthest-side, #FFF 0%, rgba(255, 255, 255, 0) 100%); */
+	background-image: -moz-radial-gradient(center 0deg, circle farthest-side, #FFF 0%, rgba(255, 255, 255, 0) 100%);
 	z-index: 50;
 }
 
@@ -226,7 +230,7 @@ ul.box .nextArrow {
 	position: absolute;
 	right: 14px;
 	top: 50%;
-	margin-top: -17px; /* half height */
+	margin-top: -17px;
 	width: 33px;
 	height: 33px;
 	background-image: url(Images/chevron.png);
