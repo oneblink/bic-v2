@@ -2,12 +2,6 @@ body {
 	background-color: #FFF;
 	font-family: sans-serif;
 	font-size: medium;
-	max-width: 100%;
-}
-
-body, #content {
-	width: 100%;
-	max-width: 100%;
 }
 
 td {
@@ -151,11 +145,11 @@ textarea, input[type=text], input[type=password], input[type=tel] {
 }
 
 .view {
-	position: absolute;
 	display: none;
 }
 
 .view.animating {
+	position: absolute;
 	transition: opacity 0.3s linear, transform 0.3s ease-in-out;
 	-o-transition: opacity 0.3s linear, -o-transform 0.3s ease-in-out;
 	-moz-transition: opacity 0.3s linear, -moz-transform 0.3s ease-in-out;
