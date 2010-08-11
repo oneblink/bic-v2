@@ -237,7 +237,7 @@ function dismissBulletin()
 
 function onHashChange(event)
 {
-	var hashState = event.getState();
+	var hashState = $.bbq.getState();
 	var hashString = JSON.stringify(hashState);
 	if (location.hash.length > 1 && hashStack.indexOf(hashString) == -1)
 		hashStack.push(hashString);
