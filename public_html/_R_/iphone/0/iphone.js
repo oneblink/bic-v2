@@ -186,7 +186,7 @@ function setCurrentView(view, reverseTransition)
   var entranceDirection = (reverseTransition ? 'left' : 'right');
   var exitDirection = (reverseTransition ? 'right' : 'left');
   var startPosition = (reverseTransition ? 'left' : 'right');
-  var currentView = $('#' + $('#stackLayout > .view:visible').attr('id'));
+  var currentView = $('.view:visible');
   var newView = $('#' + view);
   if (currentView.size() == 0)
   {

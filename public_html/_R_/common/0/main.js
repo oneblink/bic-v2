@@ -11,27 +11,28 @@ var answerSpacesList, answerSpacesHash;
 var answerSpace;
 var backStack;
 
-var storageReady = false, storageAvailable = false;
 var webappCache = window.applicationCache;
 
 // jStore doesn't do this for us, so this function will empty client-side storage
 function clearStorage()
 {
-	var storageType = $.jStore.CurrentEngine.jri;
-	storageType = storageType.match(/\.(\w+)$/)[1];
+	var storageType = jStore.activeEngine().flavor;
+	console.log('clearStorage: ' + storageType);
 	switch (storageType)
 	{
-		case 'html5':
-			//window.openDatabase.transaction // TODO SQL DROP command
+		case 'jstore-html5-sql':
+			jStore.activeEngine().database.transaction(function (database) {
+				database.executeSql('TRUNCATE TABLE jstore');
+			});
 			break;
-		case 'local':
+		case 'jstore-html5-local':
 			window.localStorage.clear();
 			break;
-		case 'flash':
+		case 'jstore-flash':
 			break;
-		case 'ie':
+		case 'jstore-msie':
 			break;
-		case 'session':
+		case 'jstore-google-gears':
 			break;
 		default:
 			console.log('unidentified jStore engine');
@@ -45,16 +46,17 @@ if (typeof(webappCache) != "undefined")
 }
 
 function setAnswerSpaceItem(key, value) {
-  console.log("setAnswerSpaceItem(): " + key + ", " + value.substring(0,20) + "...");
-  $.jStore.set(key, value);
+	if (storageReady)
+	  $.fn.setStore(key, value);
 }
 
 function getAnswerSpaceItem(key) {
-  return $.jStore.get(key);
+	return storageReady ? $.fn.getStore(key) : null;
 }
 
 function removeAnswerSpaceItem(key) {
-  $.jStore.remove(key);
+	if (storageReady)
+	  $.fn.removeStore(key);
 }
  
 // produce the HTML for the list and insert it into #keywordList
@@ -354,13 +356,17 @@ function loaded(row1String, row2String)
   if (!navigator.onLine) {
 	 console.log('loaded(): no network connection');
   }
+		
 /*	if (answerSpace)
 	{ */
 		backStack = new Array();
 		if (storageReady)
 		{
-			var message = $.jStore.get('siteConfigMessage');
-			if (message != null)
+			if (getAnswerSpaceItem('answerSpace') == 'undefined' || getAnswerSpaceItem('answerSpace') != answerSpace)
+				clearStorage();
+			setAnswerSpaceItem('answerSpace', answerSpace);
+			var message = getAnswerSpaceItem('siteConfigMessage');
+			if (typeof(message) != 'undefined' && message != 'undefined')
 			{
 				siteConfig = message.siteConfig;
 				siteConfigHash = message.siteHash;
@@ -449,7 +455,7 @@ function getSiteConfig()
 {
 	startInProgressAnimation();
 	var categoriesUrl = "util/GetSiteConfig.php";
-	var requestData = "answerSpace=" + answerSpace + (siteConfigHash ? "&sha1=" + siteConfigHash : "");
+	var requestData = "answerSpace=" + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
 	console.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
 	$.getJSON(categoriesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
@@ -474,7 +480,7 @@ function getSiteConfig()
 				if (data.statusMessage != "NO UPDATES")
 				{
 					if (storageReady)
-						$.jStore.set('siteConfigMessage', JSON.stringify(data));
+						jStore.set('siteConfigMessage', JSON.stringify(data));
 					siteConfig = data.siteConfig;
 					siteConfigHash = data.siteHash;
 				}
@@ -1287,7 +1293,7 @@ function submitFormWithRetry() {
 }
 
 function submitAction(keyword, action) {
-	var form = $('form').first();
+	var form = $('.view:visible').find('form').first();
   var str = form.find('input, textarea, select').serialize();
 	var method = form.attr('method');
   var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '') + "&" + action;

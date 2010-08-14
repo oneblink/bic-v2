@@ -39,10 +39,6 @@ input[type=file] {
 	-webkit-animation-timing-function: linear;
 }
 
-#activityIndicator p {
-	font-size: small;
-}
-
 #loginStatus, #loginButton {
 	float: right;
 	text-align: right;
