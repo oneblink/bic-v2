@@ -460,7 +460,6 @@ function getSiteConfig()
 	$.getJSON(categoriesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
 			console.log("GetSiteConfig transaction complete: " + textstatus);
-			console.log(data);
 			stopInProgressAnimation();
 			if (textstatus != 'success') return;
 /*			if (data.errorMessage && data.errorMessage == "NOT FOUND")
@@ -469,7 +468,7 @@ function getSiteConfig()
 				//getAnswerSpacesList();
 			}
 			else */
-			if (data.errorMessage)
+			if (data && data.errorMessage)
 			{
 				console.log("GetSiteConfig error: " + data.errorMessage);
 				window.location = "/demos";
@@ -477,7 +476,7 @@ function getSiteConfig()
 			else
 			{
 				console.log("GetSiteConfig status: " + data.statusMessage);
-				if (data.statusMessage != "NO UPDATES")
+				if (data == null || data.statusMessage != "NO UPDATES")
 				{
 					if (storageReady)
 						jStore.set('siteConfigMessage', JSON.stringify(data));
@@ -589,7 +588,6 @@ function addBackHistory(item)
 {
 	if (backStack.indexOf(item) == -1)
 		backStack.push(item);
-	console.log(backStack);
 }
 
 function goBack()
