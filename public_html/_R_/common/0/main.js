@@ -745,9 +745,9 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 			setupForms($("#answerView2"));
 		}
 		stopInProgressAnimation();
+		setCurrentView('answerView2', false, true);   
 	 }
   });
-  setCurrentView('answerView2', false, true);   
 }
 
 function showKeywordView(keywordID) 
@@ -1081,7 +1081,7 @@ function showLocationX(position) {
 }
 
 function submitForm() {
-  var str = $('form').first().find('input, textarea, select').serialize();
+  var str = $('.view:visible').find('form').first().find('input, textarea, select').serialize();
   console.log("submitForm(2): " + document.forms[0].action);
   queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid());
   submitFormWithRetry();
