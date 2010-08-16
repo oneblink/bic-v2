@@ -468,15 +468,18 @@ function getSiteConfig()
 				//getAnswerSpacesList();
 			}
 			else */
-			if (data && data.errorMessage)
+			if (data == null && typeof(webappCache) != 'undefined' && webappCache.status) {
+				// cache.manifest reports no changes and/or no server response
+			}
+			else if (data == null || data.errorMessage)
 			{
-				console.log("GetSiteConfig error: " + data.errorMessage);
+				console.log("GetSiteConfig error: " + (data ? data.errorMessage : null));
 				window.location = "/demos";
 			}
 			else
 			{
 				console.log("GetSiteConfig status: " + data.statusMessage);
-				if (data == null || data.statusMessage != "NO UPDATES")
+				if (data.statusMessage != "NO UPDATES")
 				{
 					if (storageReady)
 						jStore.set('siteConfigMessage', JSON.stringify(data));
