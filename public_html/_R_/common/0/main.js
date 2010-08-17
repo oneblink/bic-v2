@@ -647,7 +647,8 @@ function showAnswerView(keywordID)
   
 	if (!isBrowserOnline())
 	{
-		answerItem = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
+		console('browser offline: using stored data for GetAnswer.php');
+		answerItem = getAnswerSpaceItem("answer___" + keywordID);
 		$('#answerBox').html(answerItem == undefined ? "<p>No result available while offline.</p>" : answerItem);
 		setupForms($('#answerView'));
 		setCurrentView("answerView", false, true);
@@ -665,7 +666,6 @@ function showAnswerView(keywordID)
 			httpAnswerRequest = xmlhttprequest;
 			startInProgressAnimation();
 			setSubmitCachedFormButton();
-			$('#mainLabel').html(keyword.name);
 		 },
 		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
 			console.log("GetAnswer failed with error type: " + textstatus);
@@ -675,18 +675,21 @@ function showAnswerView(keywordID)
 			var html;
 			if (xmlhttprequest.responseText == null)
 			{
-				html = getAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + rowIndex);
+				console.log('GetAnswer: no response, using local copy');
+				html = getAnswerSpaceItem("answer___" + keywordID);
 				html = html == undefined ? "<p>No result available.</p>" : html;
 			}
 			else
 			{
+				console.log('GetAnswer: storing server response');
 				html = xmlhttprequest.responseText;
-				setAnswerSpaceItem(getAnswerSpaceItem("_currentCategory") + "___" + keywordID, html);
+				setAnswerSpaceItem("answer___" + keywordID, html);
 			}
 			$('#answerBox').html(html);
 			setSubmitCachedFormButton();
 			setupForms($('#answerView'));
 			setCurrentView("answerView", false, true);
+			$('#mainLabel').html(keyword.name);
 			stopInProgressAnimation();
 		 },
 		 timeout: 30 * 1000 // 30 seconds

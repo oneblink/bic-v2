@@ -20,7 +20,11 @@ android.js
 http://code.google.com/apis/gears/gears_init.js
 
 NETWORK: 
+../../common/0/util/GetLogin.php
+../../common/0/util/GetAnswer.php
+util/GetSiteConfig.php
 http://*
+*
 
 #FALLBACK: 
 #demoimages/ 

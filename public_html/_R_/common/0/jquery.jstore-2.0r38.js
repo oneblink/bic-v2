@@ -1568,7 +1568,7 @@
     
         init: function (project, name)
         {   
-            this.database = window.openDatabase('jstore-' + project, '1.0', project, this.limit);
+            this.database = window.openDatabase(project, '1.0', project, this.limit);
 
             if (!this.database)
             {
@@ -1781,7 +1781,7 @@
         init: function (project, name)
         {   
             this.database = google.gears.factory.create('beta.database');
-            this.database.open('jstore-' + project);
+            this.database.open(project);
             this.database.execute('CREATE TABLE IF NOT EXISTS jstore (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)');
             
             this._super(project, name);
@@ -1848,7 +1848,7 @@
     
         init: function (project, name)
         {   
-            this.database = $('<div style="display:none;behavior:url(\'#default#userData\')" id="jstore-' + project + '"></div>')
+            this.database = $('<div style="display:none;behavior:url(\'#default#userData\')" id="' + project + '"></div>')
                 .appendTo(document.body).get(0);
             
             this._super(project, name);
@@ -1862,7 +1862,7 @@
         {
             this.database.load(this.project);
             
-            var node = document.getElementById('jstore-' + this.project),
+            var node = document.getElementById(this.project),
                 xmlDoc = node.XMLDocument,
                 root,
                 index = 0;

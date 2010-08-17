@@ -12,14 +12,17 @@ ipad.js
 ../../common/0/browser-compat.js
 ../../common/0/jquery-1.4.2.min.js
 ../../common/0/jquery-ui-1.8.2.custom.min.js
-../../common/0/jquery.benalman.min.js
 ../../common/0/jquery.jstore-2.0r38-min.js
 ../../common/0/main.js
 ../../common/0/Math.uuid.js
 ../../common/0/structure.css
 
 NETWORK: 
+../../common/0/util/GetLogin.php
+../../common/0/util/GetAnswer.php
+util/GetSiteConfig.php
 http://*
+*
 
 #FALLBACK: 
 #demoimages/ 
