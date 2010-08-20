@@ -394,15 +394,16 @@
         {
             return '';
         }
-        
+/*        
         if (typecheck(value, 'Object') ||
             typecheck(value, 'Array') ||
             typecheck(value, 'Function'))
         {
             return JSON.stringify(value);
         }
-        
-        return value;
+*/      
+//        return value;
+				return JSON.stringify(value);
     }
     
     /**

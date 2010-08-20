@@ -4,7 +4,6 @@ var row1, row2;
 var hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, answerSpaceOneKeyword = false;
 
 var currentKeyword, currentCategory, currentMasterCategory;
-var textOnlyLeftList = false;
 
 var siteConfig, siteConfigHash;
 var answerSpacesList, answerSpacesHash;
@@ -48,18 +47,18 @@ if (typeof(webappCache) != "undefined")
 function setAnswerSpaceItem(key, value)
 {
 	if (storageReady)
-	  $.fn.setStore(key, value);
+	  jStore.set(key, value);
 }
 
 function getAnswerSpaceItem(key)
 {
-	return storageReady ? $.fn.getStore(key) : null;
+	return storageReady ? jStore.get(key) : null;
 }
 
 function removeAnswerSpaceItem(key)
 {
 	if (storageReady)
-	  $.fn.removeStore(key);
+	  jStore.remove(key);
 }
 
 function isBrowserOnline()
@@ -502,7 +501,7 @@ function getSiteConfig()
 					if (data.statusMessage != "NO UPDATES")
 					{
 						if (storageReady)
-							setAnswerSpaceItem('siteConfigMessage', JSON.stringify(data));
+							setAnswerSpaceItem('siteConfigMessage', data);
 						siteConfig = data.siteConfig;
 						siteConfigHash = data.siteHash;
 					}

@@ -94,6 +94,10 @@ a[onclick] { cursor: pointer; }
 	width: 100%;
 }
 
+#bannerBox {
+	clear: both;
+}
+
 #activeContent {
 	position: relative;
 	width: 100%;
