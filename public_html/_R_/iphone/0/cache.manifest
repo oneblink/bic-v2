@@ -16,13 +16,16 @@ iphone.js
 ../../common/0/main.js
 ../../common/0/Math.uuid.js
 ../../common/0/structure.css
+http://maps.google.com/maps/api/js
 
-NETWORK: 
+NETWORK:
+*
 ../../common/0/util/GetLogin.php
 ../../common/0/util/GetAnswer.php
 util/GetSiteConfig.php
-http://*
-*
+http://i.ytimg.com/
+http://maps.google.com/
+/images/
 
 #FALLBACK: 
 #demoimages/ 
