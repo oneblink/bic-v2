@@ -54,20 +54,13 @@ function prepareCategoriesViewForDevice()
 function prepareKeywordListViewForDevice(category)
 {
   console.log('prepareKeywordListViewForDevice()');
-  //backButtonHeader.unbind('click');
   if (hasVisualCategories)
   {
 		backButtonHeader.removeClass('hidden');
-		//backButtonHeader.click(function(event) {
-			//goBackToCategoriesView();
-		//});
   }
   else if (hasMasterCategories)
   {
 		backButtonHeader.removeClass('hidden');
-		//backButtonHeader.click(function(event) {
-			//goBackToMasterCategoriesView();
-    //});
   }
   else
   {
@@ -96,11 +89,7 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 	}
 	else
 	{
-		//backButtonHeader.unbind('click');
 		backButtonHeader.removeClass('hidden');
-		//backButtonHeader.click(function(event) {
-		 //goBackToKeywordListView();
-		//});
 	}
 	if (showHelp)
 	{
@@ -116,11 +105,7 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 function prepareAnswerViewForDevice()
 {
   console.log('prepareAnswerViewForDevice()');
-  //backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
-  //backButtonHeader.click(function(event) {
-	 //goBackToKeywordListView(currentCategory);
-  //});
   helpButton.addClass('hidden');
   pendingFormButton.removeClass('hidden');
 }
@@ -128,11 +113,7 @@ function prepareAnswerViewForDevice()
 function prepareSecondLevelAnswerViewForDevice()
 {
   console.log('prepareSecondLevelAnswerViewForDevice()');
-  //backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
-  //backButtonHeader.click(function(event) {
-	 //goBackToTopLevelAnswerView();
-  //});
   helpButton.addClass('hidden');
   pendingFormButton.removeClass('hidden');
 }
@@ -148,11 +129,7 @@ function prepareHelpViewForDevice()
 function prepareLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-  //backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
-  //backButtonHeader.click(function(event) {
-	 //goBackToHome();
-  //});
   helpButton.addClass('hidden');
   pendingFormButton.addClass('hidden');
 }
@@ -160,12 +137,7 @@ function prepareLoginViewForDevice()
 function prepareNewLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-  //backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
-  //backButtonHeader.click(function(event) {
-//		prepareLoginViewForDevice();
-//		setCurrentView('loginView', true, true); 
- // });
   helpButton.addClass('hidden');
   pendingFormButton.addClass('hidden');
 }
@@ -173,11 +145,7 @@ function prepareNewLoginViewForDevice()
 function prepareActivateLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
-  //backButtonHeader.unbind('click');
   backButtonHeader.removeClass('hidden');
-  //backButtonHeader.click(function(event) {
-	 //goBackToHome();
-  //});
   helpButton.addClass('hidden');
   pendingFormButton.addClass('hidden');
 }
@@ -343,13 +311,6 @@ function populateLeftBoxWithCategories(masterCategory)
 		leftContent.find('.selected').removeClass('selected');
 		var selected = $('#leftcategory' + currentCategory);
 		selected.addClass('selected');
-		selected.addClass('animating hidden');
-		setTimeout(function() {
-			$('#leftcategory' + currentCategory).removeClass('hidden');
-		}, 0.2 * 1000);
-		setTimeout(function() {
-			$('#leftcategory' + currentCategory).removeClass('animating');
-		}, 0.4 * 1000);
 	}
 	else
 	{

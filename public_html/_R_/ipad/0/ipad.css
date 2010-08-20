@@ -40,6 +40,7 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 }
 
 #bannerBox {
+	clear: none;
 	float: left;
 	width: 50%;
 }
