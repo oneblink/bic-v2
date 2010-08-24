@@ -630,6 +630,7 @@ function goBack()
 	else
 		goBackToHome();
 	console.log(backStack);
+	stopTrackingLocation();
 }
 
 function getAnswer(event)
@@ -876,6 +877,7 @@ function goBackToHome()
 		goBackToCategoriesView();
 	else
 		goBackToKeywordListView();
+	stopTrackingLocation();
 }
 
 function goBackToKeywordListView(event)
@@ -1386,9 +1388,10 @@ function setupAnswerFeatures()
 	if ($('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 		startInProgressAnimation();
 		$.getScript('http://www.google.com/jsapi?key=' + googleAPIkey, function(data, textstatus) {
-			if ($('div.googlemap').size() > 0) { // check for items requiring Google Maps
+			if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
 				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
-			}
+			else
+				stopTrackingLocation();
 		});
 	}
 }
@@ -1465,7 +1468,7 @@ function startTrackingLocation()
 					longitude = position.coords.longitude;
 					$('body').trigger('locationUpdated');
 				}
-			});
+			}, { enableHighAccuracy : true, maximumAge : 600000 });
 		}
 		else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
 		{
@@ -1476,7 +1479,7 @@ function startTrackingLocation()
 					longitude = position.longitude;
 					$('body').trigger('locationUpdated');
 				}
-			});
+			}, { enableHighAccuracy : true, maximumAge : 600000 });
 		}
 	}
 }
