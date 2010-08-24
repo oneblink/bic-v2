@@ -649,8 +649,9 @@ function showAnswerView(keywordID)
 		console('browser offline: using stored data for GetAnswer.php');
 		answerItem = getAnswerSpaceItem("answer___" + keywordID);
 		$('#answerBox').html(answerItem == undefined ? "<p>No result available while offline.</p>" : answerItem);
-		setupForms($('#answerView'));
 		setCurrentView("answerView", false, true);
+		setupForms($('#answerView'));
+		setupAnswerFeatures();
 	}
 	else
 	{
@@ -686,8 +687,9 @@ function showAnswerView(keywordID)
 			}
 			$('#answerBox').html(html);
 			setSubmitCachedFormButton();
-			setupForms($('#answerView'));
 			setCurrentView("answerView", false, true);
+			setupForms($('#answerView'));
+			setupAnswerFeatures();
 			$('#mainLabel').html(keyword.name);
 			stopInProgressAnimation();
 		 },
@@ -786,10 +788,11 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		{
 		  var html =  httpAnswerRequest.responseText;
       $('#answerBox2').html(html);
-			setupForms($("#answerView2"));
 		}
 		stopInProgressAnimation();
 		setCurrentView('answerView2', false, true);   
+		setupAnswerFeatures();
+		setupForms($("#answerView2"));
 	 }
   });
 }
@@ -1106,32 +1109,6 @@ function goBackToTopLevelAnswerView(event)
   setCurrentView('answerView', true, true);
 }
 
-var newKeyword = "";
-function passLocation(keyword) {
-   // Get location no more than 10 minutes old. 600000 ms = 10 minutes.
-   newKeyword = keyword;
-   //alert("hi");
-   navigator.geolocation.getCurrentPosition(showLocation, showError, {enableHighAccuracy:true,maximumAge:600000});
-}
-
-function showError(error) {
-   alert(error.code + ' ' + error.message);
-}
-
-function showLocation(position) {
-   showSecondLevelAnswerView(newKeyword, position.coords.latitude + ',' + position.coords.longitude);
-}
-
-function showLocationX(position) {
-   alert('<p>Latitude: ' + position.coords.latitude + '</p>' 
-   + '<p>Longitude: ' + position.coords.longitude + '</p>' 
-   + '<p>Accuracy: ' + position.coords.accuracy + '</p>' 
-   + '<p>Altitude: ' + position.coords.altitude + '</p>' 
-   + '<p>Altitude accuracy: ' + position.coords.altitudeAccuracy + '</p>' 
-   + '<p>Speed: ' + position.coords.speed + '</p>' 
-   + '<p>Heading: ' + position.coords.heading + '</p>');
-}
-
 function submitForm() {
 	var form = $('.view:visible').find('form').first();
   var str = form.find('input, textarea, select').serialize();
@@ -1404,3 +1381,115 @@ function submitAction(keyword, action) {
   }
 }
 
+function setupAnswerFeatures()
+{
+	if ($('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
+		startInProgressAnimation();
+		$.getScript('http://www.google.com/jsapi?key=' + googleAPIkey, function(data, textstatus) {
+			if ($('div.googlemap').size() > 0) { // check for items requiring Google Maps
+				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
+			}
+		});
+	}
+}
+
+function setupGoogleMaps()
+{
+	if (isLocationAvailable())
+		startTrackingLocation();
+	$('div.googlemap').each(function(index, element) {
+		var mapTarget = $(element);
+		var location = new google.maps.LatLng(mapTarget.attr('data-latitude'), mapTarget.attr('data-longitude'));
+		var options = {
+			zoom: parseInt(mapTarget.attr('data-zoom')),
+			center: location,
+			mapTypeId: google.maps.MapTypeId[mapTarget.attr('data-type').toUpperCase()]
+		};
+		var googleMap = new google.maps.Map(element, options);
+		google.maps.event.addListener(googleMap, 'tilesloaded', stopInProgressAnimation);
+		google.maps.event.addListener(googleMap, 'zoom_changed', startInProgressAnimation);
+		google.maps.event.addListener(googleMap, 'maptypeid_changed', startInProgressAnimation);
+		google.maps.event.addListener(googleMap, 'projection_changed', startInProgressAnimation);
+		if (mapTarget.attr('data-kml') && mapTarget.attr('data-kml').length > 0)
+		{
+			var kml = new google.maps.KmlLayer(mapTarget.attr('data-kml'), { map: googleMap, preserveViewport: true });
+		}
+		else if (mapTarget.attr('data-marker') == true)
+		{
+			var marker = new google.maps.Marker({
+				position: location,
+				map: googleMap
+			});
+		}
+		if (isLocationAvailable())
+		{
+			var currentMarker = new google.maps.Marker({
+				map: googleMap,
+				icon: '../../common/0/images/location24.png',
+				title: 'Your current location'
+			});
+			if (latitude && longitude)
+				currentMarker.setPosition(new google.maps.LatLng(latitude, longitude));
+			$('body').bind('locationUpdated', function() {
+				currentMarker.setPosition(new google.maps.LatLng(latitude, longitude));
+			});
+			var currentInfo = new google.maps.InfoWindow();
+			google.maps.event.addListener(currentMarker, 'click', function() {
+				currentInfo.setContent(currentMarker.getTitle());
+				currentInfo.open(googleMap, currentMarker);
+			});
+		}
+	});
+}
+
+function isLocationAvailable()
+{
+	if (typeof(navigator.geolocation) != 'undefined')
+		return true;
+	else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
+		return getPermission(answerSpace, 'See your location marked on maps.');
+	return false;
+}
+
+var locationTracker, latitude, longitude;
+function startTrackingLocation()
+{
+	if (locationTracker == null)
+	{
+		if (typeof(navigator.geolocation) != 'undefined')
+		{
+			navigator.geolocation.watchPosition(function(position) {
+				if (latitude != position.coords.latitude || longitude != position.coords.longitude)
+				{
+					latitude = position.coords.latitude;
+					longitude = position.coords.longitude;
+					$('body').trigger('locationUpdated');
+				}
+			});
+		}
+		else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
+		{
+			google.gears.factory.create('beta.geolocation').watchPosition(function(position) {
+				if (latitude != position.latitude || longitude != position.longitude)
+				{
+					latitude = position.latitude;
+					longitude = position.longitude;
+					$('body').trigger('locationUpdated');
+				}
+			});
+		}
+	}
+}
+
+function stopTrackingLocation()
+{
+	if (typeof(navigator.geolocation) != 'undefined')
+	{
+		navigator.geolocation.clearWatch(locationTracker);
+	}
+	else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
+	{
+		google.gears.factory.create('beta.geolocation').clearWatch(locationTracker);
+	}
+	locationTracker = null;
+}

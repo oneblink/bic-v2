@@ -254,13 +254,6 @@ function populateLeftBoxWithMasterCategories()
 		leftContent.find('.selected').removeClass('selected');
 		var selected = $('#leftmaster' + currentMasterCategory);
 		selected.addClass('selected');
-		selected.addClass('animating hidden');
-		setTimeout(function() {
-			$('#leftmaster' + currentMasterCategory).removeClass('hidden');
-		}, 0.2 * 1000);
-		setTimeout(function() {
-			$('#leftmaster' + currentMasterCategory).removeClass('animating');
-		}, 0.4 * 1000);
 	}
 	else
 	{

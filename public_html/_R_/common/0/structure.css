@@ -59,6 +59,11 @@ hr { margin: 15px 0px; }
 
 a[onclick] { cursor: pointer; }
 
+.googlemap {
+	width: 100%;
+	height: 360px;
+}
+
 .hidden {
 	display: none !important;
 	z-index: -1 !important;
