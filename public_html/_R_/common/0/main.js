@@ -1468,7 +1468,7 @@ function startTrackingLocation()
 					longitude = position.coords.longitude;
 					$('body').trigger('locationUpdated');
 				}
-			}, { enableHighAccuracy : true, maximumAge : 600000 });
+			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
 		}
 		else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
 		{
@@ -1479,7 +1479,7 @@ function startTrackingLocation()
 					longitude = position.longitude;
 					$('body').trigger('locationUpdated');
 				}
-			}, { enableHighAccuracy : true, maximumAge : 600000 });
+			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
 		}
 	}
 }
