@@ -150,6 +150,7 @@ input[type=file] {
 
 .view.animating {
 	position: absolute;
+	top: 0px;
 	transition: opacity 0.3s linear, transform 0.3s ease-in-out;
 	-o-transition: opacity 0.3s linear, -o-transform 0.3s ease-in-out;
 	-moz-transition: opacity 0.3s linear, -moz-transform 0.3s ease-in-out;

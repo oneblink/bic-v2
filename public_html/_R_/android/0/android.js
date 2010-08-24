@@ -194,8 +194,14 @@ function setCurrentView(view, reverseTransition)
   }
   else
   {
+		currentView.addClass('animating old');
+		newView.addClass('animating new');
 		currentView.hide('slide', { direction: exitDirection }, 300);
 		newView.show('slide', { direction: entranceDirection }, 300);
+		setTimeout(function() {
+			currentView.removeClass('animating old ' + zoomExit);
+			newView.removeClass('animating new');
+		}, 300);
   }
 	setTimeout(function() {
 		window.scrollTo(0, 1);
