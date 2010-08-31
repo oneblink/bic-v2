@@ -131,7 +131,8 @@ function stopInProgressAnimation()
 
 function startInProgressAnimation()
 {
-  activityIndicator.removeClass('hidden');
+	if ($('#startUp').size() <= 0)
+	  activityIndicator.removeClass('hidden');
 }
 
 function populateTextOnlyCategories(masterCategory)

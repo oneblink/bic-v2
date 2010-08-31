@@ -17,6 +17,15 @@ input[type=file] {
 	position: relative;
 }
 
+button, input[type=submit] {
+	padding: .5em 1em;
+	border-radius: 4px;
+}
+
+button[disabled] {
+	opacity: 0.5;
+}
+
 #activityIndicator {
 	position: absolute;
 	top: 50%;
@@ -93,7 +102,6 @@ input[type=file] {
 }
 
 .navBar {
-	position: relative;
 	width: 100%;
 	overflow: hidden;
 	color: #73777F;
@@ -102,46 +110,40 @@ input[type=file] {
 	background: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#CCC));
 	background: -moz-linear-gradient(top, #FFF, #CCC);
 	text-shadow: 1px 1px 1px #DEDEE4;
+}
+
+.navBar > .button, .navBar > .label {
+	background-color: transparent;
 	text-align: center;
 }
 
-.navLabel {
-	padding: 10px 1em;
+.navBar > .label {
+	padding: 7px 10px;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	color: #000;
-	text-shadow: 1px 1px 1px #DEDEE4;
+	color: #797979;
+	text-shadow: 0px 0px 2px #FFF;
 	text-align: center;
 }
 
-
-.navBar .button {
+.navBar > .button {
 	position: relative;
-	height: 100%;
-	background: none;
-	border-style: none;
-	padding: 8px 12px;
+	padding: 0;
+	height: 36px;
+	width: 48px;
+	border: 0;
 	font-weight: bold;
 	color: #222;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	text-align: center;
-	border-left: 1px solid #FFF;
-	border-right: 1px solid #BBB;
+	overflow: hidden;
 }
 
-.navBar .button[disabled] {
-	opacity: 0.5;
-}
-
-.navBar .backButton {
-	margin: 4px;
-	height: 33px;
-	width: 33px;
-	border: none;
-	background-image: url(Images/chevron_back.png);
-	background-position: center;
-	background-repeat: no-repeat;
+.navBar > .button > img {
+	position: absolute;
+	top: -4px;
+	width: 44px;
 }
 
 .view {
