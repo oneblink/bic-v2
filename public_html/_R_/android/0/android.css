@@ -26,6 +26,10 @@ button[disabled] {
 	opacity: 0.5;
 }
 
+.box > table {
+	font-size: smaller;
+}
+
 #activityIndicator {
 	position: absolute;
 	top: 50%;
