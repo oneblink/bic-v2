@@ -1450,7 +1450,7 @@ function isLocationAvailable()
 	if (typeof(navigator.geolocation) != 'undefined')
 		return true;
 	else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
-		return getPermission(answerSpace, 'See your location marked on maps.');
+		return google.gears.factory.getPermission(answerSpace, 'See your location marked on maps.');
 	return false;
 }
 

@@ -11,10 +11,6 @@ html, body {
 	font-size: medium;
 }
 
-button, input[type=submit] {
-	padding: .5em 1em;
-}
-
 form > table, table.results {
 	font-size: smaller;
 }
@@ -58,6 +54,13 @@ input[type=file] {
 hr { margin: 15px 0px; }
 
 a[onclick] { cursor: pointer; }
+
+.header, .navBar, #leftBox, #answerSpacesListView, #masterCategoriesView, #categoriesView, #keywordListView {
+	user-select: none;
+	-o-user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
 
 .googlemap {
 	width: 100%;
