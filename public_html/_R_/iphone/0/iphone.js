@@ -152,7 +152,8 @@ function stopInProgressAnimation()
 
 function startInProgressAnimation()
 {
-  activityIndicator.removeClass('hidden');
+	if ($('#startUp').size() <= 0)
+	  activityIndicator.removeClass('hidden');
 }
 
 function populateTextOnlyCategories(masterCategory)
@@ -248,7 +249,7 @@ function updatePartCSS(element, property, value, valueFormat)
 
 function setupParts()
 {
-	var backButtons = $('.backButton');
+	var backButtons = $('.box .backButton');
 	backButtons.each(function(index, element) {
 		var thisElement = $(element);
 		thisElement.html('<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');

@@ -13,6 +13,10 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 	-webkit-border-radius: 4px;
 }
 
+button, input[type=submit] {
+	padding: .25em 0.5em;
+}
+
 #activityIndicator {
 	position: fixed;
 	left: 50%;
@@ -220,6 +224,27 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 	width: 5px;
 	background-image: url("./Images/backButton.png");
 	background-repeat: no-repeat;
+}
+
+.navBar .backButton {
+	background: transparent url(Images/backButton.png) no-repeat center top;
+	height: 30px;
+	width: 45px;
+	padding: 0;
+}
+
+.homeButton {
+	background: transparent url(Images/homeButton.png) no-repeat center top;
+	height: 30px;
+	width: 33px;
+}
+
+.navLeft {
+	margin-right: 10px;
+}
+
+.navRight {
+	margin-left: 10px;
 }
 
 .view {
