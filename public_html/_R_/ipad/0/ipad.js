@@ -1,7 +1,7 @@
 // caching frequently-accessed selectors
 var backButtonHeader = $('#backButtonHeader');
-var pendingFormButton = $('.pendingFormButton');
 var helpButton = $('#helpButton');
+var homeButton = $('.homeButton');
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -14,8 +14,8 @@ function prepareAnswerSpacesListViewForDevice()
 {
   console.log('prepareAnswerSpacesListViewForDevice()');
   backButtonHeader.addClass('hidden');
+  homeButton.addClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
   hideLeftBox();
 	$('#mainLabel').html('answerSpaces');
 }
@@ -24,8 +24,8 @@ function prepareMasterCategoriesViewForDevice()
 {
   console.log('prepareMasterCategoriesViewForDevice()');
   backButtonHeader.addClass('hidden');
+  homeButton.addClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
   hideLeftBox();
 }
 
@@ -36,9 +36,7 @@ function prepareCategoriesViewForDevice()
   if (hasMasterCategories)
   {
 	 backButtonHeader.removeClass('hidden');
-	 //backButtonHeader.click(function(event) {
-		//goBackToMasterCategoriesView();
-	 //});
+		homeButton.removeClass('hidden');
 	 populateLeftBoxWithMasterCategories();
 	 showLeftBox();
   }
@@ -46,9 +44,9 @@ function prepareCategoriesViewForDevice()
   {
 	 hideLeftBox();
 	 backButtonHeader.addClass('hidden');
+	  homeButton.addClass('hidden');
   }
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function prepareKeywordListViewForDevice(category)
@@ -57,14 +55,17 @@ function prepareKeywordListViewForDevice(category)
   if (hasVisualCategories)
   {
 		backButtonHeader.removeClass('hidden');
+		homeButton.removeClass('hidden');
   }
   else if (hasMasterCategories)
   {
 		backButtonHeader.removeClass('hidden');
+		homeButton.removeClass('hidden');
   }
   else
   {
 		backButtonHeader.addClass('hidden');
+	  homeButton.addClass('hidden');
   }
   if (hasCategories)
   {
@@ -77,7 +78,6 @@ function prepareKeywordListViewForDevice(category)
 		showLeftBox();
   }
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
@@ -86,10 +86,12 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 	if (oneKeyword)
 	{
 		backButtonHeader.addClass('hidden');
+	  homeButton.addClass('hidden');
 	}
 	else
 	{
 		backButtonHeader.removeClass('hidden');
+		homeButton.removeClass('hidden');
 	}
 	if (showHelp)
 	{
@@ -99,55 +101,54 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 	{
 		helpButton.addClass('hidden');
 	}
-  pendingFormButton.removeClass('hidden');
 }
 
 function prepareAnswerViewForDevice()
 {
   console.log('prepareAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
+	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.removeClass('hidden');
 }
 
 function prepareSecondLevelAnswerViewForDevice()
 {
   console.log('prepareSecondLevelAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
+	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.removeClass('hidden');
 }
 
 function prepareHelpViewForDevice()
 {
   console.log('prepareHelpViewForDevice()');
-  backButtonHeader.addClass('hidden');
+  backButtonHeader.removeClass('hidden');
+	homeButton.removeClass('hidden');
   helpButton.removeClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
+	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function prepareNewLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
+	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
   console.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
+	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 var activityIndicator = $('#activityIndicator');
@@ -158,7 +159,8 @@ function stopInProgressAnimation()
 
 function startInProgressAnimation()
 {
-	activityIndicator.removeClass('hidden');
+	if ($('#startUp').size() <= 0)
+	  activityIndicator.removeClass('hidden');
 }
 
 function populateTextOnlyCategories(masterCategory)

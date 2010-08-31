@@ -14,6 +14,10 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 	-webkit-border-radius: 5px;
 }
 
+button, input[type=submit] {
+	padding: .25em 0.5em;
+}
+
 .googlemap {
 	width: 100%;
 	height: 650px;
@@ -232,7 +236,7 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 }
 
 #mainLabel {
-	margin: 0px 200px;
+	margin: 0px 150px;
 }
 
 .button {
@@ -273,6 +277,27 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 	background-image: url("./Images/button.png");
 	border-width: 0px 5px 0px 16px;
 	-webkit-border-image: url("./Images/backButton.png") 0 5 0 16 repeat stretch;
+}
+
+.navBar .backButton {
+	background: transparent url(Images/backButton.png) no-repeat center top;
+	border: 0;
+	height: 30px;
+	width: 45px;
+}
+
+.homeButton {
+	background: transparent url(Images/homeButton.png) no-repeat center top;
+	height: 30px;
+	width: 33px;
+}
+
+.navLeft {
+	margin-right: 10px;
+}
+
+.navRight {
+	margin-left: 10px;
 }
 
 .view {
