@@ -1326,12 +1326,13 @@ function submitFormWithRetry() {
 
 function submitAction(keyword, action) {
 	var form = $('.view:visible').find('form').first();
-  var str = form.find('input, textarea, select').serialize() + "&" + action;
 	var method = form.attr('method');
   var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '');
+  var str = form.find('input, textarea, select').serialize();
 
   if (method == "get")
   {
+		str += "&" + action;
 	 $.ajax({
 		type: 'GET',
 		cache: "false",
@@ -1365,6 +1366,7 @@ function submitAction(keyword, action) {
   else
   {	 
 	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
+	 answerUrl += "&" + action;
 	 startInProgressAnimation();
 	 $.ajax({
 		type: "POST",
