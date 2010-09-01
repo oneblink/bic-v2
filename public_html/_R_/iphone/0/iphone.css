@@ -17,10 +17,6 @@ button, input[type=submit] {
 	padding: .25em 0.5em;
 }
 
-.box > table {
-	font-size: smaller;
-}
-
 #activityIndicator {
 	position: fixed;
 	left: 50%;
@@ -45,13 +41,9 @@ button, input[type=submit] {
 	-webkit-animation-name: none;
 }
 
-#loginStatus, #loginButton {
-	float: right;
-	text-align: right;
-	padding: 4px;
+#loginStatus {
+	padding: 2px;
 }
-
-#loginStatus a[onclick], #loginButton a[onclick] { color: blue; text-decoration: underline; }*/
 
 #stackLayout {
 	position: relative;
@@ -181,6 +173,12 @@ button, input[type=submit] {
 	padding: 0px 5px;
 }
 
+.squareButton > .buttonLabel {
+	padding-left: 6px;
+	padding-right: 6px;
+	margin: 0px -6px;
+}
+
 .squareButtonLeft {
 	width: 5px;
 	background-image: url("./Images/squareButton.png");
@@ -228,19 +226,6 @@ button, input[type=submit] {
 	width: 5px;
 	background-image: url("./Images/backButton.png");
 	background-repeat: no-repeat;
-}
-
-.navBar .backButton {
-	background: transparent url(Images/backButton.png) no-repeat center top;
-	height: 30px;
-	width: 45px;
-	padding: 0;
-}
-
-.homeButton {
-	background: transparent url(Images/homeButton.png) no-repeat center top;
-	height: 30px;
-	width: 33px;
 }
 
 .navLeft {

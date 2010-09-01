@@ -71,16 +71,7 @@ button, input[type=submit] {
 
 #loginStatus {
 	padding: 4px;
-	font-size: small;
-	text-align: center;
-	text-shadow: 1px 1px 1px #DEDEE4;
 }
-
-#loginStatus > a { display: block; font-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:link { display: block; font-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:visited { display: block; font-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:hover { display: block; font-size: medium; color: blue; text-decoration: none; }
-#loginStatus > a:active { display: block; font-size: medium; color: blue; text-decoration: none; }
 
 .bordered {
 	border: 1px solid #B7B7BC;
@@ -277,13 +268,6 @@ button, input[type=submit] {
 	background-image: url("./Images/button.png");
 	border-width: 0px 5px 0px 16px;
 	-webkit-border-image: url("./Images/backButton.png") 0 5 0 16 repeat stretch;
-}
-
-.navBar .backButton {
-	background: transparent url(Images/backButton.png) no-repeat center top;
-	border: 0;
-	height: 30px;
-	width: 45px;
 }
 
 .homeButton {

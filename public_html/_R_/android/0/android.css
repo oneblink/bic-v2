@@ -26,10 +26,6 @@ button[disabled] {
 	opacity: 0.5;
 }
 
-.box > table {
-	font-size: smaller;
-}
-
 #activityIndicator {
 	position: absolute;
 	top: 50%;
@@ -52,16 +48,12 @@ button[disabled] {
 	-webkit-animation-timing-function: linear;
 }
 
-#loginStatus, #loginButton {
-	float: right;
-	text-align: right;
-	padding: 4px;
-}
-
-#loginStatus a[onclick], #loginButton a[onclick] { color: blue; text-decoration: underline; }
-
 #activeContent {
 	min-height: 110%;
+}
+
+#loginStatus {
+	padding: 2px;
 }
 
 #stackLayout {

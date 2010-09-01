@@ -1,5 +1,7 @@
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
+var navButtons = $("#homeButton, #backButton");
+var helpButton = $('#helpButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
 var activityIndicator = $('#activityIndicator');
@@ -20,7 +22,13 @@ function prepareMasterCategoriesViewForDevice()
 {
 	$.bbq.removeState();
 	categoriesView.find('.welcomeBox').removeClass('hidden');
-	navBoxHeader.addClass('hidden');
+	if (siteVars.hasLogin)
+	{
+		navBoxHeader.removeClass('hidden');
+		navButtons.addClass('hidden');
+	}
+	else
+		navBoxHeader.addClass('hidden');
 }
 
 function prepareCategoriesViewForDevice()
@@ -31,12 +39,19 @@ function prepareCategoriesViewForDevice()
 		$.bbq.pushState({ m: currentMasterCategory }, 2);
 		categoriesView.find('.welcomeBox').addClass('hidden');
 		navBoxHeader.removeClass('hidden');
+		navButtons.removeClass('hidden');
   }
   else
   {
 		$.bbq.removeState();
 		categoriesView.find('.welcomeBox').removeClass('hidden');
-		navBoxHeader.addClass('hidden');
+		if (siteVars.hasLogin)
+		{
+			navButtons.addClass('hidden');
+			navBoxHeader.removeClass('hidden');
+		}
+		else
+			navBoxHeader.addClass('hidden');
   }
 }
 
@@ -50,17 +65,25 @@ function prepareKeywordListViewForDevice(category)
 	{
 		keywordListView.find('.welcomeBox').addClass('hidden');
 		navBoxHeader.removeClass('hidden');
+		navButtons.removeClass('hidden');
 	}
   else if (hasMasterCategories)
   {
 		keywordListView.find('.welcomeBox').addClass('hidden');
 		navBoxHeader.removeClass('hidden');
+		navButtons.removeClass('hidden');
 		hashState['m'] = currentMasterCategory;
   }
   else
   {
 		keywordListView.find('.welcomeBox').removeClass('hidden');
-		navBoxHeader.addClass('hidden');
+		if (siteVars.hasLogin)
+		{
+			navButtons.addClass('hidden');
+			navBoxHeader.removeClass('hidden');
+		}
+		else
+			navBoxHeader.addClass('hidden');
   }
 	$.bbq.pushState(hashState, 2);
 }
@@ -68,30 +91,37 @@ function prepareKeywordListViewForDevice(category)
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
 	$.bbq.pushState({ k: currentKeyword }, 2);
-	if (oneKeyword)
+	if (oneKeyword && !siteVars.hasLogin)
 		navBoxHeader.addClass('hidden');
 	else
+	{
+		navButtons.removeClass('hidden');
 		navBoxHeader.removeClass('hidden');
+	}
 	if (showHelp)
-		navBoxHeader.find('.helpButton').removeClass('hidden');
+		helpButton.removeClass('hidden');
 	else
-		navBoxHeader.find('.helpButton').addClass('hidden');
+		helpButton.addClass('hidden');
 }
 
 function prepareAnswerViewForDevice()
 {
 	$.bbq.pushState({ a: currentKeyword }, 2);
-	if (answerSpaceOneKeyword)
+	if (answerSpaceOneKeyword && !siteVars.hasLogin)
 		navBoxHeader.addClass('hidden');
 	else
+	{
+		navButtons.removeClass('hidden');
 		navBoxHeader.removeClass('hidden');
+	}
 }
 
 function prepareSecondLevelAnswerViewForDevice(keyword, arg)
 {
 	$.bbq.pushState({ a2k: keyword, a2a: arg }, 2);
 	navBoxHeader.removeClass('hidden');
-  navBoxHeader.find('.helpButton').addClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareHelpViewForDevice()
@@ -99,29 +129,32 @@ function prepareHelpViewForDevice()
 	$.bbq.pushState({ h: 'H' });
 	var helpView = $('#helpView');
 	navBoxHeader.removeClass('hidden');
-  helpView.find('#backButton').addClass('hidden');
-  helpView.find('#helpButton').removeClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.removeClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
 	$.bbq.pushState({ l: 'L' }, 2);
 	navBoxHeader.removeClass('hidden');
-  navBoxHeader.find('.helpButton').addClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareNewLoginViewForDevice()
 {
 	$.bbq.pushState({ l: 'N' }, 2);
 	navBoxHeader.removeClass('hidden');
-  navBoxHeader.find('.helpButton').addClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
 	$.bbq.pushState({ l: 'A' }, 2);
 	navBoxHeader.removeClass('hidden');
-  navBoxHeader.find('.helpButton').addClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function stopInProgressAnimation()

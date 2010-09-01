@@ -1,5 +1,7 @@
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
+var navButtons = $("#homeButton, #backButton");
+var helpButton = $('#helpButton');
 var pendingFormButton = $('#pendingFormButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
@@ -16,133 +18,130 @@ var activityIndicatorTop = Math.floor($(window).height() / 2);
 
 function prepareAnswerSpacesListViewForDevice()
 {
-  console.log('prepareAnswerSpacesListViewForDevice()');
 }
 
 function prepareMasterCategoriesViewForDevice()
 {
-  console.log('prepareMasterCategoriesViewForDevice()');
+	categoriesView.find('.welcomeBox').removeClass('hidden');
+	if (siteVars.hasLogin)
+	{
+		navBoxHeader.removeClass('hidden');
+		navButtons.addClass('hidden');
+	}
+	else
+		navBoxHeader.addClass('hidden');
 }
 
 function prepareCategoriesViewForDevice()
 {
-  console.log('prepareCategoriesViewForDevice()');
 	var categoriesView = $('#categoriesView');
   if (hasMasterCategories)
   {
 		categoriesView.find('.welcomeBox').addClass('hidden');
-		categoriesView.find('.navBar').removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+		navButtons.removeClass('hidden');
   }
   else
   {
 		categoriesView.find('.welcomeBox').removeClass('hidden');
-		categoriesView.find('.navBar').addClass('hidden');
+		if (siteVars.hasLogin)
+		{
+			navButtons.addClass('hidden');
+			navBoxHeader.removeClass('hidden');
+		}
+		else
+			navBoxHeader.addClass('hidden');
   }
 }
 
 function prepareKeywordListViewForDevice(category)
 {
-  console.log('prepareKeywordListViewForDevice():' + (hasVisualCategories ? ' hasVisualCategories' : '')  + (hasMasterCategories ? ' hasMaterCategories' : ''));
 	var keywordListView = $('#keywordListView');
 	if (hasVisualCategories)
 	{
-		$('#backToMasterCategories').addClass('hidden');
-		$('#backToCategories').removeClass('hidden');
 		keywordListView.find('.welcomeBox').addClass('hidden');
-		keywordListView.find('.navBar').removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+		navButtons.removeClass('hidden');
 	}
   else if (hasMasterCategories)
   {
-		$('#backToMasterCategories').removeClass('hidden');
-		$('#backToCategories').addClass('hidden');
 		keywordListView.find('.welcomeBox').addClass('hidden');
-		keywordListView.find('.navBar').removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+		navButtons.removeClass('hidden');
   }
   else
   {
 		keywordListView.find('.welcomeBox').removeClass('hidden');
-		keywordListView.find('.navBar').addClass('hidden');
+		if (siteVars.hasLogin)
+		{
+			navButtons.addClass('hidden');
+			navBoxHeader.removeClass('hidden');
+		}
+		else
+			navBoxHeader.addClass('hidden');
   }
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
-  console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
-	var keywordView = $('#keywordView');
-	if (oneKeyword)
-	{
-		keywordView.find('.backButton').addClass('hidden');
-	}
+	if (oneKeyword && !siteVars.hasLogin)
+		navBoxHeader.addClass('hidden');
 	else
 	{
-		keywordView.find('.backButton').removeClass('hidden');
+		navButtons.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
 	}
 	if (showHelp)
-	{
-		keywordView.find('.helpButton').removeClass('hidden');
-	}
+		helpButton.removeClass('hidden');
 	else
-	{
-		keywordView.find('.helpButton').addClass('hidden');
-	}
+		helpButton.addClass('hidden');
 }
 
 function prepareAnswerViewForDevice()
 {
-  console.log('prepareAnswerViewForDevice()');
+	if (answerSpaceOneKeyword && !siteVars.hasLogin)
+		navBoxHeader.addClass('hidden');
+	else
+	{
+		navButtons.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+	}
 }
 
-function prepareSecondLevelAnswerViewForDevice()
+function prepareSecondLevelAnswerViewForDevice(keyword, arg)
 {
-  console.log('prepareSecondLevelAnswerViewForDevice()');
-	var answerView = $('#answerView2');
-	var backButton = answerView.find('.backButton');
-  backButton.unbind('click');
-  backButton.removeClass('hidden');
-  backButton.click(function(event) {
-	 goBackToTopLevelAnswerView();
-  });
-  answerView.find('.helpButton').addClass('hidden');
-  answerView.find('.pendingFormButton').removeClass('hidden');
+	navBoxHeader.removeClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareHelpViewForDevice()
 {
-  console.log('prepareHelpViewForDevice()');
 	var helpView = $('#helpView');
-  helpView.find('#backButton').addClass('hidden');
-  helpView.find('#helpButton').removeClass('hidden');
-  helpView.find('#pendingFormButton').addClass('hidden');
+	navBoxHeader.removeClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.removeClass('hidden');
 }
 
 function prepareLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+	navBoxHeader.removeClass('hidden');
+	navButtons.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareNewLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
-  backButtonHeader.unbind('click');
-  backButtonHeader.removeClass('hidden');
-  backButtonHeader.click(function(event) {
-		prepareLoginViewForDevice();
-		setCurrentView('loginView', true, true); 
-  });
+	navBoxHeader.removeClass('hidden');
+	navButtons.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function prepareActivateLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
-  backButtonHeader.unbind('click');
-  backButtonHeader.removeClass('hidden');
-  backButtonHeader.click(function(event) {
-	 goBackToKeywordListView();
-  });
+	navBoxHeader.removeClass('hidden');
+	navButtons.removeClass('hidden');
   helpButton.addClass('hidden');
-  pendingFormButton.addClass('hidden');
 }
 
 function stopInProgressAnimation()
@@ -224,14 +223,13 @@ function setCurrentView(view, reverseTransition)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
 
-var loginButton = $('#loginButton');
 function onScroll()
 {
-	var headerBottom = $('.header').height() + loginButton.height() + $('#loginStatus').height();
+	var headerBottom = $('.header').height();
 	var scrollTop = $(window).scrollTop();
 	if (scrollTop > headerBottom)
 	{
-		var offset = scrollTop - headerBottom - (loginButton.size() > 0 ? 8 : 0);
+		var offset = scrollTop - headerBottom;
 		updatePartCSS(navBar, scrollProperty, offset, scrollValue);
 	}
 	else
@@ -249,7 +247,7 @@ function updatePartCSS(element, property, value, valueFormat)
 
 function setupParts()
 {
-	var backButtons = $('.box .backButton');
+	var backButtons = $('.backButton');
 	backButtons.each(function(index, element) {
 		var thisElement = $(element);
 		thisElement.html('<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
