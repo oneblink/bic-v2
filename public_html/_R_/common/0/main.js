@@ -1488,13 +1488,16 @@ function startTrackingLocation()
 
 function stopTrackingLocation()
 {
-	if (typeof(navigator.geolocation) != 'undefined')
+	if (locationTracker != null)
 	{
-		navigator.geolocation.clearWatch(locationTracker);
+		if (typeof(navigator.geolocation) != 'undefined')
+		{
+			navigator.geolocation.clearWatch(locationTracker);
+		}
+		else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
+		{
+			google.gears.factory.create('beta.geolocation').clearWatch(locationTracker);
+		}
+		locationTracker = null;
 	}
-	else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
-	{
-		google.gears.factory.create('beta.geolocation').clearWatch(locationTracker);
-	}
-	locationTracker = null;
 }
