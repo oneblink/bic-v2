@@ -240,6 +240,8 @@ function setCurrentView(view, reverseTransition)
 	setTimeout(function() {
 		window.scrollTo(0, 1);
 	}, 0);
+	updatePartCSS(navBoxHeader, scrollProperty, '0', scrollValue);
+	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
 }
 
 /*
@@ -249,6 +251,28 @@ function setCurrentView(view, reverseTransition)
 
 function setupParts()
 {
+}
+
+function onScroll()
+{
+	var headerBottom = $('.header').height();
+	var scrollTop = $(window).scrollTop();
+	if (scrollTop > headerBottom)
+	{
+		var offset = scrollTop - headerBottom;
+		updatePartCSS(navBoxHeader, scrollProperty, offset, scrollValue);
+	}
+	else
+	{
+		updatePartCSS(navBoxHeader, scrollProperty, '0', scrollValue);
+	}
+	updatePartCSS(activityIndicator, scrollProperty, (activityIndicatorTop + scrollTop), scrollValue);
+}
+
+function updatePartCSS(element, property, value, valueFormat)
+{
+	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
+	element.css(property, formattedValue);
 }
 
 function showUnreadBulletins()
