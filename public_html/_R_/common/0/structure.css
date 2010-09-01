@@ -39,9 +39,9 @@ form, table, tbody {
 	width: 100%;
 }
 
-form > table .radiooption, form table .checkoption { display: table-row; }
+form > table .radiooption, form > table .checkoption { display: table-row; }
 form > table label { display: table-cell; }
-form > table input[type=radio], form table td input[type=checkbox] { display: table-cell; }
+form > table input[type=radio], form > table input[type=checkbox] { display: table-cell; }
 
 td > input[type=text], td > input[type=email], td > textarea {
 	width: 95%;
@@ -54,6 +54,21 @@ input[type=file] {
 hr { margin: 15px 0px; }
 
 a[onclick] { cursor: pointer; }
+
+#loginBox input[type=text], #loginBox input[type=password] {
+	width: 80%;
+}
+
+#loginStatus {
+	font-size: small;
+	text-align: center;
+}
+
+#loginStatus > a { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:link { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:visited { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:hover { display: block; font-size: medium; color: blue; text-decoration: none; }
+#loginStatus > a:active { display: block; font-size: medium; color: blue; text-decoration: none; }
 
 .header, .navBar, #leftBox, #answerSpacesListView, #masterCategoriesView, #categoriesView, #keywordListView {
 	user-select: none;
