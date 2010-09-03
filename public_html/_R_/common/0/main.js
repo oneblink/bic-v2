@@ -63,8 +63,8 @@ function removeAnswerSpaceItem(key)
 
 function isBrowserOnline()
 {
-	if (typeof(navigator.onLine) != 'undefined' && navigator.onLine === false)
-		return false;
+	if (typeof(navigator.onLine) != 'undefined')
+		return navigator.onLine;
 	else
 		return true;
 }
@@ -333,7 +333,7 @@ function errorCache()
 //
 function loaded(row1String, row2String)
 {
-	console.log('loaded(): initialising');
+	console.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
   var timer = null;
   var requestActive = false;
   row1 = (row1String === '') ? 'white' : row1String;
@@ -362,9 +362,6 @@ function loaded(row1String, row2String)
 		  console.log("Cache status: Obsolete");
 		  break;
 	 }
-  }
-  if (!isBrowserOnline()) {
-	 console.log('loaded(): no network connection');
   }
 		
 /*	if (answerSpace)
@@ -1022,7 +1019,7 @@ function showLoginView(event)
 function updateLoginBar(){
 	if (!isBrowserOnline())
 	{
-		$('#loginStatus').html('Offline').removeClass('hidden');
+		$('#loginStatus').html('Offline<br />Mode').removeClass('hidden');
 		$('#loginButton').addClass('hidden');
 	}
 	else
