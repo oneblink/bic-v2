@@ -228,6 +228,10 @@ button, input[type=submit] {
 	background-repeat: no-repeat;
 }
 
+#homeButton {
+	padding: 0;
+}
+
 .navLeft {
 	margin-right: 10px;
 }
