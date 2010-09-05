@@ -241,6 +241,7 @@ button, input[type=submit] {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	text-align: center;
+	background-color: transparent;
 	background-repeat: repeat-x;
 	-webkit-background-clip: padding-box;
 	-webkit-background-origin: padding-box;
@@ -268,12 +269,6 @@ button, input[type=submit] {
 	background-image: url("./Images/button.png");
 	border-width: 0px 5px 0px 16px;
 	-webkit-border-image: url("./Images/backButton.png") 0 5 0 16 repeat stretch;
-}
-
-.homeButton {
-	background: transparent url(Images/homeButton.png) no-repeat center top;
-	height: 30px;
-	width: 33px;
 }
 
 .navLeft {
