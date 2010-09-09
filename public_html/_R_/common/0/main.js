@@ -102,6 +102,8 @@ function populateKeywordList(category) {
 	var htmlList = "";
 	for (id in order)
   {
+		if (list[order[id]].status != 'active')
+			continue;
 		if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 		{
 			htmlBox += "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
@@ -473,6 +475,7 @@ function getSiteConfig()
 		$.getJSON(categoriesUrl, requestData,
 			function(data, textstatus) { // readystate == 4
 				console.log("GetSiteConfig transaction complete: " + textstatus);
+				console.log(data);
 				stopInProgressAnimation();
 				if (textstatus != 'success') return;
 		/*			if (data.errorMessage && data.errorMessage == "NOT FOUND")
@@ -681,6 +684,9 @@ function showAnswerView(keywordID)
 			{
 				console.log('GetAnswer: storing server response');
 				html = xmlhttprequest.responseText;
+				blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
+				if (blinkAnswerMessage != null)
+					processBlinkAnswerMessage(blinkAnswerMessage[1]);
 				setAnswerSpaceItem("answer___" + keywordID, html);
 			}
 			$('#answerBox').html(html);
@@ -786,6 +792,9 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		{
 		  var html =  httpAnswerRequest.responseText;
       $('#answerBox2').html(html);
+			blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
+			if (blinkAnswerMessage != null)
+				processBlinkAnswerMessage(blinkAnswerMessage[1]);
 		}
 		stopInProgressAnimation();
 		setCurrentView('answerView2', false, true);   
@@ -1037,12 +1046,15 @@ function updateLoginBar(){
 				}
 				if (data.status == "LOGGED IN")
 				{
-					$('#loginStatus').html(data.html).removeClass('hidden');
+					if (data.html.length > 0)
+						$('#loginStatus').html(data.html).removeClass('hidden');
+					else
+						$('#logoutButton').removeClass('hidden');
 					$('#loginButton').addClass('hidden');
 				}
 				else
 				{
-					$('#loginStatus').addClass('hidden');
+					$('#loginStatus, #logoutButton').addClass('hidden');
 					$('#loginButton').removeClass('hidden');
 				}
 		 });
@@ -1496,5 +1508,27 @@ function stopTrackingLocation()
 			google.gears.factory.create('beta.geolocation').clearWatch(locationTracker);
 		}
 		locationTracker = null;
+	}
+}
+
+function processBlinkAnswerMessage(message)
+{
+	message = JSON.parse(message);
+	console.log(message);
+	if (typeof(message.loginStatus) == 'string' && typeof(message.loginKeyword) == 'string' && typeof(message.logoutKeyword) == 'string') {
+		console.log('blinkAnswerMessage: loginStatus detected');
+		if (message.loginStatus == "LOGGED IN") {
+			$('#loginButton').addClass('hidden');
+			$('#logoutButton').removeAttr('onclick').unbind('click').removeClass('hidden');
+			$('#logoutButton').bind('click', function() {
+				gotoNextScreen(message.logoutKeyword);
+			});
+		} else { // LOGGED OUT
+			$('#logoutButton').addClass('hidden');
+			$('#loginButton').removeAttr('onclick').unbind('click').removeClass('hidden');
+			$('#loginButton').bind('click', function() {
+				gotoNextScreen(message.loginKeyword);
+			});
+		}
 	}
 }
