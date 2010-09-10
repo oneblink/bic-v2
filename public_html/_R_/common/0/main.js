@@ -1409,10 +1409,10 @@ function setupAnswerFeatures()
 
 function setupGoogleMaps()
 {
-	if (isLocationAvailable())
-		startTrackingLocation();
 	$('div.googlemap').each(function(index, element) {
 		var mapTarget = $(element);
+		if (mapTarget.attr('data-sensor') == true && isLocationAvailable())
+			startTrackingLocation();
 		var location = new google.maps.LatLng(mapTarget.attr('data-latitude'), mapTarget.attr('data-longitude'));
 		var options = {
 			zoom: parseInt(mapTarget.attr('data-zoom')),
@@ -1428,12 +1428,22 @@ function setupGoogleMaps()
 		{
 			var kml = new google.maps.KmlLayer(mapTarget.attr('data-kml'), { map: googleMap, preserveViewport: true });
 		}
-		else if (mapTarget.attr('data-marker') == true)
+		else if (mapTarget.attr('data-marker').length > 0)
 		{
 			var marker = new google.maps.Marker({
 				position: location,
-				map: googleMap
+				map: googleMap,
+				icon: mapTarget.attr('data-marker')
 			});
+			if (mapTarget.attr('data-marker-title').length > 0)
+			{
+				marker.setTitle(mapTarget.attr('data-marker-title'));
+				var markerInfo = new google.maps.InfoWindow();
+				google.maps.event.addListener(marker, 'click', function() {
+					markerInfo.setContent(marker.getTitle());
+					markerInfo.open(googleMap, marker);
+				});
+			}
 		}
 		if (isLocationAvailable())
 		{
