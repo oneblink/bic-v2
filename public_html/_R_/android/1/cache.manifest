@@ -1,0 +1,48 @@
+CACHE MANIFEST 
+# This is a comment. 
+# svn revision 550
+# If you change the version number in this comment, 
+# the cache manifest is no longer byte-for-byte 
+# identical.
+
+CACHE:
+index.php
+android.css
+android.js
+../../common/0/browser-compat.js
+../../common/0/jquery-1.4.2.min.js
+../../common/0/jquery-ui-1.8.2.custom.min.js
+../../common/0/jquery.benalman.min.js
+../../common/0/jquery.jstore-2.0r38-min.js
+../../common/0/main.js
+../../common/0/Math.uuid.js
+../../common/0/structure.css
+http://code.google.com/apis/gears/gears_init.js
+http://maps.google.com/maps/api/js
+
+NETWORK:
+*
+
+#FALLBACK: 
+#demoimages/ 
+#images/
+#Images/
+
+CACHE:
+Images/ActivityIndicator.png
+Images/ActivityIndicatorWhite.png
+Images/blink-logo.gif
+Images/blink-mydot-intro.jpg
+Images/blink-mydot-intro.png
+Images/BlinkAnswerSpace1.jpg
+Images/bulletin.png
+Images/chevron.png
+Images/chevron_back.png
+Images/chevron_down.png
+Images/chevron_white.png
+Images/ic_menu_account_list.png
+Images/ic_menu_back.png
+Images/ic_menu_home.png
+Images/ic_menu_login.png
+Images/ic_menu_upload.png
+Images/WebClipIcon.png

@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+	<head>
+		<title>Flash External Object</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<script type="text/javascript">
+			/**
+			 * This function captures the flash_ready event. We need to relay this
+			 * back to the parent so it knows flash is ready.
+			 */
+			function jstore_ready(){
+				parent.jstore_ready();
+			}
+
+			function jstore_error(msg){
+				parent.jstore_error(msg);
+			}
+
+			//lets have a different store for each browser like any other web browser would do!
+			var browser = "other";
+			if (navigator && navigator.appCodeName) {
+			    browser = navigator.appCodeName;
+			}
+		</script>
+	</head>
+	<body>
+        <script type="text/javascript">
+            document.write('<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="1" height="1" id="jStoreFlash"><param name="allowScriptAccess" value="always" /><param name="movie" value="jStore.swf?browser=' + browser + '" /><param name="quality" value="high" /><param name="bgcolor" value="#ffcc00" /><embed src="jStore.swf?browser=' + browser + '" quality="high" bgcolor="#ffcc00" width="1" height="1" name="jStoreFlash" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" /></object>');
+        </script>
+	</body>
+</html>
