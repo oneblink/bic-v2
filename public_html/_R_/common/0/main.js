@@ -1337,7 +1337,8 @@ function submitAction(keyword, action) {
 	var form = $('.view:visible').find('form').first();
 	var method = form.attr('method');
   var answerUrl = '../../common/0/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '');
-  var str = form.find('input, textarea, select').serialize();
+  var str = (action == 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize();
+	var currentBox = $('.view:visible > .box');
 
   if (method == "get")
   {
@@ -1363,9 +1364,14 @@ function submitAction(keyword, action) {
 		  console.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
-				$('#answerBox').html(xmlhttprequest.responseText);
-				prepareAnswerViewForDevice();
-				setCurrentView('answerView', false, true);
+//				$('#answerBox').html(xmlhttprequest.responseText);
+//				prepareAnswerViewForDevice();
+//				setCurrentView('answerView', false, true);
+					currentBox.hide('slide', { direction: 'left'}, 300, function() {
+						currentBox.empty().html(xmlhttprequest.responseText);
+						currentBox.show('slide', { direction: 'right'}, 300);
+						window.scrollTo(0, $('.header').height());
+					});
 		  }
 		  stopInProgressAnimation();
 		},
@@ -1384,10 +1390,15 @@ function submitAction(keyword, action) {
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
-			$('#answerBox').html(data);
+//			$('#answerBox').html(data);
 		  stopInProgressAnimation();
-			prepareAnswerViewForDevice();
-		  setCurrentView('answerView', false, true);
+//			prepareAnswerViewForDevice();
+//		  setCurrentView('answerView', false, true);
+			currentBox.hide('slide', { direction: 'left'}, 300, function() {
+				currentBox.empty().html(data);
+				currentBox.show('slide', { direction: 'right'}, 300);
+				window.scrollTo(0, $('.header').height());
+			});
 		},
 		timeout: 60 * 1000 // 60 seconds
 	 });
