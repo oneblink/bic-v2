@@ -12,18 +12,22 @@ var backStack;
 
 var webappCache = window.applicationCache;
 
+var lowestTransferRateConst = 1000 / (4800 / 8);
+var maxTransactionTimeout = 180 * 1000;
+var ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
+var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
+
 function computeTimeout(messageLength) {
   var t = (messageLength * lowestTransferRateConst) + 5000;
   return ((t < maxTransactionTimeout) ? t : maxTransactionTimeout);
 }
-
-document.addEventListener('orientationChanged', updateOrientation, false);
 
 function updateOrientation()
 {
 	MyAnswers.log("orientationChanged: " + Orientation.currentOrientation);
 	setupForms($('.view:visible'));
 }
+document.addEventListener('orientationChanged', updateOrientation, false);
 
 // jStore doesn't do this for us, so this function will empty client-side storage
 function clearStorage()
@@ -406,7 +410,7 @@ function loaded(row1String, row2String)
 function getAnswerSpacesList()
 {
 	startInProgressAnimation();
-	var answerSpacesUrl = "../../common/1/util/GetAnswerSpaces.php";
+	var answerSpacesUrl = siteVars.serverAppPath + '/util/GetAnswerSpaces.php';
 	var requestData = answerSpacesHash ? "sha1=" + answerSpacesHash : "";
 	Myanswers.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
 	$.getJSON(answerSpacesUrl, requestData,
@@ -535,7 +539,29 @@ function processSiteConfig()
 
 function processMoJOs()
 {
-	
+	var requestURL = siteVars.serverAppPath + 'util/GetMoJO.php';
+	for (m in siteConfig.mojoKeys)
+	{
+		var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m];
+		ajaxQueueMoJO.add({
+			url: requestURL,
+			data: requestData,
+			dataType: 'json',
+			beforeSend: function(xhr) {
+				Myanswers.log('GetMojo transaction: ' + requestURL + '?' + requestData);
+			},
+			error: function(xhr, xhrStatus, error) {
+				//if (xhrStatus == 'timeout') {}
+			},
+			success: function(data, xhrStatus, xhr) {
+				setAnswerSpaceItem('mojo-' + siteConfig.mojoKeys[m], data.mojo);
+			},
+			complete: function(xhr, xhrStatus) {
+				Myanswers.log('GetMojo transaction complete: ' + xhrStatus);
+			},
+			timeout: computeTimeout(500 * 1024)
+		});
+	}
 }
 
 function showMasterCategoriesView()
@@ -641,9 +667,9 @@ function showAnswerView(keywordID)
 	}
 	else
 	{
-		var answerUrl = '../../common/1/util/GetAnswer.php';
+		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php';
 		var requestData = createParamsAndArgs(keywordID) + (device ? '&_device=' + device : '');
-		$.ajax({
+		ajaxQueue.add({
 		 type: 'GET',
 		 url: answerUrl,
 		 data: requestData,
@@ -755,9 +781,9 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
   prepareSecondLevelAnswerViewForDevice(keyword, arg0);
 	addBackHistory("showSecondLevelAnswerView(\"" + keyword + "\", \"" + arg0 + "\", true);");
   
-  var answerUrl = '../../common/1/util/GetAnswer.php'
+  var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php'
   var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
-  $.ajax({
+  ajaxQueue.add({
 	 type: 'GET',
 	 url: answerUrl,
 	 data: requestData,
@@ -941,10 +967,10 @@ function showNewLoginView(isActivating)
   prepareNewLoginViewForDevice();
 	addBackHistory("showNewLoginView();");
   $('#mainHeading').html("Login");
-  var loginUrl = '../../common/1/util/CreateLogin.php';
+  var loginUrl = siteVars.serverAppPath + '/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
 	Myanswers.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
-  $.ajax({
+  ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
@@ -967,9 +993,9 @@ function showActivateLoginView(event)
   prepareActivateLoginViewForDevice();
 	addBackHistory("showActivateLoginView();");
   $('#mainHeading').html("Login");
-  var loginUrl = '../../common/1/util/ActivateLogin.php'
+  var loginUrl = siteVars.serverAppPath + '/util/ActivateLogin.php'
 	Myanswers.log("ActivateLogin transaction: " + loginUrl);
-  $.ajax({
+  ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
@@ -991,9 +1017,9 @@ function showLoginView(event)
   prepareLoginViewForDevice();
 	addBackHistory("showLoginView();");
   $('#mainHeading').html("Login");
-  var loginUrl = '../../common/1/util/DoLogin.php'
+  var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
 	Myanswers.log("DoLogin transaction: " + loginUrl);
-  $.ajax({
+  ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
@@ -1019,7 +1045,7 @@ function updateLoginBar(){
 	else
 	{
 		startInProgressAnimation();
-		var loginUrl = "../../common/1/util/GetLogin.php";
+		var loginUrl = siteVars.serverAppPath + '/util/GetLogin.php';
 		Myanswers.log("GetLogin transaction: " + loginUrl);
 		$.getJSON(loginUrl,
 			function(data, textstatus) { // readystate == 4
@@ -1049,10 +1075,10 @@ function updateLoginBar(){
 function submitLogin()
 {
 	startInProgressAnimation();
-  var loginUrl = '../../common/1/util/DoLogin.php'
+  var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = "action=login&mobile_number=" + document.getElementById('mobile_number').value + "&password=" + document.getElementById('password').value;
 	Myanswers.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
-  $.ajax({
+  ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
@@ -1074,10 +1100,10 @@ function submitLogin()
 
 function submitLogout()
 {
-  var loginUrl = '../../common/1/util/DoLogin.php'
+  var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = 'action=logout';
 	Myanswers.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
-  $.ajax({
+  ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
@@ -1252,7 +1278,7 @@ function submitFormWithRetry() {
 	 return;
   }
 
-  var answerUrl = '../../common/1/util/GetAnswer.php?';
+  var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?';
   if (arr[0] == "..") {
 	 answerUrl += "answerSpace=" + answerSpace + "&keyword=" + arr[1] + (device ? '&_device=' + device : '') + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
@@ -1263,7 +1289,7 @@ function submitFormWithRetry() {
 
   if (method == "get")
   {
-	 $.ajax({
+	 ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: answerUrl,
@@ -1299,7 +1325,7 @@ function submitFormWithRetry() {
   {	 
 	 Myanswers.log("GetAnswer transaction: " + answerUrl + " data: " + str);
 	 startInProgressAnimation();
-	 $.ajax({
+	 ajaxQueue.add({
 		type: "POST",
 		url: answerUrl,
 		data: str,
@@ -1321,13 +1347,13 @@ function submitFormWithRetry() {
 function submitAction(keyword, action) {
 	var form = $('.view:visible').find('form').first();
 	var method = form.attr('method');
-  var answerUrl = '../../common/1/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '');
+  var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '');
   var str = form.find('input, textarea, select').serialize();
 
   if (method == "get")
   {
 		str += "&" + action;
-	 $.ajax({
+	 ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: answerUrl,
@@ -1362,7 +1388,7 @@ function submitAction(keyword, action) {
 	 Myanswers.log("GetAnswer transaction: " + answerUrl + " data: " + str);
 	 answerUrl += "&" + action;
 	 startInProgressAnimation();
-	 $.ajax({
+	 ajaxQueue.add({
 		type: "POST",
 		url: answerUrl,
 		data: str,
@@ -1434,7 +1460,7 @@ function setupGoogleMaps()
 		{
 			var currentMarker = new google.maps.Marker({
 				map: googleMap,
-				icon: '../../common/1/images/location24.png',
+				icon: siteVars.serverAppPath + '/images/location24.png',
 				title: 'Your current location'
 			});
 			if (latitude && longitude)
