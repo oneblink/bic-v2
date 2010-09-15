@@ -110,9 +110,14 @@ button, input[type=submit] {
 	min-height: 100%;
 	width: 200px;
 	z-index: 5;
+/*
 	-o-transition: -o-transform 0.4s linear;
 	-moz-transition: -moz-transform 0.4s linear;
 	-webkit-transition: -webkit-transform 0.4s linear;
+*/
+	-o-transition: left 0.4s linear;
+	-moz-transition: left 0.4s linear;
+	-webkit-transition: left 0.4s linear;
 	background-color: #E3E4EA;
 }
 
@@ -121,22 +126,13 @@ button, input[type=submit] {
 }
 
 #leftBox.leftShown {
+	/*
 	-o-transform: translateX(99%);
 	-moz-transform: translateX(99%);
 	-webkit-transform: translateX(99%);
+	*/
 	border-right: 1px solid black;
-}
-
-#rightBox {
-	display: none;
-	right: -200px;
-}
-
-#rightBox.leftShown {
-	-o-transform: translateX(-99%);
-	-moz-transform: translateX(-99%);
-	-webkit-transform: translateX(-99%);
-	border-left: 1px solid black;
+	left: 0px;
 }
 
 #leftContent > a > img {
@@ -165,20 +161,6 @@ button, input[type=submit] {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
 	color: white;
 	text-shadow: 0px -1px 1px #1D2863;
-}
-
-#leftContent > a > img.animating {
-	-o-transition: opacity 0.2s ease;
-	-moz-transition: opacity 0.2s ease;
-	-webkit-transition: -webkit-transform 0.2s ease;
-}
-
-#leftContent > a > img.hidden {
-	-webkit-transform: translateX(-100%);
-}
-
-#leftContent > a > img.selected {
-	-webkit-border-left-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6)) 10 10 10 10 repeat repeat;
 }
 
 #stackLayout {

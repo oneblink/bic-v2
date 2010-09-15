@@ -11,10 +11,6 @@ html, body {
 	font-size: medium;
 }
 
-form > table, table.results {
-	font-size: smaller;
-}
-
 select {
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -29,20 +25,6 @@ textarea { height: 5em; min-height: 5em; }
 
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
-form, table, tbody, tr {
-	max-width: 100%;
-	text-align: left;
-}
-
-form, table, tbody {
-	overflow: hidden;
-	width: 100%;
-}
-
-form > table .radiooption, form > table .checkoption { display: table-row; }
-form > table label { display: table-cell; }
-form > table input[type=radio], form > table input[type=checkbox] { display: table-cell; }
-
 td > input[type=text], td > input[type=email], td > textarea {
 	width: 95%;
 }
@@ -54,6 +36,18 @@ input[type=file] {
 hr { margin: 15px 0px; }
 
 a[onclick] { cursor: pointer; }
+
+.bForm-add, .bForm-edit, .bForm-delete, .bForm-results, .bForm-view {
+	overflow: hidden;
+	width: 100%;
+	max-width: 100%;
+	text-align: left;
+}
+
+.bForm-label, .bForm-value { font-size: smaller; }
+.bForm-input { font-size: medium; }
+.bForm-input .radiooption, .bForm-input .checkoption { display: table-row; }
+.bForm-input label, .bForm-input input[type=radio], .bForm-input input[type=checkbox] { display: table-cell; }
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;

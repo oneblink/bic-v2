@@ -125,7 +125,7 @@ function populateKeywordList(category) {
 		}
 		else
 		{
-			htmlList += "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li style=\"background-color:" + (id % 2 ? row2 : row1) + ";\">";
+			htmlList += "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li>";
 			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
 			htmlList += "<div class='nextArrow'></div>";
 			htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
@@ -702,7 +702,7 @@ function setupForms(view)
 				$(element).width(targetWidth);
 		});
 		// correct result tables that are too wide
-		var results = view.find('table.results');
+		var results = view.find('.bForm-results');
 		results.find('.hidden').removeClass('hidden');
 		var columns = results.find('tr').first().find('td, th').size();
 		var attempts = 5;

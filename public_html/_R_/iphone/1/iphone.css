@@ -17,6 +17,10 @@ button, input[type=submit] {
 	padding: .25em 0.5em;
 }
 
+.bForm-results {
+	font-size: x-small;
+}
+
 #activityIndicator {
 	position: fixed;
 	left: 50%;

@@ -15,10 +15,6 @@ textarea, input[type=text], input[type=password], input[type=tel] {
 	border-radius: 2px;
 }
 
-form > table, table.results {
-	font-size: medium;
-}
-
 /* necessary because Android doesn't like file inputs in tables */
 input[type=file] {
 	position: relative;
@@ -31,6 +27,10 @@ button, input[type=submit] {
 
 button[disabled] {
 	opacity: 0.5;
+}
+
+.bForm-results {
+	font-size: smaller;
 }
 
 #activityIndicator {
