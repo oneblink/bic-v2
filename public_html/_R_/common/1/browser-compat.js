@@ -1,10 +1,10 @@
-if (!console)
-{
-  var console = {
-	 log: function(string) {}
-  }
+if (typeof(Myanswers) == 'undefined') Myanswers = { };
+Myanswers.log = function(string) {
+	if (typeof(console) != 'undefined')
+		console.log(string);
+	else if (typeof(debug) != 'undefined')
+		debug.log(string);
 }
-// TODO: console support in FireFox
 
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (obj, fromIndex) {

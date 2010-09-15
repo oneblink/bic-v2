@@ -12,11 +12,24 @@ var backStack;
 
 var webappCache = window.applicationCache;
 
+function computeTimeout(messageLength) {
+  var t = (messageLength * lowestTransferRateConst) + 5000;
+  return ((t < maxTransactionTimeout) ? t : maxTransactionTimeout);
+}
+
+document.addEventListener('orientationChanged', updateOrientation, false);
+
+function updateOrientation()
+{
+	MyAnswers.log("orientationChanged: " + Orientation.currentOrientation);
+	setupForms($('.view:visible'));
+}
+
 // jStore doesn't do this for us, so this function will empty client-side storage
 function clearStorage()
 {
 	var storageType = jStore.activeEngine().flavor;
-	console.log('clearStorage: ' + storageType);
+	Myanswers.log('clearStorage: ' + storageType);
 	switch (storageType)
 	{
 		case 'jstore-html5-sql':
@@ -34,7 +47,7 @@ function clearStorage()
 		case 'jstore-google-gears':
 			break;
 		default:
-			console.log('unidentified jStore engine');
+			Myanswers.log('unidentified jStore engine');
 	}
 }
 
@@ -71,7 +84,7 @@ function isBrowserOnline()
 
 // produce the HTML for the list and insert it into #keywordList
 function populateKeywordList(category) {
-	console.log('populateKeywordList(): category=' +  category + '; hasCategories=' + hasCategories);
+	Myanswers.log('populateKeywordList(): category=' +  category + '; hasCategories=' + hasCategories);
 	var keywordList = $('#keywordList');
   keywordList.empty();
 	var keywordBox = $('#keywordBox');
@@ -160,7 +173,7 @@ function populateKeywordList(category) {
 }
 
 function populateAnswerSpacesList() {
-	console.log('populateAnswerSpacesList()');
+	Myanswers.log('populateAnswerSpacesList()');
 	var welcome = $('#answerSpacesListView').find('.welcomeBox');
 	var listBox = $('#answerSpacesList');
   listBox.empty();
@@ -315,19 +328,19 @@ function populateVisualCategories(masterCategory)
 
 function updateCache()
 {
-  console.log("updateCache: " + webappCache.status);
+  Myanswers.log("updateCache: " + webappCache.status);
   if (webappCache.status != window.applicationCache.IDLE) {
     webappCache.swapCache();
-    console.log("Cache has been updated due to a change found in the manifest");
+    Myanswers.log("Cache has been updated due to a change found in the manifest");
   } else {
     webappCache.update();
-    console.log("Cache update requested");
+    Myanswers.log("Cache update requested");
   }
 }
 function errorCache()
 {
-  console.log("errorCache: " + webappCache.status);
-  console.log("You're either offline or something has gone horribly wrong.");
+  Myanswers.log("errorCache: " + webappCache.status);
+  Myanswers.log("You're either offline or something has gone horribly wrong.");
 }
  
 // Function: loaded()
@@ -335,7 +348,7 @@ function errorCache()
 //
 function loaded(row1String, row2String)
 {
-	console.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
+	Myanswers.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
   var timer = null;
   var requestActive = false;
   row1 = (row1String === '') ? 'white' : row1String;
@@ -346,22 +359,22 @@ function loaded(row1String, row2String)
 	 switch(webappCache.status)
 	 {
 		case 0:
-		  console.log("Cache status: Uncached");
+		  Myanswers.log("Cache status: Uncached");
 		  break;
 		case 1:
-		  console.log("Cache status: Idle");
+		  Myanswers.log("Cache status: Idle");
 		  break;
 		case 2:
-		  console.log("Cache status: Checking");
+		  Myanswers.log("Cache status: Checking");
 		  break;
 		case 3:
-		  console.log("Cache status: Downloading");
+		  Myanswers.log("Cache status: Downloading");
 		  break;
 		case 4:
-		  console.log("Cache status: Updateready");
+		  Myanswers.log("Cache status: Updateready");
 		  break;
 		case 5:
-		  console.log("Cache status: Obsolete");
+		  Myanswers.log("Cache status: Obsolete");
 		  break;
 	 }
   }
@@ -390,59 +403,25 @@ function loaded(row1String, row2String)
 	}*/
 }
 
-// called from body element when device is rotated
-// updates the viewport tag with the correct width
-function updateOrientation()
-{
-  /*var isPortrait = true;
-  switch(window.orientation)
-  {
-	 case -90:
-	 case 90:
-		isPortrait = false;
-		break;
-  }
-  metatags = document.getElementsByTagName("meta");
-  for (i in metatags)
-  {
-	 var name = metatags[i].getAttribute("name");
-	 var content = metatags[i].getAttribute("content");
-	 if (metatags[i].getAttribute("name") == "viewport")
-	 {
-		var viewportstring
-		if (isPortrait)
-		{
-		  viewportstring = metatags[i].getAttribute("content").replace("width=device-height", "width=device-width");
-		}
-		else
-		{
-		  viewportstring = metatags[i].getAttribute("content").replace("width=device-width", "width=device-height");
-		}
-		metatags[i].setAttribute("content", viewportstring);
-	 }
-  }*/
-}
-
-
 function getAnswerSpacesList()
 {
 	startInProgressAnimation();
 	var answerSpacesUrl = "../../common/1/util/GetAnswerSpaces.php";
 	var requestData = answerSpacesHash ? "sha1=" + answerSpacesHash : "";
-	console.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
+	Myanswers.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
 	$.getJSON(answerSpacesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
-			console.log("GetAnswerSpaces transaction complete: " + textstatus);
-			console.log(data);
+			Myanswers.log("GetAnswerSpaces transaction complete: " + textstatus);
+			Myanswers.log(data);
 			stopInProgressAnimation();
 			if (textstatus != 'success') return;
 			if (data.errorMessage)
 			{
-				console.log("GetAnswerSpaces error: " + data.errorMessage);
+				Myanswers.log("GetAnswerSpaces error: " + data.errorMessage);
 			}
 			else
 			{
-				console.log("GetAnswerSpaces status: " + data.statusMessage);
+				Myanswers.log("GetAnswerSpaces status: " + data.statusMessage);
 				if (!data.statusMessage || data.statusMessage != "NO UPDATES")
 				{
 					answerSpacesHash = data.listHash;
@@ -470,23 +449,23 @@ function getSiteConfig()
 	{
 		startInProgressAnimation();
 		var categoriesUrl = "util/GetSiteConfig.php";
-		var requestData = "answerSpace=" + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
-		console.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
+		var requestData = "answerSpace=" + answerSpace; // + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+		Myanswers.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
 		$.getJSON(categoriesUrl, requestData,
 			function(data, textstatus) { // readystate == 4
-				console.log("GetSiteConfig transaction complete: " + textstatus);
-				console.log(data);
+				Myanswers.log("GetSiteConfig transaction complete: " + textstatus);
+				Myanswers.log(data);
 				stopInProgressAnimation();
 				if (textstatus != 'success') return;
 		/*			if (data.errorMessage && data.errorMessage == "NOT FOUND")
 				{
-					console.log("GetSiteConfig error: " + data.errorMessage);
+					Myanswers.log("GetSiteConfig error: " + data.errorMessage);
 					//getAnswerSpacesList();
 				}
 				else */
 				if (data == null || data.errorMessage)
 				{
-					console.log("GetSiteConfig error: " + (data ? data.statusMessage : 'null'));
+					Myanswers.log("GetSiteConfig error: " + (data ? data.statusMessage : 'null'));
 					if (typeof(siteConfig) != 'undefined')
 					{
 						processSiteConfig();
@@ -497,7 +476,7 @@ function getSiteConfig()
 				}
 				else
 				{
-					console.log("GetSiteConfig status: " + data.statusMessage);
+					Myanswers.log("GetSiteConfig status: " + data.statusMessage);
 					if (data.statusMessage != "NO UPDATES")
 					{
 						if (storageReady)
@@ -551,11 +530,17 @@ function processSiteConfig()
 		startUp.remove();
 		$('#content').removeClass('hidden');
 	}
+	processMoJOs();
+}
+
+function processMoJOs()
+{
+	
 }
 
 function showMasterCategoriesView()
 {
-  console.log('showMasterCategoriesView()');
+  Myanswers.log('showMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
   $("#mainLabel").html('Master Categories');
@@ -564,7 +549,7 @@ function showMasterCategoriesView()
 
 function goBackToMasterCategoriesView()
 {
-  console.log('goBackToMasterCategoriesView()');
+  Myanswers.log('goBackToMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
   $("#mainLabel").html('Master Categories');
@@ -573,7 +558,7 @@ function goBackToMasterCategoriesView()
 
 function showCategoriesView(masterCategory)
 {
-	console.log('showCategoriesView(): ' + masterCategory);
+	Myanswers.log('showCategoriesView(): ' + masterCategory);
 	if (masterCategory && siteConfig.master_categories[masterCategory])
 	{
 		currentMasterCategory = masterCategory;
@@ -609,7 +594,7 @@ function showCategoriesView(masterCategory)
 
 function goBackToCategoriesView()
 {
-  console.log('goBackToCategoriesView()');
+  Myanswers.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
   prepareCategoriesViewForDevice();
   $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
@@ -629,7 +614,7 @@ function goBack()
 		eval(backStack[backStack.length-1]);
 	else
 		goBackToHome();
-	console.log(backStack);
+	Myanswers.log(backStack);
 	stopTrackingLocation();
 }
 
@@ -663,26 +648,26 @@ function showAnswerView(keywordID)
 		 url: answerUrl,
 		 data: requestData,
 		 beforeSend: function(xmlhttprequest) {
-			console.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
+			Myanswers.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
 			httpAnswerRequest = xmlhttprequest;
 			startInProgressAnimation();
 			setSubmitCachedFormButton();
 		 },
 		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-			console.log("GetAnswer failed with error type: " + textstatus);
+			Myanswers.log("GetAnswer failed with error type: " + textstatus);
 		 },
 		 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("GetAnswer transaction complete: " + textstatus);
+			Myanswers.log("GetAnswer transaction complete: " + textstatus);
 			var html;
 			if (xmlhttprequest.responseText == null)
 			{
-				console.log('GetAnswer: no response, using local copy');
+				Myanswers.log('GetAnswer: no response, using local copy');
 				html = getAnswerSpaceItem("answer___" + keywordID);
 				html = html == undefined ? "<p>No result available.</p>" : html;
 			}
 			else
 			{
-				console.log('GetAnswer: storing server response');
+				Myanswers.log('GetAnswer: storing server response');
 				html = xmlhttprequest.responseText;
 				blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
 				if (blinkAnswerMessage != null)
@@ -744,7 +729,7 @@ function setupForms(view)
 
 function gotoNextScreen(keywordID)
 {
-  console.log("gotoNextScreen(" + keywordID + ")");
+  Myanswers.log("gotoNextScreen(" + keywordID + ")");
 	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not code
 		for (k in siteConfig.keywords)
 		{
@@ -777,17 +762,17 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	 url: answerUrl,
 	 data: requestData,
 	 beforeSend: function(xmlhttprequest) {
-		console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
+		Myanswers.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
 		httpAnswerRequest = xmlhttprequest;
 		setSubmitCachedFormButton();
 		$('#answerBox2').html("Waiting...");
 		startInProgressAnimation();
 	 },
 	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		console.log("GetAnswer2 failed with error type: " + textstatus);
+		Myanswers.log("GetAnswer2 failed with error type: " + textstatus);
 	 },
 	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		console.log("GetAnswer2 transaction complete: " + textstatus);
+		Myanswers.log("GetAnswer2 transaction complete: " + textstatus);
 		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		{
 		  var html =  httpAnswerRequest.responseText;
@@ -835,7 +820,7 @@ function goBackToKeywordView(keywordID)
 
 function showKeywordListView(category)
 {
-	console.log('showKeywordListView(): ' + category);
+	Myanswers.log('showKeywordListView(): ' + category);
 	currentCategory = category;
 	var mainLabel;
 	if (hasCategories)
@@ -856,7 +841,7 @@ function showKeywordListView(category)
 	}
 	if ((hasCategories && siteConfig.categories[currentCategory].keywords.length == 1)
 			|| (!hasCategories && siteConfig.keywords.length == 1)) {
-		console.log('category only has one keyword, jumping to that keyword');
+		Myanswers.log('category only has one keyword, jumping to that keyword');
 		gotoNextScreen(siteConfig.categories[currentCategory].keywords[0]);
 		return;
 	}
@@ -888,7 +873,7 @@ function goBackToHome()
 
 function goBackToKeywordListView(event)
 {
-  console.log('goBackToKeywordListView()');
+  Myanswers.log('goBackToKeywordListView()');
   if (answerSpaceOneKeyword) {
 	 showKeywordView(0);
 	 return;
@@ -958,7 +943,7 @@ function showNewLoginView(isActivating)
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/1/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
-	console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
+	Myanswers.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
   $.ajax({
 		type: 'GET',
 		cache: "false",
@@ -972,7 +957,7 @@ function showNewLoginView(isActivating)
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("CreateLogin transaction complete: " + textstatus);
+			Myanswers.log("CreateLogin transaction complete: " + textstatus);
 		}
   });
 }
@@ -983,7 +968,7 @@ function showActivateLoginView(event)
 	addBackHistory("showActivateLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/1/util/ActivateLogin.php'
-	console.log("ActivateLogin transaction: " + loginUrl);
+	Myanswers.log("ActivateLogin transaction: " + loginUrl);
   $.ajax({
 		type: 'GET',
 		cache: "false",
@@ -996,7 +981,7 @@ function showActivateLoginView(event)
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("ActivateLogin transaction complete: " + textstatus);
+			Myanswers.log("ActivateLogin transaction complete: " + textstatus);
 		}
   });
 }
@@ -1007,7 +992,7 @@ function showLoginView(event)
 	addBackHistory("showLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = '../../common/1/util/DoLogin.php'
-	console.log("DoLogin transaction: " + loginUrl);
+	Myanswers.log("DoLogin transaction: " + loginUrl);
   $.ajax({
 		type: 'GET',
 		cache: "false",
@@ -1020,7 +1005,7 @@ function showLoginView(event)
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("DoLogin transaction complete: " + textstatus);
+			Myanswers.log("DoLogin transaction complete: " + textstatus);
 		}
   });
 }
@@ -1035,7 +1020,7 @@ function updateLoginBar(){
 	{
 		startInProgressAnimation();
 		var loginUrl = "../../common/1/util/GetLogin.php";
-		console.log("GetLogin transaction: " + loginUrl);
+		Myanswers.log("GetLogin transaction: " + loginUrl);
 		$.getJSON(loginUrl,
 			function(data, textstatus) { // readystate == 4
 				stopInProgressAnimation();
@@ -1066,7 +1051,7 @@ function submitLogin()
 	startInProgressAnimation();
   var loginUrl = '../../common/1/util/DoLogin.php'
   var requestData = "action=login&mobile_number=" + document.getElementById('mobile_number').value + "&password=" + document.getElementById('password').value;
-	console.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
+	Myanswers.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
   $.ajax({
 		type: 'GET',
 		cache: "false",
@@ -1080,7 +1065,7 @@ function submitLogin()
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("iPhoneLogin transaction complete: " + textstatus);
+			Myanswers.log("iPhoneLogin transaction complete: " + textstatus);
 			stopInProgressAnimation();
 			getSiteConfig();
 		}
@@ -1091,7 +1076,7 @@ function submitLogout()
 {
   var loginUrl = '../../common/1/util/DoLogin.php'
   var requestData = 'action=logout';
-	console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
+	Myanswers.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
   $.ajax({
 		type: 'GET',
 		cache: "false",
@@ -1107,7 +1092,7 @@ function submitLogout()
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("iPhoneLogin transaction complete: " + textstatus);
+			Myanswers.log("iPhoneLogin transaction complete: " + textstatus);
 			getSiteConfig();
 		}
   });
@@ -1116,14 +1101,14 @@ function submitLogout()
 function goBackToTopLevelAnswerView(event)
 {
 	prepareAnswerViewForDevice();
-  console.log('goBackToTopLevelAnswerView()');
+  Myanswers.log('goBackToTopLevelAnswerView()');
   setCurrentView('answerView', true, true);
 }
 
 function submitForm() {
 	var form = $('.view:visible').find('form').first();
   var str = form.find('input, textarea, select').serialize();
-  console.log("submitForm(2): " + form.attr('action'));
+  Myanswers.log("submitForm(2): " + form.attr('action'));
   queuePendingFormData(str, form.attr('action'), form.attr('method').toLowerCase(), Math.uuid());
   submitFormWithRetry();
 }
@@ -1150,41 +1135,41 @@ function headPendingFormData() {
   var q2 = getAnswerSpaceItem("_pendingFormDataArrayAsString").split(":");
   var q3 = getAnswerSpaceItem("_pendingFormMethod").split(":");
   var q4 = getAnswerSpaceItem("_pendingFormUUID").split(":");
-  console.log('headPendingFormData():');
-  console.log("q1[0] => " + q1[0]);
-  console.log("q2[0] => " + q2[0]);
-  console.log("q3[0] => " + q3[0]);
-  console.log("q4[0] => " + q4[0]);
+  Myanswers.log('headPendingFormData():');
+  Myanswers.log("q1[0] => " + q1[0]);
+  Myanswers.log("q2[0] => " + q2[0]);
+  Myanswers.log("q3[0] => " + q3[0]);
+  Myanswers.log("q4[0] => " + q4[0]);
   return [q1[0], decodeURIComponent(q2[0]), decodeURIComponent(q3[0]), decodeURIComponent(q4[0])];
 }
 
 function delHeadPendingFormData() {
   var count;
   if ((count = countPendingFormData()) == 0) {
-    console.log("delHeadPendingFormData: count 0, returning");
+    Myanswers.log("delHeadPendingFormData: count 0, returning");
     return;
   }
   if (count == 1) {
-    console.log("*** Emptying Form Queue");
+    Myanswers.log("*** Emptying Form Queue");
     removeFormRetryData();
     return;
   }
-  console.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
-  console.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
+  Myanswers.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
+  Myanswers.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
   setAnswerSpaceItem("_pendingFormDataString", 
 		     getAnswerSpaceItem("_pendingFormDataString").substring(getAnswerSpaceItem("_pendingFormDataString").indexOf(":") + 1));
   setAnswerSpaceItem("_pendingFormDataArrayAsString", 
 		     getAnswerSpaceItem("_pendingFormDataArrayAsString").substring(getAnswerSpaceItem("_pendingFormDataArrayAsString").indexOf(":") + 1));
-  console.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
-  console.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
+  Myanswers.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
+  Myanswers.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
 }
 
 function countPendingFormData() {
   if (getAnswerSpaceItem("_pendingFormDataString")) {
     var q1 = getAnswerSpaceItem("_pendingFormDataString").split(":");
-    console.log("countPendingFormData: q1.length = " + q1.length + ";");
-    console.log("countPendingFormData: q1[0] = " + q1[0] + ";");
-    console.log("countPendingFormData: q1[1] = " + q1[1] + ";");
+    Myanswers.log("countPendingFormData: q1.length = " + q1.length + ";");
+    Myanswers.log("countPendingFormData: q1[0] = " + q1[0] + ";");
+    Myanswers.log("countPendingFormData: q1[1] = " + q1[1] + ";");
     return q1.length;
   } else {
     return 0;
@@ -1207,7 +1192,7 @@ function setSubmitCachedFormButton() {
   var queueCount = countPendingFormData();
 	var button = $('.pendingFormButton');
   if (queueCount != 0) {
-    console.log("setSubmitCachedFormButton: Cached items");
+    Myanswers.log("setSubmitCachedFormButton: Cached items");
 		buttonLabel = button.find('.buttonLabel');
 		if (buttonLabel.size() > 0)
 		{
@@ -1221,7 +1206,7 @@ function setSubmitCachedFormButton() {
 	  button.removeAttr("disabled");
 		button.removeClass('hidden');
   } else {
-    console.log("setSubmitCachedFormButton: NO Cached items");
+    Myanswers.log("setSubmitCachedFormButton: NO Cached items");
 		buttonLabel = button.find('.buttonLabel');
     button.button("option", "disabled", "true");
 	  button.attr("disabled", "true");
@@ -1235,12 +1220,12 @@ function removeFormRetryData() {
     removeAnswerSpaceItem("_pendingFormMethod");  
     removeAnswerSpaceItem("_pendingFormUUID");  
     setSubmitCachedFormButton();
-    console.log("removeFormRetryData: Clearing local storage"); 
+    Myanswers.log("removeFormRetryData: Clearing local storage"); 
 }
 
 function checkFormRetryData() {
-    console.log("_pendingFormDataString: " + getAnswerSpaceItem("_pendingFormDataString"));
-    console.log("_pendingFormDataArrayAsString: " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
+    Myanswers.log("_pendingFormDataString: " + getAnswerSpaceItem("_pendingFormDataString"));
+    Myanswers.log("_pendingFormDataArrayAsString: " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
     return (getAnswerSpaceItem("_pendingFormDataString"));
 }
 
@@ -1252,18 +1237,18 @@ function submitFormWithRetry() {
   var localKeyword;
 
   if (checkFormRetryData()) {
-	 console.log("submitFormWithRetry(1a): ");
+	 Myanswers.log("submitFormWithRetry(1a): ");
 	 var qx = headPendingFormData();
-	 console.log("qx[0] => " + qx[0]);
-	 console.log("qx[1] => " + qx[1]);
-	 console.log("qx[2] => " + qx[2]);
-	 console.log("qx[3] => " + qx[3]);
+	 Myanswers.log("qx[0] => " + qx[0]);
+	 Myanswers.log("qx[1] => " + qx[1]);
+	 Myanswers.log("qx[2] => " + qx[2]);
+	 Myanswers.log("qx[3] => " + qx[3]);
 	 str = qx[0];
 	 arr = qx[1].split("/");
 	 method = qx[2];
 	 uuid = qx[3];
   } else {
-	 console.log("submitFormWithRetry(1b): ");
+	 Myanswers.log("submitFormWithRetry(1b): ");
 	 return;
   }
 
@@ -1284,7 +1269,7 @@ function submitFormWithRetry() {
 		url: answerUrl,
 		data: "?" + str,
 		beforeSend: function(xmlhttprequest) {
-		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
+		  Myanswers.log("GetAnswer transaction: " + answerUrl + "?" + str);
 		  httpAnswerRequest = xmlhttprequest;
 		  startInProgressAnimation();
 		},
@@ -1296,7 +1281,7 @@ function submitFormWithRetry() {
 		  }
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		  console.log("GetAnswer transaction complete: " + textstatus);
+		  Myanswers.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
 				delHeadPendingFormData();
@@ -1312,14 +1297,14 @@ function submitFormWithRetry() {
   }
   else
   {	 
-	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
+	 Myanswers.log("GetAnswer transaction: " + answerUrl + " data: " + str);
 	 startInProgressAnimation();
 	 $.ajax({
 		type: "POST",
 		url: answerUrl,
 		data: str,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		  console.log("GetAnswer transaction successful");
+		  Myanswers.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
 		  delHeadPendingFormData();
 			$('#answerBox').html(data);
@@ -1348,7 +1333,7 @@ function submitAction(keyword, action) {
 		url: answerUrl,
 		data: "?" + str,
 		beforeSend: function(xmlhttprequest) {
-		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
+		  Myanswers.log("GetAnswer transaction: " + answerUrl + "?" + str);
 		  httpAnswerRequest = xmlhttprequest;
 		  startInProgressAnimation();
 		},
@@ -1360,7 +1345,7 @@ function submitAction(keyword, action) {
 		  }
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		  console.log("GetAnswer transaction complete: " + textstatus);
+		  Myanswers.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
 				$('#answerBox').html(xmlhttprequest.responseText);
@@ -1374,7 +1359,7 @@ function submitAction(keyword, action) {
   }
   else
   {	 
-	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
+	 Myanswers.log("GetAnswer transaction: " + answerUrl + " data: " + str);
 	 answerUrl += "&" + action;
 	 startInProgressAnimation();
 	 $.ajax({
@@ -1382,7 +1367,7 @@ function submitAction(keyword, action) {
 		url: answerUrl,
 		data: str,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		  console.log("GetAnswer transaction successful");
+		  Myanswers.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
 			$('#answerBox').html(data);
 		  stopInProgressAnimation();
@@ -1524,9 +1509,9 @@ function stopTrackingLocation()
 function processBlinkAnswerMessage(message)
 {
 	message = JSON.parse(message);
-	console.log(message);
+	Myanswers.log(message);
 	if (typeof(message.loginStatus) == 'string' && typeof(message.loginKeyword) == 'string' && typeof(message.logoutKeyword) == 'string') {
-		console.log('blinkAnswerMessage: loginStatus detected');
+		Myanswers.log('blinkAnswerMessage: loginStatus detected');
 		if (message.loginStatus == "LOGGED IN") {
 			$('#loginButton').addClass('hidden');
 			$('#logoutButton').removeAttr('onclick').unbind('click').removeClass('hidden');
