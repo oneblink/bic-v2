@@ -10,10 +10,9 @@ index.php
 ipad.css
 ipad.js
 ../../common/1/browser-compat.js
-../../common/1/jquery.min.js
-../../common/1/bookmark_bubble.min.js
+../../common/1/common.css
+../../common/1/common.min.js
 ../../common/1/main.js
-../../common/1/structure.css
 http://maps.google.com/maps/api/js
 
 NETWORK:

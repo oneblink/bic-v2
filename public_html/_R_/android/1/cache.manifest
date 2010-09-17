@@ -10,10 +10,11 @@ index.php
 android.css
 android.js
 ../../common/1/browser-compat.js
-../../common/1/jquery.min.js
+../../common/1/common.css
+../../common/1/common.min.js
 ../../common/1/jquery.benalman.min.js
+../../common/1/jsxml.min.js
 ../../common/1/main.js
-../../common/1/structure.css
 http://code.google.com/apis/gears/gears_init.js
 http://maps.google.com/maps/api/js
 

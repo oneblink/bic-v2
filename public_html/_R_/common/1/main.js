@@ -1635,6 +1635,11 @@ function processBlinkAnswerMessage(message)
 function generateMojoAnswer(xmlString, xsltString)
 {
 	if (typeof(xmlString) != 'string' || typeof(xsltString) != 'string') return false;
+	if (typeof(window.jsxml) != 'undefined')
+	{
+		var html = jsxml.transReady(xmlString, xsltString);
+		return html;
+	}
 	if (typeof(window.ActiveXObject) != 'undefined')
 	{
 		Myanswers.log('generateMojoAnswer: using Internet Explorer method');
@@ -1665,10 +1670,13 @@ function generateMojoAnswer(xmlString, xsltString)
 			xhr.send(null);
 			var xslt = xhr.responseXML;
 		}
-		var xsltProcessor = new XSLTProcessor();
-		xsltProcessor.importStylesheet(xslt);
-		var html = xsltProcessor.transformToFragment(xml, document);
-		return html;
+		if (typeof(window.XSLTProcessor) != 'undefined')
+		{
+			var xsltProcessor = new XSLTProcessor();
+			xsltProcessor.importStylesheet(xslt);
+			var html = xsltProcessor.transformToFragment(xml, document);
+			return html;
+		}
 	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }
