@@ -840,10 +840,13 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
 		var xslt = keywordConfig.xslt;
 		var args = deserialize(arg0);
+		Myanswers.log(args);
 		for (a in args)
 		{
-			xslt = xslt.replace('$' + a, args[a]);
+			var regex = new RegExp(RegExp.quote('$' + a), 'g');
+			xslt = xslt.replace(regex, args[a]);
 		}
+		Myanswers.log(xslt);
 		var html = generateMojoAnswer(xml, xslt);
 		//document.getElementById('answerBox2').innerHTML = html;
 		$('#answerBox2').html(html);
