@@ -755,7 +755,7 @@ function setupForms(view)
 		// correct input elements that are too large in forms
 		var form = view.find('form');
 		var totalWidth = form.width();
-		var firstColumnWidth = form.find('td').first().width();
+		var firstColumnWidth = $('.bForm-input').first().siblings().first().width();
 		var targetWidth = totalWidth - firstColumnWidth - 32;
 		form.find('td, select, input, textarea').each(function(index, element) {
 			if ($(element).width() > targetWidth)
