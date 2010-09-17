@@ -514,7 +514,7 @@
 				}
 			} catch(e) {}
 		} 
-		else {
+		else if (typeof(window.ActiveXObject) != 'undefined') {
 			//ie
 			try {
 				// avoid fp6 minor version lookup issues
