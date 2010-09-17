@@ -452,13 +452,12 @@ function getSiteConfig()
 	else if (isBrowserOnline())
 	{
 		startInProgressAnimation();
-		var categoriesUrl = "util/GetSiteConfig.php";
-		var requestData = "answerSpace=" + answerSpace; // + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+		var categoriesUrl = siteVars.serverDevicePath + '/util/GetSiteConfig.php';
+		var requestData = "answerSpace=" + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
 		Myanswers.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
 		$.getJSON(categoriesUrl, requestData,
 			function(data, textstatus) { // readystate == 4
 				Myanswers.log("GetSiteConfig transaction complete: " + textstatus);
-				Myanswers.log(data);
 				stopInProgressAnimation();
 				if (textstatus != 'success') return;
 		/*			if (data.errorMessage && data.errorMessage == "NOT FOUND")
@@ -469,7 +468,7 @@ function getSiteConfig()
 				else */
 				if (data == null || data.errorMessage)
 				{
-					Myanswers.log("GetSiteConfig error: " + (data ? data.statusMessage : 'null'));
+					Myanswers.log("GetSiteConfig error: " + (data ? data.errorMessage : 'null'));
 					if (typeof(siteConfig) != 'undefined')
 					{
 						processSiteConfig();
@@ -487,7 +486,10 @@ function getSiteConfig()
 							setAnswerSpaceItem('siteConfigMessage', data);
 						siteConfig = data.siteConfig;
 						siteConfigHash = data.siteHash;
+						Myanswers.log(data);
 					}
+					else
+						Myanswers.log(siteConfig);
 					processSiteConfig();
 					updateLoginBar();
 				}
@@ -539,25 +541,42 @@ function processSiteConfig()
 
 function processMoJOs()
 {
-	var requestURL = siteVars.serverAppPath + 'util/GetMoJO.php';
+	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php';
 	for (m in siteConfig.mojoKeys)
 	{
-		var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m];
+		var message = getAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m]);
+		var mojoHash;
+		if (typeof(message) != 'undefined' && message != 'undefined')
+		{
+			mojoHash = message.mojoHash;
+		}
+		var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
 		ajaxQueueMoJO.add({
 			url: requestURL,
 			data: requestData,
 			dataType: 'json',
 			beforeSend: function(xhr) {
-				Myanswers.log('GetMojo transaction: ' + requestURL + '?' + requestData);
+				Myanswers.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
 			},
 			error: function(xhr, xhrStatus, error) {
 				//if (xhrStatus == 'timeout') {}
 			},
 			success: function(data, xhrStatus, xhr) {
-				setAnswerSpaceItem('mojo-' + siteConfig.mojoKeys[m], data.mojo);
+				if (data == null || data.errorMessage)
+				{
+					Myanswers.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
+				}
+				else 
+				{
+					if (data.statusMessage != 'NO UPDATES')
+					{
+						if (storageReady)
+							setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
+					}
+				}
 			},
 			complete: function(xhr, xhrStatus) {
-				Myanswers.log('GetMojo transaction complete: ' + xhrStatus);
+				Myanswers.log('GetMoJO transaction complete: ' + xhrStatus);
 			},
 			timeout: computeTimeout(500 * 1024)
 		});
@@ -640,7 +659,6 @@ function goBack()
 		eval(backStack[backStack.length-1]);
 	else
 		goBackToHome();
-	Myanswers.log(backStack);
 	stopTrackingLocation();
 }
 
@@ -655,8 +673,24 @@ function showAnswerView(keywordID)
 	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
 	var keyword = siteConfig.keywords[keywordID];
-  
-	if (!isBrowserOnline())
+	if (keyword.type == 'xslt')
+	{
+		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
+		if (typeof(mojoMessage) != 'undefined' && mojoMessage != 'undefined')
+		{
+			var xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo
+			var html = generateMojoAnswer(xml, keyword.xslt);
+			$('#answerBox').html(html);
+		}
+		else
+		{
+			$('#answerBox').html('<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>');
+		}
+		setCurrentView("answerView", false, true);
+		setupAnswerFeatures();
+		$('#mainLabel').html(keyword.name);
+	}
+	else if (!isBrowserOnline())
 	{
 		console('browser offline: using stored data for GetAnswer.php');
 		answerItem = getAnswerSpaceItem("answer___" + keywordID);
@@ -778,41 +812,66 @@ function gotoNextScreen(keywordID)
 
 function showSecondLevelAnswerView(keyword, arg0, reverse)
 {
+	keyword = decodeURIComponent(keyword);
+	arg0 = decodeURIComponent(arg0);
   prepareSecondLevelAnswerViewForDevice(keyword, arg0);
 	addBackHistory("showSecondLevelAnswerView(\"" + keyword + "\", \"" + arg0 + "\", true);");
-  
-  var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php'
-  var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
-  ajaxQueue.add({
-	 type: 'GET',
-	 url: answerUrl,
-	 data: requestData,
-	 beforeSend: function(xmlhttprequest) {
-		Myanswers.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
-		httpAnswerRequest = xmlhttprequest;
-		setSubmitCachedFormButton();
-		$('#answerBox2').html("Waiting...");
-		startInProgressAnimation();
-	 },
-	 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		Myanswers.log("GetAnswer2 failed with error type: " + textstatus);
-	 },
-	 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		Myanswers.log("GetAnswer2 transaction complete: " + textstatus);
-		if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+	for (k in siteConfig.keywords)
+	{
+		if (keyword == siteConfig.keywords[k].name)
 		{
-		  var html =  httpAnswerRequest.responseText;
-      $('#answerBox2').html(html);
-			blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
-			if (blinkAnswerMessage != null)
-				processBlinkAnswerMessage(blinkAnswerMessage[1]);
+			var keywordID = k;
+			break;
 		}
-		stopInProgressAnimation();
-		setCurrentView('answerView2', false, true);   
+	}
+	var keywordConfig = siteConfig.keywords[keywordID];
+	if (keywordConfig.type == 'xslt')
+	{
+		Myanswers.log('showSecondLevelAnswerView: detected XSLT keyword');
+		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
+		var html = generateMojoAnswer(xml, keywordConfig.xslt);
+		//document.getElementById('answerBox2').innerHTML = html;
+		$('#answerBox2').html(html);
+		setCurrentView("answerView2", false, true);
 		setupAnswerFeatures();
-		setupForms($("#answerView2"));
-	 }
-  });
+		//document.getElementById('mainLabel').innerHTML = keywordConfig.name;
+		$('#mainLabel').html(keywordConfig.name);
+	}
+	else
+	{
+		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php'
+		var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
+		ajaxQueue.add({
+		 type: 'GET',
+		 url: answerUrl,
+		 data: requestData,
+		 beforeSend: function(xmlhttprequest) {
+			Myanswers.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
+			httpAnswerRequest = xmlhttprequest;
+			setSubmitCachedFormButton();
+			$('#answerBox2').html("Waiting...");
+			startInProgressAnimation();
+		 },
+		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
+			Myanswers.log("GetAnswer2 failed with error type: " + textstatus);
+		 },
+		 complete: function(xmlhttprequest, textstatus) { // readystate == 4
+			Myanswers.log("GetAnswer2 transaction complete: " + textstatus);
+			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+			{
+				var html =  httpAnswerRequest.responseText;
+				$('#answerBox2').html(html);
+				blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
+				if (blinkAnswerMessage != null)
+					processBlinkAnswerMessage(blinkAnswerMessage[1]);
+			}
+			stopInProgressAnimation();
+			setCurrentView('answerView2', false, true);   
+			setupAnswerFeatures();
+			setupForms($("#answerView2"));
+		 }
+		});
+	}
 }
 
 function showKeywordView(keywordID) 
@@ -1552,4 +1611,45 @@ function processBlinkAnswerMessage(message)
 			});
 		}
 	}
+}
+
+function generateMojoAnswer(xmlString, xsltString)
+{
+	if (typeof(xmlString) != 'string' || typeof(xsltString) != 'string') return false;
+	if (typeof(window.ActiveXObject) != 'undefined')
+	{
+		Myanswers.log('generateMojoAnswer: using Internet Explorer method');
+		var xml = XML.newDocument().loadXML(xmlString);
+		var xslt = XML.newDocument().loadXML(xsltString);
+		var html = xml.transformNode(xslt);
+		return html;
+	}
+	if (document.implementation && document.implementation.createDocument)
+	{
+		if (typeof(DOMParser) != 'undefined')
+		{
+			Myanswers.log('generateMojoAnswer: using W3C JavaScript method with DOMParser()');
+			var xml = (new DOMParser()).parseFromString(xmlString, 'application/xml');
+			var xslt = (new DOMParser()).parseFromString(xsltString, 'application/xml');
+		}
+		else
+		{
+			Myanswers.log('generateMojoAnswer: using W3C JavaScript method with fake AJAX query');
+			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', url, false);
+			xhr.send(null);
+			var xml = xhr.responseXML;
+			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xsltString);
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', url, false);
+			xhr.send(null);
+			var xslt = xhr.responseXML;
+		}
+		var xsltProcessor = new XSLTProcessor();
+		xsltProcessor.importStylesheet(xslt);
+		var html = xsltProcessor.transformToFragment(xml, document);
+		return html;
+	}
+	return '<p>Your browser does not support MoJO keywords.</p>';
 }
