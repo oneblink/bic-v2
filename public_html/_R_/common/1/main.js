@@ -678,8 +678,17 @@ function showAnswerView(keywordID)
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
 		if (typeof(mojoMessage) != 'undefined' && mojoMessage != 'undefined')
 		{
+			var args = deserialize(createParamsAndArgs(keywordID));
+			delete args.answerSpace;
+			delete args.keyword;
 			var xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo
-			var html = generateMojoAnswer(xml, keyword.xslt);
+			var xslt = keyword.xslt;
+			for (a in args)
+			{
+				var regex = new RegExp(RegExp.quote('$' + a), 'g');
+				xslt = xslt.replace(regex, args[a]);
+			}
+			var html = generateMojoAnswer(xml, xslt);
 			$('#answerBox').html(html);
 		}
 		else
@@ -829,7 +838,13 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	{
 		Myanswers.log('showSecondLevelAnswerView: detected XSLT keyword');
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
-		var html = generateMojoAnswer(xml, keywordConfig.xslt);
+		var xslt = keywordConfig.xslt;
+		var args = deserialize(arg0);
+		for (a in args)
+		{
+			xslt = xslt.replace('$' + a, args[a]);
+		}
+		var html = generateMojoAnswer(xml, xslt);
 		//document.getElementById('answerBox2').innerHTML = html;
 		$('#answerBox2').html(html);
 		setCurrentView("answerView2", false, true);
@@ -1613,6 +1628,7 @@ function processBlinkAnswerMessage(message)
 	}
 }
 
+// take 2 plain strings, process them into XML, then process them into HTML
 function generateMojoAnswer(xmlString, xsltString)
 {
 	if (typeof(xmlString) != 'string' || typeof(xsltString) != 'string') return false;
@@ -1653,3 +1669,20 @@ function generateMojoAnswer(xmlString, xsltString)
 	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }
+
+// convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
+function deserialize(argsString)
+{
+	var arguments = argsString.split('&');
+	var result = { };
+	for (a in arguments)
+	{
+		terms = arguments[a].split('=');
+		if (terms[0].length > 0)
+			result[decodeURIComponent(terms[0])] = decodeURIComponent(terms[1]);
+	}
+	return result;
+}
+
+// to facilitate building regex replacements
+RegExp.quote = function(str) { return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1"); };
