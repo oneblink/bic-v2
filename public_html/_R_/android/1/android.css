@@ -196,7 +196,7 @@ ul.box {
 	background: none;
 }
 
-ul.box li {
+ul.box > li {
 	overflow: hidden;
 	padding: 8px;
 	border-top: 1px solid #FFF;
@@ -204,7 +204,7 @@ ul.box li {
 	background: #FFF;
 }
 
-ul.box .label {
+ul.box > li > .label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
@@ -221,7 +221,7 @@ ul.box .label {
 	margin-right: 50px;
 }
 
-ul.box .description {
+ul.box > li > .description {
 	position: relative;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -230,7 +230,7 @@ ul.box .description {
 	font-size: smaller;
 }
 
-ul.box .nextArrow {
+ul.box > li > .nextArrow {
 	position: absolute;
 	right: 14px;
 	top: 50%;
@@ -241,7 +241,7 @@ ul.box .nextArrow {
 	background-repeat: no-repeat;
 }
 
-ul.box li.selected {
+ul.box > li.selected {
 	background: -webkit-gradient(linear, left top, left bottom, from(#058CF5), to(#015DE6));
 	background: -moz-linear-gradient(top, #058CF5, #015DE6);
 	color: white;

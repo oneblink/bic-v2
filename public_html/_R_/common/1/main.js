@@ -129,11 +129,11 @@ function populateKeywordList(category) {
 		}
 		else
 		{
-			htmlList += "<a onclick=\"gotoNextScreen('" + order[id] + "')\"><li>";
+			htmlList += "<li onclick=\"gotoNextScreen('" + order[id] + "')\">";
 			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
 			htmlList += "<div class='nextArrow'></div>";
 			htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
-			htmlList += "</li></a>";
+			htmlList += "</li>";
 		}
   }
 	keywordBox.append(htmlBox);
@@ -841,13 +841,11 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
 		var xslt = keywordConfig.xslt;
 		var args = deserialize(arg0);
-		Myanswers.log(args);
 		for (a in args)
 		{
 			var regex = new RegExp(RegExp.quote('$' + a), 'g');
 			xslt = xslt.replace(regex, args[a]);
 		}
-		Myanswers.log(xslt);
 		var html = generateMojoAnswer(xml, xslt);
 		//document.getElementById('answerBox2').innerHTML = html;
 		$('#answerBox2').html(html);
@@ -1632,7 +1630,7 @@ function processBlinkAnswerMessage(message)
 	}
 }
 
-// take 2 plain strings, process them into XML, then process them into HTML
+// take 2 plain strings, process them into XML, then transform the first using the second (XSLT)
 function generateMojoAnswer(xmlString, xsltString)
 {
 	if (typeof(xmlString) != 'string' || typeof(xsltString) != 'string') return false;
@@ -1673,6 +1671,11 @@ function generateMojoAnswer(xmlString, xsltString)
 			var html = xsltProcessor.transformToFragment(xml, document);
 			return html;
 		}
+/*		if (typeof(window.xsltProcess) != 'undefined')
+		{
+			var html = xsltProcess(xml, xslt);
+			return html;
+		} */
 	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }

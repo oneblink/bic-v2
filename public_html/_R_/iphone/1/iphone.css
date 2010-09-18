@@ -264,7 +264,7 @@ ul.box {
 	background: none;
 }
 
-ul.box li {
+ul.box > li {
 	overflow: hidden;
 	padding: 8px;
 	border-bottom: 1px solid rgb(224, 224, 224);
@@ -273,7 +273,7 @@ ul.box li {
 	background: #FFF;
 }
 
-ul.box > a:first-child > li {
+ul.box > li:first-child {
 	border-left: 1px solid #B7B7BC;
 	border-top: 1px solid #B7B7BC;
 	border-right: 1px solid #B7B7BC;
@@ -281,7 +281,7 @@ ul.box > a:first-child > li {
 	-webkit-border-top-right-radius: 8px;
 }
 
-ul.box > a:last-child > li {
+ul.box > li:last-child {
 	border-right: 1px solid #B7B7BC;
 	border-bottom: 1px solid #B7B7BC;
 	border-left: 1px solid #B7B7BC;
@@ -289,7 +289,7 @@ ul.box > a:last-child > li {
 	-webkit-border-bottom-right-radius: 8px;
 }
 
-ul.box .label {
+ul.box > li > .label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
@@ -306,7 +306,7 @@ ul.box .label {
 	margin-right: 30px;
 }
 
-ul.box .description {
+ul.box > li > .description {
 	position: relative;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -315,7 +315,7 @@ ul.box .description {
 	font-size: smaller;
 }
 
-ul.box .nextArrow {
+ul.box > li > .nextArrow {
 	position: absolute;
 	right: 20px;
 	top: 50%;
@@ -326,13 +326,13 @@ ul.box .nextArrow {
 	background-repeat: no-repeat;
 }
 
-ul.box li.selected {
+ul.box > li.selected {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
 	color: white;
 	text-shadow: 0px -1px 1px #1D2863;
 }
 
-ul.box li.selected .nextArrow {
+ul.box > li.selected > .nextArrow {
 	background-image: url(Images/chevron_white.png);
 }
 
