@@ -536,8 +536,7 @@ function processSiteConfig()
 		startUp.remove();
 		$('#content').removeClass('hidden');
 	}
-	if (device != 'android')
-		processMoJOs();
+	processMoJOs();
 }
 
 function processMoJOs()
@@ -674,7 +673,7 @@ function showAnswerView(keywordID)
 	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
 	var keyword = siteConfig.keywords[keywordID];
-	if (keyword.type == 'xslt' && device != 'android')
+	if (keyword.type == 'xslt')
 	{
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
 		if (typeof(mojoMessage) != 'undefined' && mojoMessage != 'undefined')
@@ -835,7 +834,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		}
 	}
 	var keywordConfig = siteConfig.keywords[keywordID];
-	if (keywordConfig.type == 'xslt' && device != 'android')
+	if (keywordConfig.type == 'xslt')
 	{
 		Myanswers.log('showSecondLevelAnswerView: detected XSLT keyword');
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
@@ -1671,11 +1670,11 @@ function generateMojoAnswer(xmlString, xsltString)
 			var html = xsltProcessor.transformToFragment(xml, document);
 			return html;
 		}
-/*		if (typeof(window.xsltProcess) != 'undefined')
+		if (typeof(window.xsltProcess) != 'undefined')
 		{
 			var html = xsltProcess(xml, xslt);
 			return html;
-		} */
+		}
 	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }
