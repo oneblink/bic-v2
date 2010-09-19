@@ -536,7 +536,8 @@ function processSiteConfig()
 		startUp.remove();
 		$('#content').removeClass('hidden');
 	}
-	processMoJOs();
+	if (deviceVars.disableXSLT !== true)
+		processMoJOs();
 }
 
 function processMoJOs()
@@ -546,40 +547,40 @@ function processMoJOs()
 	{
 		var message = getAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m]);
 		var mojoHash;
-		if (typeof(message) != 'undefined' && message != 'undefined')
+		if (typeof(message) != 'undefined' && message != null)
 		{
 			mojoHash = message.mojoHash;
-		}
-		var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
-		ajaxQueueMoJO.add({
-			url: requestURL,
-			data: requestData,
-			dataType: 'json',
-			beforeSend: function(xhr) {
-				Myanswers.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
-			},
-			error: function(xhr, xhrStatus, error) {
-				//if (xhrStatus == 'timeout') {}
-			},
-			success: function(data, xhrStatus, xhr) {
-				if (data == null || data.errorMessage)
-				{
-					Myanswers.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
-				}
-				else 
-				{
-					if (data.statusMessage != 'NO UPDATES')
+			var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
+			ajaxQueueMoJO.add({
+				url: requestURL,
+				data: requestData,
+				dataType: 'json',
+				beforeSend: function(xhr) {
+					Myanswers.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
+				},
+				error: function(xhr, xhrStatus, error) {
+					//if (xhrStatus == 'timeout') {}
+				},
+				success: function(data, xhrStatus, xhr) {
+					if (data == null || data.errorMessage)
 					{
-						if (storageReady)
-							setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
+						Myanswers.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
 					}
-				}
-			},
-			complete: function(xhr, xhrStatus) {
-				Myanswers.log('GetMoJO transaction complete: ' + xhrStatus);
-			},
-			timeout: computeTimeout(500 * 1024)
-		});
+					else 
+					{
+						if (data.statusMessage != 'NO UPDATES')
+						{
+							if (storageReady)
+								setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
+						}
+					}
+				},
+				complete: function(xhr, xhrStatus) {
+					Myanswers.log('GetMoJO transaction complete: ' + xhrStatus);
+				},
+				timeout: computeTimeout(500 * 1024)
+			});
+		}
 	}
 }
 
@@ -673,14 +674,16 @@ function showAnswerView(keywordID)
 	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
 	var keyword = siteConfig.keywords[keywordID];
-	if (keyword.type == 'xslt')
+	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
+		startInProgressAnimation();
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
 		if (typeof(mojoMessage) != 'undefined' && mojoMessage != 'undefined')
 		{
 			var args = deserialize(createParamsAndArgs(keywordID));
 			delete args.answerSpace;
 			delete args.keyword;
+			
 			var xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo
 			var xslt = keyword.xslt;
 			for (a in args)
@@ -698,6 +701,7 @@ function showAnswerView(keywordID)
 		setCurrentView("answerView", false, true);
 		setupAnswerFeatures();
 		$('#mainLabel').html(keyword.name);
+		stopInProgressAnimation();
 	}
 	else if (!isBrowserOnline())
 	{
@@ -834,9 +838,10 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		}
 	}
 	var keywordConfig = siteConfig.keywords[keywordID];
-	if (keywordConfig.type == 'xslt')
+	if (keywordConfig.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
 		Myanswers.log('showSecondLevelAnswerView: detected XSLT keyword');
+		startInProgressAnimation();
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
 		var xslt = keywordConfig.xslt;
 		var args = deserialize(arg0);
@@ -852,6 +857,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		setupAnswerFeatures();
 		//document.getElementById('mainLabel').innerHTML = keywordConfig.name;
 		$('#mainLabel').html(keywordConfig.name);
+		stopInProgressAnimation();
 	}
 	else
 	{
