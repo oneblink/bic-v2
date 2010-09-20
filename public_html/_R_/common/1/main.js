@@ -400,6 +400,7 @@ function loaded(row1String, row2String)
 		}
 		setSubmitCachedFormButton();
 		getSiteConfig();
+		updateLoginBar();
 	/* }
 	else
 	{
@@ -451,29 +452,29 @@ function getSiteConfig()
 	}
 	else if (isBrowserOnline())
 	{
-		startInProgressAnimation();
-		var categoriesUrl = siteVars.serverDevicePath + '/util/GetSiteConfig.php';
+		var requestUrl = siteVars.serverDevicePath + '/util/GetSiteConfig.php';
 		var requestData = "answerSpace=" + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
-		Myanswers.log("GetSiteConfig transaction: " + categoriesUrl + "?" + requestData);
-		$.getJSON(categoriesUrl, requestData,
-			function(data, textstatus) { // readystate == 4
-				Myanswers.log("GetSiteConfig transaction complete: " + textstatus);
-				stopInProgressAnimation();
-				if (textstatus != 'success') return;
-		/*			if (data.errorMessage && data.errorMessage == "NOT FOUND")
-				{
-					Myanswers.log("GetSiteConfig error: " + data.errorMessage);
-					//getAnswerSpacesList();
-				}
-				else */
+		ajaxQueue.add({
+			url: requestUrl,
+			data: requestData,
+			dataType: 'json',
+			beforeSend: function(xhr) {
+				Myanswers.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
+				startInProgressAnimation();
+			},
+			error: function(xhr, xhrStatus, error) {
+				Myanswers.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
+				//if (xhrStatus == 'timeout') {}
+				if (typeof(siteConfig) != 'undefined')
+					processSiteConfig();
+			},
+			success: function(data, xhrStatus, xhr) {
+				Myanswers.log('GetSiteConfig complete: ' + xhrStatus);
 				if (data == null || data.errorMessage)
 				{
 					Myanswers.log("GetSiteConfig error: " + (data ? data.errorMessage : 'null'));
 					if (typeof(siteConfig) != 'undefined')
-					{
 						processSiteConfig();
-						updateLoginBar();
-					}
 					else
 						window.location = "/demos";
 				}
@@ -482,18 +483,22 @@ function getSiteConfig()
 					Myanswers.log("GetSiteConfig status: " + data.statusMessage);
 					if (data.statusMessage != "NO UPDATES")
 					{
-						if (storageReady)
-							setAnswerSpaceItem('siteConfigMessage', data);
+						setAnswerSpaceItem('siteConfigMessage', data);
 						siteConfig = data.siteConfig;
 						siteConfigHash = data.siteHash;
-						Myanswers.log(data);
+						//Myanswers.log(data);
 					}
-					else
-						Myanswers.log(siteConfig);
+					/* else
+						Myanswers.log(siteConfig); */
 					processSiteConfig();
-					updateLoginBar();
 				}
-			});
+			},
+			complete: function(xhr, xhrStatus) {
+				stopInProgressAnimation();
+				processMoJOs();
+			},
+			timeout: computeTimeout(50 * 1024)
+		});
 	}
 	else
 	{
@@ -536,51 +541,51 @@ function processSiteConfig()
 		startUp.remove();
 		$('#content').removeClass('hidden');
 	}
-	if (deviceVars.disableXSLT !== true)
-		processMoJOs();
 }
 
-function processMoJOs()
+function processMoJOs(keyword)
 {
+	if (deviceVars.disableXSLT === true) return;
 	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php';
 	for (m in siteConfig.mojoKeys)
 	{
+		if (typeof(keyword) == 'string' && keyword != m) continue;
 		var message = getAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m]);
 		var mojoHash;
 		if (typeof(message) != 'undefined' && message != null)
 		{
 			mojoHash = message.mojoHash;
-			var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
-			ajaxQueueMoJO.add({
-				url: requestURL,
-				data: requestData,
-				dataType: 'json',
-				beforeSend: function(xhr) {
-					Myanswers.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
-				},
-				error: function(xhr, xhrStatus, error) {
-					//if (xhrStatus == 'timeout') {}
-				},
-				success: function(data, xhrStatus, xhr) {
-					if (data == null || data.errorMessage)
-					{
-						Myanswers.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
-					}
-					else 
-					{
-						if (data.statusMessage != 'NO UPDATES')
-						{
-							if (storageReady)
-								setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
-						}
-					}
-				},
-				complete: function(xhr, xhrStatus) {
-					Myanswers.log('GetMoJO transaction complete: ' + xhrStatus);
-				},
-				timeout: computeTimeout(500 * 1024)
-			});
 		}
+		var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
+		ajaxQueueMoJO.add({
+			url: requestURL,
+			data: requestData,
+			dataType: 'json',
+			beforeSend: function(xhr) {
+				Myanswers.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
+			},
+			error: function(xhr, xhrStatus, error) {
+				//if (xhrStatus == 'timeout') {}
+			},
+			success: function(data, xhrStatus, xhr) {
+				if (data == null || data.errorMessage)
+				{
+					Myanswers.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
+				}
+				else 
+				{
+					if (data.statusMessage != 'NO UPDATES')
+					{
+						if (storageReady)
+							setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
+					}
+				}
+			},
+			complete: function(xhr, xhrStatus) {
+				Myanswers.log('GetMoJO transaction complete: ' + xhrStatus);
+			},
+			timeout: computeTimeout(500 * 1024)
+		});
 	}
 }
 
@@ -661,6 +666,18 @@ function goBack()
 	else
 		goBackToHome();
 	stopTrackingLocation();
+	if (isHome())
+	{
+		getSiteConfig();
+	}
+}
+
+// test to see if the user it viewing the highest level screen
+function isHome()
+{
+	if ($('.view:visible').first().attr('id') == $('.box:not(:empty)').first().parent().attr('id'))
+		return true;
+	return false;
 }
 
 function getAnswer(event)
@@ -673,6 +690,7 @@ function showAnswerView(keywordID)
 	addBackHistory("goBackToTopLevelAnswerView();");
 	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
+	processMoJOs(keywordID);
 	var keyword = siteConfig.keywords[keywordID];
 	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
@@ -837,6 +855,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 			break;
 		}
 	}
+	processMoJOs(keywordID);
 	var keywordConfig = siteConfig.keywords[keywordID];
 	if (keywordConfig.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
@@ -976,6 +995,7 @@ function goBackToHome()
 	else
 		goBackToKeywordListView();
 	stopTrackingLocation();
+	getSiteConfig();
 }
 
 function goBackToKeywordListView(event)
@@ -1125,31 +1145,42 @@ function updateLoginBar(){
 	}
 	else
 	{
-		startInProgressAnimation();
-		var loginUrl = siteVars.serverAppPath + '/util/GetLogin.php';
-		Myanswers.log("GetLogin transaction: " + loginUrl);
-		$.getJSON(loginUrl,
-			function(data, textstatus) { // readystate == 4
-				stopInProgressAnimation();
-				if (textstatus != 'success')
+		var requestUrl = siteVars.serverAppPath + '/util/GetLogin.php';
+		ajaxQueue.add({
+			url: requestUrl,
+			dataType: 'json',
+			beforeSend: function(xhr) {
+				Myanswers.log('GetLogin transaction: ' + requestUrl);
+				startInProgressAnimation();
+			},
+			error: function(xhr, xhrStatus, error) {
+				//if (xhrStatus == 'timeout') {}
+				Myanswers.log('GetLogin transaction complete: ' + xhrStatus + ' ' + error);
+			},
+			success: function(data, xhrStatus, xhr) {
+				Myanswers.log('GetLogin transaction complete: ' + xhrStatus);
+				if (data != null)
 				{
-					alert("Error preparing login:" + xmlhttprequest.responseText);
-					return;
-				}
-				if (data.status == "LOGGED IN")
-				{
-					if (data.html.length > 0)
-						$('#loginStatus').html(data.html).removeClass('hidden');
+					if (data.status == "LOGGED IN")
+					{
+						if (data.html.length > 0)
+							$('#loginStatus').html(data.html).removeClass('hidden');
+						else
+							$('#logoutButton').removeClass('hidden');
+						$('#loginButton').addClass('hidden');
+					}
 					else
-						$('#logoutButton').removeClass('hidden');
-					$('#loginButton').addClass('hidden');
+					{
+						$('#loginStatus, #logoutButton').addClass('hidden');
+						$('#loginButton').removeClass('hidden');
+					}
 				}
-				else
-				{
-					$('#loginStatus, #logoutButton').addClass('hidden');
-					$('#loginButton').removeClass('hidden');
-				}
-		 });
+			},
+			complete: function(xhr, xhrStatus) {
+				stopInProgressAnimation();
+			},
+			timeout: computeTimeout(500)
+		});
 	}
 }
 
@@ -1175,6 +1206,7 @@ function submitLogin()
 			Myanswers.log("iPhoneLogin transaction complete: " + textstatus);
 			stopInProgressAnimation();
 			getSiteConfig();
+			updateLoginBar();
 		}
   });
 }
@@ -1201,6 +1233,7 @@ function submitLogout()
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			Myanswers.log("iPhoneLogin transaction complete: " + textstatus);
 			getSiteConfig();
+			updateLoginBar();
 		}
   });
 }
