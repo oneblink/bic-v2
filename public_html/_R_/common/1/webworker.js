@@ -14,6 +14,16 @@ console.log = function(string)
 	postMessage(message);
 }
 
+function signalWorkBegun()
+{
+	postMessage({fn: 'workBegun'});
+}
+
+function signalWorkFinished()
+{
+	postMessage({fn: 'workComplete'});
+}
+
 onmessage = function(event) {
 	console.log('WebWorker: worker received command: ' + event.data.fn);
 	switch (event.data.fn)

@@ -1672,6 +1672,16 @@ function processBlinkAnswerMessage(message)
 function generateMojoAnswer(xmlString, xslString, target)
 {
 	if (typeof(xmlString) != 'string' || typeof(xslString) != 'string') return false;
+	if (deviceVars.hasWebWorkers === true)
+	{
+		var message = { };
+		message.fn = 'processXSLT';
+		message.xml = xmlString;
+		message.xsl = xslString;
+		message.target = target;
+		webworker.postMessage(message);
+		return '<p>This keyword is being constructed entirely on your device.</p><p>Please wait...</p>';
+	}
 	if (typeof(window.ActiveXObject) == 'function')
 	{
 		Myanswers.log('generateMojoAnswer: using Internet Explorer method');
@@ -1710,16 +1720,6 @@ function generateMojoAnswer(xmlString, xslString, target)
 			return html;
 		}
 	}
-	if (deviceVars.hasWebWorkers === true)
-	{
-		var message = { };
-		message.fn = 'processXSLT';
-		message.xml = xmlString;
-		message.xsl = xslString;
-		message.target = target;
-		webworker.postMessage(message);
-		return '<p>This keyword is being constructed entirely on your device.</p><p>Please wait...</p>';
-	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }
 
@@ -1753,6 +1753,12 @@ if (deviceVars.hasWebWorkers === true)
 			case 'processXSLT':
 				Myanswers.log('WebWorker: finished processing XSLT');
 				$('#' + event.data.target).html(event.data.html);
+				break;
+			case 'workBegun':
+				startInProgressAnimation();
+				break;
+			case 'workComplete':
+				stopInProgressAnimation();
 				break;
 		}
 	};
