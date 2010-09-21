@@ -709,7 +709,7 @@ function showAnswerView(keywordID)
 				var regex = new RegExp(RegExp.quote('$' + a), 'g');
 				xslt = xslt.replace(regex, args[a]);
 			}
-			var html = generateMojoAnswer(xml, xslt);
+			var html = generateMojoAnswer(xml, xslt, 'answerBox');
 			$('#answerBox').html(html);
 		}
 		else
@@ -1668,25 +1668,25 @@ function processBlinkAnswerMessage(message)
 	}
 }
 
-// take 2 plain strings, process them into XML, then transform the first using the second (XSLT)
-function generateMojoAnswer(xmlString, xsltString)
+// take 2 plain strings, process them into XML, then transform the first using the second (XSL)
+function generateMojoAnswer(xmlString, xslString, target)
 {
-	if (typeof(xmlString) != 'string' || typeof(xsltString) != 'string') return false;
-	if (typeof(window.ActiveXObject) != 'undefined')
+	if (typeof(xmlString) != 'string' || typeof(xslString) != 'string') return false;
+	if (typeof(window.ActiveXObject) == 'function')
 	{
 		Myanswers.log('generateMojoAnswer: using Internet Explorer method');
 		var xml = XML.newDocument().loadXML(xmlString);
-		var xslt = XML.newDocument().loadXML(xsltString);
-		var html = xml.transformNode(xslt);
+		var xsl = XML.newDocument().loadXML(xslString);
+		var html = xml.transformNode(xsl);
 		return html;
 	}
 	if (document.implementation && document.implementation.createDocument)
 	{
-		if (typeof(DOMParser) != 'undefined')
+		if (typeof(DOMParser) == 'function')
 		{
 			Myanswers.log('generateMojoAnswer: using W3C JavaScript method with DOMParser()');
 			var xml = (new DOMParser()).parseFromString(xmlString, 'application/xml');
-			var xslt = (new DOMParser()).parseFromString(xsltString, 'application/xml');
+			var xsl = (new DOMParser()).parseFromString(xslString, 'application/xml');
 		}
 		else
 		{
@@ -1696,24 +1696,29 @@ function generateMojoAnswer(xmlString, xsltString)
 			xhr.open('GET', url, false);
 			xhr.send(null);
 			var xml = xhr.responseXML;
-			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xsltString);
+			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xslString);
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', url, false);
 			xhr.send(null);
-			var xslt = xhr.responseXML;
+			var xsl = xhr.responseXML;
 		}
-		if (typeof(window.XSLTProcessor) != 'undefined')
+		if (typeof(window.XSLTProcessor) == 'function')
 		{
 			var xsltProcessor = new XSLTProcessor();
-			xsltProcessor.importStylesheet(xslt);
+			xsltProcessor.importStylesheet(xsl);
 			var html = xsltProcessor.transformToFragment(xml, document);
 			return html;
 		}
-		if (typeof(window.xsltProcess) != 'undefined')
-		{
-			var html = xsltProcess(xml, xslt);
-			return html;
-		}
+	}
+	if (deviceVars.hasWebWorkers === true)
+	{
+		var message = { };
+		message.fn = 'processXSLT';
+		message.xml = xmlString;
+		message.xsl = xslString;
+		message.target = target;
+		webworker.postMessage(message);
+		return '<p>This keyword is being constructed entirely on your device.</p><p>Please wait...</p>';
 	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }
@@ -1734,3 +1739,22 @@ function deserialize(argsString)
 
 // to facilitate building regex replacements
 RegExp.quote = function(str) { return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1"); };
+
+// HTML5 Web Worker
+if (deviceVars.hasWebWorkers === true)
+{
+	var webworker = new Worker(siteVars.serverAppPath + '/webworker.js');
+	webworker.onmessage = function(event) {
+		switch (event.data.fn)
+		{
+			case 'log':
+				Myanswers.log(event.data.string);
+				break;
+			case 'processXSLT':
+				Myanswers.log('WebWorker: finished processing XSLT');
+				$('#' + event.data.target).html(event.data.html);
+				break;
+		}
+	};
+}
+
