@@ -1,9 +1,12 @@
-if (typeof(Myanswers) == 'undefined') Myanswers = { };
-Myanswers.log = function(string) {
-	if (typeof(console) != 'undefined')
-		console.log(string);
-	else if (typeof(debug) != 'undefined')
-		debug.log(string);
+if (typeof(console) == 'undefined')
+{
+	if (typeof(debug) != 'undefined' && typeof(debug.log) != 'undefined')
+		console = debug;
+	else
+	{
+		console = { };
+		console.log = function(string) { };
+	}
 }
 
 if (!Array.prototype.indexOf) {

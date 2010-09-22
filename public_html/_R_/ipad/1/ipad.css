@@ -253,8 +253,12 @@ button, input[type=submit] {
 	-webkit-border-image: url("./Images/backButton.png") 0 5 0 16 repeat stretch;
 }
 
-.homeButton {
+#homeButton {
 	padding: 0;
+}
+
+#helpButton {
+	font-weight: bold;
 }
 
 .navLeft {

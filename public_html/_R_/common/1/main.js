@@ -33,7 +33,7 @@ document.addEventListener('orientationChanged', updateOrientation, false);
 function clearStorage()
 {
 	var storageType = jStore.activeEngine().flavor;
-	Myanswers.log('clearStorage: ' + storageType);
+	console.log('clearStorage: ' + storageType);
 	switch (storageType)
 	{
 		case 'jstore-html5-sql':
@@ -51,7 +51,7 @@ function clearStorage()
 		case 'jstore-google-gears':
 			break;
 		default:
-			Myanswers.log('unidentified jStore engine');
+			console.log('unidentified jStore engine');
 	}
 }
 
@@ -88,7 +88,7 @@ function isBrowserOnline()
 
 // produce the HTML for the list and insert it into #keywordList
 function populateKeywordList(category) {
-	Myanswers.log('populateKeywordList(): category=' +  category + '; hasCategories=' + hasCategories);
+	console.log('populateKeywordList(): category=' +  category + '; hasCategories=' + hasCategories);
 	var keywordList = $('#keywordList');
   keywordList.empty();
 	var keywordBox = $('#keywordBox');
@@ -177,7 +177,7 @@ function populateKeywordList(category) {
 }
 
 function populateAnswerSpacesList() {
-	Myanswers.log('populateAnswerSpacesList()');
+	console.log('populateAnswerSpacesList()');
 	var welcome = $('#answerSpacesListView').find('.welcomeBox');
 	var listBox = $('#answerSpacesList');
   listBox.empty();
@@ -332,19 +332,19 @@ function populateVisualCategories(masterCategory)
 
 function updateCache()
 {
-  Myanswers.log("updateCache: " + webappCache.status);
+  console.log("updateCache: " + webappCache.status);
   if (webappCache.status != window.applicationCache.IDLE) {
     webappCache.swapCache();
-    Myanswers.log("Cache has been updated due to a change found in the manifest");
+    console.log("Cache has been updated due to a change found in the manifest");
   } else {
     webappCache.update();
-    Myanswers.log("Cache update requested");
+    console.log("Cache update requested");
   }
 }
 function errorCache()
 {
-  Myanswers.log("errorCache: " + webappCache.status);
-  Myanswers.log("You're either offline or something has gone horribly wrong.");
+  console.log("errorCache: " + webappCache.status);
+  console.log("You're either offline or something has gone horribly wrong.");
 }
  
 // Function: loaded()
@@ -352,7 +352,7 @@ function errorCache()
 //
 function loaded(row1String, row2String)
 {
-	Myanswers.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
+	console.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
   var timer = null;
   var requestActive = false;
   row1 = (row1String === '') ? 'white' : row1String;
@@ -363,22 +363,22 @@ function loaded(row1String, row2String)
 	 switch(webappCache.status)
 	 {
 		case 0:
-		  Myanswers.log("Cache status: Uncached");
+		  console.log("Cache status: Uncached");
 		  break;
 		case 1:
-		  Myanswers.log("Cache status: Idle");
+		  console.log("Cache status: Idle");
 		  break;
 		case 2:
-		  Myanswers.log("Cache status: Checking");
+		  console.log("Cache status: Checking");
 		  break;
 		case 3:
-		  Myanswers.log("Cache status: Downloading");
+		  console.log("Cache status: Downloading");
 		  break;
 		case 4:
-		  Myanswers.log("Cache status: Updateready");
+		  console.log("Cache status: Updateready");
 		  break;
 		case 5:
-		  Myanswers.log("Cache status: Obsolete");
+		  console.log("Cache status: Obsolete");
 		  break;
 	 }
   }
@@ -413,20 +413,20 @@ function getAnswerSpacesList()
 	startInProgressAnimation();
 	var answerSpacesUrl = siteVars.serverAppPath + '/util/GetAnswerSpaces.php';
 	var requestData = answerSpacesHash ? "sha1=" + answerSpacesHash : "";
-	Myanswers.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
+	console.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
 	$.getJSON(answerSpacesUrl, requestData,
 		function(data, textstatus) { // readystate == 4
-			Myanswers.log("GetAnswerSpaces transaction complete: " + textstatus);
-			Myanswers.log(data);
+			console.log("GetAnswerSpaces transaction complete: " + textstatus);
+			console.log(data);
 			stopInProgressAnimation();
 			if (textstatus != 'success') return;
 			if (data.errorMessage)
 			{
-				Myanswers.log("GetAnswerSpaces error: " + data.errorMessage);
+				console.log("GetAnswerSpaces error: " + data.errorMessage);
 			}
 			else
 			{
-				Myanswers.log("GetAnswerSpaces status: " + data.statusMessage);
+				console.log("GetAnswerSpaces status: " + data.statusMessage);
 				if (!data.statusMessage || data.statusMessage != "NO UPDATES")
 				{
 					answerSpacesHash = data.listHash;
@@ -459,20 +459,20 @@ function getSiteConfig()
 			data: requestData,
 			dataType: 'json',
 			beforeSend: function(xhr) {
-				Myanswers.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
+				console.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
 				startInProgressAnimation();
 			},
 			error: function(xhr, xhrStatus, error) {
-				Myanswers.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
+				console.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
 				//if (xhrStatus == 'timeout') {}
 				if (typeof(siteConfig) != 'undefined')
 					processSiteConfig();
 			},
 			success: function(data, xhrStatus, xhr) {
-				Myanswers.log('GetSiteConfig complete: ' + xhrStatus);
+				console.log('GetSiteConfig complete: ' + xhrStatus);
 				if (data == null || data.errorMessage)
 				{
-					Myanswers.log("GetSiteConfig error: " + (data ? data.errorMessage : 'null'));
+					console.log("GetSiteConfig error: " + (data ? data.errorMessage : 'null'));
 					if (typeof(siteConfig) != 'undefined')
 						processSiteConfig();
 					else
@@ -480,16 +480,16 @@ function getSiteConfig()
 				}
 				else
 				{
-					Myanswers.log("GetSiteConfig status: " + data.statusMessage);
+					console.log("GetSiteConfig status: " + data.statusMessage);
 					if (data.statusMessage != "NO UPDATES")
 					{
 						setAnswerSpaceItem('siteConfigMessage', data);
 						siteConfig = data.siteConfig;
 						siteConfigHash = data.siteHash;
-						//Myanswers.log(data);
+						console.log(data);
 					}
-					/* else
-						Myanswers.log(siteConfig); */
+					else
+						console.log(siteConfig);
 					processSiteConfig();
 				}
 			},
@@ -562,7 +562,7 @@ function processMoJOs(keyword)
 			data: requestData,
 			dataType: 'json',
 			beforeSend: function(xhr) {
-				Myanswers.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
+				console.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
 			},
 			error: function(xhr, xhrStatus, error) {
 				//if (xhrStatus == 'timeout') {}
@@ -570,7 +570,7 @@ function processMoJOs(keyword)
 			success: function(data, xhrStatus, xhr) {
 				if (data == null || data.errorMessage)
 				{
-					Myanswers.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
+					console.log('GetMoJO error: ' + (data ? data.errorMessage : 'null'));
 				}
 				else 
 				{
@@ -582,7 +582,7 @@ function processMoJOs(keyword)
 				}
 			},
 			complete: function(xhr, xhrStatus) {
-				Myanswers.log('GetMoJO transaction complete: ' + xhrStatus);
+				console.log('GetMoJO transaction complete: ' + xhrStatus);
 			},
 			timeout: computeTimeout(500 * 1024)
 		});
@@ -591,7 +591,7 @@ function processMoJOs(keyword)
 
 function showMasterCategoriesView()
 {
-  Myanswers.log('showMasterCategoriesView()');
+  console.log('showMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
   $("#mainLabel").html('Master Categories');
@@ -600,7 +600,7 @@ function showMasterCategoriesView()
 
 function goBackToMasterCategoriesView()
 {
-  Myanswers.log('goBackToMasterCategoriesView()');
+  console.log('goBackToMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
   $("#mainLabel").html('Master Categories');
@@ -609,7 +609,7 @@ function goBackToMasterCategoriesView()
 
 function showCategoriesView(masterCategory)
 {
-	Myanswers.log('showCategoriesView(): ' + masterCategory);
+	console.log('showCategoriesView(): ' + masterCategory);
 	if (masterCategory && siteConfig.master_categories[masterCategory])
 	{
 		currentMasterCategory = masterCategory;
@@ -645,7 +645,7 @@ function showCategoriesView(masterCategory)
 
 function goBackToCategoriesView()
 {
-  Myanswers.log('goBackToCategoriesView()');
+  console.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
   prepareCategoriesViewForDevice();
   $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
@@ -711,6 +711,7 @@ function showAnswerView(keywordID)
 			}
 			var html = generateMojoAnswer(xml, xslt, 'answerBox');
 			$('#answerBox').html(html);
+			stopInProgressAnimation();
 		}
 		else
 		{
@@ -719,7 +720,6 @@ function showAnswerView(keywordID)
 		setCurrentView("answerView", false, true);
 		setupAnswerFeatures();
 		$('#mainLabel').html(keyword.name);
-		stopInProgressAnimation();
 	}
 	else if (!isBrowserOnline())
 	{
@@ -739,26 +739,26 @@ function showAnswerView(keywordID)
 		 url: answerUrl,
 		 data: requestData,
 		 beforeSend: function(xmlhttprequest) {
-			Myanswers.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
+			console.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
 			httpAnswerRequest = xmlhttprequest;
 			startInProgressAnimation();
 			setSubmitCachedFormButton();
 		 },
 		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-			Myanswers.log("GetAnswer failed with error type: " + textstatus);
+			console.log("GetAnswer failed with error type: " + textstatus);
 		 },
 		 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("GetAnswer transaction complete: " + textstatus);
+			console.log("GetAnswer transaction complete: " + textstatus);
 			var html;
 			if (xmlhttprequest.responseText == null)
 			{
-				Myanswers.log('GetAnswer: no response, using local copy');
+				console.log('GetAnswer: no response, using local copy');
 				html = getAnswerSpaceItem("answer___" + keywordID);
 				html = html == undefined ? "<p>No result available.</p>" : html;
 			}
 			else
 			{
-				Myanswers.log('GetAnswer: storing server response');
+				console.log('GetAnswer: storing server response');
 				html = xmlhttprequest.responseText;
 				blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
 				if (blinkAnswerMessage != null)
@@ -820,7 +820,7 @@ function setupForms(view)
 
 function gotoNextScreen(keywordID)
 {
-  Myanswers.log("gotoNextScreen(" + keywordID + ")");
+  console.log("gotoNextScreen(" + keywordID + ")");
 	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not code
 		for (k in siteConfig.keywords)
 		{
@@ -859,7 +859,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	var keywordConfig = siteConfig.keywords[keywordID];
 	if (keywordConfig.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
-		Myanswers.log('showSecondLevelAnswerView: detected XSLT keyword');
+		console.log('showSecondLevelAnswerView: detected XSLT keyword');
 		startInProgressAnimation();
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo
 		var xslt = keywordConfig.xslt;
@@ -887,17 +887,17 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		 url: answerUrl,
 		 data: requestData,
 		 beforeSend: function(xmlhttprequest) {
-			Myanswers.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
+			console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
 			httpAnswerRequest = xmlhttprequest;
 			setSubmitCachedFormButton();
 			$('#answerBox2').html("Waiting...");
 			startInProgressAnimation();
 		 },
 		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-			Myanswers.log("GetAnswer2 failed with error type: " + textstatus);
+			console.log("GetAnswer2 failed with error type: " + textstatus);
 		 },
 		 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("GetAnswer2 transaction complete: " + textstatus);
+			console.log("GetAnswer2 transaction complete: " + textstatus);
 			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 			{
 				var html =  httpAnswerRequest.responseText;
@@ -946,7 +946,7 @@ function goBackToKeywordView(keywordID)
 
 function showKeywordListView(category)
 {
-	Myanswers.log('showKeywordListView(): ' + category);
+	console.log('showKeywordListView(): ' + category);
 	currentCategory = category;
 	var mainLabel;
 	if (hasCategories)
@@ -967,7 +967,7 @@ function showKeywordListView(category)
 	}
 	if ((hasCategories && siteConfig.categories[currentCategory].keywords.length == 1)
 			|| (!hasCategories && siteConfig.keywords.length == 1)) {
-		Myanswers.log('category only has one keyword, jumping to that keyword');
+		console.log('category only has one keyword, jumping to that keyword');
 		gotoNextScreen(siteConfig.categories[currentCategory].keywords[0]);
 		return;
 	}
@@ -1000,7 +1000,7 @@ function goBackToHome()
 
 function goBackToKeywordListView(event)
 {
-  Myanswers.log('goBackToKeywordListView()');
+  console.log('goBackToKeywordListView()');
   if (answerSpaceOneKeyword) {
 	 showKeywordView(0);
 	 return;
@@ -1070,7 +1070,7 @@ function showNewLoginView(isActivating)
   $('#mainHeading').html("Login");
   var loginUrl = siteVars.serverAppPath + '/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
-	Myanswers.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
+	console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
@@ -1084,7 +1084,7 @@ function showNewLoginView(isActivating)
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("CreateLogin transaction complete: " + textstatus);
+			console.log("CreateLogin transaction complete: " + textstatus);
 		}
   });
 }
@@ -1095,7 +1095,7 @@ function showActivateLoginView(event)
 	addBackHistory("showActivateLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = siteVars.serverAppPath + '/util/ActivateLogin.php'
-	Myanswers.log("ActivateLogin transaction: " + loginUrl);
+	console.log("ActivateLogin transaction: " + loginUrl);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
@@ -1108,7 +1108,7 @@ function showActivateLoginView(event)
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("ActivateLogin transaction complete: " + textstatus);
+			console.log("ActivateLogin transaction complete: " + textstatus);
 		}
   });
 }
@@ -1119,7 +1119,7 @@ function showLoginView(event)
 	addBackHistory("showLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
-	Myanswers.log("DoLogin transaction: " + loginUrl);
+	console.log("DoLogin transaction: " + loginUrl);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
@@ -1132,7 +1132,7 @@ function showLoginView(event)
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("DoLogin transaction complete: " + textstatus);
+			console.log("DoLogin transaction complete: " + textstatus);
 		}
   });
 }
@@ -1150,15 +1150,15 @@ function updateLoginBar(){
 			url: requestUrl,
 			dataType: 'json',
 			beforeSend: function(xhr) {
-				Myanswers.log('GetLogin transaction: ' + requestUrl);
+				console.log('GetLogin transaction: ' + requestUrl);
 				startInProgressAnimation();
 			},
 			error: function(xhr, xhrStatus, error) {
 				//if (xhrStatus == 'timeout') {}
-				Myanswers.log('GetLogin transaction complete: ' + xhrStatus + ' ' + error);
+				console.log('GetLogin transaction complete: ' + xhrStatus + ' ' + error);
 			},
 			success: function(data, xhrStatus, xhr) {
-				Myanswers.log('GetLogin transaction complete: ' + xhrStatus);
+				console.log('GetLogin transaction complete: ' + xhrStatus);
 				if (data != null)
 				{
 					if (data.status == "LOGGED IN")
@@ -1189,7 +1189,7 @@ function submitLogin()
 	startInProgressAnimation();
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = "action=login&mobile_number=" + document.getElementById('mobile_number').value + "&password=" + document.getElementById('password').value;
-	Myanswers.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
+	console.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
@@ -1203,7 +1203,7 @@ function submitLogin()
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("iPhoneLogin transaction complete: " + textstatus);
+			console.log("iPhoneLogin transaction complete: " + textstatus);
 			stopInProgressAnimation();
 			getSiteConfig();
 			updateLoginBar();
@@ -1215,7 +1215,7 @@ function submitLogout()
 {
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = 'action=logout';
-	Myanswers.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
+	console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
@@ -1231,7 +1231,7 @@ function submitLogout()
 			alert("Error preparing login:" + xmlhttprequest.responseText);
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			Myanswers.log("iPhoneLogin transaction complete: " + textstatus);
+			console.log("iPhoneLogin transaction complete: " + textstatus);
 			getSiteConfig();
 			updateLoginBar();
 		}
@@ -1241,14 +1241,14 @@ function submitLogout()
 function goBackToTopLevelAnswerView(event)
 {
 	prepareAnswerViewForDevice();
-  Myanswers.log('goBackToTopLevelAnswerView()');
+  console.log('goBackToTopLevelAnswerView()');
   setCurrentView('answerView', true, true);
 }
 
 function submitForm() {
 	var form = $('.view:visible').find('form').first();
   var str = form.find('input, textarea, select').serialize();
-  Myanswers.log("submitForm(2): " + form.attr('action'));
+  console.log("submitForm(2): " + form.attr('action'));
   queuePendingFormData(str, form.attr('action'), form.attr('method').toLowerCase(), Math.uuid());
   submitFormWithRetry();
 }
@@ -1275,41 +1275,41 @@ function headPendingFormData() {
   var q2 = getAnswerSpaceItem("_pendingFormDataArrayAsString").split(":");
   var q3 = getAnswerSpaceItem("_pendingFormMethod").split(":");
   var q4 = getAnswerSpaceItem("_pendingFormUUID").split(":");
-  Myanswers.log('headPendingFormData():');
-  Myanswers.log("q1[0] => " + q1[0]);
-  Myanswers.log("q2[0] => " + q2[0]);
-  Myanswers.log("q3[0] => " + q3[0]);
-  Myanswers.log("q4[0] => " + q4[0]);
+  console.log('headPendingFormData():');
+  console.log("q1[0] => " + q1[0]);
+  console.log("q2[0] => " + q2[0]);
+  console.log("q3[0] => " + q3[0]);
+  console.log("q4[0] => " + q4[0]);
   return [q1[0], decodeURIComponent(q2[0]), decodeURIComponent(q3[0]), decodeURIComponent(q4[0])];
 }
 
 function delHeadPendingFormData() {
   var count;
   if ((count = countPendingFormData()) == 0) {
-    Myanswers.log("delHeadPendingFormData: count 0, returning");
+    console.log("delHeadPendingFormData: count 0, returning");
     return;
   }
   if (count == 1) {
-    Myanswers.log("*** Emptying Form Queue");
+    console.log("*** Emptying Form Queue");
     removeFormRetryData();
     return;
   }
-  Myanswers.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
-  Myanswers.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
+  console.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
+  console.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
   setAnswerSpaceItem("_pendingFormDataString", 
 		     getAnswerSpaceItem("_pendingFormDataString").substring(getAnswerSpaceItem("_pendingFormDataString").indexOf(":") + 1));
   setAnswerSpaceItem("_pendingFormDataArrayAsString", 
 		     getAnswerSpaceItem("_pendingFormDataArrayAsString").substring(getAnswerSpaceItem("_pendingFormDataArrayAsString").indexOf(":") + 1));
-  Myanswers.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
-  Myanswers.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
+  console.log("_pendingFormDataString => " + getAnswerSpaceItem("_pendingFormDataString"));
+  console.log("_pendingFormDataArrayAsString => " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
 }
 
 function countPendingFormData() {
   if (getAnswerSpaceItem("_pendingFormDataString")) {
     var q1 = getAnswerSpaceItem("_pendingFormDataString").split(":");
-    Myanswers.log("countPendingFormData: q1.length = " + q1.length + ";");
-    Myanswers.log("countPendingFormData: q1[0] = " + q1[0] + ";");
-    Myanswers.log("countPendingFormData: q1[1] = " + q1[1] + ";");
+    console.log("countPendingFormData: q1.length = " + q1.length + ";");
+    console.log("countPendingFormData: q1[0] = " + q1[0] + ";");
+    console.log("countPendingFormData: q1[1] = " + q1[1] + ";");
     return q1.length;
   } else {
     return 0;
@@ -1332,7 +1332,7 @@ function setSubmitCachedFormButton() {
   var queueCount = countPendingFormData();
 	var button = $('.pendingFormButton');
   if (queueCount != 0) {
-    Myanswers.log("setSubmitCachedFormButton: Cached items");
+    console.log("setSubmitCachedFormButton: Cached items");
 		buttonLabel = button.find('.buttonLabel');
 		if (buttonLabel.size() > 0)
 		{
@@ -1346,7 +1346,7 @@ function setSubmitCachedFormButton() {
 	  button.removeAttr("disabled");
 		button.removeClass('hidden');
   } else {
-    Myanswers.log("setSubmitCachedFormButton: NO Cached items");
+    console.log("setSubmitCachedFormButton: NO Cached items");
 		buttonLabel = button.find('.buttonLabel');
     button.button("option", "disabled", "true");
 	  button.attr("disabled", "true");
@@ -1360,12 +1360,12 @@ function removeFormRetryData() {
     removeAnswerSpaceItem("_pendingFormMethod");  
     removeAnswerSpaceItem("_pendingFormUUID");  
     setSubmitCachedFormButton();
-    Myanswers.log("removeFormRetryData: Clearing local storage"); 
+    console.log("removeFormRetryData: Clearing local storage"); 
 }
 
 function checkFormRetryData() {
-    Myanswers.log("_pendingFormDataString: " + getAnswerSpaceItem("_pendingFormDataString"));
-    Myanswers.log("_pendingFormDataArrayAsString: " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
+    console.log("_pendingFormDataString: " + getAnswerSpaceItem("_pendingFormDataString"));
+    console.log("_pendingFormDataArrayAsString: " + getAnswerSpaceItem("_pendingFormDataArrayAsString"));
     return (getAnswerSpaceItem("_pendingFormDataString"));
 }
 
@@ -1377,18 +1377,18 @@ function submitFormWithRetry() {
   var localKeyword;
 
   if (checkFormRetryData()) {
-	 Myanswers.log("submitFormWithRetry(1a): ");
+	 console.log("submitFormWithRetry(1a): ");
 	 var qx = headPendingFormData();
-	 Myanswers.log("qx[0] => " + qx[0]);
-	 Myanswers.log("qx[1] => " + qx[1]);
-	 Myanswers.log("qx[2] => " + qx[2]);
-	 Myanswers.log("qx[3] => " + qx[3]);
+	 console.log("qx[0] => " + qx[0]);
+	 console.log("qx[1] => " + qx[1]);
+	 console.log("qx[2] => " + qx[2]);
+	 console.log("qx[3] => " + qx[3]);
 	 str = qx[0];
 	 arr = qx[1].split("/");
 	 method = qx[2];
 	 uuid = qx[3];
   } else {
-	 Myanswers.log("submitFormWithRetry(1b): ");
+	 console.log("submitFormWithRetry(1b): ");
 	 return;
   }
 
@@ -1409,7 +1409,7 @@ function submitFormWithRetry() {
 		url: answerUrl,
 		data: "?" + str,
 		beforeSend: function(xmlhttprequest) {
-		  Myanswers.log("GetAnswer transaction: " + answerUrl + "?" + str);
+		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
 		  httpAnswerRequest = xmlhttprequest;
 		  startInProgressAnimation();
 		},
@@ -1421,7 +1421,7 @@ function submitFormWithRetry() {
 		  }
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		  Myanswers.log("GetAnswer transaction complete: " + textstatus);
+		  console.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
 				delHeadPendingFormData();
@@ -1437,14 +1437,14 @@ function submitFormWithRetry() {
   }
   else
   {	 
-	 Myanswers.log("GetAnswer transaction: " + answerUrl + " data: " + str);
+	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
 	 startInProgressAnimation();
 	 ajaxQueue.add({
 		type: "POST",
 		url: answerUrl,
 		data: str,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		  Myanswers.log("GetAnswer transaction successful");
+		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
 		  delHeadPendingFormData();
 			$('#answerBox').html(data);
@@ -1473,7 +1473,7 @@ function submitAction(keyword, action) {
 		url: answerUrl,
 		data: "?" + str,
 		beforeSend: function(xmlhttprequest) {
-		  Myanswers.log("GetAnswer transaction: " + answerUrl + "?" + str);
+		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
 		  httpAnswerRequest = xmlhttprequest;
 		  startInProgressAnimation();
 		},
@@ -1485,7 +1485,7 @@ function submitAction(keyword, action) {
 		  }
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		  Myanswers.log("GetAnswer transaction complete: " + textstatus);
+		  console.log("GetAnswer transaction complete: " + textstatus);
 		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
 		  {
 				$('#answerBox').html(xmlhttprequest.responseText);
@@ -1499,7 +1499,7 @@ function submitAction(keyword, action) {
   }
   else
   {	 
-	 Myanswers.log("GetAnswer transaction: " + answerUrl + " data: " + str);
+	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
 	 answerUrl += "&" + action;
 	 startInProgressAnimation();
 	 ajaxQueue.add({
@@ -1507,7 +1507,7 @@ function submitAction(keyword, action) {
 		url: answerUrl,
 		data: str,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		  Myanswers.log("GetAnswer transaction successful");
+		  console.log("GetAnswer transaction successful");
 		  httpAnswerRequest = xmlhttprequest;
 			$('#answerBox').html(data);
 		  stopInProgressAnimation();
@@ -1649,9 +1649,9 @@ function stopTrackingLocation()
 function processBlinkAnswerMessage(message)
 {
 	message = JSON.parse(message);
-	Myanswers.log(message);
+	console.log(message);
 	if (typeof(message.loginStatus) == 'string' && typeof(message.loginKeyword) == 'string' && typeof(message.logoutKeyword) == 'string') {
-		Myanswers.log('blinkAnswerMessage: loginStatus detected');
+		console.log('blinkAnswerMessage: loginStatus detected');
 		if (message.loginStatus == "LOGGED IN") {
 			$('#loginButton').addClass('hidden');
 			$('#logoutButton').removeAttr('onclick').unbind('click').removeClass('hidden');
@@ -1682,9 +1682,9 @@ function generateMojoAnswer(xmlString, xslString, target)
 		webworker.postMessage(message);
 		return '<p>This keyword is being constructed entirely on your device.</p><p>Please wait...</p>';
 	}
-	if (typeof(window.ActiveXObject) == 'function')
+	if (window.ActiveXObject != undefined)
 	{
-		Myanswers.log('generateMojoAnswer: using Internet Explorer method');
+		console.log('generateMojoAnswer: using Internet Explorer method');
 		var xml = XML.newDocument().loadXML(xmlString);
 		var xsl = XML.newDocument().loadXML(xslString);
 		var html = xml.transformNode(xsl);
@@ -1692,15 +1692,16 @@ function generateMojoAnswer(xmlString, xslString, target)
 	}
 	if (document.implementation && document.implementation.createDocument)
 	{
-		if (typeof(DOMParser) == 'function')
+		if (window.DOMParser != undefined)
 		{
-			Myanswers.log('generateMojoAnswer: using W3C JavaScript method with DOMParser()');
-			var xml = (new DOMParser()).parseFromString(xmlString, 'application/xml');
-			var xsl = (new DOMParser()).parseFromString(xslString, 'application/xml');
+			console.log('generateMojoAnswer: using W3C JavaScript method with DOMParser()');
+			var domParser = new DOMParser();
+			var xml = domParser.parseFromString(xmlString, 'application/xml');
+			var xsl = domParser.parseFromString(xslString, 'application/xml');
 		}
 		else
 		{
-			Myanswers.log('generateMojoAnswer: using W3C JavaScript method with fake AJAX query');
+			console.log('generateMojoAnswer: using W3C JavaScript method with fake AJAX query');
 			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', url, false);
@@ -1712,11 +1713,16 @@ function generateMojoAnswer(xmlString, xslString, target)
 			xhr.send(null);
 			var xsl = xhr.responseXML;
 		}
-		if (typeof(window.XSLTProcessor) == 'function')
+		if (window.XSLTProcessor != undefined)
 		{
 			var xsltProcessor = new XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);
 			var html = xsltProcessor.transformToFragment(xml, document);
+			return html;
+		}
+		if (xsltProcess != undefined)
+		{
+			var html = xsltProcess(xml, xsl);
 			return html;
 		}
 	}
@@ -1748,10 +1754,10 @@ if (deviceVars.hasWebWorkers === true)
 		switch (event.data.fn)
 		{
 			case 'log':
-				Myanswers.log(event.data.string);
+				console.log(event.data.string);
 				break;
 			case 'processXSLT':
-				Myanswers.log('WebWorker: finished processing XSLT');
+				console.log('WebWorker: finished processing XSLT');
 				$('#' + event.data.target).html(event.data.html);
 				break;
 			case 'workBegun':

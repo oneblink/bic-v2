@@ -236,6 +236,10 @@ button, input[type=submit] {
 	padding: 0;
 }
 
+#helpButton {
+	font-weight: bold;
+}
+
 .navLeft {
 	margin-right: 10px;
 }
