@@ -452,8 +452,8 @@ function getSiteConfig()
 	}
 	else if (isBrowserOnline())
 	{
-		var requestUrl = siteVars.serverDevicePath + '/util/GetSiteConfig.php';
-		var requestData = "answerSpace=" + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+		var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
+		var requestData = 'device=' + device + '&answerSpace=' + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
 		ajaxQueue.add({
 			url: requestUrl,
 			data: requestData,
