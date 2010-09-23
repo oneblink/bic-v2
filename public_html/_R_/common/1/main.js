@@ -1,5 +1,4 @@
 var httpAnswerRequest = false;
-var row1, row2;
 
 var hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, answerSpaceOneKeyword = false;
 
@@ -132,7 +131,8 @@ function populateKeywordList(category) {
 			htmlList += "<li onclick=\"gotoNextScreen('" + order[id] + "')\">";
 			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
 			htmlList += "<div class='nextArrow'></div>";
-			htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
+			if (typeof(list[order[id]].description) == 'string')
+				htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
 			htmlList += "</li>";
 		}
   }
@@ -355,8 +355,6 @@ function loaded(row1String, row2String)
 	console.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
   var timer = null;
   var requestActive = false;
-  row1 = (row1String === '') ? 'white' : row1String;
-  row2 = (row2String === '') ? 'white' : row2String;
 
   if (typeof(webappCache) != 'undefined')
   {
@@ -453,13 +451,14 @@ function getSiteConfig()
 	else if (isBrowserOnline())
 	{
 		var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
-		var requestData = 'device=' + device + '&answerSpace=' + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+		var requestData = 'device=' + deviceVars.device + '&answerSpace=' + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
 		ajaxQueue.add({
 			url: requestUrl,
 			data: requestData,
 			dataType: 'json',
 			beforeSend: function(xhr) {
 				console.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
+				var origin = 'http://' + siteVars.serverDomain + '/';
 				startInProgressAnimation();
 			},
 			error: function(xhr, xhrStatus, error) {
@@ -733,7 +732,7 @@ function showAnswerView(keywordID)
 	else
 	{
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php';
-		var requestData = createParamsAndArgs(keywordID) + (device ? '&_device=' + device : '');
+		var requestData = createParamsAndArgs(keywordID) + '&_device=' + deviceVars.device;
 		ajaxQueue.add({
 		 type: 'GET',
 		 url: answerUrl,
@@ -881,7 +880,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	else
 	{
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php'
-		var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + (device ? '&_device=' + device : '') + '&' + arg0;
+		var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + '&_device=' + deviceVars.device + '&' + arg0;
 		ajaxQueue.add({
 		 type: 'GET',
 		 url: answerUrl,
@@ -921,7 +920,7 @@ function showKeywordView(keywordID)
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
   currentKeyword = keywordID;
-  prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help.length > 0);
+  prepareKeywordViewForDevice(answerSpaceOneKeyword, typeof(keyword.help) == 'string');
   setSubmitCachedFormButton();
   $('#argsBox').html(keyword.input_config);
 	var descriptionBox = $('#descriptionBox');
@@ -1053,13 +1052,21 @@ function createParamsAndArgs(keywordID)
 
 function showHelpView(event)
 {
-  prepareHelpViewForDevice();
+	switch($('.view:visible').attr('id'))
+	{
+		case 'keywordView':
+		case 'answerView':
+		case 'answerView2':
+			var keyword = siteConfig.keywords[currentKeyword];
+		  $('#mainHeading').html(keyword.name);
+		  var helpContents = keyword.help ? keyword.help : "Sorry, no guidance has been prepared for this item.";
+			break;
+		default:
+			var helpContents = siteConfig.help ? siteConfig.help : "Sorry, no guidance has been prepared for this item.";
+	}
+	prepareHelpViewForDevice();
 	addBackHistory("showHelpView();");
-	var keyword = siteConfig.keywords[currentKeyword];
-  $('#mainHeading').html(keyword.name); //**** Here ****
-  var helpContents = keyword.help ? keyword.help : "Sorry, no help is available.";
   $('#helpBox').html(helpContents);
-	$('#helpTitle').html(keyword.name);
   setCurrentView('helpView', false, true); 
 }
 
@@ -1070,12 +1077,14 @@ function showNewLoginView(isActivating)
   $('#mainHeading').html("Login");
   var loginUrl = siteVars.serverAppPath + '/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
-	console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
 		data: requestData,
+		beforeSend: function(xhr) {
+			console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
+		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 			$('#newLoginBox').html(data);
 			setCurrentView('newLoginView', false, true); 
@@ -1095,11 +1104,13 @@ function showActivateLoginView(event)
 	addBackHistory("showActivateLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = siteVars.serverAppPath + '/util/ActivateLogin.php'
-	console.log("ActivateLogin transaction: " + loginUrl);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
+		beforeSend: function(xhr) {
+			console.log("ActivateLogin transaction: " + loginUrl);
+		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 			$('#activateLoginBox').html(data);
 			setCurrentView('activateLoginView', false, true); 
@@ -1119,11 +1130,13 @@ function showLoginView(event)
 	addBackHistory("showLoginView();");
   $('#mainHeading').html("Login");
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
-	console.log("DoLogin transaction: " + loginUrl);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
+		beforeSend: function(xhr) {
+			console.log("DoLogin transaction: " + loginUrl);
+		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 			$('#loginBox').html(data);
 			setCurrentView('loginView', false, true); 
@@ -1186,7 +1199,6 @@ function updateLoginBar(){
 
 function submitLogin()
 {
-	startInProgressAnimation();
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = "action=login&mobile_number=" + document.getElementById('mobile_number').value + "&password=" + document.getElementById('password').value;
 	console.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
@@ -1195,6 +1207,9 @@ function submitLogin()
 		cache: "false",
 		url: loginUrl,
 		data: requestData,
+		beforeSend: function(xmlhttprequest) {
+			startInProgressAnimation();
+		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 			$('#loginBox').html(data);
 			setCurrentView('loginView', false, true); 
@@ -1215,13 +1230,13 @@ function submitLogout()
 {
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = 'action=logout';
-	console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
   ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
 		data: requestData,
 		beforeSend: function(xmlhttprequest) {
+			console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
 		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 			$('#loginBox').html(data);
@@ -1394,129 +1409,115 @@ function submitFormWithRetry() {
 
   var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?';
   if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + answerSpace + "&keyword=" + arr[1] + (device ? '&_device=' + device : '') + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+	 answerUrl += "answerSpace=" + answerSpace + "&keyword=" + arr[1] + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
   } else {
-	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2] + (device ? '&_device=' + device : '');
+	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2] + '&_device=' + deviceVars.device;
 	 localKeyword = arr[2];
   }
 
-  if (method == "get")
-  {
-	 ajaxQueue.add({
-		type: 'GET',
-		cache: "false",
+	var currentBox = $('.view:visible > .box');
+	var requestData;
+	if (method == 'get')
+	{
+		method = 'GET';
+		requestData = '&' + str;
+	}
+	else
+	{
+		method = 'POST'
+		requestData = str;
+	}
+
+	ajaxQueue.add({
+		type: method,
+		cache: 'false',
 		url: answerUrl,
-		data: "?" + str,
+		data: requestData,
 		beforeSend: function(xmlhttprequest) {
-		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
-		  httpAnswerRequest = xmlhttprequest;
-		  startInProgressAnimation();
+			console.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
+			httpAnswerRequest = xmlhttprequest;
+			startInProgressAnimation();
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		  if (textstatus == "timeout")
-		  {
-			 alert("Form data not submitted, retry when you are in coverage");
+			if (textstatus == "timeout")
+			{
+			 alert("Form not submitted, retry when you are in coverage");
 			 goBackToKeywordListView();
-		  }
+			}
 		},
-		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		  console.log("GetAnswer transaction complete: " + textstatus);
-		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
-		  {
-				delHeadPendingFormData();
-				$('#answerBox').html(xmlhttprequest.responseText);
-			 setSubmitCachedFormButton();
-			 prepareAnswerViewForDevice();
-			 setCurrentView('answerView', false, true);
-		  }
-		  stopInProgressAnimation();
-		},
-		timeout: 60 * 1000 // 60 seconds
-	 });
-  }
-  else
-  {	 
-	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
-	 startInProgressAnimation();
-	 ajaxQueue.add({
-		type: "POST",
-		url: answerUrl,
-		data: str,
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
 		  console.log("GetAnswer transaction successful");
-		  httpAnswerRequest = xmlhttprequest;
 		  delHeadPendingFormData();
-			$('#answerBox').html(data);
-		  stopInProgressAnimation();
 		  setSubmitCachedFormButton();
-			prepareAnswerViewForDevice();
-		  setCurrentView('answerView', false, true);
 		},
-		timeout: 60 * 1000 // 60 seconds
-	 });
-  }
+		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+			console.log("GetAnswer transaction complete: " + textstatus);
+			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+			{
+				currentBox.hide('slide', { direction: 'left'}, 300, function() {
+					currentBox.empty().html(xmlhttprequest.responseText);
+					currentBox.show('slide', { direction: 'right'}, 300);
+					window.scrollTo(0, 1);
+				});
+			}
+			stopInProgressAnimation();
+		},
+		timeout: computeTimeout(answerUrl.length + requestData.length)
+	});
 }
 
 function submitAction(keyword, action) {
-	var form = $('.view:visible').find('form').first();
+	var currentBox = $('.view:visible > .box');
+	var form = currentBox.find('form').first();
+	var formData = (action == 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize();
 	var method = form.attr('method');
-  var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + (device ? '&_device=' + device : '');
-  var str = form.find('input, textarea, select').serialize();
 
-  if (method == "get")
-  {
-		str += "&" + action;
-	 ajaxQueue.add({
-		type: 'GET',
-		cache: "false",
-		url: answerUrl,
-		data: "?" + str,
+	var requestData, requestUrl;
+	if (method == 'get')
+	{
+		method = 'GET';
+		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
+		requestData = '&' + formData + '&' + action;
+	}
+	else
+	{
+		method = 'POST'
+		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + "&" + action;
+		requestData = formData;
+	}
+
+	ajaxQueue.add({
+		type: method,
+		cache: 'false',
+		url: requestUrl,
+		data: requestData,
 		beforeSend: function(xmlhttprequest) {
-		  console.log("GetAnswer transaction: " + answerUrl + "?" + str);
-		  httpAnswerRequest = xmlhttprequest;
-		  startInProgressAnimation();
+			console.log("GetAnswer transaction: " + requestUrl + "?" + requestData);
+			httpAnswerRequest = xmlhttprequest;
+			startInProgressAnimation();
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-		  if (textstatus == "timeout")
-		  {
-			 alert("Form data not submitted, retry when you are in coverage");
+			if (textstatus == "timeout")
+			{
+			 alert("Action not submitted, retry when you are in coverage");
 			 goBackToKeywordListView();
-		  }
+			}
 		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
-		  console.log("GetAnswer transaction complete: " + textstatus);
-		  if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
-		  {
-				$('#answerBox').html(xmlhttprequest.responseText);
-				prepareAnswerViewForDevice();
-				setCurrentView('answerView', false, true);
-		  }
-		  stopInProgressAnimation();
+			console.log("GetAnswer transaction complete: " + textstatus);
+			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+			{
+				currentBox.hide('slide', { direction: 'left'}, 300, function() {
+					currentBox.empty().html(xmlhttprequest.responseText);
+					currentBox.show('slide', { direction: 'right'}, 300);
+					window.scrollTo(0, 1);
+				});
+			}
+			stopInProgressAnimation();
 		},
-		timeout: 60 * 1000 // 60 seconds
-	 });
-  }
-  else
-  {	 
-	 console.log("GetAnswer transaction: " + answerUrl + " data: " + str);
-	 answerUrl += "&" + action;
-	 startInProgressAnimation();
-	 ajaxQueue.add({
-		type: "POST",
-		url: answerUrl,
-		data: str,
-		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-		  console.log("GetAnswer transaction successful");
-		  httpAnswerRequest = xmlhttprequest;
-			$('#answerBox').html(data);
-		  stopInProgressAnimation();
-			prepareAnswerViewForDevice();
-		  setCurrentView('answerView', false, true);
-		},
-		timeout: 60 * 1000 // 60 seconds
-	 });
-  }
+		timeout: computeTimeout(requestUrl.length + requestData.length)
+	});
 }
 
 function setupAnswerFeatures()

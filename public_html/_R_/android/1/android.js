@@ -29,6 +29,13 @@ function prepareMasterCategoriesViewForDevice()
 	}
 	else
 		navBoxHeader.addClass('hidden');
+	if (typeof(siteConfig.help) != 'string')
+		helpButton.addClass('hidden');
+	else
+	{
+		helpButton.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+	}
 }
 
 function prepareCategoriesViewForDevice()
@@ -44,15 +51,22 @@ function prepareCategoriesViewForDevice()
   else
   {
 		$.bbq.removeState();
+		navButtons.addClass('hidden');
 		categoriesView.find('.welcomeBox').removeClass('hidden');
 		if (siteVars.hasLogin)
 		{
-			navButtons.addClass('hidden');
 			navBoxHeader.removeClass('hidden');
 		}
 		else
 			navBoxHeader.addClass('hidden');
   }
+	if (typeof(siteConfig.help) != 'string')
+		helpButton.addClass('hidden');
+	else
+	{
+		helpButton.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+	}
 }
 
 function prepareKeywordListViewForDevice(category)
@@ -86,6 +100,13 @@ function prepareKeywordListViewForDevice(category)
 			navBoxHeader.addClass('hidden');
   }
 	$.bbq.pushState(hashState, 2);
+	if (typeof(siteConfig.help) != 'string')
+		helpButton.addClass('hidden');
+	else
+	{
+		helpButton.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+	}
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
@@ -99,7 +120,10 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 		navBoxHeader.removeClass('hidden');
 	}
 	if (showHelp)
+	{
 		helpButton.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
+	}
 	else
 		helpButton.addClass('hidden');
 }
@@ -112,7 +136,15 @@ function prepareAnswerViewForDevice()
 	else
 	{
 		navButtons.removeClass('hidden');
+	}
+	if (typeof(siteConfig.keywords[currentKeyword].help) == 'string')
+	{
+		helpButton.removeClass('hidden');
 		navBoxHeader.removeClass('hidden');
+	}
+	else
+	{
+		helpButton.addClass('hidden');
 	}
 }
 
@@ -130,7 +162,7 @@ function prepareHelpViewForDevice()
 	var helpView = $('#helpView');
 	navBoxHeader.removeClass('hidden');
 	navButtons.removeClass('hidden');
-  helpButton.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareLoginViewForDevice()

@@ -25,8 +25,11 @@ function prepareMasterCategoriesViewForDevice()
   console.log('prepareMasterCategoriesViewForDevice()');
   backButtonHeader.addClass('hidden');
   homeButton.addClass('hidden');
-  helpButton.addClass('hidden');
   hideLeftBox();
+	if (typeof(siteConfig.help) != 'string')
+		helpButton.addClass('hidden');
+	else
+		helpButton.removeClass('hidden');
 }
 
 function prepareCategoriesViewForDevice()
@@ -46,7 +49,10 @@ function prepareCategoriesViewForDevice()
 	 backButtonHeader.addClass('hidden');
 	  homeButton.addClass('hidden');
   }
-  helpButton.addClass('hidden');
+	if (typeof(siteConfig.help) != 'string')
+		helpButton.addClass('hidden');
+	else
+		helpButton.removeClass('hidden');
 }
 
 function prepareKeywordListViewForDevice(category)
@@ -77,7 +83,10 @@ function prepareKeywordListViewForDevice(category)
 		populateLeftBoxWithMasterCategories();
 		showLeftBox();
   }
-  helpButton.addClass('hidden');
+	if (typeof(siteConfig.help) != 'string')
+		helpButton.addClass('hidden');
+	else
+		helpButton.removeClass('hidden');
 }
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
@@ -94,13 +103,9 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 		homeButton.removeClass('hidden');
 	}
 	if (showHelp)
-	{
 		helpButton.removeClass('hidden');
-	}
 	else
-	{
 		helpButton.addClass('hidden');
-	}
 }
 
 function prepareAnswerViewForDevice()
@@ -108,7 +113,14 @@ function prepareAnswerViewForDevice()
   console.log('prepareAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
-  helpButton.addClass('hidden');
+	if (typeof(siteConfig.keywords[currentKeyword].help) == 'string')
+	{
+		helpButton.removeClass('hidden');
+	}
+	else
+	{
+		helpButton.addClass('hidden');
+	}
 }
 
 function prepareSecondLevelAnswerViewForDevice()
@@ -124,7 +136,7 @@ function prepareHelpViewForDevice()
   console.log('prepareHelpViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
-  helpButton.removeClass('hidden');
+  helpButton.addClass('hidden');
 }
 
 function prepareLoginViewForDevice()
