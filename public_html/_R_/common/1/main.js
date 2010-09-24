@@ -6,7 +6,6 @@ var currentKeyword, currentCategory, currentMasterCategory;
 
 var siteConfig, siteConfigHash;
 var answerSpacesList, answerSpacesHash;
-var answerSpace;
 var backStack;
 
 var webappCache = window.applicationCache;
@@ -62,18 +61,18 @@ if (typeof(webappCache) != "undefined")
 
 function setAnswerSpaceItem(key, value)
 {
-	if (storageReady)
+	if (deviceVars.storageReady)
 	  jStore.set(key, value);
 }
 
 function getAnswerSpaceItem(key)
 {
-	return storageReady ? jStore.get(key) : null;
+	return deviceVars.storageReady ? jStore.get(key) : null;
 }
 
 function removeAnswerSpaceItem(key)
 {
-	if (storageReady)
+	if (deviceVars.storageReady)
 	  jStore.remove(key);
 }
 
@@ -195,7 +194,7 @@ function populateAnswerSpacesList() {
 	if (listBox.children().size() > 0)
 	{
 		listBox.removeClass('hidden');
-		if (answerSpace)
+		if (siteVars.answerSpace)
 		{
 			welcome.html('Please check the address you have entered, or choose from a range of answerSpaces below.');
 		}
@@ -350,7 +349,7 @@ function errorCache()
 // Function: loaded()
 // Called by Window's load event when the web application is ready to start
 //
-function loaded(row1String, row2String)
+function loaded()
 {
 	console.log('loaded(): isBrowserOnline? ' + isBrowserOnline());
   var timer = null;
@@ -381,14 +380,14 @@ function loaded(row1String, row2String)
 	 }
   }
 		
-/*	if (answerSpace)
+/*	if (siteVars.answerSpace)
 	{ */
 		backStack = new Array();
-		if (storageReady)
+		if (deviceVars.storageReady)
 		{
-			if (getAnswerSpaceItem('answerSpace') == 'undefined' || getAnswerSpaceItem('answerSpace') != answerSpace)
+			if (getAnswerSpaceItem('answerSpace') == 'undefined' || getAnswerSpaceItem('answerSpace') != siteVars.answerSpace)
 				clearStorage();
-			setAnswerSpaceItem('answerSpace', answerSpace);
+			setAnswerSpaceItem('answerSpace', siteVars.answerSpace);
 			var message = getAnswerSpaceItem('siteConfigMessage');
 			if (typeof(message) != 'undefined' && message != 'undefined')
 			{
@@ -451,7 +450,7 @@ function getSiteConfig()
 	else if (isBrowserOnline())
 	{
 		var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
-		var requestData = 'device=' + deviceVars.device + '&answerSpace=' + answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+		var requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
 		ajaxQueue.add({
 			url: requestUrl,
 			data: requestData,
@@ -539,6 +538,18 @@ function processSiteConfig()
 		}
 		startUp.remove();
 		$('#content').removeClass('hidden');
+		if (typeof(siteConfig.webClip) == 'string' && deviceVars.device == 'iphone') {
+			setTimeout(function() {
+				var bookmarkBubble = new google.bookmarkbubble.Bubble();
+				bookmarkBubble.hasHashParameter = function() { return false; };
+				bookmarkBubble.setHashParameter = $.noop;
+				bookmarkBubble.getViewportHeight = function() {	return window.innerHeight; };
+				bookmarkBubble.getViewportScrollY = function() { return window.pageYOffset;	};
+				bookmarkBubble.registerScrollHandler = function(handler) { window.addEventListener('scroll', handler, false); };
+				bookmarkBubble.deregisterScrollHandler = function(handler) { window.removeEventListener('scroll', handler, false); };
+				bookmarkBubble.showIfAllowed();
+			}, 1000);
+		}
 	}
 }
 
@@ -555,7 +566,7 @@ function processMoJOs(keyword)
 		{
 			mojoHash = message.mojoHash;
 		}
-		var requestData = 'answerSpace=' + answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
+		var requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
 		ajaxQueueMoJO.add({
 			url: requestURL,
 			data: requestData,
@@ -575,7 +586,7 @@ function processMoJOs(keyword)
 				{
 					if (data.statusMessage != 'NO UPDATES')
 					{
-						if (storageReady)
+						if (deviceVars.storageReady)
 							setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
 					}
 				}
@@ -880,7 +891,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	else
 	{
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php'
-		var requestData = 'answerSpace=' + answerSpace + "&keyword=" + encodeURIComponent(keyword) + '&_device=' + deviceVars.device + '&' + arg0;
+		var requestData = 'answerSpace=' + siteVars.answerSpace + "&keyword=" + encodeURIComponent(keyword) + '&_device=' + deviceVars.device + '&' + arg0;
 		ajaxQueue.add({
 		 type: 'GET',
 		 url: answerUrl,
@@ -1022,7 +1033,7 @@ function goBackToKeywordListView(event)
 
 function createParamsAndArgs(keywordID)
 {
-  var returnValue = "answerSpace=" + answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
+  var returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
   var args = "";
   var argElements = $('#argsBox').find('input, textarea, select');
   argElements.each(function(index, element) {
@@ -1409,7 +1420,7 @@ function submitFormWithRetry() {
 
   var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?';
   if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + answerSpace + "&keyword=" + arr[1] + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+	 answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + arr[1] + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
   } else {
 	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2] + '&_device=' + deviceVars.device;
@@ -1477,13 +1488,13 @@ function submitAction(keyword, action) {
 	if (method == 'get')
 	{
 		method = 'GET';
-		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
+		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
 		requestData = '&' + formData + '&' + action;
 	}
 	else
 	{
 		method = 'POST'
-		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + "&" + action;
+		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + "&" + action;
 		requestData = formData;
 	}
 
@@ -1524,7 +1535,7 @@ function setupAnswerFeatures()
 {
 	if ($('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 		startInProgressAnimation();
-		$.getScript('http://www.google.com/jsapi?key=' + googleAPIkey, function(data, textstatus) {
+		$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, function(data, textstatus) {
 			if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
 				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
 			else
@@ -1550,18 +1561,18 @@ function setupGoogleMaps()
 		google.maps.event.addListener(googleMap, 'zoom_changed', startInProgressAnimation);
 		google.maps.event.addListener(googleMap, 'maptypeid_changed', startInProgressAnimation);
 		google.maps.event.addListener(googleMap, 'projection_changed', startInProgressAnimation);
-		if (mapTarget.attr('data-kml') && mapTarget.attr('data-kml').length > 0)
+		if (typeof(mapTarget.attr('data-kml')) == 'string')
 		{
 			var kml = new google.maps.KmlLayer(mapTarget.attr('data-kml'), { map: googleMap, preserveViewport: true });
 		}
-		else if (mapTarget.attr('data-marker').length > 0)
+		else if (typeof(mapTarget.attr('data-marker')) == 'string')
 		{
 			var marker = new google.maps.Marker({
 				position: location,
 				map: googleMap,
 				icon: mapTarget.attr('data-marker')
 			});
-			if (mapTarget.attr('data-marker-title').length > 0)
+			if (typeof(mapTarget.attr('data-marker-title')) == 'string')
 			{
 				marker.setTitle(mapTarget.attr('data-marker-title'));
 				var markerInfo = new google.maps.InfoWindow();
@@ -1597,7 +1608,7 @@ function isLocationAvailable()
 	if (typeof(navigator.geolocation) != 'undefined')
 		return true;
 	else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
-		return google.gears.factory.getPermission(answerSpace, 'See your location marked on maps.');
+		return google.gears.factory.getPermission(siteVars.answerSpace, 'See your location marked on maps.');
 	return false;
 }
 

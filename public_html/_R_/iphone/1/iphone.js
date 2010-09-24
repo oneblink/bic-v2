@@ -1,3 +1,59 @@
+var deviceVars = {}, siteVars = {};
+
+// ** extract iOS version number **
+
+deviceVars.majorVersion = navigator.userAgent.match(/ OS (\d+)_/);
+deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 3;
+deviceVars.minorVersion = navigator.userAgent.match(/ OS \d+_(\d+)/);
+deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 1;
+deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)\.(\d+)\+? \(KHTML/);
+deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
+// ** device-specific initialisation of variables and flags **
+
+siteVars.serverDomain = location.hostname;
+siteVars.serverAppVersion = location.pathname.match(/_R_\/iphone\/(\d+)\//)[1];
+siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
+siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/iphone/' + siteVars.serverAppVersion;
+siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
+
+deviceVars.device = "iphone";
+deviceVars.storageReady = false;
+deviceVars.storageAvailable = false;
+
+deviceVars.scrollProperty = (deviceVars.majorVersion >= 4) ? '-webkit-transform' : 'top';
+deviceVars.scrollValue = (deviceVars.majorVersion >= 4) ? 'translateY($1px)' : '$1px';
+deviceVars.doButtonBorders = deviceVars.engineVersion >= 531;
+
+jStore.error(function(e) {
+	console.log('jStore: ' + e);
+});
+jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, jStore.flavors.sql);
+jStore.engineReady(function(engine) {
+	console.log('jStore using: ' + engine.jri);
+	deviceVars.storageReady = engine.isReady;
+	loaded();
+});
+$(window).load(function() {
+	for (e in jStore.available)
+	{
+		if (jStore.available[e])
+		{
+			deviceVars.storageAvailable = true;
+			break;
+		}
+	}
+	if (!deviceVars.storageAvailable)
+		loaded();
+	$(window).scroll(onScroll);
+	$('input').live('blur', function() { $(window).trigger('scroll'); });
+});
+
+/*
+<?php if ($do_login) { ?>
+siteVars.hasLogin = true;
+<?php } ?>
+*/
+
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
 var navButtons = $("#homeButton, #backButton");
@@ -247,8 +303,8 @@ function setCurrentView(view, reverseTransition)
 	setTimeout(function() {
 		window.scrollTo(0, 1);
 	}, 0);
-	updatePartCSS(navBar, scrollProperty, '0', scrollValue);
-	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
+	updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
+	updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
 }
 
 /*
@@ -263,13 +319,13 @@ function onScroll()
 	if (scrollTop > headerBottom)
 	{
 		var offset = scrollTop - headerBottom;
-		updatePartCSS(navBar, scrollProperty, offset, scrollValue);
+		updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
 	}
 	else
 	{
-		updatePartCSS(navBar, scrollProperty, '0', scrollValue);
+		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, scrollProperty, (activityIndicatorTop + scrollTop), scrollValue);
+	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)
