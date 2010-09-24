@@ -6,7 +6,7 @@ deviceVars.majorVersion = navigator.userAgent.match(/ OS (\d+)_/);
 deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 3;
 deviceVars.minorVersion = navigator.userAgent.match(/ OS \d+_(\d+)/);
 deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 1;
-deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)\.(\d+)\+? \(KHTML/);
+deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
 // ** device-specific initialisation of variables and flags **
 
@@ -46,13 +46,9 @@ $(window).load(function() {
 		loaded();
 	$(window).scroll(onScroll);
 	$('input').live('blur', function() { $(window).trigger('scroll'); });
+	if ($('#loginStatus') > 0)
+		siteVars.hasLogin = true;
 });
-
-/*
-<?php if ($do_login) { ?>
-siteVars.hasLogin = true;
-<?php } ?>
-*/
 
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
