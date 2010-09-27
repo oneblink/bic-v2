@@ -859,7 +859,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	addBackHistory("showSecondLevelAnswerView(\"" + keyword + "\", \"" + arg0 + "\", true);");
 	for (k in siteConfig.keywords)
 	{
-		if (keyword == siteConfig.keywords[k].name)
+		if (keyword.toUpperCase() == siteConfig.keywords[k].name.toUpperCase())
 		{
 			var keywordID = k;
 			break;
