@@ -1,3 +1,45 @@
+var deviceVars = {}, siteVars = {};
+
+// ** device-specific initialisation of variables and flags **
+
+siteVars.serverDomain = location.hostname;
+siteVars.serverAppVersion = location.pathname.match(/_R_\/ipad\/(\d+)\//)[1];
+siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
+siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/ipad/' + siteVars.serverAppVersion;
+siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
+
+deviceVars.device = "ipad";
+deviceVars.storageReady = false;
+deviceVars.storageAvailable = false;
+
+jStore.error(function(e) { console.log('jStore: ' + e); });
+jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, jStore.flavors.sql);
+jStore.engineReady(function(engine) {
+	console.log('jStore using: ' + engine.jri);
+	deviceVars.storageReady = engine.isReady;
+	loaded();
+});
+$(window).load(function() {
+	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
+	deviceVars.engineVersion = deviceVars.engineVersion != null ? deviceVars.engineVersion[1] : 525;
+	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
+	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
+	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
+	for (e in jStore.available)
+	{
+		if (jStore.available[e])
+		{
+			deviceVars.storageAvailable = true;
+			break;
+		}
+	}
+	if (!deviceVars.storageAvailable)
+		loaded();
+	$('input').live('blur', function() { $(window).trigger('scroll'); });
+	if ($('#loginStatus') > 0)
+		siteVars.hasLogin = true;
+});
+
 // caching frequently-accessed selectors
 var backButtonHeader = $('#backButtonHeader');
 var helpButton = $('#helpButton');
@@ -199,38 +241,48 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+	setTimeout(function() {
+		window.scrollTo(0, 1);
+	}, 0);
   var entranceDirection = (reverseTransition ? 'left' : 'right');
-  var exitDirection = (reverseTransition ? 'right' : 'left');
+  var endPosition = (reverseTransition ? 'right' : 'left');
   var startPosition = (reverseTransition ? 'left' : 'right');
-  var currentView = $('#' + $('.view:visible').attr('id'));
+  var currentView = $('.view:visible');
   var newView = $('#' + view);
   if (currentView.size() == 0)
   {
-/*		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		}); */
 		newView.show();
   }
-  else if (currentView.attr('id') == newView.attr('id'))
+	else if (currentView.attr('id') == newView.attr('id'))
   {
 		newView.hide();
-		newView.addClass('sliding');
-		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		});
+		newView.addClass('slid' + startPosition);
+		newView.show();
+		setTimeout(function() {
+			newView.addClass('animating');
+			newView.removeClass('slid' + startPosition)
+		}, 0);
+		setTimeout(function() {
+			newView.removeClass('animating');
+		}, 300);
   }
   else
   {
-		currentView.addClass('sliding');
-		currentView.hide('slide', { direction: exitDirection }, 300, function() {
-			currentView.removeClass('sliding');
-		});
-		newView.addClass('sliding');
-		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		});
+		newView.hide();
+		newView.addClass('slid' + startPosition);
+		currentView.addClass('animating');
+		newView.show();
+		newView.addClass('animating');
+		setTimeout(function() {
+			newView.removeClass('slid' + startPosition)
+			currentView.addClass('slid' + endPosition)
+		}, 0);
+		setTimeout(function() {
+			newView.removeClass('animating');
+			currentView.hide();
+			currentView.removeClass('animating slid' + endPosition);
+		}, 300);
   }
-  window.scrollTo(0, 0);
 }
 
 /*
@@ -273,7 +325,7 @@ function populateLeftBoxWithMasterCategories()
 	{
 		var order = siteConfig.master_categories_order;
 		var list = siteConfig.master_categories;
-		if (textOnlyLeftList)
+		if (siteConfig.sidebar_config === 'textonly')
 		{
 			leftContent.empty();
 			var html = "<ul>"
@@ -321,7 +373,7 @@ function populateLeftBoxWithCategories(masterCategory)
 	}
 	else
 	{
-		if (textOnlyLeftList)
+		if (siteConfig.sidebar_config === 'textonly')
 		{
 			populateTextOnlyCategories(masterCategory);
 		}

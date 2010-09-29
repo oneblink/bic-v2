@@ -1,13 +1,5 @@
 var deviceVars = {}, siteVars = {};
 
-// ** extract iOS version number **
-
-deviceVars.majorVersion = navigator.userAgent.match(/ OS (\d+)_/);
-deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 3;
-deviceVars.minorVersion = navigator.userAgent.match(/ OS \d+_(\d+)/);
-deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 1;
-deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
-deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
 // ** device-specific initialisation of variables and flags **
 
 siteVars.serverDomain = location.hostname;
@@ -20,13 +12,7 @@ deviceVars.device = "iphone";
 deviceVars.storageReady = false;
 deviceVars.storageAvailable = false;
 
-deviceVars.scrollProperty = (deviceVars.majorVersion >= 4) ? '-webkit-transform' : 'top';
-deviceVars.scrollValue = (deviceVars.majorVersion >= 4) ? 'translateY($1px)' : '$1px';
-deviceVars.doButtonBorders = deviceVars.engineVersion >= 531;
-
-jStore.error(function(e) {
-	console.log('jStore: ' + e);
-});
+jStore.error(function(e) { console.log('jStore: ' + e); });
 jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, jStore.flavors.sql);
 jStore.engineReady(function(engine) {
 	console.log('jStore using: ' + engine.jri);
@@ -34,6 +20,12 @@ jStore.engineReady(function(engine) {
 	loaded();
 });
 $(window).load(function() {
+	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
+	deviceVars.engineVersion = deviceVars.engineVersion != null ? deviceVars.engineVersion[1] : 525;
+	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
+	deviceVars.useCSS3buttons = deviceVars.engineVersion >= 531; // iOS 3.2 understand border-image
+	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
+	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
 	for (e in jStore.available)
 	{
 		if (jStore.available[e])
@@ -44,7 +36,7 @@ $(window).load(function() {
 	}
 	if (!deviceVars.storageAvailable)
 		loaded();
-	$(window).scroll(onScroll);
+	window.addEventListener('scroll', onScroll, false);
 	$('input').live('blur', function() { $(window).trigger('scroll'); });
 	if ($('#loginStatus') > 0)
 		siteVars.hasLogin = true;
@@ -268,8 +260,11 @@ function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
 	setupParts();
+	setTimeout(function() {
+		window.scrollTo(0, 1);
+	}, 0);
   var entranceDirection = (reverseTransition ? 'left' : 'right');
-  var exitDirection = (reverseTransition ? 'right' : 'left');
+  var endPosition = (reverseTransition ? 'right' : 'left');
   var startPosition = (reverseTransition ? 'left' : 'right');
   var currentView = $('.view:visible');
   var newView = $('#' + view);
@@ -280,25 +275,33 @@ function setCurrentView(view, reverseTransition)
 	else if (currentView.attr('id') == newView.attr('id'))
   {
 		newView.hide();
-		newView.addClass('sliding');
-		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		});
+		newView.addClass('slid' + startPosition);
+		newView.show();
+		setTimeout(function() {
+			newView.addClass('animating');
+			newView.removeClass('slid' + startPosition)
+		}, 0);
+		setTimeout(function() {
+			newView.removeClass('animating');
+		}, 300);
   }
   else
   {
-		currentView.addClass('sliding');
-		currentView.hide('slide', { direction: exitDirection }, 300, function() {
-			currentView.removeClass('sliding');
-		});
-		newView.addClass('sliding');
-		newView.show('slide', { direction: entranceDirection }, 300, function() {
-			newView.removeClass('sliding');
-		});
+		newView.hide();
+		newView.addClass('slid' + startPosition);
+		currentView.addClass('animating');
+		newView.show();
+		newView.addClass('animating');
+		setTimeout(function() {
+			newView.removeClass('slid' + startPosition)
+			currentView.addClass('slid' + endPosition)
+		}, 0);
+		setTimeout(function() {
+			newView.removeClass('animating');
+			currentView.hide();
+			currentView.removeClass('animating slid' + endPosition);
+		}, 300);
   }
-	setTimeout(function() {
-		window.scrollTo(0, 1);
-	}, 0);
 	updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
 }
@@ -311,7 +314,7 @@ function setCurrentView(view, reverseTransition)
 function onScroll()
 {
 	var headerBottom = $('.header').height();
-	var scrollTop = $(window).scrollTop();
+	var scrollTop = window.scrollY;
 	if (scrollTop > headerBottom)
 	{
 		var offset = scrollTop - headerBottom;
@@ -332,19 +335,22 @@ function updatePartCSS(element, property, value, valueFormat)
 
 function setupParts()
 {
-	var backButtons = $('.backButton');
-	backButtons.each(function(index, element) {
-		var thisElement = $(element);
-		thisElement.html('<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
-	});
-	var roundButtons = $('.roundButton');
-	roundButtons.each(function(index, element) {
-		var thisElement = $(element);
-		thisElement.html('<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
-	});
-	var squareButtons = $('.squareButton');
-	squareButtons.each(function(index, element) {
-		var thisElement = $(element);
-		thisElement.html('<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
-	});
+	if (deviceVars.useCSS3buttons === false)
+	{
+		var backButtons = $('.backButton');
+		backButtons.each(function(index, element) {
+			var thisElement = $(element);
+			thisElement.html('<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
+		});
+		var roundButtons = $('.roundButton');
+		roundButtons.each(function(index, element) {
+			var thisElement = $(element);
+			thisElement.html('<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
+		});
+		var squareButtons = $('.squareButton');
+		squareButtons.each(function(index, element) {
+			var thisElement = $(element);
+			thisElement.html('<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
+		});
+	}
 }

@@ -15,6 +15,18 @@ var maxTransactionTimeout = 180 * 1000;
 var ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
 var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
 
+$(document).ajaxSend(function(event, xhr, options) {
+//	xhr.onprogress = function(e) { console.log(e) }
+	xhr.onprogress = function(e) {
+		var string = 'AJAX download:';
+		string += ' loaded ' + e.position;
+		if (e.lengthComputable)
+			string += ' of ' + e.total;
+		string += ' at ' + e.timeStamp;
+		console.log(string);
+	}
+});
+
 function computeTimeout(messageLength) {
   var t = (messageLength * lowestTransferRateConst) + 5000;
   return ((t < maxTransactionTimeout) ? t : maxTransactionTimeout);
@@ -949,7 +961,7 @@ function goBackToKeywordView(keywordID)
 	var keyword = siteConfig.keywords[keywordID];
 	$('#mainLabel').html(keyword.name);
   currentKeyword = keywordID;
-  prepareKeywordViewForDevice(answerSpaceOneKeyword, keyword.help.length > 0);
+  prepareKeywordViewForDevice(answerSpaceOneKeyword, typeof(keyword.help) == 'string');
   setSubmitCachedFormButton();
   setCurrentView('keywordView', true, true);
 }

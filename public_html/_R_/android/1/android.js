@@ -1,3 +1,62 @@
+var deviceVars = {}, siteVars = {}, hashStack = new Array();
+
+// ** device-specific initialisation of variables and flags **
+
+siteVars.serverDomain = location.hostname;
+siteVars.serverAppVersion = location.pathname.match(/_R_\/android\/(\d+)\//)[1];
+siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
+siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/android/' + siteVars.serverAppVersion;
+siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
+
+deviceVars.device = "android";
+deviceVars.storageReady = false;
+deviceVars.storageAvailable = false;
+
+deviceVars.scrollProperty = '-webkit-transform';
+deviceVars.scrollValue = 'translateY($1px)';
+deviceVars.hasWebWorkers = window.Worker != undefined;
+deviceVars.disableXSLT = true;
+
+jStore.error(function(e) { console.log('jStore: ' + e); });
+jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, typeof(google) != 'undefined' && typeof(google.gears) != 'undefined' ? jStore.flavors.gears : jStore.flavors.sql);
+jStore.engineReady(function(engine) {
+	console.log('jStore using: ' + engine.jri);
+	deviceVars.storageReady = engine.isReady;
+	loaded();
+});
+$(window).load(function() {
+	deviceVars.majorVersion = navigator.userAgent.match(/Android (\d+)./);
+	deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 1;
+	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+.(\d+)/);
+	deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 5;
+	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
+	deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
+	if (deviceVars.engineVersion >= 529)
+		window.addEventListener('hashchange', onHashChange, false);
+	for (e in jStore.available)
+	{
+		if (jStore.available[e])
+		{
+			deviceVars.storageAvailable = true;
+			break;
+		}
+	}
+	if (!deviceVars.storageAvailable)
+		loaded();
+	window.addEventListener('scroll', onScroll, false);
+	$('input').live('blur', function() { $(window).trigger('scroll'); });
+	if ($('#loginStatus') > 0)
+		siteVars.hasLogin = true;
+//	$('.bulletin').bind('click', dismissBulletin);
+	setTimeout(function() {
+		deviceVars.headerHeight = $('header').height();
+		console.log(deviceVars);
+//		$('#stackLayout').css('padding-top', deviceVars.headerHeight + 'px');
+	}, 300);
+//	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+//	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
+});
+
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
 var navButtons = $("#homeButton, #backButton");
@@ -241,8 +300,8 @@ function setCurrentView(view, reverseTransition)
 		newView.hide();
 		newView.show('slide', { direction: entranceDirection }, 300);
   }
-	else if ((newView.find('#keywordBox > a, #categoriesBox > a, #masterCategoriesBox > a').size() > 0)
-					 || (currentView.find('#keywordBox > a, #categoriesBox > a, #masterCategoriesBox > a').size() > 0))
+	else if ((newView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0)
+					 || (currentView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0))
   {
 		var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
 		var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
@@ -267,13 +326,15 @@ function setCurrentView(view, reverseTransition)
 		setTimeout(function() {
 			currentView.removeClass('animating old ' + zoomExit);
 			newView.removeClass('animating new');
+			if (typeof(iscroll) != 'undefined')
+				iscroll.refresh();
 		}, 300);
   }
 	setTimeout(function() {
 		window.scrollTo(0, 1);
 	}, 0);
-	updatePartCSS(navBoxHeader, scrollProperty, '0', scrollValue);
-	updatePartCSS(activityIndicator, scrollProperty, activityIndicatorTop, scrollValue);
+	updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
+	updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
 }
 
 /*
@@ -292,13 +353,13 @@ function onScroll()
 	if (scrollTop > headerBottom)
 	{
 		var offset = scrollTop - headerBottom;
-		updatePartCSS(navBoxHeader, scrollProperty, offset, scrollValue);
+		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
 	}
 	else
 	{
-		updatePartCSS(navBoxHeader, scrollProperty, '0', scrollValue);
+		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, scrollProperty, (activityIndicatorTop + scrollTop), scrollValue);
+	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)
