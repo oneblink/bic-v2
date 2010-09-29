@@ -44,7 +44,7 @@ $(window).load(function() {
 	if (!deviceVars.storageAvailable)
 		loaded();
 	window.addEventListener('scroll', onScroll, false);
-	$('input').live('blur', function() { $(window).trigger('scroll'); });
+	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
 	if ($('#loginStatus') > 0)
 		siteVars.hasLogin = true;
 //	$('.bulletin').bind('click', dismissBulletin);
@@ -285,66 +285,61 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
-	setupParts();
-  var entranceDirection = (reverseTransition ? 'left' : 'right');
-  var exitDirection = (reverseTransition ? 'right' : 'left');
-  var startPosition = (reverseTransition ? 'left' : 'right');
-  var currentView = $('.view:visible');
-  var newView = $('#' + view);
-  if (currentView.size() == 0)
-  {
-		newView.show();
-  }
-  else if (currentView.attr('id') == newView.attr('id'))
-  {
-		newView.hide();
-		newView.show('slide', { direction: entranceDirection }, 300);
-  }
-	else if ((newView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0)
-					 || (currentView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0))
-  {
-		var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
-		var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
-		currentView.addClass('animating old');
-		currentView.addClass(zoomExit);
-		newView.addClass(zoomEntrance);
-		newView.addClass('animating new');
-		newView.removeClass(zoomEntrance);
-		newView.show();
-		setTimeout(function() {
-			currentView.hide();
-			currentView.removeClass('animating old ' + zoomExit);
-			newView.removeClass('animating new');
-		}, 300);
-  }
-  else
-  {
-		currentView.addClass('animating old');
-		newView.addClass('animating new');
-		currentView.hide('slide', { direction: exitDirection }, 300);
-		newView.show('slide', { direction: entranceDirection }, 300);
-		setTimeout(function() {
-			currentView.removeClass('animating old ' + zoomExit);
-			newView.removeClass('animating new');
-			if (typeof(iscroll) != 'undefined')
-				iscroll.refresh();
-		}, 300);
-  }
-	setTimeout(function() {
+  setTimeout(function() {
 		window.scrollTo(0, 1);
-	}, 0);
-	updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
-	updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
+		var entranceDirection = (reverseTransition ? 'left' : 'right');
+		var exitDirection = (reverseTransition ? 'right' : 'left');
+		var startPosition = (reverseTransition ? 'left' : 'right');
+		var currentView = $('.view:visible');
+		var newView = $('#' + view);
+		if (currentView.size() == 0)
+		{
+			newView.show();
+		}
+		else if (currentView.attr('id') == newView.attr('id'))
+		{
+			newView.hide();
+			newView.show('slide', { direction: entranceDirection }, 300);
+		}
+		else if ((newView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0)
+						 || (currentView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0))
+		{
+			var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
+			var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
+			currentView.addClass('animating old');
+			currentView.addClass(zoomExit);
+			newView.addClass(zoomEntrance);
+			newView.addClass('animating new');
+			newView.removeClass(zoomEntrance);
+			newView.show();
+			setTimeout(function() {
+				currentView.hide();
+				currentView.removeClass('animating old ' + zoomExit);
+				newView.removeClass('animating new');
+			}, 300);
+		}
+		else
+		{
+			currentView.addClass('animating old');
+			newView.addClass('animating new');
+			currentView.hide('slide', { direction: exitDirection }, 300);
+			newView.show('slide', { direction: entranceDirection }, 300);
+			setTimeout(function() {
+				currentView.removeClass('animating old ' + zoomExit);
+				newView.removeClass('animating new');
+				if (typeof(iscroll) != 'undefined')
+					iscroll.refresh();
+			}, 300);
+		}
+		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
+		updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
+  }, 0);
 }
 
 /*
  ABOVE: all methods need implementation per device (directly called from main.js)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
-
-function setupParts()
-{
-}
 
 function onScroll()
 {

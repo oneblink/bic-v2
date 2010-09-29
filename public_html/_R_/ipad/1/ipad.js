@@ -35,7 +35,7 @@ $(window).load(function() {
 	}
 	if (!deviceVars.storageAvailable)
 		loaded();
-	$('input').live('blur', function() { $(window).trigger('scroll'); });
+	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
 	if ($('#loginStatus') > 0)
 		siteVars.hasLogin = true;
 });
@@ -243,46 +243,46 @@ function setCurrentView(view, reverseTransition)
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
 	setTimeout(function() {
 		window.scrollTo(0, 1);
-	}, 0);
-  var entranceDirection = (reverseTransition ? 'left' : 'right');
-  var endPosition = (reverseTransition ? 'right' : 'left');
-  var startPosition = (reverseTransition ? 'left' : 'right');
-  var currentView = $('.view:visible');
-  var newView = $('#' + view);
-  if (currentView.size() == 0)
-  {
-		newView.show();
-  }
-	else if (currentView.attr('id') == newView.attr('id'))
-  {
-		newView.hide();
-		newView.addClass('slid' + startPosition);
-		newView.show();
-		setTimeout(function() {
+		var entranceDirection = (reverseTransition ? 'left' : 'right');
+		var endPosition = (reverseTransition ? 'right' : 'left');
+		var startPosition = (reverseTransition ? 'left' : 'right');
+		var currentView = $('.view:visible');
+		var newView = $('#' + view);
+		if (currentView.size() == 0)
+		{
+			newView.show();
+		}
+		else if (currentView.attr('id') == newView.attr('id'))
+		{
+			newView.hide();
+			newView.addClass('slid' + startPosition);
+			newView.show();
+			setTimeout(function() {
+				newView.addClass('animating');
+				newView.removeClass('slid' + startPosition)
+			}, 0);
+			setTimeout(function() {
+				newView.removeClass('animating');
+			}, 300);
+		}
+		else
+		{
+			newView.hide();
+			newView.addClass('slid' + startPosition);
+			currentView.addClass('animating');
+			newView.show();
 			newView.addClass('animating');
-			newView.removeClass('slid' + startPosition)
-		}, 0);
-		setTimeout(function() {
-			newView.removeClass('animating');
-		}, 300);
-  }
-  else
-  {
-		newView.hide();
-		newView.addClass('slid' + startPosition);
-		currentView.addClass('animating');
-		newView.show();
-		newView.addClass('animating');
-		setTimeout(function() {
-			newView.removeClass('slid' + startPosition)
-			currentView.addClass('slid' + endPosition)
-		}, 0);
-		setTimeout(function() {
-			newView.removeClass('animating');
-			currentView.hide();
-			currentView.removeClass('animating slid' + endPosition);
-		}, 300);
-  }
+			setTimeout(function() {
+				newView.removeClass('slid' + startPosition)
+				currentView.addClass('slid' + endPosition)
+			}, 0);
+			setTimeout(function() {
+				newView.removeClass('animating');
+				currentView.hide();
+				currentView.removeClass('animating slid' + endPosition);
+			}, 300);
+		}
+	}, 0);
 }
 
 /*
