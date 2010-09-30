@@ -548,6 +548,10 @@ function processSiteConfig()
 		{
 			showKeywordListView();
 		}
+		if (siteVars.keywordInit)
+		{
+			gotoNextScreen(siteVars.keywordInit);
+		}
 		startUp.remove();
 		$('#content').removeClass('hidden');
 		if (typeof(siteConfig.webClip) == 'string' && deviceVars.device == 'iphone') {
@@ -846,7 +850,7 @@ function gotoNextScreen(keywordID)
 	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not code
 		for (k in siteConfig.keywords)
 		{
-			if (keywordID == siteConfig.keywords[k].name)
+			if (keywordID.toUpperCase() == siteConfig.keywords[k].name.toUpperCase())
 			{
 				keywordID = k;
 				break;

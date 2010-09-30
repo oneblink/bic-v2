@@ -42,22 +42,39 @@ button[disabled] {
 	position: relative;
 }
 
-#activityIndicator {
-	position: fixed;
-	top: 50%;
-	max-width: 100%;
-	width: 100%;
-	padding: 10px;
-	text-align: center;
-	background-image: -webkit-gradient(radial, center center, 60, center center, 300, from(#FFF), to(rgba(255, 255, 255, 0)));
-	background-image: -moz-radial-gradient(center 0deg, circle farthest-side, #FFF 0%, rgba(255, 255, 255, 0) 100%);
+.dialog {
+	position: absolute;
+	left: 10%;
+	display: table;
+	max-width: 80%;
+	width: 80%;
+	padding: .2em;
+	border-radius: .2em;
+	-webkit-border-radius: .2em;
+	background-color: #FFF;
 	z-index: 50;
 }
 
-#activityIndicator img {
-	margin-left: -20px;
-	width: 54px;
-	-webkit-animation-iteration-count: infinite;
+.dialogHeader, dialogBody {
+	display: table-row;
+	background-color: #333;
+}
+
+.dialogHeader > h2, .dialogHeader > img {
+	display: table-cell;
+	vertical-align: middle;
+	padding: .5em;
+}
+
+.dialogHeader > h2 {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-weight: normal;
+  color: #FFF;
+}
+
+#activityIndicator img.spinner {
 	-webkit-animation-name: spinner;
 	-webkit-animation-duration: 1s;
 	-webkit-animation-iteration-count: infinite;
@@ -164,10 +181,10 @@ button[disabled] {
 .view.animating {
 	position: absolute;
 	top: 0px;
-	transition: opacity 0.3s linear, transform 0.3s ease-in-out;
-	-o-transition: opacity 0.3s linear, -o-transform 0.3s ease-in-out;
-	-moz-transition: opacity 0.3s linear, -moz-transform 0.3s ease-in-out;
-	-webkit-transition: opacity 0.3s linear, -webkit-transform 0.3s ease-in-out;
+	transition: opacity 0.3s linear, transform 0.3s ease;
+	-o-transition: opacity 0.3s linear, -o-transform 0.3s ease;
+	-moz-transition: opacity 0.3s linear, -moz-transform 0.3s ease;
+	-webkit-transition: opacity 0.3s linear, -webkit-transform 0.3s ease;
 }
 
 .view.zoomingin {
@@ -184,6 +201,19 @@ button[disabled] {
 	-o-transform: scale(0.2);
 	-moz-transform: scale(0.2);
 	-webkit-transform: scale(0.2);
+}
+
+.view.slidleft {
+	transform: translateX(-100%);
+	-o-transform: translateX(-100%);
+	-moz-transform: translateX(-100%);
+	-webkit-transform: translateX(-100%);
+}
+.view.slidright {
+	transform: translateX(100%);
+	-o-transform: translateX(100%);
+	-moz-transform: translateX(100%);
+	-webkit-transform: translateX(100%);
 }
 
 .view.old {
@@ -269,78 +299,103 @@ ul.box > li.selected {
 
 @-webkit-keyframes spinner {
 	from {
+		transform: rotate(0deg);
 		-webkit-transform: rotate(0deg);
 	}
 	8.32% {
+		transform: rotate(0deg);
 		-webkit-transform: rotate(0deg);
 	}
 	8.33% {
+		transform: rotate(30deg);
 		-webkit-transform: rotate(30deg);
 	}
 	16.65% {
+		transform: rotate(30deg);
 		-webkit-transform: rotate(30deg);
 	}
 	16.66% {
+		transform: rotate(60deg);
 		-webkit-transform: rotate(60deg);
 	}
 	24.99% {
+		transform: rotate(60deg);
 		-webkit-transform: rotate(60deg);
 	}
 	25% {
+		transform: rotate(90deg);
 		-webkit-transform: rotate(90deg);
 	}
 	33.32% {
+		transform: rotate(90deg);
 		-webkit-transform: rotate(90deg);
 	}
 	33.33% {
+		transform: rotate(120deg);
 		-webkit-transform: rotate(120deg);
 	}
 	41.65% {
+		transform: rotate(120deg);
 		-webkit-transform: rotate(120deg);
 	}
 	41.66% {
+		transform: rotate(150deg);
 		-webkit-transform: rotate(150deg);
 	}
 	49.99% {
+		transform: rotate(150deg);
 		-webkit-transform: rotate(150deg);
 	}
 	50% {
+		transform: rotate(180deg);
 		-webkit-transform: rotate(180deg);
 	}
 	58.32% {
+		transform: rotate(180deg);
 		-webkit-transform: rotate(180deg);
 	}
 	58.33% {
+		transform: rotate(210deg);
 		-webkit-transform: rotate(210deg);
 	}
 	66.65% {
+		transform: rotate(210deg);
 		-webkit-transform: rotate(210deg);
 	}
 	66.66% {
+		transform: rotate(240deg);
 		-webkit-transform: rotate(240deg);
 	}
 	74.99% {
+		transform: rotate(240deg);
 		-webkit-transform: rotate(240deg);
 	}
 	75% {
+		transform: rotate(270deg);
 		-webkit-transform: rotate(270deg);
 	}
 	83.32% {
+		transform: rotate(270deg);
 		-webkit-transform: rotate(270deg);
 	}
 	83.33% {
+		transform: rotate(300deg);
 		-webkit-transform: rotate(300deg);
 	}
 	91.65% {
+		transform: rotate(300deg);
 		-webkit-transform: rotate(300deg);
 	}
 	91.66% {
+		transform: rotate(330deg);
 		-webkit-transform: rotate(330deg);
 	}
 	99.99% {
+		transform: rotate(330deg);
 		-webkit-transform: rotate(330deg);
 	}
 	to {
+		transform: rotate(360deg);
 		-webkit-transform: rotate(360deg);
 	}
 }

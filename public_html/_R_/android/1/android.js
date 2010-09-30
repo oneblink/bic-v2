@@ -7,6 +7,8 @@ siteVars.serverAppVersion = location.pathname.match(/_R_\/android\/(\d+)\//)[1];
 siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
 siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/android/' + siteVars.serverAppVersion;
 siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
+siteVars.keywordInit = location.href.match(/keyword=(\w+)/);
+siteVars.keywordInit = siteVars.keywordInit != null ? siteVars.keywordInit[1] : null;
 
 deviceVars.device = "android";
 deviceVars.storageReady = false;
@@ -31,6 +33,7 @@ $(window).load(function() {
 	deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 5;
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
+	deviceVars.progressDialogTop = Math.floor(screen.height / 2);
 	if (deviceVars.engineVersion >= 529)
 		window.addEventListener('hashchange', onHashChange, false);
 	for (e in jStore.available)
@@ -64,7 +67,6 @@ var helpButton = $('#helpButton');
 var welcomeMessage = $('#welcomeMsgArea');
 var mainLabel = $('#mainLabel');
 var activityIndicator = $('#activityIndicator');
-var activityIndicatorTop = Math.floor($(window).height() / 2);
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -195,6 +197,7 @@ function prepareAnswerViewForDevice()
 	else
 	{
 		navButtons.removeClass('hidden');
+		navBoxHeader.removeClass('hidden');
 	}
 	if (typeof(siteConfig.keywords[currentKeyword].help) == 'string')
 	{
@@ -287,6 +290,7 @@ function setCurrentView(view, reverseTransition)
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
   setTimeout(function() {
 		window.scrollTo(0, 1);
+		/*
 		var entranceDirection = (reverseTransition ? 'left' : 'right');
 		var exitDirection = (reverseTransition ? 'right' : 'left');
 		var startPosition = (reverseTransition ? 'left' : 'right');
@@ -327,12 +331,67 @@ function setCurrentView(view, reverseTransition)
 			setTimeout(function() {
 				currentView.removeClass('animating old ' + zoomExit);
 				newView.removeClass('animating new');
-				if (typeof(iscroll) != 'undefined')
-					iscroll.refresh();
+			}, 300);
+		}
+		*/
+		var entranceDirection = (reverseTransition ? 'left' : 'right');
+		var endPosition = (reverseTransition ? 'right' : 'left');
+		var startPosition = (reverseTransition ? 'left' : 'right');
+		var currentView = $('.view:visible');
+		var newView = $('#' + view);
+		if (currentView.size() == 0)
+		{
+			newView.show();
+		}
+		else if (currentView.attr('id') == newView.attr('id'))
+		{
+			newView.hide();
+			newView.addClass('slid' + startPosition);
+			newView.show();
+			setTimeout(function() {
+				newView.addClass('animating');
+				newView.removeClass('slid' + startPosition)
+			}, 0);
+			setTimeout(function() {
+				newView.removeClass('animating');
+			}, 300);
+		}
+		else if ((newView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0)
+						 || (currentView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0))
+		{
+			var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
+			var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
+			currentView.addClass('animating old');
+			currentView.addClass(zoomExit);
+			newView.addClass(zoomEntrance);
+			newView.addClass('animating new');
+			newView.removeClass(zoomEntrance);
+			newView.show();
+			setTimeout(function() {
+				currentView.hide();
+				currentView.removeClass('animating old ' + zoomExit);
+				newView.removeClass('animating new');
+			}, 300);
+		}
+		else
+		{
+			newView.hide();
+			newView.addClass('slid' + startPosition);
+			currentView.addClass('animating');
+			newView.show();
+			newView.addClass('animating');
+			setTimeout(function() {
+				newView.removeClass('slid' + startPosition)
+				currentView.addClass('slid' + endPosition)
+			}, 0);
+			setTimeout(function() {
+				newView.removeClass('animating');
+				currentView.hide();
+				currentView.removeClass('animating slid' + endPosition);
 			}, 300);
 		}
 		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
-		updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
+		updatePartCSS(activityIndicator, deviceVars.scrollProperty, deviceVars.progressDialogTop, deviceVars.scrollValue);
   }, 0);
 }
 
@@ -354,7 +413,7 @@ function onScroll()
 	{
 		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (deviceVars.progressDialogTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)

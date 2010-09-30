@@ -7,6 +7,8 @@ siteVars.serverAppVersion = location.pathname.match(/_R_\/iphone\/(\d+)\//)[1];
 siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
 siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/iphone/' + siteVars.serverAppVersion;
 siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
+siteVars.keywordInit = location.href.match(/keyword=(\w+)/);
+siteVars.keywordInit = siteVars.keywordInit != null ? siteVars.keywordInit[1] : null;
 
 deviceVars.device = "iphone";
 deviceVars.storageReady = false;
