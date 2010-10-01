@@ -24,9 +24,9 @@ jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Fla
 jStore.engineReady(function(engine) {
 	console.log('jStore using: ' + engine.jri);
 	deviceVars.storageReady = engine.isReady;
-	loaded();
+	launchWebApplication();
 });
-$(window).load(function() {
+$(document).ready(function() {
 	deviceVars.majorVersion = navigator.userAgent.match(/Android (\d+)./);
 	deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 1;
 	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+.(\d+)/);
@@ -44,8 +44,6 @@ $(window).load(function() {
 			break;
 		}
 	}
-	if (!deviceVars.storageAvailable)
-		loaded();
 	window.addEventListener('scroll', onScroll, false);
 	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
 	if ($('#loginStatus') > 0)
@@ -58,7 +56,23 @@ $(window).load(function() {
 	}, 300);
 //	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 //	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
+	deviceVars.documentReady = true;
+	launchWebApplication();
 });
+
+function launchWebApplication()
+{
+	if (deviceVars.documentReady != true)
+	{
+		return;
+	}
+	if (deviceVars.storageAvailable == true)
+	{
+		if (deviceVars.storageReady != true)
+			return;
+	}
+	loaded();
+}
 
 // caching frequently-accessed selectors
 var navBoxHeader = $('#navBoxHeader');
@@ -264,25 +278,19 @@ function startInProgressAnimation()
 
 function populateTextOnlyCategories(masterCategory)
 {
+	console.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
-	var select = document.createElement('select');
-	$(select).attr('id', 'categoriesList');
-	$(select).bind('change', function() {
-	 showKeywordListView(this.options[this.selectedIndex].value);
-	});
+	var selectHTML = '<select id="categoriesList" onchange="showKeywordListView(this.options[this.selectedIndex].value);">';
 	for (id in order)
 	{
-		var option = document.createElement('option');
-		$(option).attr('value', order[id]);
-		if (order[id] == currentCategory)
-			$(option).attr('selected', 'true');
-		$(option).html(list[order[id]].name);
-		$(option).appendTo(select);
+		selectHTML += '<option value="' + order[id] + '"' + (order[id] == currentCategory ? ' selected="true">' : '>') + list[order[id]].name + '</option>';
 	}
-	$('#categorySelector').empty().append(select);
+	selectHTML += '</option>';
+	var categorySelector = document.getElementById('categorySelector');
+	$(categorySelector).empty();
+	categorySelector.innerHTML = selectHTML;
 	$('#categorySelectorArea').removeClass('hidden');
-	//currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
 }
 
 function setCurrentView(view, reverseTransition)
@@ -290,7 +298,6 @@ function setCurrentView(view, reverseTransition)
   console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
   setTimeout(function() {
 		window.scrollTo(0, 1);
-		/*
 		var entranceDirection = (reverseTransition ? 'left' : 'right');
 		var exitDirection = (reverseTransition ? 'right' : 'left');
 		var startPosition = (reverseTransition ? 'left' : 'right');
@@ -333,65 +340,6 @@ function setCurrentView(view, reverseTransition)
 				newView.removeClass('animating new');
 			}, 300);
 		}
-		*/
-		var entranceDirection = (reverseTransition ? 'left' : 'right');
-		var endPosition = (reverseTransition ? 'right' : 'left');
-		var startPosition = (reverseTransition ? 'left' : 'right');
-		var currentView = $('.view:visible');
-		var newView = $('#' + view);
-		if (currentView.size() == 0)
-		{
-			newView.show();
-		}
-		else if (currentView.attr('id') == newView.attr('id'))
-		{
-			newView.hide();
-			newView.addClass('slid' + startPosition);
-			newView.show();
-			setTimeout(function() {
-				newView.addClass('animating');
-				newView.removeClass('slid' + startPosition)
-			}, 0);
-			setTimeout(function() {
-				newView.removeClass('animating');
-			}, 300);
-		}
-		else if ((newView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0)
-						 || (currentView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0))
-		{
-			var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
-			var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
-			currentView.addClass('animating old');
-			currentView.addClass(zoomExit);
-			newView.addClass(zoomEntrance);
-			newView.addClass('animating new');
-			newView.removeClass(zoomEntrance);
-			newView.show();
-			setTimeout(function() {
-				currentView.hide();
-				currentView.removeClass('animating old ' + zoomExit);
-				newView.removeClass('animating new');
-			}, 300);
-		}
-		else
-		{
-			newView.hide();
-			newView.addClass('slid' + startPosition);
-			currentView.addClass('animating');
-			newView.show();
-			newView.addClass('animating');
-			setTimeout(function() {
-				newView.removeClass('slid' + startPosition)
-				currentView.addClass('slid' + endPosition)
-			}, 0);
-			setTimeout(function() {
-				newView.removeClass('animating');
-				currentView.hide();
-				currentView.removeClass('animating slid' + endPosition);
-			}, 300);
-		}
-		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
-		updatePartCSS(activityIndicator, deviceVars.scrollProperty, deviceVars.progressDialogTop, deviceVars.scrollValue);
   }, 0);
 }
 

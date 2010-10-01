@@ -181,40 +181,23 @@ button[disabled] {
 .view.animating {
 	position: absolute;
 	top: 0px;
-	transition: opacity 0.3s linear, transform 0.3s ease;
-	-o-transition: opacity 0.3s linear, -o-transform 0.3s ease;
-	-moz-transition: opacity 0.3s linear, -moz-transform 0.3s ease;
-	-webkit-transition: opacity 0.3s linear, -webkit-transform 0.3s ease;
+	-webkit-transition: opacity .3s linear, -webkit-transform .3s ease;
 }
 
 .view.zoomingin {
 	opacity: 0;
-	transform: scale(2.0);
-	-o-transform: scale(2.0);
-	-moz-transform: scale(2.0);
 	-webkit-transform: scale(2.0);
 }
 
 .view.zoomingout {
 	opacity: 0;
-	transform: scale(0.2);
-	-o-transform: scale(0.2);
-	-moz-transform: scale(0.2);
 	-webkit-transform: scale(0.2);
 }
 
-.view.slidleft {
-	transform: translateX(-100%);
-	-o-transform: translateX(-100%);
-	-moz-transform: translateX(-100%);
-	-webkit-transform: translateX(-100%);
-}
-.view.slidright {
-	transform: translateX(100%);
-	-o-transform: translateX(100%);
-	-moz-transform: translateX(100%);
-	-webkit-transform: translateX(100%);
-}
+.view.slidetoleft { -webkit-animation: slidetoleft .3s 1; }
+.view.slidetoright { -webkit-animation: slidetoright .3s 1; }
+.view.slidefromleft { -webkit-animation: slidefromleft .3s 1; }
+.view.slidefromright { -webkit-animation: slidefromright .3s 1; }
 
 .view.old {
 	z-index: 50
@@ -289,12 +272,38 @@ ul.box > li.selected {
 }
 
 @-webkit-keyframes pulse {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 0.6;
-	}
+	from { opacity: 0; }
+	to { opacity: 0.6; }
+}
+
+@-webkit-keyframes slidetoleft {
+	from { -webkit-transform: translateX(0); visibility: visible; }
+	to { -webkit-transform: translateX(-100%); visibility: hidden; }
+}
+
+@-webkit-keyframes slidetoright {
+	from { -webkit-transform: translateX(0); visibility: visible; }
+	to { -webkit-transform: translateX(100%); visibility: hidden; }
+}
+
+@-webkit-keyframes slidefromleft {
+	from { -webkit-transform: translateX(-100%); visibility: visible; }
+	to { -webkit-transform: translateX(0); visibility: visible; }
+}
+
+@-webkit-keyframes slidefromright {
+	from { -webkit-transform: translateX(100%); visibility: visible; }
+	to { -webkit-transform: translateX(0); visibility: visible; }
+}
+
+@-webkit-keyframes zoomin {
+	from { opacity: 0.0; -webkit-transform: scale(2.0); visibility: visible; }
+	to { opacity: 1.0; -webkit-transform: scale(1.0); visibility: visible; }
+}
+
+@-webkit-keyframes zoomout {
+	from { opacity: 1.0; -webkit-transform: scale(1.0); visibility: visible; }
+	to { opacity: 0.0; -webkit-transform: scale(2.0); visibility: hidden; }
 }
 
 @-webkit-keyframes spinner {

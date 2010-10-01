@@ -100,7 +100,6 @@ header, .navBar, #leftBox, #answerSpacesListView, #masterCategoriesView, #catego
 .hidden {
 	display: none !important;
 	z-index: -1 !important;
-	visibility: hidden !important;
 }
 
 #startUp {
