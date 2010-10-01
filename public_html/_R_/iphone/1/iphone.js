@@ -239,16 +239,24 @@ function populateTextOnlyCategories(masterCategory)
 	console.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
-	var selectHTML = '<select id="categoriesList" onchange="showKeywordListView(this.options[this.selectedIndex].value);">';
+	var select = document.createElement('select');
+	select.setAttribute('id', 'categoriesList');
 	for (id in order)
 	{
-		selectHTML += '<option value="' + order[id] + '"' + (order[id] == currentCategory ? ' selected="true">' : '>') + list[order[id]].name + '</option>';
+		var option = document.createElement('option');
+		option.setAttribute('value', order[id]);
+		if (order[id] == currentCategory)
+			option.setAttribute('selected', 'true');
+		option.appendChild(document.createTextNode(list[order[id]].name));
+		select.appendChild(option);
 	}
-	selectHTML += '</option>';
 	var categorySelector = document.getElementById('categorySelector');
-	$(categorySelector).empty();
-	categorySelector.innerHTML = selectHTML;
+	emptyDOMelement(categorySelector);
+	categorySelector.appendChild(select);
 	$('#categorySelectorArea').removeClass('hidden');
+	select.addEventListener('change', function() {
+	 showKeywordListView(this.options[this.selectedIndex].value);
+	}, true);
 }
 
 function setCurrentView(view, reverseTransition)

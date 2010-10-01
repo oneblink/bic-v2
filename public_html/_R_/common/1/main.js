@@ -104,51 +104,61 @@ function populateKeywordList(category) {
 	{
 		case "1col":
 			columns = 1;
-			width = "100%";
 			break;
 		case "2col":
 			columns = 2;
-			width = "50%";
 			break;
 		case "3col":
 			columns = 3;
-			width = "33%";
 			break;
 		case "4col":
 			columns = 4;
-			width = "25%";
 			break;
 	}
 	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order;
 	var list = siteConfig.keywords;
-	var htmlBox = "";
-	var htmlList = "";
+	var keywordList = document.getElementById('keywordList');
+	var keywordBox = document.getElementById('keywordBox');
+	emptyDOMelement(keywordList);
+	emptyDOMelement(keywordBox);
 	for (id in order)
   {
 		if (list[order[id]].status != 'active')
 			continue;
 		if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 		{
-			htmlBox += "<a onclick=\"gotoNextScreen('" + order[id] + "')\">";
-			htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
-			htmlBox += "</a>";
+			var image = document.createElement('img');
+			image.setAttribute('class', 'v' + siteConfig.keywords_config);
+			image.setAttribute('data-id', order[id]);
+			image.setAttribute('src', list[order[id]].image);
+			image.setAttribute('alt', list[order[id]].name);
+			keywordBox.appendChild(image);
+			image.addEventListener('click', function() {
+				gotoNextScreen(this.getAttribute('data-id'));
+			});
 		}
 		else
 		{
-			htmlList += "<li onclick=\"gotoNextScreen('" + order[id] + "')\">";
-			htmlList += "<div class='label'>" + list[order[id]].name + "</div>";
-			htmlList += "<div class='nextArrow'></div>";
+			var item = document.createElement('li');
+			item.setAttribute('data-id', order[id]);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'label');
+			label.appendChild(document.createTextNode(list[order[id]].name));
+			item.appendChild(label);
+			//htmlList += "<div class='nextArrow'></div>";
 			if (typeof(list[order[id]].description) == 'string')
-				htmlList += "<div class='description'>" + list[order[id]].description + "</div>";
-			htmlList += "</li>";
+			{
+				var description = document.createElement('div');
+				description.setAttribute('class', 'description');
+				description.appendChild(document.createTextNode(list[order[id]].description));
+				item.appendChild(description);
+			}
+			keywordList.appendChild(item);
+			item.addEventListener('click', function() {
+				gotoNextScreen(this.getAttribute('data-id'));
+			});
 		}
   }
-	var keywordList = document.getElementById('keywordList');
-	var keywordBox = document.getElementById('keywordBox');
-  $(keywordList).empty();
-  $(keywordBox).empty();
-	keywordList.innerHTML = htmlList;
-	keywordBox.innerHTML = htmlBox;
 	keywordList = $(keywordList);
 	keywordBox = $(keywordBox);
 	if (keywordBox.children().size() > 0)
@@ -228,16 +238,20 @@ function populateMasterCategories()
 {
 	var order = siteConfig.master_categories_order;
 	var list = siteConfig.master_categories;
-	var htmlBox = '';
+	var masterCategoriesBox = document.getElementById('masterCategoriesBox');
+	emptyDOMelement(masterCategoriesBox);
 	for (id in order)
 	{
-		htmlBox += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
-		htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
-		htmlBox += "</a>";
+			var image = document.createElement('img');
+			image.setAttribute('class', 'v' + siteConfig.master_categories_config);
+			image.setAttribute('data-id', order[id]);
+			image.setAttribute('src', list[order[id]].image);
+			image.setAttribute('alt', list[order[id]].name);
+			masterCategoriesBox.appendChild(image);
+			image.addEventListener('click', function() {
+				showCategoriesView(this.getAttribute('data-id'));
+			});
 	}
-	var masterCategoriesBox = document.getElementById('masterCategoriesBox');
-	$(masterCategoriesBox).empty();
-	masterCategoriesBox.innerHTML = htmlBox;
 	if (siteConfig.master_categories_config != 'auto')
 	{
 		var width;
@@ -245,19 +259,15 @@ function populateMasterCategories()
 		{
 			case "1col":
 				columns = 1;
-				width = "100%";
 				break;
 			case "2col":
 				columns = 2;
-				width = "50%";
 				break;
 			case "3col":
 				columns = 3;
-				width = "33%";
 				break;
 			case "4col":
 				columns = 4;
-				width = "25%";
 				break;
 		}
 		var images = $(masterCategoriesBox).find('img');
@@ -288,16 +298,20 @@ function populateVisualCategories(masterCategory)
 {
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
-	var htmlBox = '';
+	var categoriesBox = document.getElementById('categoriesBox');
+	emptyDOMelement(categoriesBox);
 	for (id in order)
 	{
-		htmlBox += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
-		htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
-		htmlBox += "</a>";
+			var image = document.createElement('img');
+			image.setAttribute('class', 'v' + siteConfig.categories_config);
+			image.setAttribute('data-id', order[id]);
+			image.setAttribute('src', list[order[id]].image);
+			image.setAttribute('alt', list[order[id]].name);
+			categoriesBox.appendChild(image);
+			image.addEventListener('click', function() {
+				showKeywordListView(this.getAttribute('data-id'));
+			});
 	}
-	var categoriesBox = document.getElementById('categoriesBox');
-	$(categoriesBox).empty();
-	categoriesBox.innerHTML = htmlBox;
 	if (siteConfig.categories_config != 'auto')
 	{
 		var width, columns;
@@ -305,19 +319,15 @@ function populateVisualCategories(masterCategory)
 		{
 			case "1col":
 				columns = 1;
-				width = "100%";
 				break;
 			case "2col":
 				columns = 2;
-				width = "50%";
 				break;
 			case "3col":
 				columns = 3;
-				width = "33%";
 				break;
 			case "4col":
 				columns = 4;
-				width = "25%";
 				break;
 		}
 		var images = $(categoriesBox).find('img');

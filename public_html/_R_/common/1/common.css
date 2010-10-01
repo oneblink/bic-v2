@@ -45,7 +45,7 @@ input[type=file] {
 
 hr { margin: 15px 0px; }
 
-a[onclick] { cursor: pointer; }
+[onclick] { cursor: pointer; }
 
 header {
 	overflow: hidden;
@@ -101,6 +101,11 @@ header, .navBar, #leftBox, #answerSpacesListView, #masterCategoriesView, #catego
 	display: none !important;
 	z-index: -1 !important;
 }
+
+img.v1col { width: 100%; }
+img.v2col { width: 50%; }
+img.v3col { width: 33%; }
+img.v4col { width: 25%; }
 
 #startUp {
 	position: absolute;
