@@ -239,23 +239,16 @@ function populateTextOnlyCategories(masterCategory)
 	console.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
-	var select = document.createElement('select');
-	$(select).attr('id', 'categoriesList');
-	$(select).bind('change', function() {
-	 showKeywordListView(this.options[this.selectedIndex].value);
-	});
+	var selectHTML = '<select id="categoriesList" onchange="showKeywordListView(this.options[this.selectedIndex].value);">';
 	for (id in order)
 	{
-		var option = document.createElement('option');
-		$(option).attr('value', order[id]);
-		if (order[id] == currentCategory)
-			$(option).attr('selected', 'true');
-		$(option).html(list[order[id]].name);
-		$(option).appendTo(select);
+		selectHTML += '<option value="' + order[id] + '"' + (order[id] == currentCategory ? ' selected="true">' : '>') + list[order[id]].name + '</option>';
 	}
-	$('#categorySelector').empty().append(select);
+	selectHTML += '</option>';
+	var categorySelector = document.getElementById('categorySelector');
+	$(categorySelector).empty();
+	categorySelector.innerHTML = selectHTML;
 	$('#categorySelectorArea').removeClass('hidden');
-	//currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
 }
 
 function setCurrentView(view, reverseTransition)

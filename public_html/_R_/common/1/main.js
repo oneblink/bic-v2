@@ -99,10 +99,6 @@ function isBrowserOnline()
 // produce the HTML for the list and insert it into #keywordList
 function populateKeywordList(category) {
 	console.log('populateKeywordList(): category=' +  category + '; hasCategories=' + hasCategories);
-	var keywordList = $('#keywordList');
-  keywordList.empty();
-	var keywordBox = $('#keywordBox');
-  keywordBox.empty();
 	var width;
 	switch (siteConfig.keywords_config)
 	{
@@ -147,8 +143,14 @@ function populateKeywordList(category) {
 			htmlList += "</li>";
 		}
   }
-	keywordBox.append(htmlBox);
-	keywordList.append(htmlList);
+	var keywordList = document.getElementById('keywordList');
+	var keywordBox = document.getElementById('keywordBox');
+  $(keywordList).empty();
+  $(keywordBox).empty();
+	keywordList.innerHTML = htmlList;
+	keywordBox.innerHTML = htmlBox;
+	keywordList = $(keywordList);
+	keywordBox = $(keywordBox);
 	if (keywordBox.children().size() > 0)
 	{
 		var images = keywordBox.find('img');
@@ -224,18 +226,18 @@ function populateAnswerSpacesList() {
 // produce XHTML for the master categories view
 function populateMasterCategories()
 {
-	var masterCategoriesBox = $('#masterCategoriesBox');
-	masterCategoriesBox.empty();
 	var order = siteConfig.master_categories_order;
 	var list = siteConfig.master_categories;
+	var htmlBox = '';
 	for (id in order)
 	{
-		var categoryHTML = "";
-		categoryHTML += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
-		categoryHTML += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
-		categoryHTML += "</a>";
-		masterCategoriesBox.append(categoryHTML);
+		htmlBox += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
+		htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
+		htmlBox += "</a>";
 	}
+	var masterCategoriesBox = document.getElementById('masterCategoriesBox');
+	$(masterCategoriesBox).empty();
+	masterCategoriesBox.innerHTML = htmlBox;
 	if (siteConfig.master_categories_config != 'auto')
 	{
 		var width;
@@ -258,7 +260,7 @@ function populateMasterCategories()
 				width = "25%";
 				break;
 		}
-		var images = masterCategoriesBox.find('img');
+		var images = $(masterCategoriesBox).find('img');
 		images.width(width);
 		switch (siteConfig.master_categories_config)
 		{
@@ -284,18 +286,18 @@ function populateMasterCategories()
 // produce XHTML for the visual categories view
 function populateVisualCategories(masterCategory)
 {
-	var categoriesBox = $('#categoriesBox');
-	categoriesBox.empty();
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
+	var htmlBox = '';
 	for (id in order)
 	{
-		var html = "";
-		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
-		html += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
-		html += "</a>";
-		categoriesBox.append(html);
+		htmlBox += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
+		htmlBox += "<img src=\"" + list[order[id]].image + "\" alt=\"" + list[order[id]].name + "\" />";
+		htmlBox += "</a>";
 	}
+	var categoriesBox = document.getElementById('categoriesBox');
+	$(categoriesBox).empty();
+	categoriesBox.innerHTML = htmlBox;
 	if (siteConfig.categories_config != 'auto')
 	{
 		var width, columns;
@@ -318,7 +320,7 @@ function populateVisualCategories(masterCategory)
 				width = "25%";
 				break;
 		}
-		var images = categoriesBox.find('img');
+		var images = $(categoriesBox).find('img');
 		images.width(width);
 		switch (siteConfig.categories_config)
 		{
