@@ -16,8 +16,7 @@ deviceVars.storageAvailable = false;
 
 deviceVars.scrollProperty = '-webkit-transform';
 deviceVars.scrollValue = 'translateY($1px)';
-deviceVars.hasWebWorkers = window.Worker != undefined;
-deviceVars.disableXSLT = true;
+//deviceVars.disableXSLT = true;
 
 jStore.error(function(e) { console.log('jStore: ' + e); });
 jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, typeof(google) != 'undefined' && typeof(google.gears) != 'undefined' ? jStore.flavors.gears : jStore.flavors.sql);

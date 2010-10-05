@@ -10,9 +10,7 @@ textarea, input[type=text], input[type=password], input[type=tel] {
 }
 
 /* necessary because Android doesn't like file inputs in tables */
-input[type=file] {
-	position: relative;
-}
+input[type=file] { position: relative; }
 
 button, input[type=submit], input[type=button] {
 	margin: .2em;
@@ -20,13 +18,9 @@ button, input[type=submit], input[type=button] {
 	border-radius: 4px;
 }
 
-button[disabled] {
-	opacity: 0.5;
-}
+button[disabled] { opacity: 0.5; }
 
-.bForm-results {
-	font-size: smaller;
-}
+.bForm-results { font-size: smaller; }
 
 .bForm-label, .bForm-value { font-size: medium; }
 
@@ -51,13 +45,14 @@ button[disabled] {
 	padding: .2em;
 	border-radius: .2em;
 	-webkit-border-radius: .2em;
-	background-color: #FFF;
+	background-color: #333;
+	border: .2em solid #EEE;
+  color: #EEE;
 	z-index: 50;
 }
 
-.dialogHeader, dialogBody {
+.dialogHeader, .dialogBody {
 	display: table-row;
-	background-color: #333;
 }
 
 .dialogHeader > h2, .dialogHeader > img {
@@ -71,7 +66,6 @@ button[disabled] {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	font-weight: normal;
-  color: #FFF;
 }
 
 #activityIndicator img.spinner {

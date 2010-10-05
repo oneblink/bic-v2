@@ -15,6 +15,8 @@ var maxTransactionTimeout = 180 * 1000;
 var ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
 var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
 
+deviceVars.hasWebWorkers = window.Worker != undefined;
+
 $(document).ajaxSend(function(event, xhr, options) {
 //	xhr.onprogress = function(e) { console.log(e) }
 	xhr.onprogress = function(e) {
@@ -143,14 +145,14 @@ function populateKeywordList(category) {
 			item.setAttribute('data-id', order[id]);
 			var label = document.createElement('div');
 			label.setAttribute('class', 'label');
-			label.appendChild(document.createTextNode(list[order[id]].name));
+			insertText(label, list[order[id]].name);
 			item.appendChild(label);
 			//htmlList += "<div class='nextArrow'></div>";
 			if (typeof(list[order[id]].description) == 'string')
 			{
 				var description = document.createElement('div');
 				description.setAttribute('class', 'description');
-				description.appendChild(document.createTextNode(list[order[id]].description));
+				insertText(description, list[order[id]].description);
 				item.appendChild(description);
 			}
 			keywordList.appendChild(item);
@@ -201,7 +203,7 @@ function populateKeywordList(category) {
 
 function populateAnswerSpacesList() {
 	console.log('populateAnswerSpacesList()');
-	var welcome = $('#answerSpacesListView').find('.welcomeBox');
+	var welcome = document.getElementById('answerSpacesListView').getElementById('welcomeBox');
 	var listBox = $('#answerSpacesList');
   listBox.empty();
 	var width;
@@ -220,16 +222,16 @@ function populateAnswerSpacesList() {
 		listBox.removeClass('hidden');
 		if (siteVars.answerSpace)
 		{
-			welcome.html('Please check the address you have entered, or choose from a range of answerSpaces below.');
+			insertText(welcome, 'Please check the address you have entered, or choose from a range of answerSpaces below.');
 		}
 		else
 		{
-			welcome.html('Please choose from a range of answerSpaces below.');
+			insertText(welcome, 'Please choose from a range of answerSpaces below.');
 		}
 	}
 	else
 	{
-		welcome.html('Please check the address you have entered.');
+		insertText(welcome, 'Please check the address you have entered.');
 	}
 }
 
@@ -481,8 +483,6 @@ function getSiteConfig()
 			dataType: 'json',
 			beforeSend: function(xhr) {
 				console.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
-				var origin = 'http://' + siteVars.serverDomain + '/';
-				startInProgressAnimation();
 			},
 			error: function(xhr, xhrStatus, error) {
 				console.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
@@ -516,7 +516,6 @@ function getSiteConfig()
 				}
 			},
 			complete: function(xhr, xhrStatus) {
-				stopInProgressAnimation();
 				processMoJOs();
 			},
 			timeout: computeTimeout(50 * 1024)
@@ -632,7 +631,7 @@ function showMasterCategoriesView()
   console.log('showMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
-  $("#mainLabel").html('Master Categories');
+  setMainLabel('Master Categories');
   setCurrentView('masterCategoriesView', false);
 }
 
@@ -641,7 +640,7 @@ function goBackToMasterCategoriesView()
   console.log('goBackToMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
   prepareMasterCategoriesViewForDevice();
-  $("#mainLabel").html('Master Categories');
+  setMainLabel('Master Categories');
   setCurrentView('masterCategoriesView', true);
 }
 
@@ -669,7 +668,7 @@ function showCategoriesView(masterCategory)
   prepareCategoriesViewForDevice();
 	if (hasVisualCategories)
 	{
-		$("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
+		setMainLabel(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
 		populateVisualCategories(masterCategory);
 		setCurrentView('categoriesView', false);
 	}
@@ -686,7 +685,7 @@ function goBackToCategoriesView()
   console.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
   prepareCategoriesViewForDevice();
-  $("#mainLabel").html(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
+	setMainLabel(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
   setCurrentView('categoriesView', true);
 }
 
@@ -729,6 +728,8 @@ function showAnswerView(keywordID)
 	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
 	processMoJOs(keywordID);
+	var answerBox = document.getElementById('answerBox');
+	var mainLabel = document.getElementById('mainLabel');
 	var keyword = siteConfig.keywords[keywordID];
 	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
@@ -748,22 +749,36 @@ function showAnswerView(keywordID)
 				xslt = xslt.replace(regex, args[a]);
 			}
 			var html = generateMojoAnswer(xml, xslt, 'answerBox');
-			$('#answerBox').html(html);
+			insertHTML(answerBox, html);
 			stopInProgressAnimation();
 		}
 		else
 		{
-			$('#answerBox').html('<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>');
+			emptyDOMelement(answerBox);
+			var paragraph1 = document.createElement('p');
+			insertText(paragraph1, 'The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.');
+			var paragraph2 = document.createElement('p');
+			insertText(paragraph2, 'Please try again in 30 seconds.');
+			answerBox.appendChild(paragraph1);
+			answerBox.appendChild(paragraph2);
 		}
 		setCurrentView("answerView", false, true);
 		setupAnswerFeatures();
-		$('#mainLabel').html(keyword.name);
+		setMainLabel(keyword.name);
 	}
 	else if (!isBrowserOnline())
 	{
 		console('browser offline: using stored data for GetAnswer.php');
 		answerItem = getAnswerSpaceItem("answer___" + keywordID);
-		$('#answerBox').html(answerItem == undefined ? "<p>No result available while offline.</p>" : answerItem);
+		if (answerItem == undefined)
+		{
+			emptyDOMelement(answerBox);
+			var paragraph = document.createElement('p');
+			insertText(paragraph, 'No result available while offline.');
+			answerBox.appendChild(paragraph);
+		}
+		else
+			insertHTML(answerBox, answerItem);
 		setCurrentView("answerView", false, true);
 		setupForms($('#answerView'));
 		setupAnswerFeatures();
@@ -803,12 +818,12 @@ function showAnswerView(keywordID)
 					processBlinkAnswerMessage(blinkAnswerMessage[1]);
 				setAnswerSpaceItem("answer___" + keywordID, html);
 			}
-			$('#answerBox').html(html);
+			insertHTML(answerBox, html);
 			setSubmitCachedFormButton();
 			setCurrentView("answerView", false, true);
 			setupForms($('#answerView'));
 			setupAnswerFeatures();
-			$('#mainLabel').html(keyword.name);
+			setMainLabel(keyword.name);
 			stopInProgressAnimation();
 		 },
 		 timeout: 30 * 1000 // 30 seconds
@@ -842,7 +857,7 @@ function setupForms(view)
 			attempts--;
 		}
 		stopInProgressAnimation();
-	}, 0);
+	}, 300);
 	setTimeout(function() {
 		if (hasHiddenColumns)
 			if (window.orientation == -90 || window.orientation == 90)
@@ -894,6 +909,8 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		}
 	}
 	processMoJOs(keywordID);
+	var answerBox2 = document.getElementById('answerBox2');
+	var mainLabel = document.getElementById('mainLabel');
 	var keywordConfig = siteConfig.keywords[keywordID];
 	if (keywordConfig.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
@@ -907,13 +924,11 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 			var regex = new RegExp(RegExp.quote('$' + a), 'g');
 			xslt = xslt.replace(regex, args[a]);
 		}
-		var html = generateMojoAnswer(xml, xslt);
-		//document.getElementById('answerBox2').innerHTML = html;
-		$('#answerBox2').html(html);
+		var html = generateMojoAnswer(xml, xslt, 'answerBox2');
+		insertHTML(answerBox2, html);
 		setCurrentView("answerView2", false, true);
 		setupAnswerFeatures();
-		//document.getElementById('mainLabel').innerHTML = keywordConfig.name;
-		$('#mainLabel').html(keywordConfig.name);
+		setMainLabel(keywordConfig.name);
 		stopInProgressAnimation();
 	}
 	else
@@ -924,22 +939,22 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		 type: 'GET',
 		 url: answerUrl,
 		 data: requestData,
-		 beforeSend: function(xmlhttprequest) {
+		 beforeSend: function(xhr) {
 			console.log("GetAnswer2 transaction:" + answerUrl + "?" + requestData);
-			httpAnswerRequest = xmlhttprequest;
+			httpAnswerRequest = xhr;
 			setSubmitCachedFormButton();
-			$('#answerBox2').html("Waiting...");
+			insertText(answerBox2, 'Waiting...');
 			startInProgressAnimation();
 		 },
-		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
+		 error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
 			console.log("GetAnswer2 failed with error type: " + textstatus);
 		 },
-		 complete: function(xmlhttprequest, textstatus) { // readystate == 4
-			console.log("GetAnswer2 transaction complete: " + textstatus);
-			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+		 complete: function(xhr, textstatus) { // readystate == 4
+			console.log("GetAnswer2 transaction complete: " + textstatus, xhr);
+			if (xhr.status == 200 || xhr.status == 500)
 			{
-				var html =  httpAnswerRequest.responseText;
-				$('#answerBox2').html(html);
+				var html =  xhr.responseText;
+				insertHTML(answerBox2, html);
 				blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
 				if (blinkAnswerMessage != null)
 					processBlinkAnswerMessage(blinkAnswerMessage[1]);
@@ -957,17 +972,18 @@ function showKeywordView(keywordID)
 {
 	addBackHistory("goBackToKeywordView(\"" + keywordID + "\");");
 	var keyword = siteConfig.keywords[keywordID];
-	$('#mainLabel').html(keyword.name);
+	setMainLabel(keyword.name);
   currentKeyword = keywordID;
   prepareKeywordViewForDevice(answerSpaceOneKeyword, typeof(keyword.help) == 'string');
   setSubmitCachedFormButton();
-  $('#argsBox').html(keyword.input_config);
-	var descriptionBox = $('#descriptionBox');
+  var argsBox = document.getElementById('argsBox');
+  insertHTML(argsBox, keyword.input_config);
+	var descriptionBox = document.getElementById(descriptionBox);
   if (keyword.description) {
-	 descriptionBox.html(keyword.description);
-	 descriptionBox.removeClass('hidden');
+		insertHTML(descriptionBox, keyword.description);
+		$(descriptionBox).removeClass('hidden');
   } else {
-	 descriptionBox.addClass('hidden');
+		$(descriptionBox).addClass('hidden');
   }
   setCurrentView('keywordView', false, true);
 }
@@ -975,7 +991,7 @@ function showKeywordView(keywordID)
 function goBackToKeywordView(keywordID)
 {
 	var keyword = siteConfig.keywords[keywordID];
-	$('#mainLabel').html(keyword.name);
+	setMainLabel(keyword.name);
   currentKeyword = keywordID;
   prepareKeywordViewForDevice(answerSpaceOneKeyword, typeof(keyword.help) == 'string');
   setSubmitCachedFormButton();
@@ -1010,7 +1026,7 @@ function showKeywordListView(category)
 		return;
 	}
 	addBackHistory("goBackToKeywordListView();");
-	$('#mainLabel').html(mainLabel);
+	setMainLabel(mainLabel);
   prepareKeywordListViewForDevice(category);
 	populateKeywordList(category);
   setCurrentView('keywordListView', false);
@@ -1055,7 +1071,7 @@ function goBackToKeywordListView(event)
   }
   prepareKeywordListViewForDevice();
   setSubmitCachedFormButton();
-	$('#mainLabel').html(hasCategories ? siteConfig.categories[currentCategory].name : 'Keywords');
+	setMainLabel(hasCategories ? siteConfig.categories[currentCategory].name : 'Keywords');
   setCurrentView('keywordListView', true);
 }
 
@@ -1097,7 +1113,7 @@ function showHelpView(event)
 		case 'answerView':
 		case 'answerView2':
 			var keyword = siteConfig.keywords[currentKeyword];
-		  $('#mainHeading').html(keyword.name);
+		  setMainLabel(keyword.name);
 		  var helpContents = keyword.help ? keyword.help : "Sorry, no guidance has been prepared for this item.";
 			break;
 		default:
@@ -1105,7 +1121,8 @@ function showHelpView(event)
 	}
 	prepareHelpViewForDevice();
 	addBackHistory("showHelpView();");
-  $('#helpBox').html(helpContents);
+	var helpBox = document.getElementById('helpBox');
+	insertHTML(helpBox, helpContents);
   setCurrentView('helpView', false, true); 
 }
 
@@ -1113,7 +1130,7 @@ function showNewLoginView(isActivating)
 {
   prepareNewLoginViewForDevice();
 	addBackHistory("showNewLoginView();");
-  $('#mainHeading').html("Login");
+  setMainLabel('New Login');
   var loginUrl = siteVars.serverAppPath + '/util/CreateLogin.php';
 	var requestData = 'activating=' + isActivating;
   ajaxQueue.add({
@@ -1124,14 +1141,15 @@ function showNewLoginView(isActivating)
 		beforeSend: function(xhr) {
 			console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
 		},
-		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#newLoginBox').html(data);
+		success: function(data, textstatus, xhr) { // readystate == 4 && status == 200
+			var newLoginBox = document.getElementById('newLoginBox');
+			insertHTML(newLoginBox, data);
 			setCurrentView('newLoginView', false, true); 
 		},
-		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-			alert("Error preparing login:" + xmlhttprequest.responseText);
+		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
+			alert("Error preparing login:" + xhr.responseText);
 		},
-		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate == 4
 			console.log("CreateLogin transaction complete: " + textstatus);
 		}
   });
@@ -1141,7 +1159,7 @@ function showActivateLoginView(event)
 {
   prepareActivateLoginViewForDevice();
 	addBackHistory("showActivateLoginView();");
-  $('#mainHeading').html("Login");
+  setMainLabel('Activate Login');
   var loginUrl = siteVars.serverAppPath + '/util/ActivateLogin.php'
   ajaxQueue.add({
 		type: 'GET',
@@ -1151,7 +1169,8 @@ function showActivateLoginView(event)
 			console.log("ActivateLogin transaction: " + loginUrl);
 		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#activateLoginBox').html(data);
+			var activateLoginBox = document.getElementById('activateLoginBox');
+			insertHTML(activeLoginBox, data);
 			setCurrentView('activateLoginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -1167,7 +1186,7 @@ function showLoginView(event)
 {
   prepareLoginViewForDevice();
 	addBackHistory("showLoginView();");
-  $('#mainHeading').html("Login");
+  setMainLabel('Login');
   var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   ajaxQueue.add({
 		type: 'GET',
@@ -1177,7 +1196,8 @@ function showLoginView(event)
 			console.log("DoLogin transaction: " + loginUrl);
 		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#loginBox').html(data);
+			var loginBox = document.getElementById('loginBox');
+			insertHTML(loginBox, data);
 			setCurrentView('loginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -1190,9 +1210,14 @@ function showLoginView(event)
 }
 
 function updateLoginBar(){
+	var loginStatus = document.getElementById('loginStatus');
 	if (!isBrowserOnline())
 	{
-		$('#loginStatus').html('Offline<br />Mode').removeClass('hidden');
+		emptyDOMelement(loginStatus);
+		loginStatus.appendChild(document.createTextNode('Offline'));
+		loginStatus.appendChild(document.createElement('br'));
+		loginStatus.appendChild(document.createTextNode('Mode'));
+		$(loginStatus).removeClass('hidden');
 		$('#loginButton').addClass('hidden');
 	}
 	else
@@ -1216,7 +1241,10 @@ function updateLoginBar(){
 					if (data.status == "LOGGED IN")
 					{
 						if (data.html.length > 0)
-							$('#loginStatus').html(data.html).removeClass('hidden');
+						{
+							insertHTML(loginStatus, data.html);
+							$(loginStatus).removeClass('hidden');
+						}
 						else
 							$('#logoutButton').removeClass('hidden');
 						$('#loginButton').addClass('hidden');
@@ -1238,7 +1266,7 @@ function updateLoginBar(){
 
 function submitLogin()
 {
-  var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
+	var loginUrl = siteVars.serverAppPath + '/util/DoLogin.php'
   var requestData = "action=login&mobile_number=" + document.getElementById('mobile_number').value + "&password=" + document.getElementById('password').value;
 	console.log("iPhoneLogin transaction: " + loginUrl + "?" + requestData);
   ajaxQueue.add({
@@ -1250,7 +1278,8 @@ function submitLogin()
 			startInProgressAnimation();
 		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#loginBox').html(data);
+			var loginBox = document.getElementById('loginBox');
+			insertHTML(loginBox, data);
 			setCurrentView('loginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -1278,7 +1307,8 @@ function submitLogout()
 			console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
 		},
 		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
-			$('#loginBox').html(data);
+			var loginBox = document.getElementById('loginBox');
+			insertHTML(loginBox, data);
 			setCurrentView('loginView', false, true); 
 		},
 		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
@@ -1561,15 +1591,17 @@ function submitAction(keyword, action) {
 
 function setupAnswerFeatures()
 {
-	if ($('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
-		startInProgressAnimation();
-		$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, function(data, textstatus) {
-			if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
-				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
-			else
-				stopTrackingLocation();
-		});
-	}
+	setTimeout(function() {
+		if ($('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
+			startInProgressAnimation();
+			$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, function(data, textstatus) {
+				if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
+					google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
+				else
+					stopTrackingLocation();
+			});
+		}
+	}, 300);
 }
 
 function setupGoogleMaps()
@@ -1714,6 +1746,7 @@ function generateMojoAnswer(xmlString, xslString, target)
 	if (typeof(xmlString) != 'string' || typeof(xslString) != 'string') return false;
 	if (deviceVars.hasWebWorkers === true)
 	{
+		console.log('generateMojoAnswer: enlisting Web Worker to perform XSLT');
 		var message = { };
 		message.fn = 'processXSLT';
 		message.xml = xmlString;
@@ -1730,41 +1763,46 @@ function generateMojoAnswer(xmlString, xslString, target)
 		var html = xml.transformNode(xsl);
 		return html;
 	}
-	if (document.implementation && document.implementation.createDocument)
+	if (window.DOMParser != undefined)
 	{
-		if (window.DOMParser != undefined)
-		{
-			console.log('generateMojoAnswer: using W3C JavaScript method with DOMParser()');
-			var domParser = new DOMParser();
-			var xml = domParser.parseFromString(xmlString, 'application/xml');
-			var xsl = domParser.parseFromString(xslString, 'application/xml');
-		}
-		else
-		{
-			console.log('generateMojoAnswer: using W3C JavaScript method with fake AJAX query');
-			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url, false);
-			xhr.send(null);
-			var xml = xhr.responseXML;
-			var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xslString);
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url, false);
-			xhr.send(null);
-			var xsl = xhr.responseXML;
-		}
-		if (window.XSLTProcessor != undefined)
-		{
-			var xsltProcessor = new XSLTProcessor();
-			xsltProcessor.importStylesheet(xsl);
-			var html = xsltProcessor.transformToFragment(xml, document);
-			return html;
-		}
-		if (xsltProcess != undefined)
-		{
-			var html = xsltProcess(xml, xsl);
-			return html;
-		}
+		console.log('generateMojoAnswer: parsing strings to XML using W3C DOMParser()');
+		var domParser = new DOMParser();
+		var xml = domParser.parseFromString(xmlString, 'application/xml');
+		var xsl = domParser.parseFromString(xslString, 'application/xml');
+	}
+	else if (xmlParse != undefined)
+	{
+		console.log('generateMojoAnswer: parsing strings to XML using AJAXSLT library');
+		var xml = xmlParse(xmlString);
+		var xsl = xmlParse(xslString);
+	}
+	else
+	{
+		console.log('generateMojoAnswer: parsing strings to XML using fake AJAX query');
+		var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, false);
+		xhr.send(null);
+		var xml = xhr.responseXML;
+		var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xslString);
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, false);
+		xhr.send(null);
+		var xsl = xhr.responseXML;
+	}
+	if (window.XSLTProcessor != undefined)
+	{
+		console.log('generateMojoAnswer: performing XSLT via XSLTProcessor()');
+		var xsltProcessor = new XSLTProcessor();
+		xsltProcessor.importStylesheet(xsl);
+		var html = xsltProcessor.transformToFragment(xml, document);
+		return html;
+	}
+	if (xsltProcess != undefined)
+	{
+		console.log('generateMojoAnswer: performing XSLT via AJAXSLT library');
+		var html = xsltProcess(xml, xsl);
+		return html;
 	}
 	return '<p>Your browser does not support MoJO keywords.</p>';
 }
@@ -1798,7 +1836,8 @@ if (deviceVars.hasWebWorkers === true)
 				break;
 			case 'processXSLT':
 				console.log('WebWorker: finished processing XSLT');
-				$('#' + event.data.target).html(event.data.html);
+				var target = document.getElementById(event.data.target);
+				insertHTML(target, event.data.html);
 				break;
 			case 'workBegun':
 				startInProgressAnimation();
@@ -1810,10 +1849,32 @@ if (deviceVars.hasWebWorkers === true)
 	};
 }
 
-// from phpjs.org/functions/urldecode:572 MIT + GPLv2 licenced
-function urldecode(f){return decodeURIComponent(f.replace(/\+/g,"%20"))}
-// from phpjs.org/functions/parse_str:484 MIT + GPLv2 licenced
-function parse_str(f,g){var h=String(f).replace(/^&(.*)$/,"$1").replace(/^(.*)&$/,"$1").split("&"),e,b,a,i,c,d,k=this,j=function(l){return k.urldecode(l).replace(/([\\"'])/g,"\\$1").replace(/\n/g,"\\n").replace(/\r/g,"\\r")};if(!g)g=this.window;for(e=0;e<h.length;e++){b=h[e].split("=");if(b.length<2)b=[b,""];a=j(b[0]);for(i=j(b[1]);a.charAt(0)===" ";)a=a.substr(1);if(a.indexOf("\u0000")!==-1)a=a.substr(0,a.indexOf("\u0000"));if(a&&a.charAt(0)!=="["){d=[];for(b=c=0;b<a.length;b++)if(a.charAt(b)===
-"["&&!c)c=b+1;else if(a.charAt(b)==="]")if(c){d.length||d.push(a.substr(0,c-1));d.push(a.substr(c,b-c));c=0;if(a.charAt(b+1)!=="[")break}d.length||(d=[a]);for(b=0;b<d[0].length;b++){a=d[0].charAt(b);if(a===" "||a==="."||a==="[")d[0]=d[0].substr(0,b)+"_"+d[0].substr(b+1);if(a==="[")break}c="array";for(b=0;b<d.length;b++){a=d[b];a=a!==""&&a!==" "||b===0?"'"+a+"'":eval(c+".push([]);")-1;c+="["+a+"]";b!==d.length-1&&eval("typeof "+c)==="undefined"&&eval(c+" = [];")}c+=" = '"+i+"';\n";eval(c)}}};
+function emptyDOMelement(element)
+{
+	if (element != null && typeof(element) == 'object')
+		while (element.firstChild) element.removeChild(element.firstChild);
+}
 
-function emptyDOMelement(element) { while (element.firstChild) element.removeChild(element.firstChild); }
+function setMainLabel(label)
+{
+	var mainLabel = document.getElementById('mainLabel');
+	insertText(mainLabel, label);
+}
+
+function insertHTML(element, html)
+{
+	if (element != null && typeof(element) == 'object')
+	{
+		emptyDOMelement(element);
+		$(element).append(html);
+	}
+}
+
+function insertText(element, text)
+{
+	if (element != null && typeof(element) == 'object')
+	{
+		emptyDOMelement(element);
+		element.appendChild(document.createTextNode(text));
+	}
+}
