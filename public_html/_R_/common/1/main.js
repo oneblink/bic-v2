@@ -1434,7 +1434,7 @@ function setSubmitCachedFormButton() {
 		buttonLabel = button.find('.buttonLabel');
 		if (buttonLabel.size() > 0)
 		{
-			buttonLabel.html(queueCount + ' Unsent Forms');
+			insertHTML(buttonLabel, queueCount + ' Unsent Forms');
 		}
 		else
 		{
@@ -1517,29 +1517,29 @@ function submitFormWithRetry() {
 		cache: 'false',
 		url: answerUrl,
 		data: requestData,
-		beforeSend: function(xmlhttprequest) {
+		beforeSend: function(xhr) {
 			console.log("GetAnswer transaction: " + answerUrl + "?" + requestData);
-			httpAnswerRequest = xmlhttprequest;
+			httpAnswerRequest = xhr;
 			startInProgressAnimation();
 		},
-		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
+		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
 			if (textstatus == "timeout")
 			{
 			 alert("Form not submitted, retry when you are in coverage");
 			 goBackToKeywordListView();
 			}
 		},
-		success: function(data, textstatus, xmlhttprequest) { // readystate == 4 && status == 200
+		success: function(data, textstatus, xhr) { // readystate == 4 && status == 200
 		  console.log("GetAnswer transaction successful");
 		  delHeadPendingFormData();
 		  setSubmitCachedFormButton();
 		},
-		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate == 4
 			console.log("GetAnswer transaction complete: " + textstatus);
-			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+			if (xhr.status == 200 || xhr.status == 500)
 			{
 				currentBox.hide('slide', { direction: 'left'}, 300, function() {
-					currentBox.empty().html(xmlhttprequest.responseText);
+					insertHTML(currentBox[0], xhr.responseText);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
 				});
@@ -1575,24 +1575,24 @@ function submitAction(keyword, action) {
 		cache: 'false',
 		url: requestUrl,
 		data: requestData,
-		beforeSend: function(xmlhttprequest) {
+		beforeSend: function(xhr) {
 			console.log("GetAnswer transaction: " + requestUrl + "?" + requestData);
-			httpAnswerRequest = xmlhttprequest;
+			httpAnswerRequest = xhr;
 			startInProgressAnimation();
 		},
-		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
+		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
 			if (textstatus == "timeout")
 			{
 			 alert("Action not submitted, retry when you are in coverage");
 			 goBackToKeywordListView();
 			}
 		},
-		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate == 4
 			console.log("GetAnswer transaction complete: " + textstatus);
-			if (xmlhttprequest.status == 200 || xmlhttprequest.status == 500)
+			if (xhr.status == 200 || xhr.status == 500)
 			{
 				currentBox.hide('slide', { direction: 'left'}, 300, function() {
-					currentBox.empty().html(xmlhttprequest.responseText);
+					insertHTML(currentBox[0], xhr.responseText);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
 				});

@@ -36,7 +36,7 @@ $(window).load(function() {
 	if (!deviceVars.storageAvailable)
 		loaded();
 	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
-	if ($('#loginStatus') > 0)
+	if ($('#loginStatus').size() > 0)
 		siteVars.hasLogin = true;
 });
 

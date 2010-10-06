@@ -38,7 +38,7 @@ $(window).load(function() {
 		loaded();
 	window.addEventListener('scroll', onScroll, false);
 	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
-	if ($('#loginStatus') > 0)
+	if ($('#loginStatus').size() > 0)
 		siteVars.hasLogin = true;
 });
 
