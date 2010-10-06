@@ -17,6 +17,10 @@ var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
 
 deviceVars.hasWebWorkers = window.Worker != undefined;
 
+siteVars.queryParameters = getURLParameters();
+delete siteVars.queryParameters.uid;
+delete siteVars.queryParameters.answerSpace;
+
 $(document).ajaxSend(function(event, xhr, options) {
 //	xhr.onprogress = function(e) { console.log(e) }
 	xhr.onprogress = function(e) {
@@ -559,13 +563,23 @@ function processSiteConfig()
 		{
 			showKeywordListView();
 		}
-		if (siteVars.keywordInit)
+		var keyword = siteVars.queryParameters.keyword;
+		delete siteVars.queryParameters.keyword;
+		if (typeof(keyword) === 'string' && siteVars.queryParameters != {})
 		{
-			gotoNextScreen(siteVars.keywordInit);
+			var arguments = $.param(siteVars.queryParameters);
+			showSecondLevelAnswerView(keyword, arguments);
 		}
+		else if (typeof(keyword) === 'string')
+			gotoNextScreen(keyword);
+		else if (typeof(siteVars.queryParameters.category) === 'string')
+			showKeywordListView(siteVars.queryParameters.category);
+		else if (typeof(siteVars.queryParameters.master_category) === 'string')
+			showCategoriesView(siteVars.queryParameters.master_category);
+		delete siteVars.queryParameters;
 		startUp.remove();
 		$('#content').removeClass('hidden');
-		if (typeof(siteConfig.webClip) == 'string' && deviceVars.device == 'iphone') {
+		if (typeof(siteConfig.webClip) === 'string' && deviceVars.device === 'iphone') {
 			setTimeout(function() {
 				var bookmarkBubble = new google.bookmarkbubble.Bubble();
 				bookmarkBubble.hasHashParameter = function() { return false; };
@@ -1863,18 +1877,36 @@ function setMainLabel(label)
 
 function insertHTML(element, html)
 {
-	if (element != null && typeof(element) == 'object')
-	{
-		emptyDOMelement(element);
-		$(element).append(html);
-	}
+	setTimeout(function() {
+		if (element != null && typeof(element) == 'object')
+		{
+			emptyDOMelement(element);
+			$(element).append(html);
+		}
+	}, 0);
 }
 
 function insertText(element, text)
 {
-	if (element != null && typeof(element) == 'object')
+	setTimeout(function() {
+		if (element != null && typeof(element) == 'object')
+		{
+			emptyDOMelement(element);
+			element.appendChild(document.createTextNode(text));
+		}
+	}, 0);
+}
+
+function getURLParameters()
+{
+	var queryString = location.href.match(/\?(.*)#?(?:.*)?$/);
+	if (typeof(queryString[1]) === 'string')
 	{
-		emptyDOMelement(element);
-		element.appendChild(document.createTextNode(text));
+		var parameters = deserialize(queryString[1]);
+		if (typeof(parameters.keyword) == 'string')
+			parameters.keyword = parameters.keyword.replace('/', '');
+		return parameters;
 	}
+	else
+		return [];
 }
