@@ -486,100 +486,91 @@ function getAnswerSpacesList()
 
 function getSiteConfig()
 {
-	if (!isBrowserOnline() && typeof(siteConfig) != 'undefined')
-	{
-		processSiteConfig();
-	}
-	else if (isBrowserOnline())
-	{
-		var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
-		var requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
-		ajaxQueue.add({
-			url: requestUrl,
-			data: requestData,
-			dataType: 'json',
-			beforeSend: function(xhr) {
-				console.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
-			},
-			error: function(xhr, xhrStatus, error) {
-				console.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
-				//if (xhrStatus == 'timeout') {}
-				if (typeof(siteConfig) != 'undefined')
-					processSiteConfig();
-				else
-					alert('Content unreachable, please try later.');
-			},
-			complete: function(xhr, xhrStatus) {
-				/*	possible values of errorMessage:
-				 *	'No answerSpace specified.'
-				 *	'Could not connect to the database.'
-				 *	'Error performing answerSpace query: ' ...
-				 *	'NOT LOGGED IN'
-				 *	'Error performing master categories query: ' ...
-				 *	'Error performing categories query: ' ...
-				 *	'Error performing keywords query: ' ...
-				 *	
-				 *	possible values of statusMessage:
-				 *	'NO KEYWORDS'
-				 *	'NO UPDATES'
-				 */
-				if (xhr.status >= 100)
+	var fallbackToStorage = function(string) {
+		if (typeof(siteConfig) != 'undefined')
+			processSiteConfig();
+		else
+			alert(string);
+	};
+	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
+	var requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+	ajaxQueue.add({
+		url: requestUrl,
+		data: requestData,
+		dataType: 'json',
+		beforeSend: function(xhr) {
+			console.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
+		},
+		error: function(xhr, xhrStatus, error) {
+			console.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
+			fallbackToStorage('Content unreachable, please try later.');
+		},
+		complete: function(xhr, xhrStatus) {
+			if (xhr.status < 100)
+			{
+				fallbackToStorage('Content unreachable, please try later.');
+				return;
+			}
+			/*	possible values of errorMessage:
+			 *	'No answerSpace specified.'
+			 *	'Could not connect to the database.'
+			 *	'Error performing answerSpace query: ' ...
+			 *	'NOT LOGGED IN'
+			 *	'Error performing master categories query: ' ...
+			 *	'Error performing categories query: ' ...
+			 *	'Error performing keywords query: ' ...
+			 *	
+			 *	possible values of statusMessage:
+			 *	'NO KEYWORDS'
+			 *	'NO UPDATES'
+			 */
+			var data = JSON.parse(xhr.responseText);
+			if (data === null)
+			{
+				console.log('GetSiteConfig error: null siteConfig');
+				fallbackToStorage('Content unreachable, please try later.');
+				return;
+			}
+			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
+			{
+				console.log('GetSiteConfig success: no status or error messages', data);
+				setAnswerSpaceItem('siteConfigMessage', data);
+				siteConfig = data.siteConfig;
+				siteConfigHash = data.siteHash;
+				processSiteConfig();
+				return;
+			}
+			if (typeof(data.statusMessage) === 'string')
+			{
+				console.log("GetSiteConfig status: " + data.statusMessage, data);
+				switch (data.statusMessage)
 				{
-					var data = JSON.parse(xhr.responseText);
-					if (data === null)
-					{
-						console.log('GetSiteConfig error: null siteConfig');
-						if (typeof(siteConfig) != 'undefined')
-							processSiteConfig();
-						else
-							window.location = "/demos";
-						return;
-					}
-					if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
-					{
-						console.log('GetSiteConfig success: no status or error messages', data);
-						setAnswerSpaceItem('siteConfigMessage', data);
-						siteConfig = data.siteConfig;
-						siteConfigHash = data.siteHash;
-						processSiteConfig();
-						return;
-					}
-					if (typeof(data.statusMessage) === 'string')
-					{
-						console.log("GetSiteConfig status: " + data.statusMessage, siteConfig);
-						switch (data.statusMessage)
-						{
-							case 'NO UPDATES':
-								break;
-							case 'NO KEYWORDS':
-								break;
-						}
-						processSiteConfig();
-						return;
-					}
-					if (typeof(data.errorMessage) === 'string')
-					{
-						console.log('GetSiteConfig error: ' + data.errorMessage);
-						switch (data.errorMessage)
-						{
-							case 'NOT LOGGED IN':
-								processSiteConfig();
-								break;
-							default:
-								break;
-						}
-						return;
-					}
+					case 'NO UPDATES':
+						break;
+					case 'NO KEYWORDS':
+						break;
 				}
-				processMoJOs();
-			},
-			timeout: computeTimeout(50 * 1024)
-		});
-	}
-	else
-	{
-		// TODO handle case where not online and no stored siteConfig
-	}
+				processSiteConfig();
+				return;
+			}
+			if (typeof(data.errorMessage) === 'string')
+			{
+				console.log('GetSiteConfig error: ' + data.errorMessage);
+				switch (data.errorMessage)
+				{
+					case 'NOT LOGGED IN':
+						alert('This answerSpace requires users to log in.');
+						processSiteConfig();
+						break;
+					default:
+						fallbackToStorage('Content unreachable, please try later.');
+						break;
+				}
+				return;
+			}
+		},
+		timeout: computeTimeout(50 * 1024)
+	});
 }
 
 function processSiteConfig()
@@ -643,6 +634,7 @@ function processSiteConfig()
 			}, 1000);
 		}
 	}
+	processMoJOs();
 }
 
 function processMoJOs(keyword)
@@ -833,28 +825,16 @@ function showAnswerView(keywordID)
 		setupAnswerFeatures();
 		setMainLabel(keyword.name);
 	}
-	else if (!isBrowserOnline())
-	{
-		console('browser offline: using stored data for GetAnswer.php');
-		answerItem = getAnswerSpaceItem("answer___" + keywordID);
-		if (answerItem == undefined)
-		{
-			emptyDOMelement(answerBox);
-			var paragraph = document.createElement('p');
-			insertText(paragraph, 'No result available while offline.');
-			answerBox.appendChild(paragraph);
-		}
-		else
-			insertHTML(answerBox, answerItem);
-		setCurrentView("answerView", false, true);
-		setupForms($('#answerView'));
-		setupAnswerFeatures();
-	}
 	else
 	{
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php';
 		var requestData = createParamsAndArgs(keywordID) + '&_device=' + deviceVars.device;
 		var html;
+		var fallbackToStorage = function() {
+			html = getAnswerSpaceItem("answer___" + keywordID);
+			if (html == undefined)
+				html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+		};
 		ajaxQueue.add({
 		 type: 'GET',
 		 url: answerUrl,
@@ -867,11 +847,12 @@ function showAnswerView(keywordID)
 		 },
 		 error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
 			console.log("GetAnswer failed with error type: " + textstatus);
-			html = getAnswerSpaceItem("answer___" + keywordID);
-			html = html == undefined ? "<p>No result available.</p>" : html;
+			fallbackToStorage();
 		 },
 		 complete: function(xhr, textstatus) { // readystate == 4
-		 	if (xhr.status >= 100)
+		 	if (xhr.status < 100)
+		 		fallbackToStorage();
+		 	else
 		 	{
 				console.log('GetAnswer: storing server response');
 				html = xhr.responseText;
@@ -879,11 +860,6 @@ function showAnswerView(keywordID)
 				if (blinkAnswerMessage != null)
 					processBlinkAnswerMessage(blinkAnswerMessage[1]);
 				setAnswerSpaceItem("answer___" + keywordID, html);
-			}
-			else
-			{
-				html = getAnswerSpaceItem("answer___" + keywordID);
-				html = html == undefined ? "<p>No result available.</p>" : html;
 			}
 			insertHTML(answerBox, html);
 			setSubmitCachedFormButton();
@@ -1003,6 +979,11 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php'
 		var requestData = 'answerSpace=' + siteVars.answerSpace + "&keyword=" + encodeURIComponent(keyword) + '&_device=' + deviceVars.device + '&' + arg0;
 		var html;
+		var fallbackToStorage = function() {
+			html = getAnswerSpaceItem("answer___" + keywordID);
+			if (html == undefined)
+				html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+		};
 		ajaxQueue.add({
 			type: 'GET',
 			url: answerUrl,
@@ -1016,27 +997,23 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 			},
 			error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
 				console.log("GetAnswer2 failed with error type: " + textstatus);
-				html = getAnswerSpaceItem("answer___" + keywordID);
-				html = html == undefined ? "<p>No result available.</p>" : html;
+				fallbackToStorage();
 			},
 			complete: function(xhr, textstatus) { // readystate == 4
-				if (xhr.status >= 100)
+				if (xhr.status < 100)
+					fallbackToStorage();
+				else
 				{
 					html =  xhr.responseText;
 					blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
 					if (blinkAnswerMessage != null)
 						processBlinkAnswerMessage(blinkAnswerMessage[1]);
 				}
-				else
-				{
-					html = getAnswerSpaceItem("answer___" + keywordID);
-					html = html == undefined ? "<p>No result available.</p>" : html;
-				}
 				insertHTML(answerBox2, html);
-				stopInProgressAnimation();
 				setCurrentView('answerView2', false, true);   
 				setupAnswerFeatures();
 				setupForms($("#answerView2"));
+				stopInProgressAnimation();
 			}
 		});
 	}
@@ -1602,11 +1579,19 @@ function submitFormWithRetry() {
 			{
 				html = 'Unable to contact server. Your submission has been stored for future attempts.';
 			}
-			currentBox.hide('slide', { direction: 'left'}, 300, function() {
-				insertHTML(currentBox[0], html);
-				currentBox.show('slide', { direction: 'right'}, 300);
-				window.scrollTo(0, 1);
-			});
+			if (currentBox.attr('id').indexOf('answerBox') !== -1)
+				currentBox.hide('slide', { direction: 'left'}, 300, function() {
+					insertHTML(currentBox[0], html);
+					currentBox.show('slide', { direction: 'right'}, 300);
+					window.scrollTo(0, 1);
+				});
+			else
+			{
+				prepareSecondLevelAnswerViewForDevice();
+				addBackHistory("");
+				insertHTML(answerBox2, html);
+				setCurrentView('answerView2', false, true);   
+			}
 			setSubmitCachedFormButton();
 			stopInProgressAnimation();
 		},
@@ -1657,11 +1642,19 @@ function submitAction(keyword, action) {
 				html = xhr.responseText;
 			else
 				html = 'Unable to contact server.';
-			currentBox.hide('slide', { direction: 'left'}, 300, function() {
-				insertHTML(currentBox[0], html);
-				currentBox.show('slide', { direction: 'right'}, 300);
-				window.scrollTo(0, 1);
-			});
+			if (currentBox.attr('id').indexOf('answerBox') !== -1)
+				currentBox.hide('slide', { direction: 'left'}, 300, function() {
+					insertHTML(currentBox[0], html);
+					currentBox.show('slide', { direction: 'right'}, 300);
+					window.scrollTo(0, 1);
+				});
+			else
+			{
+				prepareSecondLevelAnswerViewForDevice();
+				addBackHistory("");
+				insertHTML(answerBox2, html);
+				setCurrentView('answerView2', false, true);   
+			}
 			stopInProgressAnimation();
 		},
 		timeout: computeTimeout(requestUrl.length + requestData.length)
