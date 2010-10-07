@@ -12,8 +12,8 @@ var webappCache = window.applicationCache;
 
 var lowestTransferRateConst = 1000 / (4800 / 8);
 var maxTransactionTimeout = 180 * 1000;
-var ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
-var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
+var ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true, abortIsNoSuccess: true });
+var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true, abortIsNoSuccess: true });
 
 deviceVars.hasWebWorkers = window.Worker != undefined;
 
@@ -22,15 +22,22 @@ delete siteVars.queryParameters.uid;
 delete siteVars.queryParameters.answerSpace;
 
 $(document).ajaxSend(function(event, xhr, options) {
-//	xhr.onprogress = function(e) { console.log(e) }
 	xhr.onprogress = function(e) {
 		var string = 'AJAX download:';
 		string += ' loaded ' + e.position;
 		if (e.lengthComputable)
 			string += ' of ' + e.total;
 		string += ' at ' + e.timeStamp;
-		console.log(string);
+		console.log(string, xhr, options);
 	}
+});
+
+$(document).ajaxComplete(function(event, xhr, options) {
+	console.log('AJAX complete: at ' + event.timeStamp, xhr, options);
+});
+
+$(document).ajaxError(function(event, xhr, options, error) {
+	console.log('AJAX error: at ' + event.timeStamp, xhr, options, error);
 });
 
 function computeTimeout(messageLength) {
@@ -248,15 +255,15 @@ function populateMasterCategories()
 	emptyDOMelement(masterCategoriesBox);
 	for (id in order)
 	{
-			var image = document.createElement('img');
-			image.setAttribute('class', 'v' + siteConfig.master_categories_config);
-			image.setAttribute('data-id', order[id]);
-			image.setAttribute('src', list[order[id]].image);
-			image.setAttribute('alt', list[order[id]].name);
-			masterCategoriesBox.appendChild(image);
-			image.addEventListener('click', function() {
-				showCategoriesView(this.getAttribute('data-id'));
-			});
+		var image = document.createElement('img');
+		image.setAttribute('class', 'v' + siteConfig.master_categories_config);
+		image.setAttribute('data-id', order[id]);
+		image.setAttribute('src', list[order[id]].image);
+		image.setAttribute('alt', list[order[id]].name);
+		masterCategoriesBox.appendChild(image);
+		image.addEventListener('click', function() {
+			showCategoriesView(this.getAttribute('data-id'));
+		});
 	}
 	if (siteConfig.master_categories_config != 'auto')
 	{
@@ -308,15 +315,15 @@ function populateVisualCategories(masterCategory)
 	emptyDOMelement(categoriesBox);
 	for (id in order)
 	{
-			var image = document.createElement('img');
-			image.setAttribute('class', 'v' + siteConfig.categories_config);
-			image.setAttribute('data-id', order[id]);
-			image.setAttribute('src', list[order[id]].image);
-			image.setAttribute('alt', list[order[id]].name);
-			categoriesBox.appendChild(image);
-			image.addEventListener('click', function() {
-				showKeywordListView(this.getAttribute('data-id'));
-			});
+		var image = document.createElement('img');
+		image.setAttribute('class', 'v' + siteConfig.categories_config);
+		image.setAttribute('data-id', order[id]);
+		image.setAttribute('src', list[order[id]].image);
+		image.setAttribute('alt', list[order[id]].name);
+		categoriesBox.appendChild(image);
+		image.addEventListener('click', function() {
+			showKeywordListView(this.getAttribute('data-id'));
+		});
 	}
 	if (siteConfig.categories_config != 'auto')
 	{
@@ -493,30 +500,67 @@ function getSiteConfig()
 				//if (xhrStatus == 'timeout') {}
 				if (typeof(siteConfig) != 'undefined')
 					processSiteConfig();
+				else
+					alert('Content unreachable, please try later.');
 			},
 			success: function(data, xhrStatus, xhr) {
+				/*	possible values of errorMessage:
+				 *	'No answerSpace specified.'
+				 *	'Could not connect to the database.'
+				 *	'Error performing answerSpace query: ' ...
+				 *	'NOT LOGGED IN'
+				 *	'Error performing master categories query: ' ...
+				 *	'Error performing categories query: ' ...
+				 *	'Error performing keywords query: ' ...
+				 *	
+				 *	possible values of statusMessage:
+				 *	'NO KEYWORDS'
+				 *	'NO UPDATES'
+				 */
 				console.log('GetSiteConfig complete: ' + xhrStatus);
-				if (data == null || data.errorMessage)
+				if (data === null)
 				{
-					console.log("GetSiteConfig error: " + (data ? data.errorMessage : 'null'));
+					console.log('GetSiteConfig error: null siteConfig');
 					if (typeof(siteConfig) != 'undefined')
 						processSiteConfig();
 					else
 						window.location = "/demos";
+					return;
 				}
-				else
+				if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
 				{
-					console.log("GetSiteConfig status: " + data.statusMessage);
-					if (data.statusMessage != "NO UPDATES")
-					{
-						setAnswerSpaceItem('siteConfigMessage', data);
-						siteConfig = data.siteConfig;
-						siteConfigHash = data.siteHash;
-						console.log(data);
-					}
-					else
-						console.log(siteConfig);
+					console.log('GetSiteConfig success: no status or error messages', data);
+					setAnswerSpaceItem('siteConfigMessage', data);
+					siteConfig = data.siteConfig;
+					siteConfigHash = data.siteHash;
 					processSiteConfig();
+					return;
+				}
+				if (typeof(data.statusMessage) === 'string')
+				{
+					console.log("GetSiteConfig status: " + data.statusMessage, siteConfig);
+					switch (data.statusMessage)
+					{
+						case 'NO UPDATES':
+							break;
+						case 'NO KEYWORDS':
+							break;
+					}
+					processSiteConfig();
+					return;
+				}
+				if (typeof(data.errorMessage) === 'string')
+				{
+					console.log('GetSiteConfig error: ' + data.errorMessage);
+					switch (data.errorMessage)
+					{
+						case 'NOT LOGGED IN':
+							processSiteConfig();
+							break;
+						default:
+							break;
+					}
+					return;
 				}
 			},
 			complete: function(xhr, xhrStatus) {
@@ -813,6 +857,7 @@ function showAnswerView(keywordID)
 		 },
 		 error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
 			console.log("GetAnswer failed with error type: " + textstatus);
+			// TODO handle timeouts / disconnected mode
 		 },
 		 complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			console.log("GetAnswer transaction complete: " + textstatus);

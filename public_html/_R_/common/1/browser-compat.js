@@ -1,6 +1,6 @@
 if (typeof(console) == 'undefined')
 {
-	if (typeof(debug) != 'undefined' && typeof(debug.log) != 'undefined')
+	if (typeof(debug) === 'object' && typeof(debug.log) === 'function')
 		console = debug;
 	else
 	{
