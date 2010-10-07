@@ -1490,27 +1490,24 @@ function processCachedFormData() {
 
 function setSubmitCachedFormButton() {
   var queueCount = countPendingFormData();
-	var button = $('.pendingFormButton');
+	var button = document.getElementById('pendingButton');
   if (queueCount != 0) {
     console.log("setSubmitCachedFormButton: Cached items");
-		buttonLabel = button.find('.buttonLabel');
+		buttonLabel = $(button).find('.buttonLabel');
 		if (buttonLabel.size() > 0)
 		{
 			insertHTML(buttonLabel, queueCount + ' Unsent Forms');
 		}
 		else
 		{
-			button.button("option", "label", queueCount + ' Pending');
+			insertText(button, queueCount + ' Pending');
 		}
-    button.button("option", "disabled", "false");
-	  button.removeAttr("disabled");
-		button.removeClass('hidden');
+	  button.removeAttribute('disabled');
+		$(button).removeClass('hidden');
   } else {
     console.log("setSubmitCachedFormButton: NO Cached items");
-		buttonLabel = button.find('.buttonLabel');
-    button.button("option", "disabled", "true");
-	  button.attr("disabled", "true");
-		button.addClass('hidden');
+    button.setAttribute('disabled', 'true');
+		$(button).addClass('hidden');
   }
 }
 
@@ -1596,7 +1593,6 @@ function submitFormWithRetry() {
 			if (xhr.status == 200)
 			{
 				delHeadPendingFormData();
-				setSubmitCachedFormButton();
 			}
 			if (xhr.status >= 100)
 			{
@@ -1611,6 +1607,7 @@ function submitFormWithRetry() {
 				currentBox.show('slide', { direction: 'right'}, 300);
 				window.scrollTo(0, 1);
 			});
+			setSubmitCachedFormButton();
 			stopInProgressAnimation();
 		},
 		timeout: computeTimeout(answerUrl.length + requestData.length)
