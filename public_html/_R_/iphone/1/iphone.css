@@ -21,6 +21,11 @@ button, input[type=submit] {
 	font-size: x-small;
 }
 
+#pendingButton {
+	position: fixed;
+	right: 0px;
+}
+
 #activityIndicator {
 	position: fixed;
 	left: 50%;
@@ -31,7 +36,6 @@ button, input[type=submit] {
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	z-index: 5;
-	-webkit-transition: top 0.5s ease-in-out;
 	color: white;
 }
 

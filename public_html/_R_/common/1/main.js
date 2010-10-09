@@ -1,6 +1,6 @@
-var httpAnswerRequest = false;
+var httpAnswerRequest;
 
-var hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, answerSpaceOneKeyword = false;
+var hasCategories, hasMasterCategories, hasVisualCategories, answerSpaceOneKeyword;
 
 var currentKeyword, currentCategory, currentMasterCategory;
 
@@ -8,43 +8,245 @@ var siteConfig, siteConfigHash;
 var answerSpacesList, answerSpacesHash;
 var backStack;
 
-var webappCache = window.applicationCache;
+var webappCache;
 
-var lowestTransferRateConst = 1000 / (4800 / 8);
-var maxTransactionTimeout = 180 * 1000;
-var ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true, abortIsNoSuccess: true });
-var ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true, abortIsNoSuccess: true });
+var lowestTransferRateConst, maxTransactionTimeout;
+var ajaxQueue, ajaxQueueMoJO;
 
-deviceVars.hasWebWorkers = window.Worker != undefined;
-
-siteVars.queryParameters = getURLParameters();
-delete siteVars.queryParameters.uid;
-delete siteVars.queryParameters.answerSpace;
-
-$(document).ajaxSend(function(event, xhr, options) {
-	var phpName = options.url.match(/\/(\w+.php)\??/);
-	if (phpName != null)
-		phpName = phpName[1];
-	xhr.onprogress = function(e) {
-		var string = 'AJAX progress: ' + phpName;
-		console.log(string, e.position, e.total, xhr, options);
+if (typeof(console) == 'undefined')
+{
+	if (typeof(debug) === 'object' && typeof(debug.log) === 'function')
+		console = debug;
+	else
+	{
+		console = { };
+		console.log = function(string) { };
 	}
-});
+}
 
-$(document).ajaxComplete(function(event, xhr, options) {
-	var string = 'AJAX complete: ';
-	var phpName = options.url.match(/\/(\w+.php)\??/);
-	if (phpName != null)
-		string += phpName[1];
-	console.log(string, xhr.readyState, xhr.status, xhr, options);
-});
+function addEvent(obj, evType, fn) { 
+  if (obj.addEventListener) { 
+    obj.addEventListener(evType, fn, false); 
+    return true; 
+  } else if (obj.attachEvent) { 
+    var r = obj.attachEvent("on"+evType, fn); 
+    return r; 
+  } else { 
+    return false; 
+  } 
+}
 
-$(document).ajaxError(function(event, xhr, options, error) {
-	var phpName = options.url.match(/\/(\w+.php)\??/);
-	if (phpName != null)
-		phpName = phpName[1];
-	console.log('AJAX error: ' + phpName, xhr, options, error);
-});
+if (!addEvent(document, "deviceready", onDeviceReady)) {
+  alert("Unable to add deviceready handler");
+  throw("Unable to add deviceready handler");
+}
+if (!addEvent(window, "load", onBodyLoad)) {
+  alert("Unable to add load handler");
+  throw("Unable to add load handler");
+}
+
+(function() {
+  var waitJSLoaded = setInterval(function() {
+    if (MyAnswers.main_Loaded && MyAnswers.device_Loaded) {
+      clearInterval(waitJSLoaded);
+      console.log("onBrowserReady: running JS init");
+      try {
+      	init_device();
+        init_main();
+      } catch(e) {
+        console.log("onBrowserReady: Exception");
+        console.log(e);
+      }
+      try {
+				window.addEventListener('scroll', onScroll, false);
+				$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
+				$(window).trigger('scroll');
+      } catch(e) {
+        console.log("Unable to set onScroll: " + e);
+      }
+      console.log("User Agent: " + navigator.userAgent);
+	  }
+  }, 500);
+})();
+
+function onBodyLoad() {
+  localStorage.setItem("_answerSpace", siteVars.answerSpace);
+  if (navigator.userAgent.search("Safari") > 0) {
+    console.log("onBodyLoad: direct call to onBrowserReady()");
+    onBrowserReady();
+  } else {
+		var bodyLoadedCheck = setInterval(function() {
+			if (MyAnswers.bodyLoaded) {
+				clearInterval(bodyLoadedCheck);
+				onBrowserReady();
+			} else {
+				console.log("Waiting for onload event...");
+			}
+		}, 1000);
+    setTimeout(function() {
+      MyAnswers.bodyLoaded = true;
+      console.log("onBodyLoad: set bodyLoaded => true");
+    }, 2000);
+  }
+}
+
+function onBrowserReady() {
+  console.log("onBrowserReady: " + window.location);
+  var stringToParse = window.location + "";
+  splitUrl = stringToParse.match(/:\/\/(.[^/]+)\/_R_\/(.[^/]+)\/([^/]+)\/.+answerSpace=(.+)/);
+  MyAnswers.loadURL = 'http://' + splitUrl[1] + '/_R_/';
+  siteVars.serverAppVersion =  splitUrl[3];
+	siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
+	siteVars.serverDomain = location.hostname;
+	siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
+	siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+	siteVars.queryParameters = getURLParameters();
+	delete siteVars.queryParameters.uid;
+	delete siteVars.queryParameters.answerSpace;
+
+  // 
+  // The following variables are initialised here so the JS can be tested within Safari
+  //
+  MyAnswers.cameraPresent = false;
+  MyAnswers.multiTasking = false;
+  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+  //
+  // End of device overriden variables
+  //
+  localStorage.setItem("_answerSpace", siteVars.answerSpace);
+  
+	// HTML5 Web Worker
+	deviceVars.hasWebWorkers = window.Worker != undefined;
+	if (deviceVars.hasWebWorkers === true)
+	{
+		var webworker = new Worker(siteVars.serverAppPath + '/webworker.js');
+		webworker.onmessage = function(event) {
+			switch (event.data.fn)
+			{
+				case 'log':
+					console.log(event.data.string);
+					break;
+				case 'processXSLT':
+					console.log('WebWorker: finished processing XSLT');
+					var target = document.getElementById(event.data.target);
+					insertHTML(target, event.data.html);
+					break;
+				case 'workBegun':
+					startInProgressAnimation();
+					break;
+				case 'workComplete':
+					stopInProgressAnimation();
+					break;
+			}
+		};
+	}
+	$(document).ajaxSend(function(event, xhr, options) {
+			var phpName = options.url.match(/\/(\w+.php)\??/);
+			if (phpName != null)
+					phpName = phpName[1];
+			xhr.onprogress = function(e) {
+					var string = 'AJAX progress: ' + phpName;
+					console.log(string, e.position, e.total, xhr, options);
+			}
+	});
+	
+	$(document).ajaxComplete(function(event, xhr, options) {
+			var string = 'AJAX complete: ';
+			var phpName = options.url.match(/\/(\w+.php)\??/);
+			if (phpName != null)
+					string += phpName[1];
+			console.log(string, xhr.readyState, xhr.status, xhr, options);
+	});
+	
+	$(document).ajaxError(function(event, xhr, options, error) {
+			var phpName = options.url.match(/\/(\w+.php)\??/);
+			if (phpName != null)
+					phpName = phpName[1];
+			console.log('AJAX error: ' + phpName, xhr, options, error);
+	});
+}
+
+/* When this function is called, PhoneGap has been initialized and is ready to roll */
+function onDeviceReady() {
+  console.log("Device Ready");
+  console.log("URL to Load: " + window.Settings.LoadURL);
+  console.log("Device: " + window.device.platform);
+  console.log("Camera Present: " + window.device.camerapresent);
+  console.log("Multitasking: " + window.device.multitasking);
+  MyAnswers.cameraPresent = window.device.camerapresent;
+  MyAnswers.loadURL = window.Settings.LoadURL;
+  siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^/]+)/)[1];
+  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+  console.log("Domain: " + MyAnswers.domain);
+  MyAnswers.multiTasking = window.device.multitasking;
+  siteVars.serverAppVersion = window.Settings.codeVersion;
+  siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
+  siteVars.answerSpace = window.Settings.answerSpace;
+  localStorage.setItem("_answerSpace", siteVars.answerSpace);
+  if (window.device.platform.search(/iphone/i) != -1) {
+    deviceVars.device = "iphone_pg";
+    siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
+    deviceVars.deviceFileName = '/iphone.js';
+  } else {
+    deviceVars.device = "ipad_pg";
+    siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
+    deviceVars.deviceFileName = '/ipad.js';
+  }
+  console.log("AppDevicePath: " + siteVars.serverDevicePath);
+  console.log("AppPath: " + siteVars.serverAppPath);
+}
+
+function init_main(){
+	console.log("init_main: ");
+	httpAnswerRequest = false;
+
+	hasCategories = false;
+	hasMasterCategories = false;
+	hasVisualCategories = false;
+	answerSpaceOneKeyword = false;
+
+	lowestTransferRateConst = 1000 / (4800 / 8);
+	maxTransactionTimeout = 180 * 1000;
+	ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
+	ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
+
+	// to facilitate building regex replacements
+	RegExp.quote = function(str) { return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1"); };
+
+	document.addEventListener(
+		"orientationChanged", 
+		function() {
+			console.log("orientationChanged: " + Orientation.currentOrientation);
+		},
+		false);
+
+	//dumpLocalStorage();
+//
+// Do fiddle faddle to get jStore initialised
+//
+	jStore.init(MyAnswers.answerSpace, {});
+	jStore.error(function(e) { console.log('jStore: ' + e); });
+
+	deviceVars.storageReady = false;
+  var storageEngineCheck = setInterval(function() {
+    deviceVars.storageReady = jStore.activeEngine().isReady;
+    console.log("jStore: storageEngineCheck");
+    if (deviceVars.storageReady) {
+      console.log('jStore storageReady: ' + deviceVars.storageReady);
+      setTimeout(function() { 
+        try {
+          console.log("jStore storageReady: running loaded()", jStore.activeEngine().jri);
+          loaded(); 
+          console.log("jStore storageReady: loaded() returned");
+        } catch(e) {
+          console.log("jStore storageReady exception: ");
+          console.log(e);
+        }
+      }, 1000);
+      clearInterval(storageEngineCheck);
+    }
+  }, 100);	
+}
 
 function computeTimeout(messageLength) {
   var t = (messageLength * lowestTransferRateConst) + 5000;
@@ -53,7 +255,7 @@ function computeTimeout(messageLength) {
 
 function updateOrientation()
 {
-	MyAnswers.log("orientationChanged: " + Orientation.currentOrientation);
+	console.log("orientationChanged: " + Orientation.currentOrientation);
 	setupForms($('.view:visible'));
 }
 document.addEventListener('orientationChanged', updateOrientation, false);
@@ -560,7 +762,7 @@ function getSiteConfig()
 				{
 					case 'NOT LOGGED IN':
 						alert('This answerSpace requires users to log in.');
-						processSiteConfig();
+						displayAnswerSpace();
 						break;
 					default:
 						fallbackToStorage('Content unreachable, please try later.');
@@ -579,8 +781,14 @@ function processSiteConfig()
 	hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
 	hasCategories = siteConfig.categories_config != 'no';
 	answerSpaceOneKeyword = siteConfig.keywords.length == 1;
+	displayAnswerSpace();
+	processMoJOs();
+}
+
+function displayAnswerSpace()
+{
 	var startUp = $('#startUp');
-	if (startUp.size() > 0)
+	if (startUp.size() > 0 && typeof(siteConfig) != 'undefined')
 	{
 		if (answerSpaceOneKeyword)
 		{
@@ -608,10 +816,7 @@ function processSiteConfig()
 		var keyword = siteVars.queryParameters.keyword;
 		delete siteVars.queryParameters.keyword;
 		if (typeof(keyword) === 'string' && siteVars.queryParameters != {})
-		{
-			var arguments = $.param(siteVars.queryParameters);
-			showSecondLevelAnswerView(keyword, arguments);
-		}
+			showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
 		else if (typeof(keyword) === 'string')
 			gotoNextScreen(keyword);
 		else if (typeof(siteVars.queryParameters.category) === 'string')
@@ -619,8 +824,6 @@ function processSiteConfig()
 		else if (typeof(siteVars.queryParameters.master_category) === 'string')
 			showCategoriesView(siteVars.queryParameters.master_category);
 		delete siteVars.queryParameters;
-		startUp.remove();
-		$('#content').removeClass('hidden');
 		if (typeof(siteConfig.webClip) === 'string' && deviceVars.device === 'iphone') {
 			setTimeout(function() {
 				var bookmarkBubble = new google.bookmarkbubble.Bubble();
@@ -634,7 +837,8 @@ function processSiteConfig()
 			}, 1000);
 		}
 	}
-	processMoJOs();
+	startUp.remove();
+	$('#content').removeClass('hidden');
 }
 
 function processMoJOs(keyword)
@@ -1893,34 +2097,6 @@ function deserialize(argsString)
 	return result;
 }
 
-// to facilitate building regex replacements
-RegExp.quote = function(str) { return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1"); };
-
-// HTML5 Web Worker
-if (deviceVars.hasWebWorkers === true)
-{
-	var webworker = new Worker(siteVars.serverAppPath + '/webworker.js');
-	webworker.onmessage = function(event) {
-		switch (event.data.fn)
-		{
-			case 'log':
-				console.log(event.data.string);
-				break;
-			case 'processXSLT':
-				console.log('WebWorker: finished processing XSLT');
-				var target = document.getElementById(event.data.target);
-				insertHTML(target, event.data.html);
-				break;
-			case 'workBegun':
-				startInProgressAnimation();
-				break;
-			case 'workComplete':
-				stopInProgressAnimation();
-				break;
-		}
-	};
-}
-
 function emptyDOMelement(element)
 {
 	if (element != null && typeof(element) == 'object')
@@ -1968,3 +2144,5 @@ function getURLParameters()
 	else
 		return [];
 }
+
+MyAnswers.main_Loaded = true;

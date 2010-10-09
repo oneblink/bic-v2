@@ -1,57 +1,35 @@
-var deviceVars = {}, siteVars = {};
+var navBoxHeader, navBar;
+var navButtons;
+var helpButton;
+var pendingFormButton, pendingFormButtonTop;
+var welcomeMessage;
+var mainLabel;
+var activityIndicator, activityIndicatorTop;
 
-// ** device-specific initialisation of variables and flags **
-
-siteVars.serverDomain = location.hostname;
-siteVars.serverAppVersion = location.pathname.match(/_R_\/iphone\/(\d+)\//)[1];
-siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
-siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/iphone/' + siteVars.serverAppVersion;
-siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
-
-deviceVars.device = "iphone";
-deviceVars.storageReady = false;
-deviceVars.storageAvailable = false;
-
-jStore.error(function(e) { console.log('jStore: ' + e); });
-jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, jStore.flavors.sql);
-jStore.engineReady(function(engine) {
-	console.log('jStore using: ' + engine.jri);
-	deviceVars.storageReady = engine.isReady;
-	loaded();
-});
-$(window).load(function() {
+function init_device()
+{
+	console.log('init_device()');
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion != null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
 	deviceVars.useCSS3buttons = deviceVars.engineVersion >= 531; // iOS 3.2 understand border-image
 	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
 	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
-	for (e in jStore.available)
-	{
-		if (jStore.available[e])
-		{
-			deviceVars.storageAvailable = true;
-			break;
-		}
-	}
-	if (!deviceVars.storageAvailable)
-		loaded();
-	window.addEventListener('scroll', onScroll, false);
-	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
-	if ($('#loginStatus').size() > 0)
-		siteVars.hasLogin = true;
-});
 
-// caching frequently-accessed selectors
-var navBoxHeader = $('#navBoxHeader');
-var navButtons = $("#homeButton, #backButton");
-var helpButton = $('#helpButton');
-var pendingFormButton = $('#pendingFormButton');
-var welcomeMessage = $('#welcomeMsgArea');
-var mainLabel = $('#mainLabel');
-var activityIndicator = $('#activityIndicator');
-var navBar = $('.navBar');
-var activityIndicatorTop = Math.floor($(window).height() / 2);
+	deviceVars.device = "iphone";
+	
+	// caching frequently-accessed selectors
+	navBoxHeader = $('#navBoxHeader');
+	navButtons = $("#homeButton, #backButton");
+	helpButton = $('#helpButton');
+	pendingFormButton = $('#pendingButton');
+	welcomeMessage = $('#welcomeMsgArea');
+	mainLabel = $('#mainLabel');
+	activityIndicator = $('#activityIndicator');
+	navBar = $('.navBar');
+	activityIndicatorTop = Math.floor($(window).height() / 2);
+	pendingFormButtonTop = $(window).height() + 20;
+}
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -326,6 +304,7 @@ function onScroll()
 		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
 	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	updatePartCSS(pendingFormButton, deviceVars.scrollProperty, (pendingFormButtonTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)
@@ -355,3 +334,16 @@ function setupParts()
 		});
 	}
 }
+
+(function() {
+  var timer = setInterval(function() {
+		if (typeof(MyAnswers.device_Loaded) != 'undefined') {
+			try {
+				MyAnswers.device_Loaded = true;
+				clearInterval(timer);
+			} catch(e) {
+				console.log("***** Unable to set: MyAnswers.device_Loaded => true");
+			}
+		}
+  }, 100);
+})();

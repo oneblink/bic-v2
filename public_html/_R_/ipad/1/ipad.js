@@ -1,49 +1,23 @@
-var deviceVars = {}, siteVars = {};
+var backButtonHeader;
+var helpButton;
+var homeButton;
 
-// ** device-specific initialisation of variables and flags **
-
-siteVars.serverDomain = location.hostname;
-siteVars.serverAppVersion = location.pathname.match(/_R_\/ipad\/(\d+)\//)[1];
-siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
-siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/ipad/' + siteVars.serverAppVersion;
-siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
-
-deviceVars.device = "ipad";
-deviceVars.storageReady = false;
-deviceVars.storageAvailable = false;
-
-jStore.error(function(e) { console.log('jStore: ' + e); });
-jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, jStore.flavors.sql);
-jStore.engineReady(function(engine) {
-	console.log('jStore using: ' + engine.jri);
-	deviceVars.storageReady = engine.isReady;
-	loaded();
-});
-$(window).load(function() {
+function init_device()
+{
+	console.log('init_device()');
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion != null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
 	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
 	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
-	for (e in jStore.available)
-	{
-		if (jStore.available[e])
-		{
-			deviceVars.storageAvailable = true;
-			break;
-		}
-	}
-	if (!deviceVars.storageAvailable)
-		loaded();
-	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
-	if ($('#loginStatus').size() > 0)
-		siteVars.hasLogin = true;
-});
 
-// caching frequently-accessed selectors
-var backButtonHeader = $('#backButtonHeader');
-var helpButton = $('#helpButton');
-var homeButton = $('.homeButton');
+	deviceVars.device = "ipad";
+	
+	// caching frequently-accessed selectors
+	backButtonHeader = $('#backButtonHeader');
+	helpButton = $('#helpButton');
+	homeButton = $('.homeButton');
+}
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -425,3 +399,18 @@ function showLeftBoxContents(callback)
 		images.removeClass('animating');
 	}, 0.2 * 1000);
 }
+
+function onScroll(event) {}
+
+(function() {
+  var timer = setInterval(function() {
+		if (typeof(MyAnswers.device_Loaded) != 'undefined') {
+			try {
+				MyAnswers.device_Loaded = true;
+				clearInterval(timer);
+			} catch(e) {
+				console.log("***** Unable to set: MyAnswers.device_Loaded => true");
+			}
+		}
+  }, 100);
+})();

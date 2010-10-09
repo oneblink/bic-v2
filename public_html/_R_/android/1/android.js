@@ -1,83 +1,47 @@
-var deviceVars = {}, siteVars = {}, hashStack = new Array();
+var navBoxHeader;
+var navButtons;
+var helpButton;
+var welcomeMessage;
+var mainLabel;
+var activityIndicator;
+var hashStack;
 
 // ** device-specific initialisation of variables and flags **
 
-siteVars.serverDomain = location.hostname;
-siteVars.serverAppVersion = location.pathname.match(/_R_\/android\/(\d+)\//)[1];
-siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
-siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/android/' + siteVars.serverAppVersion;
-siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
-
-deviceVars.device = "android";
-deviceVars.storageReady = false;
-deviceVars.storageAvailable = false;
-
-deviceVars.scrollProperty = '-webkit-transform';
-deviceVars.scrollValue = 'translateY($1px)';
-//deviceVars.disableXSLT = true;
-
-jStore.error(function(e) { console.log('jStore: ' + e); });
-jStore.init(siteVars.answerSpace, { flash: siteVars.serverAppPath + '/jStore.Flash.html', json: siteVars.serverAppPath + '/browser-compat.js' }, typeof(google) != 'undefined' && typeof(google.gears) != 'undefined' ? jStore.flavors.gears : jStore.flavors.sql);
-jStore.engineReady(function(engine) {
-	console.log('jStore using: ' + engine.jri);
-	deviceVars.storageReady = engine.isReady;
-	launchWebApplication();
-});
-$(document).ready(function() {
+function init_device()
+{
+	console.log('init_device()');
 	deviceVars.majorVersion = navigator.userAgent.match(/Android (\d+)./);
 	deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 1;
 	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+.(\d+)/);
 	deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 5;
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
-	deviceVars.progressDialogTop = Math.floor(screen.height / 2);
+	deviceVars.scrollProperty = '-webkit-transform';
+	deviceVars.scrollValue = 'translateY($1px)';
 	if (deviceVars.engineVersion >= 529)
-		window.addEventListener('hashchange', onHashChange, false);
-	for (e in jStore.available)
-	{
-		if (jStore.available[e])
-		{
-			deviceVars.storageAvailable = true;
-			break;
-		}
-	}
-	window.addEventListener('scroll', onScroll, false);
-	$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
-	if ($('#loginStatus').size() > 0)
-		siteVars.hasLogin = true;
-//	$('.bulletin').bind('click', dismissBulletin);
-	setTimeout(function() {
-		deviceVars.headerHeight = $('header').height();
-		console.log(deviceVars);
-//		$('#stackLayout').css('padding-top', deviceVars.headerHeight + 'px');
-	}, 300);
+		addEvent('hashchange', onHashChange, false);
+
+	deviceVars.device = "android";
+	
+	hashStack = new Array();
+//	deviceVars.disableXSLT = true;
+
+	deviceVars.headerHeight = $('header').height();
+	deviceVars.progressDialogTop = Math.floor(screen.height / 2);
+
+	console.log(deviceVars);
 //	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 //	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
-	deviceVars.documentReady = true;
-	launchWebApplication();
-});
 
-function launchWebApplication()
-{
-	if (deviceVars.documentReady != true)
-	{
-		return;
-	}
-	if (deviceVars.storageAvailable == true)
-	{
-		if (deviceVars.storageReady != true)
-			return;
-	}
-	loaded();
+	// caching frequently-accessed selectors
+	navBoxHeader = $('#navBoxHeader');
+	navButtons = $("#homeButton, #backButton");
+	helpButton = $('#helpButton');
+	welcomeMessage = $('#welcomeMsgArea');
+	mainLabel = $('#mainLabel');
+	activityIndicator = $('#activityIndicator');
 }
-
-// caching frequently-accessed selectors
-var navBoxHeader = $('#navBoxHeader');
-var navButtons = $("#homeButton, #backButton");
-var helpButton = $('#helpButton');
-var welcomeMessage = $('#welcomeMsgArea');
-var mainLabel = $('#mainLabel');
-var activityIndicator = $('#activityIndicator');
 
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
@@ -427,3 +391,15 @@ function onHashChange(event)
  h = Help
 */
 
+(function() {
+  var timer = setInterval(function() {
+		if (typeof(MyAnswers.device_Loaded) != 'undefined') {
+			try {
+				MyAnswers.device_Loaded = true;
+				clearInterval(timer);
+			} catch(e) {
+				console.log("***** Unable to set: MyAnswers.device_Loaded => true");
+			}
+		}
+  }, 100);
+})();
