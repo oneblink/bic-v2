@@ -664,7 +664,7 @@
          *  Signature:
          *  [FLAVOR_<storageFlavor>, ...]
          */
-        enginePriority: [FLAVOR_LOCAL, FLAVOR_SQL, FLAVOR_GEARS, FLAVOR_FLASH, FLAVOR_MSIE],
+        enginePriority: [FLAVOR_SQL, FLAVOR_GEARS, FLAVOR_LOCAL, FLAVOR_FLASH, FLAVOR_MSIE],
         
         /**
          *  A collection of the availability states of engines, indexed by their flavor.
