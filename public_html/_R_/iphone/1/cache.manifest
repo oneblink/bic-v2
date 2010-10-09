@@ -23,7 +23,7 @@ NETWORK:
 ../../common/1/util/GetLogin.php
 ../../common/1/util/GetAnswer.php
 ../../common/1/util/GetMoJO.php
-util/GetSiteConfig.php
+../../common/1/util/GetSiteConfig.php
 http://i.ytimg.com/
 http://maps.google.com/
 /images/
