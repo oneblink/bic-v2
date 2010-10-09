@@ -47,7 +47,7 @@ if (!addEvent(window, "load", onBodyLoad)) {
 
 (function() {
   var waitJSLoaded = setInterval(function() {
-    if (MyAnswers.main_Loaded && MyAnswers.device_Loaded) {
+    if (MyAnswers.main_Loaded && MyAnswers.device_Loaded && MyAnswers.browserReady_Loaded) {
       clearInterval(waitJSLoaded);
       console.log("onBrowserReady: running JS init");
       try {
@@ -70,7 +70,6 @@ if (!addEvent(window, "load", onBodyLoad)) {
 })();
 
 function onBodyLoad() {
-  localStorage.setItem("_answerSpace", siteVars.answerSpace);
   if (navigator.userAgent.search("Safari") > 0) {
     console.log("onBodyLoad: direct call to onBrowserReady()");
     onBrowserReady();
@@ -103,17 +102,16 @@ function onBrowserReady() {
 	siteVars.queryParameters = getURLParameters();
 	delete siteVars.queryParameters.uid;
 	delete siteVars.queryParameters.answerSpace;
+  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
 
   // 
   // The following variables are initialised here so the JS can be tested within Safari
   //
   MyAnswers.cameraPresent = false;
   MyAnswers.multiTasking = false;
-  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
   //
   // End of device overriden variables
   //
-  localStorage.setItem("_answerSpace", siteVars.answerSpace);
   
 	// HTML5 Web Worker
 	deviceVars.hasWebWorkers = window.Worker != undefined;
@@ -164,6 +162,7 @@ function onBrowserReady() {
 					phpName = phpName[1];
 			console.log('AJAX error: ' + phpName, xhr, options, error);
 	});
+	MyAnswers.browserReady_Loaded = true;
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -182,7 +181,6 @@ function onDeviceReady() {
   siteVars.serverAppVersion = window.Settings.codeVersion;
   siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
   siteVars.answerSpace = window.Settings.answerSpace;
-  localStorage.setItem("_answerSpace", siteVars.answerSpace);
   if (window.device.platform.search(/iphone/i) != -1) {
     deviceVars.device = "iphone_pg";
     siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
