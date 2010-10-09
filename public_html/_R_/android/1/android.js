@@ -12,15 +12,15 @@ function init_device()
 {
 	console.log('init_device()');
 	deviceVars.majorVersion = navigator.userAgent.match(/Android (\d+)./);
-	deviceVars.majorVersion = typeof(deviceVars.majorVersion) == 'array' ? deviceVars.majorVersion[1] : 1;
-	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+.(\d+)/);
-	deviceVars.minorVersion = typeof(deviceVars.minorVersion) == 'array' ? deviceVars.minorVersion[1] : 5;
+	deviceVars.majorVersion = deviceVars.majorVersion !== null ? deviceVars.majorVersion[1] : 1;
+	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+\.(\d+)/);
+	deviceVars.minorVersion = deviceVars.minorVersion !== null ? deviceVars.minorVersion[1] : 5;
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
-	deviceVars.engineVersion = typeof(deviceVars.engineVersion) == 'array' ? deviceVars.engineVersion[1] : 525;
+	deviceVars.engineVersion = deviceVars.engineVersion !== null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.scrollProperty = '-webkit-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
-	if (deviceVars.engineVersion >= 529)
-		addEvent('hashchange', onHashChange, false);
+	if (deviceVars.engineVersion >= 529 || typeof(window.onhashchange) === 'object')
+		console.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
 
 	deviceVars.device = "android";
 	
@@ -30,7 +30,6 @@ function init_device()
 	deviceVars.headerHeight = $('header').height();
 	deviceVars.progressDialogTop = Math.floor(screen.height / 2);
 
-	console.log(deviceVars);
 //	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 //	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
 
