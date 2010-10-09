@@ -1,14 +1,3 @@
-if (typeof(console) == 'undefined')
-{
-	if (typeof(debug) === 'object' && typeof(debug.log) === 'function')
-		console = debug;
-	else
-	{
-		console = { };
-		console.log = function(string) { };
-	}
-}
-
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (obj, fromIndex) {
         if (fromIndex == null) {

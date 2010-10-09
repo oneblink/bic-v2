@@ -12,6 +12,8 @@ function log(string)
 	message.string = string;
 	postMessage(message);
 }
+
+if (typeof(console) == 'undefined') console = { };
 console.log = log;
 
 function signalWorkBegun()
