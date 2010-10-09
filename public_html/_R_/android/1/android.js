@@ -308,6 +308,9 @@ function setCurrentView(view, reverseTransition)
 				newView.removeClass('animating new');
 			}, 300);
 		}
+		setTimeout(function() {
+			onScroll();
+		}, 350);
   }, 0);
 }
 

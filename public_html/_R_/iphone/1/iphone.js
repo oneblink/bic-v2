@@ -280,8 +280,9 @@ function setCurrentView(view, reverseTransition)
 				currentView.removeClass('animating slid' + endPosition);
 			}, 300);
 		}
-		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
-		updatePartCSS(activityIndicator, deviceVars.scrollProperty, activityIndicatorTop, deviceVars.scrollValue);
+		setTimeout(function() {
+			onScroll();
+		}, 350);
 	}, 0);
 }
 
@@ -317,20 +318,17 @@ function setupParts()
 {
 	if (deviceVars.useCSS3buttons === false)
 	{
-		var backButtons = $('.backButton');
-		backButtons.each(function(index, element) {
+		$('.backButton').each(function(index, element) {
 			var thisElement = $(element);
-			thisElement.html('<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
+			insertHTML(element, '<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
 		});
-		var roundButtons = $('.roundButton');
-		roundButtons.each(function(index, element) {
+		$('.roundButton').each(function(index, element) {
 			var thisElement = $(element);
-			thisElement.html('<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
+			insertHTML(element, '<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
 		});
-		var squareButtons = $('.squareButton');
-		squareButtons.each(function(index, element) {
+		$('.squareButton').each(function(index, element) {
 			var thisElement = $(element);
-			thisElement.html('<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
+			insertHTML(element, '<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
 		});
 	}
 }

@@ -222,7 +222,7 @@ function init_main(){
 //
 // Do fiddle faddle to get jStore initialised
 //
-	jStore.init(MyAnswers.answerSpace, {});
+	jStore.init(siteVars.answerSpace, {});
 	jStore.error(function(e) { console.log('jStore: ' + e); });
 
 	deviceVars.storageReady = false;
@@ -1626,22 +1626,15 @@ function setSubmitCachedFormButton() {
 	var button = document.getElementById('pendingButton');
   if (queueCount != 0) {
     console.log("setSubmitCachedFormButton: Cached items");
-		buttonLabel = $(button).find('.buttonLabel');
-		if (buttonLabel.size() > 0)
-		{
-			insertHTML(buttonLabel, queueCount + ' Unsent Forms');
-		}
-		else
-		{
-			insertText(button, queueCount + ' Pending');
-		}
-	  button.removeAttribute('disabled');
+		insertText(button, queueCount + ' Pending');
 		$(button).removeClass('hidden');
   } else {
     console.log("setSubmitCachedFormButton: NO Cached items");
-    button.setAttribute('disabled', 'true');
 		$(button).addClass('hidden');
   }
+  setTimeout(function() {
+  	setupParts();
+ 	}, 50);
 }
 
 function removeFormRetryData() {
@@ -1726,11 +1719,16 @@ function submitFormWithRetry() {
 				html = xhr.responseText;
 			}
 			if (currentBox.attr('id').indexOf('answerBox') !== -1)
+			{
 				currentBox.hide('slide', { direction: 'left'}, 300, function() {
 					insertHTML(currentBox[0], html);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
 				});
+				setTimeout(function() {
+					onScroll();
+				}, 350);
+			}
 			else
 			{
 				prepareSecondLevelAnswerViewForDevice();
@@ -1781,11 +1779,16 @@ function submitAction(keyword, action) {
 			else
 				html = xhr.responseText;
 			if (currentBox.attr('id').indexOf('answerBox') !== -1)
+			{
 				currentBox.hide('slide', { direction: 'left'}, 300, function() {
 					insertHTML(currentBox[0], html);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
 				});
+				setTimeout(function() {
+					onScroll();
+				}, 350);
+			}
 			else
 			{
 				prepareSecondLevelAnswerViewForDevice();
