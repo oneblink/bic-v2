@@ -148,7 +148,7 @@ function onBrowserReady() {
 			}
 	});
 	
-	$(document).ajaxComplete(function(event, xhr, options) {
+	$(document).ajaxSuccess(function(event, xhr, options) {
 			var string = 'AJAX complete: ';
 			var phpName = options.url.match(/\/(\w+.php)\??/);
 			if (phpName != null)
@@ -227,9 +227,8 @@ function init_main(){
 
 	deviceVars.storageReady = false;
   var storageEngineCheck = setInterval(function() {
-    deviceVars.storageReady = jStore.activeEngine().isReady;
     console.log("jStore: storageEngineCheck");
-    if (deviceVars.storageReady) {
+    if (deviceVars.storageReady === true) {
       console.log('jStore storageReady: ' + deviceVars.storageReady);
       setTimeout(function() { 
         try {
@@ -243,6 +242,7 @@ function init_main(){
       }, 1000);
       clearInterval(storageEngineCheck);
     }
+    deviceVars.storageReady = jStore.activeEngine().isReady;
   }, 100);	
 }
 
@@ -626,18 +626,17 @@ function loaded()
 /*	if (siteVars.answerSpace)
 	{ */
 		backStack = new Array();
-		if (deviceVars.storageReady)
+		if (getAnswerSpaceItem('answerSpace') == 'undefined' || getAnswerSpaceItem('answerSpace') != siteVars.answerSpace)
+			clearStorage();
+		setAnswerSpaceItem('answerSpace', siteVars.answerSpace);
+		var message = getAnswerSpaceItem('siteConfigMessage');
+		if (typeof(message) === 'string')
+			message = JSON.parse(message);
+		if (typeof(message) === 'object')
 		{
-			if (getAnswerSpaceItem('answerSpace') == 'undefined' || getAnswerSpaceItem('answerSpace') != siteVars.answerSpace)
-				clearStorage();
-			setAnswerSpaceItem('answerSpace', siteVars.answerSpace);
-			var message = getAnswerSpaceItem('siteConfigMessage');
-			if (typeof(message) != 'undefined' && message != 'undefined')
-			{
-				siteConfig = message.siteConfig;
-				siteConfigHash = message.siteHash;
-			}					
-		}
+			siteConfig = message.siteConfig;
+			siteConfigHash = message.siteHash;
+		}					
 		setSubmitCachedFormButton();
 		getSiteConfig();
 		updateLoginBar();
@@ -687,6 +686,7 @@ function getAnswerSpacesList()
 function getSiteConfig()
 {
 	var fallbackToStorage = function(string) {
+		console.log('siteConfig type: ' + typeof(siteConfig));
 		if (typeof(siteConfig) != 'undefined')
 			processSiteConfig();
 		else
@@ -701,12 +701,8 @@ function getSiteConfig()
 		beforeSend: function(xhr) {
 			console.log("GetSiteConfig transaction: " + requestUrl + "?" + requestData);
 		},
-		error: function(xhr, xhrStatus, error) {
-			console.log('GetSiteConfig complete: ' + xhrStatus + ' ' + error);
-			fallbackToStorage('Content unreachable, please try later.');
-		},
 		complete: function(xhr, xhrStatus) {
-			if (xhr.status < 100)
+			if (isAJAXError(xhrStatus) || xhr.status !== 200)
 			{
 				fallbackToStorage('Content unreachable, please try later.');
 				return;
@@ -738,6 +734,7 @@ function getSiteConfig()
 				siteConfig = data.siteConfig;
 				siteConfigHash = data.siteHash;
 				processSiteConfig();
+				console.log('post-store siteConfig type:' + typeof(getAnswerSpaceItem('siteConfigMessage')));
 				return;
 			}
 			if (typeof(data.statusMessage) === 'string')
@@ -769,7 +766,7 @@ function getSiteConfig()
 				return;
 			}
 		},
-		timeout: computeTimeout(50 * 1024)
+		timeout: computeTimeout(40 * 1024)
 	});
 }
 
@@ -860,11 +857,8 @@ function processMoJOs(keyword)
 			beforeSend: function(xhr) {
 				console.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
 			},
-			error: function(xhr, xhrStatus, error) {
-				//if (xhrStatus == 'timeout') {}
-			},
 			complete: function(xhr, xhrStatus) {
-				if (xhr.status >= 100)
+				if (!isAJAXError(xhrStatus) && xhr.status === 200)
 				{
 					var data = JSON.parse(xhr.responseText);
 					if (data === null)
@@ -1047,12 +1041,8 @@ function showAnswerView(keywordID)
 			startInProgressAnimation();
 			setSubmitCachedFormButton();
 		 },
-		 error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-			console.log("GetAnswer failed with error type: " + textstatus);
-			fallbackToStorage();
-		 },
 		 complete: function(xhr, textstatus) { // readystate == 4
-		 	if (xhr.status < 100)
+		 	if (isAJAXError(textstatus) || xhr.status !== 200)
 		 		fallbackToStorage();
 		 	else
 		 	{
@@ -1197,12 +1187,8 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 				insertText(answerBox2, 'Waiting...');
 				startInProgressAnimation();
 			},
-			error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-				console.log("GetAnswer2 failed with error type: " + textstatus);
-				fallbackToStorage();
-			},
 			complete: function(xhr, textstatus) { // readystate == 4
-				if (xhr.status < 100)
+				if (isAJAXError(textstatus) || xhr.status !== 200)
 					fallbackToStorage();
 				else
 				{
@@ -1394,15 +1380,12 @@ function showNewLoginView(isActivating)
 		beforeSend: function(xhr) {
 			console.log("CreateLogin transaction: " + loginUrl + "?" + requestData);
 		},
-		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-			alert("Error preparing login:" + xhr.responseText);
-		},
 		complete: function(xhr, textstatus) { // readystate == 4
 			var newLoginBox = document.getElementById('newLoginBox');
-			if (xhr.status >= 100)
-				insertHTML(newLoginBox, xhr.responseText);
-			else
+			if (isAJAXError(textstatus) && xhr.status !== 200)
 				insertText(newLoginBox, 'Unable to contact server.');
+			else
+				insertHTML(newLoginBox, xhr.responseText);
 			setCurrentView('newLoginView', false, true); 
 		}
   });
@@ -1421,15 +1404,12 @@ function showActivateLoginView(event)
 		beforeSend: function(xhr) {
 			console.log("ActivateLogin transaction: " + loginUrl);
 		},
-		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-			alert("Error preparing login:" + xhr.responseText);
-		},
 		complete: function(xhr, textstatus) { // readystate == 4
 			var activateLoginBox = document.getElementById('activateLoginBox');
-			if (xhr.status >= 100)
-				insertHTML(activateLoginBox, xhr.responseText);
-			else
+			if (isAJAXError(textstatus) && xhr.status !== 200)
 				insertText(activateLoginBox, 'Unable to contact server.');
+			else
+				insertHTML(activateLoginBox, xhr.responseText);
 			setCurrentView('activateLoginView', false, true); 
 		}
   });
@@ -1448,15 +1428,12 @@ function showLoginView(event)
 		beforeSend: function(xhr) {
 			console.log("DoLogin transaction: " + loginUrl);
 		},
-		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-			alert("Error preparing login:" + xhr.responseText);
-		},
 		complete: function(xhr, textstatus) { // readystate == 4
 			var loginBox = document.getElementById('loginBox');
-			if (xhr.status >= 100)
-				insertHTML(loginBox, xhr.responseText);
-			else
+			if (isAJAXError(textstatus) || xhr.status !== 200)
 				insertText(loginBox, 'Unable to contact server.');
+			else
+				insertHTML(loginBox, xhr.responseText);
 			setCurrentView('loginView', false, true); 
 		}
   });
@@ -1464,58 +1441,40 @@ function showLoginView(event)
 
 function updateLoginBar(){
 	var loginStatus = document.getElementById('loginStatus');
-	if (!isBrowserOnline())
-	{
-		emptyDOMelement(loginStatus);
-		loginStatus.appendChild(document.createTextNode('Offline'));
-		loginStatus.appendChild(document.createElement('br'));
-		loginStatus.appendChild(document.createTextNode('Mode'));
-		$(loginStatus).removeClass('hidden');
-		$('#loginButton').addClass('hidden');
-	}
-	else
-	{
-		var requestUrl = siteVars.serverAppPath + '/util/GetLogin.php';
-		ajaxQueue.add({
-			url: requestUrl,
-			dataType: 'json',
-			beforeSend: function(xhr) {
-				console.log('GetLogin transaction: ' + requestUrl);
-				startInProgressAnimation();
-			},
-			error: function(xhr, xhrStatus, error) {
-				//if (xhrStatus == 'timeout') {}
-				console.log('GetLogin transaction complete: ' + xhrStatus + ' ' + error);
-			},
-			complete: function(xhr, xhrStatus) {
-				if (xhr.status >= 100)
+	var requestUrl = siteVars.serverAppPath + '/util/GetLogin.php';
+	ajaxQueue.add({
+		url: requestUrl,
+		dataType: 'json',
+		beforeSend: function(xhr) {
+			console.log('GetLogin transaction: ' + requestUrl);
+			startInProgressAnimation();
+		},
+		complete: function(xhr, xhrStatus) {
+			stopInProgressAnimation();
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) return;
+			var data = JSON.parse(xhr.responseText);
+			if (data != null)
+			{
+				if (data.status == "LOGGED IN")
 				{
-					var data = JSON.parse(xhr.responseText);
-					if (data != null)
+					if (data.html.length > 0)
 					{
-						if (data.status == "LOGGED IN")
-						{
-							if (data.html.length > 0)
-							{
-								insertHTML(loginStatus, data.html);
-								$(loginStatus).removeClass('hidden');
-							}
-							else
-								$('#logoutButton').removeClass('hidden');
-							$('#loginButton').addClass('hidden');
-						}
-						else
-						{
-							$('#loginStatus, #logoutButton').addClass('hidden');
-							$('#loginButton').removeClass('hidden');
-						}
+						insertHTML(loginStatus, data.html);
+						$(loginStatus).removeClass('hidden');
 					}
+					else
+						$('#logoutButton').removeClass('hidden');
+					$('#loginButton').addClass('hidden');
 				}
-				stopInProgressAnimation();
-			},
-			timeout: computeTimeout(500)
-		});
-	}
+				else
+				{
+					$('#loginStatus, #logoutButton').addClass('hidden');
+					$('#loginButton').removeClass('hidden');
+				}
+			}
+		},
+		timeout: computeTimeout(500)
+	});
 }
 
 function submitLogin()
@@ -1531,15 +1490,13 @@ function submitLogin()
 		beforeSend: function(xmlhttprequest) {
 			startInProgressAnimation();
 		},
-		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-			alert("Error preparing login:" + xmlhttprequest.responseText);
-		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			var loginBox = document.getElementById('loginBox');
-			if (xhr.status >= 100)
-				insertHTML(loginBox, xhr.responseText);
-			else
+			stopInProgressAnimation();
+			if (isAJAXError(textstatus) || xhr.status !== 200)
 				insertText(loginBox, 'Unable to contact server.');
+			else
+				insertHTML(loginBox, xhr.responseText);
 			setCurrentView('loginView', false, true); 
 			stopInProgressAnimation();
 			getSiteConfig();
@@ -1560,16 +1517,13 @@ function submitLogout()
 		beforeSend: function(xmlhttprequest) {
 			console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
 		},
-		error: function(xmlhttprequest, textstatus, error) { // readystate == 4 && status != 200
-			alert("Error preparing login:" + xmlhttprequest.responseText);
-		},
 		complete: function(xmlhttprequest, textstatus) { // readystate == 4
 			console.log("iPhoneLogin transaction complete: " + textstatus);
 			var loginBox = document.getElementById('loginBox');
-			if (xhr.status >= 100)
-				insertHTML(loginBox, xhr.responseText);
-			else
+			if (isAJAXError(textstatus) || xhr.status !== 200)
 				insertText(loginBox, 'Unable to contact server.');
+			else
+				insertHTML(loginBox, xhr.responseText);
 			setCurrentView('loginView', false, true); 
 			getSiteConfig();
 			updateLoginBar();
@@ -1760,26 +1714,16 @@ function submitFormWithRetry() {
 			httpAnswerRequest = xhr;
 			startInProgressAnimation();
 		},
-		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-			if (textstatus == "timeout")
-			{
-			 alert("Form not submitted, retry when you are in coverage");
-			 goBackToKeywordListView();
-			}
-		},
 		complete: function(xhr, textstatus) { // readystate == 4
+			setSubmitCachedFormButton();
+			stopInProgressAnimation();
 			var html;
-			if (xhr.status == 200)
-			{
-				delHeadPendingFormData();
-			}
-			if (xhr.status >= 100)
-			{
-				html = xhr.responseText;
-			}
+			if (isAJAXError(textstatus) || xhr.status !== 200)
+				html = 'Unable to contact server. Your submission has been stored for future attempts.';
 			else
 			{
-				html = 'Unable to contact server. Your submission has been stored for future attempts.';
+				delHeadPendingFormData();
+				html = xhr.responseText;
 			}
 			if (currentBox.attr('id').indexOf('answerBox') !== -1)
 				currentBox.hide('slide', { direction: 'left'}, 300, function() {
@@ -1794,8 +1738,6 @@ function submitFormWithRetry() {
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
 			}
-			setSubmitCachedFormButton();
-			stopInProgressAnimation();
 		},
 		timeout: computeTimeout(answerUrl.length + requestData.length)
 	});
@@ -1831,19 +1773,13 @@ function submitAction(keyword, action) {
 			httpAnswerRequest = xhr;
 			startInProgressAnimation();
 		},
-		error: function(xhr, textstatus, error) { // readystate == 4 && status != 200
-			if (textstatus == "timeout")
-			{
-			 alert("Action not submitted, retry when you are in coverage");
-			 goBackToKeywordListView();
-			}
-		},
 		complete: function(xhr, textstatus) { // readystate == 4
+			stopInProgressAnimation();
 			var html;
-			if (xhr.status >= 100)
-				html = xhr.responseText;
-			else
+			if (isAJAXError(textstatus) || xhr.status !== 200)
 				html = 'Unable to contact server.';
+			else
+				html = xhr.responseText;
 			if (currentBox.attr('id').indexOf('answerBox') !== -1)
 				currentBox.hide('slide', { direction: 'left'}, 300, function() {
 					insertHTML(currentBox[0], html);
@@ -1857,7 +1793,6 @@ function submitAction(keyword, action) {
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
 			}
-			stopInProgressAnimation();
 		},
 		timeout: computeTimeout(requestUrl.length + requestData.length)
 	});
@@ -2141,6 +2076,20 @@ function getURLParameters()
 	}
 	else
 		return [];
+}
+
+function isAJAXError(status)
+{
+	switch(status) {
+		case null:
+		case 'timeout':
+		case 'error':
+		case 'notmodified':
+		case 'parseerror':
+			return true;
+		default:
+			return false;
+	}
 }
 
 MyAnswers.main_Loaded = true;

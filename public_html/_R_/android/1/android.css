@@ -168,6 +168,10 @@ button[disabled] { opacity: 0.5; }
 	width: 44px;
 }
 
+#pendingButton {
+	width: auto;
+}
+
 .view {
 	display: none;
 }
