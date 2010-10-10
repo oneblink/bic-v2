@@ -1710,8 +1710,6 @@ function submitFormWithRetry() {
 			startInProgressAnimation();
 		},
 		complete: function(xhr, textstatus) { // readystate == 4
-			setSubmitCachedFormButton();
-			stopInProgressAnimation();
 			var html;
 			if (isAJAXError(textstatus) || xhr.status !== 200)
 				html = 'Unable to contact server. Your submission has been stored for future attempts.';
@@ -1738,6 +1736,8 @@ function submitFormWithRetry() {
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
 			}
+			setSubmitCachedFormButton();
+			stopInProgressAnimation();
 		},
 		timeout: computeTimeout(answerUrl.length + requestData.length)
 	});

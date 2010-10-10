@@ -28,7 +28,6 @@ function init_device()
 	activityIndicator = $('#activityIndicator');
 	navBar = $('.navBar');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
-	pendingFormButtonTop = $(window).height() + 20;
 }
 
 /*
@@ -305,7 +304,6 @@ function onScroll()
 		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
 	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
-	updatePartCSS(pendingFormButton, deviceVars.scrollProperty, (pendingFormButtonTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)

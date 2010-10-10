@@ -21,11 +21,6 @@ button, input[type=submit] {
 	font-size: x-small;
 }
 
-#pendingButton {
-	position: fixed;
-	right: 0px;
-}
-
 #activityIndicator {
 	position: fixed;
 	left: 50%;
