@@ -105,6 +105,9 @@ function onBrowserReady() {
 	delete siteVars.queryParameters.uid;
 	delete siteVars.queryParameters.answerSpace;
   MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+  
+  if (document.getElementById('loginButton') !== null)
+  	siteVars.hasLogin = true;
 
   // 
   // The following variables are initialised here so the JS can be tested within Safari
