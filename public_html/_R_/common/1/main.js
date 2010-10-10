@@ -1,5 +1,7 @@
 var httpAnswerRequest;
 
+var locationTracker, latitude, longitude;
+
 var hasCategories, hasMasterCategories, hasVisualCategories, answerSpaceOneKeyword;
 
 var currentKeyword, currentCategory, currentMasterCategory;
@@ -1487,10 +1489,10 @@ function submitLogin()
 		cache: "false",
 		url: loginUrl,
 		data: requestData,
-		beforeSend: function(xmlhttprequest) {
+		beforeSend: function(xhr) {
 			startInProgressAnimation();
 		},
-		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate == 4
 			var loginBox = document.getElementById('loginBox');
 			stopInProgressAnimation();
 			if (isAJAXError(textstatus) || xhr.status !== 200)
@@ -1514,10 +1516,10 @@ function submitLogout()
 		cache: "false",
 		url: loginUrl,
 		data: requestData,
-		beforeSend: function(xmlhttprequest) {
+		beforeSend: function(xhr) {
 			console.log("iPhoneLogin transaction:" + loginUrl + "?" + requestData);
 		},
-		complete: function(xmlhttprequest, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate == 4
 			console.log("iPhoneLogin transaction complete: " + textstatus);
 			var loginBox = document.getElementById('loginBox');
 			if (isAJAXError(textstatus) || xhr.status !== 200)
@@ -1677,10 +1679,10 @@ function submitFormWithRetry() {
 
   var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?';
   if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + arr[1] + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+	 answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(arr[1]) + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 	 localKeyword = arr[1];
   } else {
-	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + arr[2] + '&_device=' + deviceVars.device;
+	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + encodeURIComponent(arr[2]) + '&_device=' + deviceVars.device;
 	 localKeyword = arr[2];
   }
 
@@ -1884,7 +1886,6 @@ function isLocationAvailable()
 	return false;
 }
 
-var locationTracker, latitude, longitude;
 function startTrackingLocation()
 {
 	if (locationTracker == null)
