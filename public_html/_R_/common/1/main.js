@@ -119,7 +119,7 @@ function onBrowserReady() {
   //
   
 	// HTML5 Web Worker
-	deviceVars.hasWebWorkers = window.Worker != undefined;
+	deviceVars.hasWebWorkers = typeof(window.Worker) === 'function'; 
 	if (deviceVars.hasWebWorkers === true)
 	{
 		MyAnswers.webworker = new Worker(siteVars.serverAppPath + '/webworker.js');
