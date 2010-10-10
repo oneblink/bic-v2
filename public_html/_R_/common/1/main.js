@@ -122,8 +122,8 @@ function onBrowserReady() {
 	deviceVars.hasWebWorkers = window.Worker != undefined;
 	if (deviceVars.hasWebWorkers === true)
 	{
-		var webworker = new Worker(siteVars.serverAppPath + '/webworker.js');
-		webworker.onmessage = function(event) {
+		MyAnswers.webworker = new Worker(siteVars.serverAppPath + '/webworker.js');
+		MyAnswers.webworker.onmessage = function(event) {
 			switch (event.data.fn)
 			{
 				case 'log':
@@ -1637,9 +1637,12 @@ function setSubmitCachedFormButton() {
     console.log("setSubmitCachedFormButton: NO Cached items");
 		$(button).addClass('hidden');
   }
-  setTimeout(function() {
-  	setupParts();
- 	}, 50);
+  if (typeof(setupParts) == 'function')
+  {
+		setTimeout(function() {
+			setupParts();
+		}, 50);
+	}
 }
 
 function removeFormRetryData() {
@@ -1968,7 +1971,7 @@ function generateMojoAnswer(xmlString, xslString, target)
 		message.xml = xmlString;
 		message.xsl = xslString;
 		message.target = target;
-		webworker.postMessage(message);
+		MyAnswers.webworker.postMessage(message);
 		return '<p>This keyword is being constructed entirely on your device.</p><p>Please wait...</p>';
 	}
 	if (window.ActiveXObject != undefined)
