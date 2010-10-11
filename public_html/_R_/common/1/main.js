@@ -158,7 +158,9 @@ function onBrowserReady() {
 			var phpName = options.url.match(/\/(\w+.php)\??/);
 			if (phpName != null)
 					string += phpName[1];
-			console.log(string, xhr.readyState, xhr.status, xhr, options);
+			var status = typeof(xhr) === 'undefined' ? null : xhr.status;
+			var readyState = typeof(xhr) === 'undefined' ? 4 : xhr.readyState;
+			console.log(string, readyState, status, xhr, options);
 	});
 	
 	$(document).ajaxError(function(event, xhr, options, error) {
@@ -249,6 +251,9 @@ function init_main(){
     }
     deviceVars.storageReady = jStore.activeEngine().isReady;
   }, 100);	
+  
+  MyAnswers.activityIndicator = document.getElementById('activityIndicator');
+  MyAnswers.activityIndicatorTimer = null;
 }
 
 function computeTimeout(messageLength) {
@@ -744,12 +749,13 @@ function getSiteConfig()
 			}
 			if (typeof(data.statusMessage) === 'string')
 			{
-				console.log("GetSiteConfig status: " + data.statusMessage, data);
 				switch (data.statusMessage)
 				{
 					case 'NO UPDATES':
+						console.log("GetSiteConfig status: " + data.statusMessage, siteConfig);
 						break;
 					case 'NO KEYWORDS':
+						console.log("GetSiteConfig status: " + data.statusMessage, data);
 						break;
 				}
 				processSiteConfig();
@@ -1827,39 +1833,75 @@ function setupAnswerFeatures()
 function setupGoogleMaps()
 {
 	$('div.googlemap').each(function(index, element) {
+		var data = extractDataTags(element);
 		var mapTarget = $(element);
-		if (mapTarget.attr('data-sensor') == true && isLocationAvailable())
+		if (data.sensor === true && isLocationAvailable())
 			startTrackingLocation();
-		var location = new google.maps.LatLng(mapTarget.attr('data-latitude'), mapTarget.attr('data-longitude'));
-		var options = {
-			zoom: parseInt(mapTarget.attr('data-zoom')),
-			center: location,
-			mapTypeId: google.maps.MapTypeId[mapTarget.attr('data-type').toUpperCase()]
-		};
-		var googleMap = new google.maps.Map(element, options);
-		google.maps.event.addListener(googleMap, 'tilesloaded', stopInProgressAnimation);
-		google.maps.event.addListener(googleMap, 'zoom_changed', startInProgressAnimation);
-		google.maps.event.addListener(googleMap, 'maptypeid_changed', startInProgressAnimation);
-		google.maps.event.addListener(googleMap, 'projection_changed', startInProgressAnimation);
-		if (typeof(mapTarget.attr('data-kml')) == 'string')
+		if (typeof(data['map-action']) === 'string' && data['map-action'] === 'directions')
 		{
-			var kml = new google.maps.KmlLayer(mapTarget.attr('data-kml'), { map: googleMap, preserveViewport: true });
-		}
-		else if (typeof(mapTarget.attr('data-marker')) == 'string')
-		{
-			var marker = new google.maps.Marker({
-				position: location,
-				map: googleMap,
-				icon: mapTarget.attr('data-marker')
+			var origin, destination;
+			if (typeof(data['origin-address']) === 'string')
+				origin = data['origin-address'];
+			else
+				origin = new google.maps.LatLng(data['origin-latitude'], data['origin-longitude']);
+			if (typeof(data['destination-address']) === 'string')
+				destination = data['destination-address'];
+			else
+				destination = new google.maps.LatLng(data['destination-latitude'], data['destination-longitude']);
+			var directionsOptions = {
+				origin: origin,
+				destination: destination,
+				travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
+				avoidHighways: data.avoidhighways,
+				avoidTolls: data.avoidtolls
+			};
+			var mapOptions = {
+				mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+			};
+			var googleMap = new google.maps.Map(element, mapOptions);
+			var directionsDisplay = new google.maps.DirectionsRenderer();
+			directionsDisplay.setMap(googleMap);
+			directionsDisplay.setPanel($(element).next()[0]);
+			var directionsService = new google.maps.DirectionsService();
+			directionsService.route(directionsOptions, function(result, status) {
+				if (status == google.maps.DirectionsStatus.OK)
+					directionsDisplay.setDirections(result);
 			});
-			if (typeof(mapTarget.attr('data-marker-title')) == 'string')
+			stopInProgressAnimation();
+		}
+		else
+		{
+			var location = new google.maps.LatLng(data.latitude, data.longitude);
+			var options = {
+				zoom: parseInt(data.zoom),
+				center: location,
+				mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+			};
+			var googleMap = new google.maps.Map(element, options);
+			google.maps.event.addListener(googleMap, 'tilesloaded', stopInProgressAnimation);
+			google.maps.event.addListener(googleMap, 'zoom_changed', startInProgressAnimation);
+			google.maps.event.addListener(googleMap, 'maptypeid_changed', startInProgressAnimation);
+			google.maps.event.addListener(googleMap, 'projection_changed', startInProgressAnimation);
+			if (typeof(data.kml) === 'string')
 			{
-				marker.setTitle(mapTarget.attr('data-marker-title'));
-				var markerInfo = new google.maps.InfoWindow();
-				google.maps.event.addListener(marker, 'click', function() {
-					markerInfo.setContent(marker.getTitle());
-					markerInfo.open(googleMap, marker);
+				var kml = new google.maps.KmlLayer(data.kml, { map: googleMap, preserveViewport: true });
+			}
+			else if (typeof(data.marker) === 'string')
+			{
+				var marker = new google.maps.Marker({
+					position: location,
+					map: googleMap,
+					icon: data.marker
 				});
+				if (typeof(data['marker-title']) === 'string')
+				{
+					marker.setTitle(data['marker-title']);
+					var markerInfo = new google.maps.InfoWindow();
+					google.maps.event.addListener(marker, 'click', function() {
+						markerInfo.setContent(marker.getTitle());
+						markerInfo.open(googleMap, marker);
+					});
+				}
 			}
 		}
 		if (isLocationAvailable())
@@ -2076,10 +2118,11 @@ function insertText(element, text)
 
 function getURLParameters()
 {
-	var queryString = location.href.match(/\?(.*)#?(?:.*)?$/);
-	if (typeof(queryString[1]) === 'string')
+	var queryString = location.href.split('?')[1].split('#')[0];
+//	var queryString = location.href.match(/\?(.*)\#?/);
+	if (typeof(queryString) === 'string')
 	{
-		var parameters = deserialize(queryString[1]);
+		var parameters = deserialize(queryString);
 		if (typeof(parameters.keyword) == 'string')
 			parameters.keyword = parameters.keyword.replace('/', '');
 		return parameters;
@@ -2101,5 +2144,44 @@ function isAJAXError(status)
 			return false;
 	}
 }
+
+function extractDataTags(element)
+{
+	var attributes = element.attributes;
+	var data = { };
+	for (a in attributes)
+	{
+		var tag = attributes.item(a).name;
+		var value = attributes.item(a).value;
+		if (value === '')
+			value = null;
+		else if (value === 'true')
+			value = true;
+		else if (value === 'false')
+			value = false;
+		var tagParts = tag.split('-');
+		if (tagParts[0] === 'data')
+			data[tag.replace('data-', '')] = value;
+	}
+	return data;
+}
+
+function stopInProgressAnimation()
+{
+	clearTimeout(MyAnswers.activityIndicatorTimer);
+	$(MyAnswers.activityIndicator).addClass('hidden');
+}
+
+function startInProgressAnimation()
+{
+	if ($('#startUp').size() > 0) return;
+	if (MyAnswers.activityIndicatorTimer !== null)
+		clearTimeout(MyAnswers.activityIndicatorTimer);
+	MyAnswers.activityIndicatorTimer = setTimeout(function() {
+		clearTimeout(MyAnswers.activityIndicatorTimer);
+		$(MyAnswers.activityIndicator).removeClass('hidden');
+	}, 1000);
+}
+
 
 MyAnswers.main_Loaded = true;

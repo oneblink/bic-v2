@@ -179,18 +179,6 @@ function prepareActivateLoginViewForDevice()
   helpButton.addClass('hidden');
 }
 
-var activityIndicator = $('#activityIndicator');
-function stopInProgressAnimation()
-{
-	activityIndicator.addClass('hidden');
-}
-
-function startInProgressAnimation()
-{
-	if ($('#startUp').size() <= 0)
-	  activityIndicator.removeClass('hidden');
-}
-
 function populateTextOnlyCategories(masterCategory)
 {
 	console.log('populateTextOnlyCategories(): ' + masterCategory);

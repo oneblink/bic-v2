@@ -20,6 +20,11 @@ button, input[type=submit], input[type=button] {
 
 button[disabled] { opacity: 0.5; }
 
+.googlemap {
+	width: 90%;
+	height: 360px;
+}
+
 .bForm-results { font-size: smaller; }
 
 .bForm-label, .bForm-value { font-size: medium; }

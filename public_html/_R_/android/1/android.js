@@ -3,7 +3,6 @@ var navButtons;
 var helpButton;
 var welcomeMessage;
 var mainLabel;
-var activityIndicator;
 var hashStack;
 
 // ** device-specific initialisation of variables and flags **
@@ -39,7 +38,6 @@ function init_device()
 	helpButton = $('#helpButton');
 	welcomeMessage = $('#welcomeMsgArea');
 	mainLabel = $('#mainLabel');
-	activityIndicator = $('#activityIndicator');
 }
 
 /*
@@ -225,17 +223,6 @@ function prepareActivateLoginViewForDevice()
   helpButton.addClass('hidden');
 }
 
-function stopInProgressAnimation()
-{
-	activityIndicator.addClass('hidden');
-}
-
-function startInProgressAnimation()
-{
-	if ($('#startUp').size() <= 0)
-	  activityIndicator.removeClass('hidden');
-}
-
 function populateTextOnlyCategories(masterCategory)
 {
 	console.log('populateTextOnlyCategories(): ' + masterCategory);
@@ -332,7 +319,7 @@ function onScroll()
 	{
 		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (deviceVars.progressDialogTop + scrollTop), deviceVars.scrollValue);
+	updatePartCSS($(MyAnswers.activityIndicator), deviceVars.scrollProperty, (deviceVars.progressDialogTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)

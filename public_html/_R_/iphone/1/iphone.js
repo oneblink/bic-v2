@@ -4,7 +4,7 @@ var helpButton;
 var pendingFormButton, pendingFormButtonTop;
 var welcomeMessage;
 var mainLabel;
-var activityIndicator, activityIndicatorTop;
+var activityIndicatorTop;
 
 function init_device()
 {
@@ -25,7 +25,6 @@ function init_device()
 	pendingFormButton = $('#pendingButton');
 	welcomeMessage = $('#welcomeMsgArea');
 	mainLabel = $('#mainLabel');
-	activityIndicator = $('#activityIndicator');
 	navBar = $('.navBar');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
 }
@@ -198,17 +197,6 @@ function prepareActivateLoginViewForDevice()
   helpButton.addClass('hidden');
 }
 
-function stopInProgressAnimation()
-{
-	activityIndicator.addClass('hidden');
-}
-
-function startInProgressAnimation()
-{
-	if ($('#startUp').size() <= 0)
-	  activityIndicator.removeClass('hidden');
-}
-
 function populateTextOnlyCategories(masterCategory)
 {
 	console.log('populateTextOnlyCategories(): ' + masterCategory);
@@ -303,7 +291,7 @@ function onScroll()
 	{
 		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	updatePartCSS($(MyAnswers.activityIndicator), deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)
