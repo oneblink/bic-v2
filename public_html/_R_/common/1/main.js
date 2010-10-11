@@ -97,11 +97,11 @@ function onBrowserReady() {
   splitUrl = stringToParse.match(/:\/\/(.[^/]+)\/_R_\/(.[^/]+)\/([^/]+)\/.+answerSpace=(.+)/);
   MyAnswers.loadURL = 'http://' + splitUrl[1] + '/_R_/';
   siteVars.serverAppVersion =  splitUrl[3];
-	siteVars.answerSpace = location.href.match(/answerSpace=(\w+)/)[1];
 	siteVars.serverDomain = location.hostname;
 	siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
 	siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 	siteVars.queryParameters = getURLParameters();
+	siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 	delete siteVars.queryParameters.uid;
 	delete siteVars.queryParameters.answerSpace;
   MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
