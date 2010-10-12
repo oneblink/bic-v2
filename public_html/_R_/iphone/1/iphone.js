@@ -306,15 +306,51 @@ function setupParts()
 	{
 		$('.backButton').each(function(index, element) {
 			var thisElement = $(element);
-			insertHTML(element, '<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
+			var fragment = document.createDocumentFragment();
+			var left = document.createElement('div');
+			left.setAttribute('class', 'backButtonLeft');
+			fragment.appendChild(left);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'buttonLabel');
+			label.appendChild(document.createTextNode(thisElement.text()));
+			fragment.appendChild(label);
+			var right = document.createElement('div');
+			right.setAttribute('class', 'backButtonRight');
+			fragment.appendChild(right);
+			emptyDOMelement(element);
+			element.appendChild(fragment);
 		});
 		$('.roundButton').each(function(index, element) {
 			var thisElement = $(element);
-			insertHTML(element, '<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
+			var fragment = document.createDocumentFragment();
+			var left = document.createElement('div');
+			left.setAttribute('class', 'roundButtonLeft');
+			fragment.appendChild(left);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'buttonLabel');
+			label.appendChild(document.createTextNode(thisElement.text()));
+			fragment.appendChild(label);
+			var right = document.createElement('div');
+			right.setAttribute('class', 'roundButtonRight');
+			fragment.appendChild(right);
+			emptyDOMelement(element);
+			element.appendChild(fragment);
 		});
 		$('.squareButton').each(function(index, element) {
 			var thisElement = $(element);
-			insertHTML(element, '<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
+			var fragment = document.createDocumentFragment();
+			var left = document.createElement('div');
+			left.setAttribute('class', 'squareButtonLeft');
+			fragment.appendChild(left);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'buttonLabel');
+			label.appendChild(document.createTextNode(thisElement.text()));
+			fragment.appendChild(label);
+			var right = document.createElement('div');
+			right.setAttribute('class', 'squareButtonRight');
+			fragment.appendChild(right);
+			emptyDOMelement(element);
+			element.appendChild(fragment);
 		});
 	}
 }
