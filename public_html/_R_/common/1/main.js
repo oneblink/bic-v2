@@ -835,7 +835,7 @@ function displayAnswerSpace()
 		else if (typeof(siteVars.queryParameters.master_category) === 'string')
 			showCategoriesView(siteVars.queryParameters.master_category);
 		delete siteVars.queryParameters;
-		if (typeof(siteConfig.webClip) === 'string' && deviceVars.device === 'iphone') {
+		if (typeof(siteConfig.webClip) === 'string' && typeof(google) !== 'undefined' && typeof(google.bookmarkbubble) !== 'undefined') {
 			setTimeout(function() {
 				var bookmarkBubble = new google.bookmarkbubble.Bubble();
 				bookmarkBubble.hasHashParameter = function() { return false; };
@@ -1487,6 +1487,7 @@ function updateLoginBar(){
 					$('#loginStatus, #logoutButton').addClass('hidden');
 					$('#loginButton').removeClass('hidden');
 				}
+				populateKeywordList(currentCategory);
 			}
 		},
 		timeout: computeTimeout(500)
