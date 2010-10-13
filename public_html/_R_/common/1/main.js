@@ -701,6 +701,7 @@ function getSiteConfig()
 			processSiteConfig();
 		else
 			alert(string);
+			window.location = '/demos';
 	};
 	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
 	var requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
@@ -734,7 +735,7 @@ function getSiteConfig()
 			if (data === null)
 			{
 				console.log('GetSiteConfig error: null siteConfig');
-				fallbackToStorage('Content unreachable, please try later.');
+				fallbackToStorage('Content unreachable, please try again later.');
 				return;
 			}
 			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
@@ -770,8 +771,12 @@ function getSiteConfig()
 						alert('This answerSpace requires users to log in.');
 						displayAnswerSpace();
 						break;
+					case 'NO MATCHING ANSWERSPACE':
+					case 'ANSWERSPACE UNSPECIFIED':
+						fallbackToStorage('Please check the name of the answerSpace and try again.');
+						break;
 					default:
-						fallbackToStorage('Content unreachable, please try later.');
+						fallbackToStorage('Content unreachable, please try again later.');
 						break;
 				}
 				return;
@@ -1833,76 +1838,18 @@ function setupAnswerFeatures()
 function setupGoogleMaps()
 {
 	$('div.googlemap').each(function(index, element) {
+		var googleMap = new google.maps.Map(element);
 		var data = extractDataTags(element);
 		var mapTarget = $(element);
 		if (data.sensor === true && isLocationAvailable())
 			startTrackingLocation();
 		if (typeof(data['map-action']) === 'string' && data['map-action'] === 'directions')
 		{
-			var origin, destination;
-			if (typeof(data['origin-address']) === 'string')
-				origin = data['origin-address'];
-			else
-				origin = new google.maps.LatLng(data['origin-latitude'], data['origin-longitude']);
-			if (typeof(data['destination-address']) === 'string')
-				destination = data['destination-address'];
-			else
-				destination = new google.maps.LatLng(data['destination-latitude'], data['destination-longitude']);
-			var directionsOptions = {
-				origin: origin,
-				destination: destination,
-				travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
-				avoidHighways: data.avoidhighways,
-				avoidTolls: data.avoidtolls
-			};
-			var mapOptions = {
-				mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
-			};
-			var googleMap = new google.maps.Map(element, mapOptions);
-			var directionsDisplay = new google.maps.DirectionsRenderer();
-			directionsDisplay.setMap(googleMap);
-			directionsDisplay.setPanel($(element).next()[0]);
-			var directionsService = new google.maps.DirectionsService();
-			directionsService.route(directionsOptions, function(result, status) {
-				if (status == google.maps.DirectionsStatus.OK)
-					directionsDisplay.setDirections(result);
-			});
-			stopInProgressAnimation();
+			setupGoogleMapsDirections(element, data, googleMap);
 		}
 		else
 		{
-			var location = new google.maps.LatLng(data.latitude, data.longitude);
-			var options = {
-				zoom: parseInt(data.zoom),
-				center: location,
-				mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
-			};
-			var googleMap = new google.maps.Map(element, options);
-			google.maps.event.addListener(googleMap, 'tilesloaded', stopInProgressAnimation);
-			google.maps.event.addListener(googleMap, 'zoom_changed', startInProgressAnimation);
-			google.maps.event.addListener(googleMap, 'maptypeid_changed', startInProgressAnimation);
-			google.maps.event.addListener(googleMap, 'projection_changed', startInProgressAnimation);
-			if (typeof(data.kml) === 'string')
-			{
-				var kml = new google.maps.KmlLayer(data.kml, { map: googleMap, preserveViewport: true });
-			}
-			else if (typeof(data.marker) === 'string')
-			{
-				var marker = new google.maps.Marker({
-					position: location,
-					map: googleMap,
-					icon: data.marker
-				});
-				if (typeof(data['marker-title']) === 'string')
-				{
-					marker.setTitle(data['marker-title']);
-					var markerInfo = new google.maps.InfoWindow();
-					google.maps.event.addListener(marker, 'click', function() {
-						markerInfo.setContent(marker.getTitle());
-						markerInfo.open(googleMap, marker);
-					});
-				}
-			}
+			setupGoogleMapsBasic(element, data, googleMap);
 		}
 		if (isLocationAvailable())
 		{
@@ -1925,6 +1872,152 @@ function setupGoogleMaps()
 	});
 }
 
+function setupGoogleMapsDirections(element, data, map)
+{
+	console.log('Google Maps Directions: initialising', data);
+	var origin, destination;
+	if (typeof(data['origin-address']) === 'string')
+		origin = data['origin-address'];
+	else if (typeof(data['origin-latitude']) !== 'undefined')
+		origin = new google.maps.LatLng(data['origin-latitude'], data['origin-longitude']);
+	if (typeof(data['destination-address']) === 'string')
+		destination = data['destination-address'];
+	else if (typeof(data['destination-latitude']) !== 'undefined')
+		destination = new google.maps.LatLng(data['destination-latitude'], data['destination-longitude']);
+	if (origin === undefined && destination !== undefined)
+	{
+		console.log('Google Maps Directions: missing origin', destination);
+		if (isLocationAvailable())
+		{
+			insertText($(element).next()[0], 'Missing origin. Attempting to use most recent location instead.');
+			setTimeout(function() {
+				data['origin-latitude'] = latitude;
+				data['origin-longitude'] = longitude;
+				setupGoogleMapsDirections(element, data, map);
+			}, 5000);
+			return;
+		}
+		else if (typeof(destination) === 'object')
+		{
+			insertText($(element).next()[0], 'Missing origin. Only the provided destination is displayed.');
+			data.latitude = destination.lat();
+			data.longitude = destination.lng();
+			setupGoogleMapsBasic(element, data, map);
+			return;
+		}
+		else
+		{
+			insertText($(element).next()[0], 'Missing origin. Only the provided destination is displayed.');
+			var geocoder = new google.maps.Geocoder();
+			geocoder.geocode({ address: destination }, function(result, status) {
+				if (status != google.maps.GeocoderStatus.OK)
+					insertText($(element).next()[0], 'Missing origin and unable to locate the destination.');
+				else
+					data.zoom = 15;
+					data.latitude = result[0].geometry.location.b;
+					data.longitude = result[0].geometry.location.c;
+					setupGoogleMapsBasic(element, data, map);
+			});
+			return;
+		}
+	}
+	if (origin !== undefined && destination === undefined)
+	{
+		console.log('Google Maps Directions: missing destination', origin);
+		if (isLocationAvailable())
+		{
+			insertText($(element).next()[0], 'Missing destination. Attempting to use most recent location instead.');
+			setTimeout(function() {
+				data['destination-latitude'] = latitude;
+				data['destination-longitude'] = longitude;
+				setupGoogleMapsDirections(element, data, map);
+			}, 5000);
+			return;
+		}
+		else if (typeof(origin) === 'object')
+		{
+			insertText($(element).next()[0], 'Missing destination. Only the provided origin is displayed.');
+			data.latitude = origin.lat();
+			data.longitude = origin.lng();
+			setupGoogleMapsBasic(element, data, map);
+			return;
+		}
+		else
+		{
+			insertText($(element).next()[0], 'Missing destination. Only the provided origin is displayed.');
+			var geocoder = new google.maps.Geocoder();
+			geocoder.geocode({ address: origin }, function(result, status) {
+				if (status != google.maps.GeocoderStatus.OK)
+					insertText($(element).next()[0], 'Missing destination and unable to locate the origin.');
+				else
+					data.zoom = 15;
+					data.latitude = result[0].geometry.location.b;
+					data.longitude = result[0].geometry.location.c;
+					setupGoogleMapsBasic(element, data, map);
+			});
+			return;
+		}
+	}
+	console.log('Google Maps Directions: both origin and destination provided', origin, destination);
+	var directionsOptions = {
+		origin: origin,
+		destination: destination,
+		travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
+		avoidHighways: data.avoidhighways,
+		avoidTolls: data.avoidtolls
+	};
+	var mapOptions = {
+		mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+	};
+	map.setOptions(mapOptions);
+	var directionsDisplay = new google.maps.DirectionsRenderer();
+	directionsDisplay.setMap(map);
+	directionsDisplay.setPanel($(element).next()[0]);
+	var directionsService = new google.maps.DirectionsService();
+	directionsService.route(directionsOptions, function(result, status) {
+		if (status == google.maps.DirectionsStatus.OK)
+			directionsDisplay.setDirections(result);
+	});
+	stopInProgressAnimation();
+}
+
+function setupGoogleMapsBasic(element, data, map)
+{
+	console.log('Google Maps Basic: initialising', data);
+	var location = new google.maps.LatLng(data.latitude, data.longitude);
+	var options = {
+		zoom: parseInt(data.zoom),
+		center: location,
+		mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+	};
+	map.setOptions(options);
+	google.maps.event.addListener(map, 'tilesloaded', stopInProgressAnimation);
+	google.maps.event.addListener(map, 'zoom_changed', startInProgressAnimation);
+	google.maps.event.addListener(map, 'maptypeid_changed', startInProgressAnimation);
+	google.maps.event.addListener(map, 'projection_changed', startInProgressAnimation);
+	if (typeof(data.kml) === 'string')
+	{
+		var kml = new google.maps.KmlLayer(data.kml, { map: map, preserveViewport: true });
+	}
+	else if (typeof(data.marker) === 'string')
+	{
+		var marker = new google.maps.Marker({
+			position: location,
+			map: map,
+			icon: data.marker
+		});
+		if (typeof(data['marker-title']) === 'string')
+		{
+			marker.setTitle(data['marker-title']);
+			var markerInfo = new google.maps.InfoWindow();
+			google.maps.event.addListener(marker, 'click', function() {
+				markerInfo.setContent(marker.getTitle());
+				markerInfo.open(map, marker);
+			});
+		}
+	}
+}
+
 function isLocationAvailable()
 {
 	if (typeof(navigator.geolocation) != 'undefined')
@@ -1945,6 +2038,7 @@ function startTrackingLocation()
 				{
 					latitude = position.coords.latitude;
 					longitude = position.coords.longitude;
+					console.log('Location Event: Updated', latitude, longitude);
 					$('body').trigger('locationUpdated');
 				}
 			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
@@ -1956,6 +2050,7 @@ function startTrackingLocation()
 				{
 					latitude = position.latitude;
 					longitude = position.longitude;
+					console.log('Location Event: Updated', latitude, longitude);
 					$('body').trigger('locationUpdated');
 				}
 			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
@@ -2024,33 +2119,8 @@ function generateMojoAnswer(xmlString, xslString, target)
 		var html = xml.transformNode(xsl);
 		return html;
 	}
-	if (window.DOMParser != undefined)
-	{
-		console.log('generateMojoAnswer: parsing strings to XML using W3C DOMParser()');
-		var domParser = new DOMParser();
-		var xml = domParser.parseFromString(xmlString, 'application/xml');
-		var xsl = domParser.parseFromString(xslString, 'application/xml');
-	}
-	else if (xmlParse != undefined)
-	{
-		console.log('generateMojoAnswer: parsing strings to XML using AJAXSLT library');
-		var xml = xmlParse(xmlString);
-		var xsl = xmlParse(xslString);
-	}
-	else
-	{
-		console.log('generateMojoAnswer: parsing strings to XML using fake AJAX query');
-		var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', url, false);
-		xhr.send(null);
-		var xml = xhr.responseXML;
-		var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xslString);
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', url, false);
-		xhr.send(null);
-		var xsl = xhr.responseXML;
-	}
+	var xml = parseXMLElements(xmlString);
+	var xsl = parseXMLElements(xslString);
 	if (window.XSLTProcessor != undefined)
 	{
 		console.log('generateMojoAnswer: performing XSLT via XSLTProcessor()');
@@ -2183,5 +2253,30 @@ function startInProgressAnimation()
 	}, 1000);
 }
 
+function parseXMLElements(xmlString)
+{
+	var xml;
+	if (typeof(window.DOMParser) === 'function')
+	{
+		var domParser = new DOMParser();
+		xml = domParser.parseFromString(xmlString, 'application/xml');
+		console.log('string parsed to XML using W3C DOMParser()', xml);
+	}
+	else if (typeof(xmlParse) === 'function')
+	{
+		xml = xmlParse(xmlString);
+		console.log('string parsed to XML using AJAXSLT library', xml);
+	}
+	else
+	{
+		var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, false);
+		xhr.send(null);
+		xml = xhr.responseXML;
+		console.log('string parsed to XML using fake AJAX query', xml);
+	}
+	return xml;
+}
 
 MyAnswers.main_Loaded = true;
