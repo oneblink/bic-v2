@@ -15,9 +15,9 @@ var webappCache;
 var lowestTransferRateConst, maxTransactionTimeout;
 var ajaxQueue, ajaxQueueMoJO;
 
-if (typeof(console) == 'undefined')
+if ($.type(window.console) === 'undefined')
 {
-	if (typeof(debug) === 'object' && typeof(debug.log) === 'function')
+	if ($.type(window.debug) === 'object' && $.type(window.debug.log) === 'function')
 		console = debug;
 	else
 	{
@@ -210,6 +210,8 @@ function init_main(){
 	hasVisualCategories = false;
 	answerSpaceOneKeyword = false;
 
+	jQuery.fx.interval = 25; // default is 13, increasing this to be kinder on devices
+	
 	lowestTransferRateConst = 1000 / (4800 / 8);
 	maxTransactionTimeout = 180 * 1000;
 	ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
@@ -465,12 +467,15 @@ function populateAnswerSpacesList() {
 // produce XHTML for the master categories view
 function populateMasterCategories()
 {
+	console.log('populateMasterCategories()');
 	var order = siteConfig.master_categories_order;
 	var list = siteConfig.master_categories;
 	var masterCategoriesBox = document.getElementById('masterCategoriesBox');
 	emptyDOMelement(masterCategoriesBox);
 	for (id in order)
 	{
+		if (list[order[id]].status != 'active')
+			continue;
 		var image = document.createElement('img');
 		image.setAttribute('class', 'v' + siteConfig.master_categories_config);
 		image.setAttribute('data-id', order[id]);
@@ -525,12 +530,15 @@ function populateMasterCategories()
 // produce XHTML for the visual categories view
 function populateVisualCategories(masterCategory)
 {
+	console.log('populateVisualCategories()');
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
 	var categoriesBox = document.getElementById('categoriesBox');
 	emptyDOMelement(categoriesBox);
 	for (id in order)
 	{
+		if (list[order[id]].status != 'active')
+			continue;
 		var image = document.createElement('img');
 		image.setAttribute('class', 'v' + siteConfig.categories_config);
 		image.setAttribute('data-id', order[id]);
@@ -1134,6 +1142,11 @@ function gotoNextScreen(keywordID)
 				break;
 			}
 		}
+	}
+	if (!siteConfig.keywords[keywordID])
+	{
+		alert('Unable to locate keyword. It may be missing or protected.');
+		return;
 	}
   if (siteConfig.keywords[keywordID].input_config)
   {
@@ -1844,7 +1857,7 @@ function setupGoogleMaps()
 		var mapTarget = $(element);
 		if (data.sensor === true && isLocationAvailable())
 			startTrackingLocation();
-		if (typeof(data['map-action']) === 'string' && data['map-action'] === 'directions')
+		if ($(element).data('map-action') === 'directions')
 		{
 			setupGoogleMapsDirections(element, data, googleMap);
 		}
@@ -2155,8 +2168,9 @@ function deserialize(argsString)
 
 function emptyDOMelement(element)
 {
-	if (element != null && typeof(element) == 'object')
-		while (element.firstChild) element.removeChild(element.firstChild);
+	if ($.type(element) === 'object')
+		while (element.hasChildNodes()) 
+			element.removeChild(element.lastChild);
 }
 
 function setMainLabel(label)
@@ -2167,24 +2181,20 @@ function setMainLabel(label)
 
 function insertHTML(element, html)
 {
-	setTimeout(function() {
-		if (element != null && typeof(element) == 'object')
-		{
-			emptyDOMelement(element);
-			$(element).append(html);
-		}
-	}, 0);
+	if ($.type(element) === 'object')
+	{
+		emptyDOMelement(element);
+		$(element).append(html);
+	}
 }
 
 function insertText(element, text)
 {
-	setTimeout(function() {
-		if (element != null && typeof(element) == 'object')
-		{
-			emptyDOMelement(element);
-			element.appendChild(document.createTextNode(text));
-		}
-	}, 0);
+	if ($.type(element) === 'object')
+	{
+		emptyDOMelement(element);
+		element.appendChild(document.createTextNode(text));
+	}
 }
 
 function getURLParameters()
@@ -2256,8 +2266,9 @@ function startInProgressAnimation()
 
 function parseXMLElements(xmlString)
 {
+	console.log(typeof(window.DOMParser));
 	var xml;
-	if (typeof(window.DOMParser) === 'function')
+	if (typeof(window.DOMParser) === 'function' || typeof(window.DOMParser) === 'object')
 	{
 		var domParser = new DOMParser();
 		xml = domParser.parseFromString(xmlString, 'application/xml');
