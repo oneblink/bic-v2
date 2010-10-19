@@ -152,7 +152,6 @@ button, input[type=submit] {
 
 .view.animating {
 	position: absolute;
-	top: 0px;
 }
 
 .box {
