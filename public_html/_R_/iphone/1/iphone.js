@@ -261,48 +261,58 @@ function setCurrentView(view, reverseTransition)
 	var currentView = $('.view:visible');
 	var newView = $('#' + view);
 
-	runListWithDelay([(function() { setupParts(); return true; }),
-										(function() { window.scrollTo(0, 1); return true; }),
+	runListWithDelay([setupParts,
+										hideLocationBar,
 										(function() {
-											if (currentView.size() == 0)
-											{
-												newView.show();
-												return false;
-											} else
-												return true;
-										}),
-										(function() { newView.hide(); newView.addClass('slid' + startPosition); return true; }),
-										(function() {
-											if (currentView.attr('id') == newView.attr('id'))
-											{
-												MyAnswers.log("setCurrentView(): current === new");
-												runListWithDelay([(function() { newView.show(); return true; }),
-													                (function() { newView.addClass('animating'); newView.removeClass('slid' + startPosition); return true; })],
-																				 25);
-												runListWithDelay([(function() { newView.removeClass('animating'); return true; })],
-																				 325,
-																				 function() {
-																					 onScroll();
-																				 });
-												return false;
-											} else
-												return true;
+											if (currentView.size() > 0) return true;
+											newView.show();
+											return false;
 										}),
 										(function() {
-											MyAnswers.log("setCurrentView(): " + currentView.attr('id') + "!== " + newView.attr('id'));
-											runListWithDelay([(function() { currentView.addClass('animating'); return true; }),
-												                (function() { newView.show(); return true; }),
-																				(function() { newView.addClass('animating'); return true; })],
-												                25);
-											runListWithDelay([(function() { newView.removeClass('slid' + startPosition); currentView.addClass('slid' + endPosition); return true; }),
-																				(function() { newView.removeClass('animating'); currentView.hide(); currentView.removeClass('animating slid' + endPosition); return true; })],
-																				325,
-																				 function() {
-																					 onScroll();
-																				 });
-											return true;
-										})],
-									 100,
+											if (currentView.attr('id') !== newView.attr('id')) return true;
+											MyAnswers.log("setCurrentView(): current === new");
+											runListWithDelay([
+													(function() { newView.addClass('slideinfrom' + startPosition); return true; }),
+												],
+												25,
+												function() { 
+													runListWithDelay([
+															(function() { newView.removeClass('slideinfrom' + startPosition); return true; })
+														],
+														300,
+														onScroll)
+												});
+											return false;
+										}),
+										(function() {
+											MyAnswers.log("setCurrentView(): " + currentView.attr('id') + "!==" + newView.attr('id'));
+											runListWithDelay([
+													(function() { currentView.addClass('slideoutto' + endPosition); return true; }),
+												],
+												25,
+												function() {
+													runListWithDelay([
+															(function() { currentView.hide(); return true; }),
+															(function() { currentView.removeClass('slideoutto' + endPosition); return true; }),
+														],
+														350,
+														onScroll)
+												});
+											runListWithDelay([
+													(function() { newView.addClass('slideinfrom' + startPosition); return true; }),
+													(function() { newView.show(); return true; }),
+												],
+												25,
+												function() {
+													runListWithDelay([
+															(function() { newView.removeClass('slideinfrom' + startPosition); return true; }),
+														],
+														350,
+														onScroll)
+												});
+												return true;
+											})],
+									 25,
 									 function() {
 										 onScroll();
 									 });
@@ -388,7 +398,10 @@ function setupParts()
 			element.appendChild(fragment);
 		});
 	}
+	return true;
 }
+
+function hideLocationBar() { window.scrollTo(0, 1); return true; }
 
 (function() {
   var timer = setInterval(function() {
