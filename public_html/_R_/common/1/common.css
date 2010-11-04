@@ -251,20 +251,18 @@ ul.box .description {
 }
 
 .bLive-screen {
-	margin: .5em;
-	padding: .5em;
+	margin: 0 auto;
 	text-align: center;
-	background-color: #EEE;
 }
 .bLive-box, .bLive-link {
 	margin: .5em auto;
 	border: .2em solid #77F;
 	background-color: #FFF;
-	width: 90%;
+	width: 85%;
 	max-width: 35em;
 }
 .bLive-box.narrow, .bLive-link {
-	width: 90%;
+	width: 85%;
 	max-width: 25em;
 }
 .bLive-box table {

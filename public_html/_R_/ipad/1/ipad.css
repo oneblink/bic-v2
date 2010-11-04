@@ -354,8 +354,8 @@ ul.box > li > .description {
 	text-align: center;
 }
 
-.bLive-screen, .bLive-box {
-	border-radius: 8px;
+.bLive-box, .bLive-link {
+	border-radius: 10px;
 }
 
 @-webkit-keyframes spinner {

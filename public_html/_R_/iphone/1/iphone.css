@@ -229,7 +229,7 @@ ul.box > li > .description {
 	text-align: center;
 }
 
-.bLive-screen, .bLive-box {
+.bLive-box, .bLive-link {
 	border-radius: 8px;
 }
 
