@@ -50,10 +50,6 @@ function onDeviceReady() {
     deviceVars.device = "iphone_pg";
     siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
     deviceVars.deviceFileName = '/iphone.js';
-  } else {
-    deviceVars.device = "ipad_pg";
-    siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
-    deviceVars.deviceFileName = '/ipad.js';
   }
   MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
   MyAnswers.log("AppPath: " + siteVars.serverAppPath);
@@ -72,6 +68,7 @@ function prepareAnswerSpacesListViewForDevice()
 
 function prepareMasterCategoriesViewForDevice()
 {
+	var categoriesView = $('#categoriesView');
 	categoriesView.find('.welcomeBox').removeClass('hidden');
 	if (siteVars.hasLogin)
 	{
@@ -236,6 +233,8 @@ function populateTextOnlyCategories(masterCategory)
 	select.setAttribute('id', 'categoriesList');
 	for (id in order)
 	{
+		if (list[order[id]].status != 'active')
+			continue;
 		var option = document.createElement('option');
 		option.setAttribute('value', order[id]);
 		if (order[id] == currentCategory)
@@ -255,6 +254,7 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   MyAnswers.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+	$(document.body).trigger('taskBegun');
 	var entranceDirection = (reverseTransition ? 'left' : 'right');
 	var endPosition = (reverseTransition ? 'right' : 'left');
 	var startPosition = (reverseTransition ? 'left' : 'right');
@@ -265,7 +265,7 @@ function setCurrentView(view, reverseTransition)
 										hideLocationBar,
 										(function() {
 											if (currentView.size() > 0) return true;
-											newView.show();
+											newView.removeClass('hidden');
 											return false;
 										}),
 										(function() {
@@ -279,8 +279,8 @@ function setCurrentView(view, reverseTransition)
 													runListWithDelay([
 															(function() { newView.removeClass('slideinfrom' + startPosition); return true; })
 														],
-														300,
-														onScroll)
+														350,
+														$.noop)
 												});
 											return false;
 										}),
@@ -292,15 +292,15 @@ function setCurrentView(view, reverseTransition)
 												25,
 												function() {
 													runListWithDelay([
-															(function() { currentView.hide(); return true; }),
+															(function() { currentView.addClass('hidden'); return true; }),
 															(function() { currentView.removeClass('slideoutto' + endPosition); return true; }),
 														],
 														350,
-														onScroll)
+														$.noop)
 												});
 											runListWithDelay([
 													(function() { newView.addClass('slideinfrom' + startPosition); return true; }),
-													(function() { newView.show(); return true; }),
+													(function() { newView.removeClass('hidden'); return true; }),
 												],
 												25,
 												function() {
@@ -308,14 +308,30 @@ function setCurrentView(view, reverseTransition)
 															(function() { newView.removeClass('slideinfrom' + startPosition); return true; }),
 														],
 														350,
-														onScroll)
+														$.noop)
 												});
-												return true;
+												return false;
 											})],
-									 25,
-									 function() {
-										 onScroll();
-									 });
+										25,
+										function() {
+											runListWithDelay([
+													(function() { setupForms(newView); return true; }),
+													(function() { $(document.body).trigger('taskComplete'); return true; }),
+													(function() { onScroll(); return true; }),
+												],
+												25,
+												$.noop)
+										});
+}
+
+function hideViewWithTransition(viewElement, inReverse)
+{
+	return true;
+}
+
+function showViewWithTransition(viewElement, inReverse)
+{
+	return true;
 }
 
 /*
@@ -327,16 +343,18 @@ function onScroll()
 {
 	var headerBottom = $('.header').height();
 	var scrollTop = window.scrollY;
-	if (scrollTop > headerBottom)
-	{
-		var offset = scrollTop - headerBottom;
-		updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
-	}
-	else
-	{
-		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
-	}
-	updatePartCSS($(MyAnswers.activityIndicator), deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	runListWithDelay([
+			(function() { updatePartCSS($(MyAnswers.activityIndicator), deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue); return true; }),
+			(function() { 
+				if (scrollTop <= headerBottom) return true; 
+				var offset = scrollTop - headerBottom;
+				updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
+				return false;
+			}),
+			(function() { updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue); return true; }),
+		],
+		25,
+		$.noop)	
 }
 
 function updatePartCSS(element, property, value, valueFormat)
@@ -347,6 +365,7 @@ function updatePartCSS(element, property, value, valueFormat)
 
 function setupParts()
 {
+	$(document.body).trigger('taskBegun');
 	if (deviceVars.useCSS3buttons === false)
 	{
 		$('.backButton').each(function(index, element) {
@@ -398,6 +417,7 @@ function setupParts()
 			element.appendChild(fragment);
 		});
 	}
+	$(document.body).trigger('taskComplete');
 	return true;
 }
 

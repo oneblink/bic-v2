@@ -146,12 +146,7 @@ button, input[type=submit] {
 }
 
 .view {
-	display: none;
 	padding-bottom: 44px;
-}
-
-.view.animating {
-	position: absolute;
 }
 
 .box {

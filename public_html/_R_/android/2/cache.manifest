@@ -9,10 +9,10 @@ CACHE:
 index.php
 android.css
 android.js
+jquery.benalman.min.js
 ../../common/1/browser-compat.js
 ../../common/1/common.css
 ../../common/1/common.min.js
-../../common/1/jquery.benalman.min.js
 ../../common/1/main.js
 ../../common/1/ajaxslt-0.8.1-r61.min.js
 ../../common/1/webworker.js

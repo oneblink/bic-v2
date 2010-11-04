@@ -57,7 +57,7 @@ function onDeviceReady() {
 
 function prepareAnswerSpacesListViewForDevice()
 {
-  console.log('prepareAnswerSpacesListViewForDevice()');
+  MyAnswers.log('prepareAnswerSpacesListViewForDevice()');
   backButtonHeader.addClass('hidden');
   homeButton.addClass('hidden');
   helpButton.addClass('hidden');
@@ -67,7 +67,7 @@ function prepareAnswerSpacesListViewForDevice()
 
 function prepareMasterCategoriesViewForDevice()
 {
-  console.log('prepareMasterCategoriesViewForDevice()');
+  MyAnswers.log('prepareMasterCategoriesViewForDevice()');
   backButtonHeader.addClass('hidden');
   homeButton.addClass('hidden');
   hideLeftBox();
@@ -79,7 +79,7 @@ function prepareMasterCategoriesViewForDevice()
 
 function prepareCategoriesViewForDevice()
 {
-  console.log('prepareCategoriesViewForDevice()');
+  MyAnswers.log('prepareCategoriesViewForDevice()');
   //backButtonHeader.unbind('click');
   if (hasMasterCategories)
   {
@@ -102,7 +102,7 @@ function prepareCategoriesViewForDevice()
 
 function prepareKeywordListViewForDevice(category)
 {
-  console.log('prepareKeywordListViewForDevice()');
+  MyAnswers.log('prepareKeywordListViewForDevice()');
   if (hasVisualCategories)
   {
 		backButtonHeader.removeClass('hidden');
@@ -136,7 +136,7 @@ function prepareKeywordListViewForDevice(category)
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
-  console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
+  MyAnswers.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
 	if (oneKeyword)
 	{
 		backButtonHeader.addClass('hidden');
@@ -155,7 +155,7 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 
 function prepareAnswerViewForDevice()
 {
-  console.log('prepareAnswerViewForDevice()');
+  MyAnswers.log('prepareAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
 	if (typeof(siteConfig.keywords[currentKeyword].help) == 'string')
@@ -170,7 +170,7 @@ function prepareAnswerViewForDevice()
 
 function prepareSecondLevelAnswerViewForDevice()
 {
-  console.log('prepareSecondLevelAnswerViewForDevice()');
+  MyAnswers.log('prepareSecondLevelAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -178,7 +178,7 @@ function prepareSecondLevelAnswerViewForDevice()
 
 function prepareHelpViewForDevice()
 {
-  console.log('prepareHelpViewForDevice()');
+  MyAnswers.log('prepareHelpViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -186,7 +186,7 @@ function prepareHelpViewForDevice()
 
 function prepareLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+  MyAnswers.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -194,7 +194,7 @@ function prepareLoginViewForDevice()
 
 function prepareNewLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+  MyAnswers.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -202,7 +202,7 @@ function prepareNewLoginViewForDevice()
 
 function prepareActivateLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+  MyAnswers.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -210,7 +210,7 @@ function prepareActivateLoginViewForDevice()
 
 function populateTextOnlyCategories(masterCategory)
 {
-	console.log('populateTextOnlyCategories(): ' + masterCategory);
+	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
 	$('#leftLabel').html(hasMasterCategories? siteConfig.master_categories[masterCategory].name : 'Categories');
 	var leftContent = $('#leftContent');
 	leftContent.empty();
@@ -219,6 +219,8 @@ function populateTextOnlyCategories(masterCategory)
 	var html = "<ul id='categoriesList'>"
 	for (id in order)
 	{
+		if (list[order[id]].status != 'active')
+			continue;
 		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
 		html += "<li id='leftcategory" + order[id] + "'>" + list[order[id]].name + "</li>";
 		html += "</a>";
@@ -255,8 +257,8 @@ function setCurrentView(view, reverseTransition)
 													runListWithDelay([
 															(function() { newView.removeClass('slideinfrom' + startPosition); return true; })
 														],
-														300,
-														onScroll)
+														350,
+														$.noop)
 												});
 											return false;
 										}),
@@ -272,7 +274,7 @@ function setCurrentView(view, reverseTransition)
 															(function() { currentView.removeClass('slideoutto' + endPosition); return true; }),
 														],
 														350,
-														onScroll)
+														$.noop)
 												});
 											runListWithDelay([
 													(function() { newView.addClass('slideinfrom' + startPosition); return true; }),
@@ -284,14 +286,19 @@ function setCurrentView(view, reverseTransition)
 															(function() { newView.removeClass('slideinfrom' + startPosition); return true; }),
 														],
 														350,
-														onScroll)
+														$.noop)
 												});
-												return true;
+												return false;
 											})],
 									 25,
-									 function() {
-										 onScroll();
-									 });
+										function() {
+											runListWithDelay([
+													(function() { onScroll(); return true; }),
+													(function() { setupForms(newView); return true; }),
+												],
+												25,
+												$.noop)
+										});
 }
 
 /*
@@ -303,7 +310,7 @@ function showLeftBox()
 {
   if (!$('#leftBox').hasClass('leftShown'))
   {
-	 console.log('showLeftBox()');
+	 MyAnswers.log('showLeftBox()');
 	 $('#stackLayout').addClass('leftShown');
 	 $('#leftBox').addClass('leftShown');
   }
@@ -313,7 +320,7 @@ function hideLeftBox()
 {
   if ($('#leftBox').hasClass('leftShown'))
   {
-	 console.log('hideLeftBox()');
+	 MyAnswers.log('hideLeftBox()');
 	 $('#stackLayout').removeClass('leftShown');
 	 $('#leftBox').removeClass('leftShown');
   }
@@ -321,7 +328,7 @@ function hideLeftBox()
 
 function populateLeftBoxWithMasterCategories()
 {
-	console.log('populateLeftBoxWithMasterCategories()');
+	MyAnswers.log('populateLeftBoxWithMasterCategories()');
 	var leftContent = $('#leftContent');
 	var alreadyDone = $('#leftLabel').html() == 'Master Categories';
 	if (alreadyDone)
@@ -371,7 +378,7 @@ function populateLeftBoxWithMasterCategories()
 
 function populateLeftBoxWithCategories(masterCategory)
 {
-	console.log('populateLeftBoxWithCategories()');
+	MyAnswers.log('populateLeftBoxWithCategories()');
 	var leftContent = $('#leftContent');
 	var alreadyDone = $('#leftLabel').html() == (hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
 	if (alreadyDone)

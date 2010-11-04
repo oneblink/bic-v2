@@ -9,7 +9,7 @@ var hashStack;
 
 function init_device()
 {
-	console.log('init_device()');
+	MyAnswers.log('init_device()');
 	deviceVars.majorVersion = navigator.userAgent.match(/Android (\d+)./);
 	deviceVars.majorVersion = deviceVars.majorVersion !== null ? deviceVars.majorVersion[1] : 1;
 	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+\.(\d+)/);
@@ -19,9 +19,10 @@ function init_device()
 	deviceVars.scrollProperty = '-webkit-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
 	if (deviceVars.engineVersion >= 529 || typeof(window.onhashchange) === 'object')
-		console.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
+		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
 
-	deviceVars.device = "android";
+	if (typeof(deviceVars.device) === 'undefined')
+		deviceVars.device = "android";
 	
 	hashStack = new Array();
 //	deviceVars.disableXSLT = true;
@@ -40,6 +41,45 @@ function init_device()
 	mainLabel = $('#mainLabel');
 }
 
+/* When this function is called, PhoneGap has been initialized and is ready to roll */
+function onDeviceReady() {
+	try {
+  MyAnswers.log("Device Ready");
+  //MyAnswers.log("URL to Load: " + window.Settings.LoadURL);
+  MyAnswers.log("Device: " + window.device.platform);
+  //MyAnswers.log("Camera Present: " + window.device.camerapresent);
+  //MyAnswers.log("Multitasking: " + window.device.multitasking);
+  //MyAnswers.cameraPresent = window.device.camerapresent;
+  //MyAnswers.loadURL = window.Settings.LoadURL;
+  siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^/]+)/)[1];
+  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+  MyAnswers.log("Domain: " + MyAnswers.domain);
+  //MyAnswers.multiTasking = window.device.multitasking;
+  //siteVars.serverAppVersion = window.Settings.codeVersion;
+  siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
+  //siteVars.answerSpace = window.Settings.answerSpace;
+  MyAnswers.log("siteVars.answerSpace: " + siteVars.answerSpace);
+  siteVars.serverDevicePath = MyAnswers.loadURL + 'android/' + siteVars.serverAppVersion + '/';
+  MyAnswers.log("MyAnswers.loadURL: " + MyAnswers.loadURL);
+  deviceVars.deviceFileName = '/android.js';
+  deviceVars.device = "android_pg";
+  //if (window.device.platform.search(/iphone/i) != -1) {
+  //  deviceVars.device = "iphone_pg";
+  //  siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
+  //  deviceVars.deviceFileName = '/iphone.js';
+  //} else {
+  //  deviceVars.device = "ipad_pg";
+  //  siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
+  //  deviceVars.deviceFileName = '/ipad.js';
+  //}
+  MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
+  MyAnswers.log("AppPath: " + siteVars.serverAppPath);
+  } catch(e) {
+		MyAnswers.log("onDeviceReady exception: ");
+		MyAnswers.log(e);
+	}
+}
+
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
  buttons that can be displayed on the navBar and the function of the buttons
@@ -54,6 +94,7 @@ function prepareAnswerSpacesListViewForDevice()
 function prepareMasterCategoriesViewForDevice()
 {
 	$.bbq.removeState();
+	var categoriesView = $('#categoriesView');
 	categoriesView.find('.welcomeBox').removeClass('hidden');
 	if (siteVars.hasLogin)
 	{
@@ -225,13 +266,15 @@ function prepareActivateLoginViewForDevice()
 
 function populateTextOnlyCategories(masterCategory)
 {
-	console.log('populateTextOnlyCategories(): ' + masterCategory);
+	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
 	var select = document.createElement('select');
 	select.setAttribute('id', 'categoriesList');
 	for (id in order)
 	{
+		if (list[order[id]].status != 'active')
+			continue;
 		var option = document.createElement('option');
 		option.setAttribute('value', order[id]);
 		if (order[id] == currentCategory)
@@ -250,55 +293,72 @@ function populateTextOnlyCategories(masterCategory)
 
 function setCurrentView(view, reverseTransition)
 {
-  console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
-  setTimeout(function() {
-		window.scrollTo(0, 1);
-		var entranceDirection = (reverseTransition ? 'left' : 'right');
-		var exitDirection = (reverseTransition ? 'right' : 'left');
-		var startPosition = (reverseTransition ? 'left' : 'right');
-		var currentView = $('.view:visible');
-		var newView = $('#' + view);
-		if (currentView.size() == 0)
-		{
-			newView.show();
-		}
-		else if (currentView.attr('id') == newView.attr('id'))
-		{
-			newView.hide();
-			newView.show('slide', { direction: entranceDirection }, 300);
-		}
-		else if ((newView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0)
-						 || (currentView.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0))
-		{
-			var zoomEntrance = reverseTransition ? 'zoomingin' : 'zoomingout';
-			var zoomExit = reverseTransition ? 'zoomingout' : 'zoomingin';
-			currentView.addClass('animating old');
-			currentView.addClass(zoomExit);
-			newView.addClass(zoomEntrance);
-			newView.addClass('animating new');
-			newView.removeClass(zoomEntrance);
-			newView.show();
-			setTimeout(function() {
-				currentView.hide();
-				currentView.removeClass('animating old ' + zoomExit);
-				newView.removeClass('animating new');
-			}, 300);
-		}
-		else
-		{
-			currentView.addClass('animating old');
-			newView.addClass('animating new');
-			currentView.hide('slide', { direction: exitDirection }, 300);
-			newView.show('slide', { direction: entranceDirection }, 300);
-			setTimeout(function() {
-				currentView.removeClass('animating old ' + zoomExit);
-				newView.removeClass('animating new');
-			}, 300);
-		}
-		setTimeout(function() {
-			onScroll();
-		}, 350);
-  }, 0);
+  MyAnswers.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+	var entranceDirection = (reverseTransition ? 'left' : 'right');
+	var endPosition = (reverseTransition ? 'right' : 'left');
+	var startPosition = (reverseTransition ? 'left' : 'right');
+	var currentView = $('.view:visible');
+	var newView = $('#' + view);
+
+	runListWithDelay([hideLocationBar,
+										(function() {
+											if (currentView.size() > 0) return true;
+											newView.show();
+											return false;
+										}),
+										(function() {
+											if (currentView.attr('id') !== newView.attr('id')) return true;
+											MyAnswers.log("setCurrentView(): current === new");
+											runListWithDelay([
+													(function() { newView.addClass('slidefrom' + startPosition); return true; }),
+												],
+												25,
+												function() { 
+													runListWithDelay([
+															(function() { newView.removeClass('slidefrom' + startPosition); return true; })
+														],
+														350,
+														$.noop)
+												});
+											return false;
+										}),
+										(function() {
+											MyAnswers.log("setCurrentView(): " + currentView.attr('id') + "!==" + newView.attr('id'));
+											runListWithDelay([
+													(function() { currentView.addClass('slideto' + endPosition); return true; }),
+												],
+												25,
+												function() {
+													runListWithDelay([
+															(function() { currentView.hide(); return true; }),
+															(function() { currentView.removeClass('slideto' + endPosition); return true; }),
+														],
+														350,
+														$.noop)
+												});
+											runListWithDelay([
+													(function() { newView.addClass('slidefrom' + startPosition); return true; }),
+													(function() { newView.show(); return true; }),
+												],
+												25,
+												function() {
+													runListWithDelay([
+															(function() { newView.removeClass('slidefrom' + startPosition); return true; }),
+														],
+														350,
+														$.noop)
+												});
+											return false;
+										})],
+										25,
+										function() {
+											runListWithDelay([
+													(function() { onScroll(); return true; }),
+													(function() { setupForms(newView); return true; }),
+												],
+												25,
+												$.noop)
+										});
 }
 
 /*
@@ -380,6 +440,8 @@ function onHashChange(event)
  h = Help
 */
 
+function hideLocationBar() { window.scrollTo(0, 1); return true; }
+
 (function() {
   var timer = setInterval(function() {
 		if (typeof(MyAnswers.device_Loaded) != 'undefined') {
@@ -387,7 +449,7 @@ function onHashChange(event)
 				MyAnswers.device_Loaded = true;
 				clearInterval(timer);
 			} catch(e) {
-				console.log("***** Unable to set: MyAnswers.device_Loaded => true");
+				MyAnswers.log("***** Unable to set: MyAnswers.device_Loaded => true");
 			}
 		}
   }, 100);

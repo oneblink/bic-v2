@@ -269,15 +269,6 @@ button, input[type=submit] {
 	margin-left: 10px;
 }
 
-.view {
-	display: none;
-}
-
-.view.animating {
-	position: absolute;
-	top: 41px;
-}
-
 .box {
 	margin: 30px;
 }
