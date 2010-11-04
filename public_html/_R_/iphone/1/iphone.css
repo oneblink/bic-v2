@@ -229,6 +229,10 @@ ul.box > li > .description {
 	text-align: center;
 }
 
+.bLive-screen, .bLive-box {
+	border-radius: 8px;
+}
+
 @-webkit-keyframes spinner {
 	from {
 		-webkit-transform: rotate(0deg);

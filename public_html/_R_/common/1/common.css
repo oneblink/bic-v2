@@ -63,6 +63,7 @@ header img {
 	width: 100%;
 	max-width: 100%;
 	text-align: left;
+	border-spacing: 0;
 }
 
 .bForm-label, .bForm-value { font-size: smaller; }
@@ -247,6 +248,108 @@ ul.box .description {
 
 #answerSpacesList .label, #answerSpacesList .description {
 	width: 70%;
+}
+
+.bLive-screen {
+	margin: .5em;
+	padding: .5em;
+	text-align: center;
+	background-color: #EEE;
+}
+.bLive-box, .bLive-link {
+	margin: .5em auto;
+	border: .2em solid #77F;
+	background-color: #FFF;
+	width: 90%;
+	max-width: 35em;
+}
+.bLive-box.narrow, .bLive-link {
+	width: 90%;
+	max-width: 25em;
+}
+.bLive-box table {
+	margin: 1em auto;
+}
+.bLive-box td {
+	border-spacing: 0;
+	text-align: left;
+	padding: .25em;
+}
+.bLive-link {
+	display: block;
+	padding: 1em;
+	text-decoration: none;
+	cursor: pointer;
+}
+.bLive-link:hover, .bLive-link.even:hover {
+	background-color: #EEF;
+}
+.bLive-link.odd:hover {
+	background-color: #FFE;
+}
+.bLive-screen .button {
+	display: inline-block;
+	-webkit-appearance: none;
+	margin: .5em;
+	padding: .25em;
+	height: auto;
+	text-decoration: none;
+	cursor: pointer;
+	background-color: #66E;
+	border: 2px solid #77F;
+	border-radius: 4px;
+	color: #FFF;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+}
+.bLive-screen .button:hover {
+	background-color: #77F;
+}
+.bLive-screen .button.refresh {
+	background-color: #4B4;
+	border: 2px solid #5D5;
+}
+
+.bLive-screen .button.refresh:hover {
+	background-color: #5D5;
+}
+
+.bLive-screen .button.important {
+	background-color: #B33;
+	border: 2px solid #F77;
+}
+
+.bLive-screen .button.important:hover {
+	background-color: #F77;
+}
+.actionresult {
+	font-style: italic;
+	color: #003;
+}
+.bLive-screen h1 {
+	font-size: 175%;
+}
+.bLive-screen h2 {
+	font-size: 130%;
+}
+.bLive-shoutbox textarea, .bLive-shoutbox input[type=text] {
+	margin: .2em;
+	padding: .4em;
+	font-size: larger;
+	border: .2em solid #77F;
+}
+.bLive-shout {
+	padding: 0 .5em;
+	text-align: left;
+	font-size: larger;
+}
+.bLive-shout > .info {
+	font-size: smaller;
+	text-align: right;
+}
+.bLive-results, .bLive-poll, .bLive-survey {
+	padding: 1em;
 }
 
 @-webkit-keyframes pulse {
