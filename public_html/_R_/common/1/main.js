@@ -7,6 +7,7 @@ var hasCategories, hasMasterCategories, hasVisualCategories, answerSpaceOneKeywo
 var currentKeyword, currentCategory, currentMasterCategory;
 
 var siteConfig, siteConfigHash;
+var starsProfile;
 var answerSpacesList, answerSpacesHash;
 var backStack;
 
@@ -220,12 +221,10 @@ function init_main(){
 	// to facilitate building regex replacements
 	RegExp.quote = function(str) { return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1"); };
 
-	document.addEventListener(
-		"orientationChanged", 
-		function() {
-			console.log("orientationChanged: " + Orientation.currentOrientation);
-		},
-		false);
+	document.addEventListener('orientationChanged', updateOrientation, false);
+		
+	$('body').bind('answerDownloaded', onAnswerDownloaded);
+	$('.blink-starrable').live('click', onStarClick);
 
 	//dumpLocalStorage();
 //
@@ -265,10 +264,9 @@ function computeTimeout(messageLength) {
 
 function updateOrientation()
 {
-	console.log("orientationChanged: " + Orientation.currentOrientation);
+	MyAnswers.log("orientationChanged: " + Orientation.currentOrientation);
 	setupForms($('.view:visible'));
 }
-document.addEventListener('orientationChanged', updateOrientation, false);
 
 // jStore doesn't do this for us, so this function will empty client-side storage
 function clearStorage()
@@ -654,7 +652,12 @@ function loaded()
 		{
 			siteConfig = message.siteConfig;
 			siteConfigHash = message.siteHash;
-		}					
+		}
+		starsProfile = getAnswerSpaceItem('starsProfile');
+		if (typeof(starsProfile) === 'string')
+			starsProfile = JSON.parse(starsProfile);
+		if (typeof(starsProfile) !== 'object')
+			starsProfile = { };
 		setSubmitCachedFormButton();
 		getSiteConfig();
 		updateLoginBar();
@@ -1042,7 +1045,7 @@ function showAnswerView(keywordID)
 			answerBox.appendChild(paragraph2);
 		}
 		setCurrentView("answerView", false, true);
-		setupAnswerFeatures();
+		$('body').trigger('answerDownloaded', ['answerView']);
 		setMainLabel(keyword.name);
 	}
 	else
@@ -1081,7 +1084,7 @@ function showAnswerView(keywordID)
 			setSubmitCachedFormButton();
 			setCurrentView("answerView", false, true);
 			setupForms($('#answerView'));
-			setupAnswerFeatures();
+			$('body').trigger('answerDownloaded', ['answerView']);
 			setMainLabel(keyword.name);
 			stopInProgressAnimation();
 		 },
@@ -1191,7 +1194,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		var html = generateMojoAnswer(xml, xslt, 'answerBox2');
 		insertHTML(answerBox2, html);
 		setCurrentView("answerView2", false, true);
-		setupAnswerFeatures();
+		$('body').trigger('answerDownloaded', ['answerView2']);
 		setMainLabel(keywordConfig.name);
 		stopInProgressAnimation();
 	}
@@ -1228,7 +1231,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 				}
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
-				setupAnswerFeatures();
+				$('body').trigger('answerDownloaded', ['answerView2']);
 				setupForms($("#answerView2"));
 				stopInProgressAnimation();
 			}
@@ -1820,7 +1823,7 @@ function submitAction(keyword, action) {
 				});
 				setTimeout(function() {
 					onScroll();
-setupAnswerFeatures();
+					$('body').trigger('answerDownloaded', [$(currentBox).parent().attr('id')]);
 				}, 350);
 			}
 			else
@@ -1829,17 +1832,17 @@ setupAnswerFeatures();
 				addBackHistory("");
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
-setupAnswerFeatures();
+				$('body').trigger('answerDownloaded', ['answerView2']);
 			}
 		},
 		timeout: computeTimeout(requestUrl.length + requestData.length)
 	});
 }
 
-function setupAnswerFeatures()
+function onAnswerDownloaded(event, view)
 {
 	setTimeout(function() {
-		if ($('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
+		if ($('#' + view).find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 			startInProgressAnimation();
 			$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, function(data, textstatus) {
 				if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
@@ -1848,7 +1851,39 @@ function setupAnswerFeatures()
 					stopTrackingLocation();
 			});
 		}
+		$('#' + view + ' .blink-starrable').each(function(index, element) {
+			if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object')
+				$(element).addClass('blink-star-off');
+			else
+				$(element).addClass('blink-star-on');
+		});
 	}, 300);
+}
+
+function onStarClick(event)
+{
+	var id = $(this).data('id');
+	var type = $(this).data('type');
+	var data = extractDataTags(this);
+	delete data.id;
+	delete data.type;
+	if ($(this).hasClass('blink-star-on'))
+	{
+		$(this).addClass('blink-star-off');
+		$(this).removeClass('blink-star-on');
+		delete starsProfile[type][id];
+		if (starsProfile[type] == { })
+			delete starsProfile[type];
+	}
+	else if ($(this).hasClass('blink-star-off'))
+	{
+		$(this).addClass('blink-star-on');
+		$(this).removeClass('blink-star-off');
+		if ($.type(starsProfile[type]) !== 'object')
+			starsProfile[type] = { };
+		starsProfile[type][id] = data;
+	}
+	setAnswerSpaceItem('starsProfile', starsProfile)
 }
 
 function setupGoogleMaps()
