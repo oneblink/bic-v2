@@ -2179,7 +2179,8 @@ function generateMojoAnswer(xmlString, xslString, target)
 				condition += ' or ' + variable + '=\'' + star + '\'';
 			}
 			condition = condition.substr(4);
-			xslString = xslString.replace(/\(blink-stars\((.+),\W*(\w+)\W*\)\)/, '(' + condition + ')');
+			if (condition.length > 0);
+				xslString = xslString.replace(/\(blink-stars\((.+),\W*(\w+)\W*\)\)/, '(' + condition + ')');
 		}
 	}
 	if (deviceVars.hasWebWorkers === true)
