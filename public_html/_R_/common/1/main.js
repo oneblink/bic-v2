@@ -2166,6 +2166,22 @@ function processBlinkAnswerMessage(message)
 function generateMojoAnswer(xmlString, xslString, target)
 {
 	if (typeof(xmlString) != 'string' || typeof(xslString) != 'string') return false;
+	if (xslString.indexOf('blink-stars(') !== -1) // check for star list
+	{
+		var type = xslString.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+		var variable = type[1];
+		type = type[2];
+		var condition = '';
+		if ($.type(starsProfile[type]) === 'object')
+		{
+			for (star in starsProfile[type])
+			{
+				condition += ' or ' + variable + '=\'' + star + '\'';
+			}
+			condition = condition.substr(4);
+		}
+		xslString = xslString.replace(/\(blink-stars\((.+),\W*(\w+)\W*\)\)/, '(' + condition + ')');
+	}
 	if (deviceVars.hasWebWorkers === true)
 	{
 		console.log('generateMojoAnswer: enlisting Web Worker to perform XSLT');
