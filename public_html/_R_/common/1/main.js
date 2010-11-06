@@ -224,7 +224,6 @@ function init_main(){
 	document.addEventListener('orientationChanged', updateOrientation, false);
 		
 	$('body').bind('answerDownloaded', onAnswerDownloaded);
-	$('.blink-starrable').live('click', onStarClick);
 
 	//dumpLocalStorage();
 //
@@ -865,18 +864,22 @@ function displayAnswerSpace()
 
 function processMoJOs(keyword)
 {
+	console.log('processMoJOs:', keyword);
 	if (deviceVars.disableXSLT === true) return;
 	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php';
+	var fetchedMoJOs = { };
 	for (m in siteConfig.mojoKeys)
 	{
-		if (typeof(keyword) == 'string' && keyword != m) continue;
-		var message = getAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m]);
+		var mojoName = siteConfig.mojoKeys[m];
+		if (keyword !== undefined && keyword !== m) continue;
+		if (fetchedMoJOs[mojoName] === true) continue;
+		var message = getAnswerSpaceItem('mojoMessage-' + mojoName);
 		var mojoHash;
-		if (typeof(message) != 'undefined' && message != null)
+		if (typeof(message) !== 'undefined' && message != null)
 		{
 			mojoHash = message.mojoHash;
 		}
-		var requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + siteConfig.mojoKeys[m] + (typeof(mojoHash) == 'string' ? "&sha1=" + mojoHash : "");
+		var requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + mojoName + (typeof(mojoHash) === 'string' ? "&sha1=" + mojoHash : "");
 		ajaxQueueMoJO.add({
 			url: requestURL,
 			data: requestData,
@@ -905,6 +908,7 @@ function processMoJOs(keyword)
 			},
 			timeout: computeTimeout(500 * 1024)
 		});
+		fetchedMoJOs[mojoName] = true;
 	}
 }
 
@@ -1852,12 +1856,17 @@ function onAnswerDownloaded(event, view)
 			});
 		}
 		$('#' + view + ' .blink-starrable').each(function(index, element) {
+			var div = document.createElement('div');
+			var data = extractDataTags(element);
+			populateDataTags(div, data);
+			div.addEventListener('click', onStarClick);
 			if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object')
-				$(element).addClass('blink-star-off');
+				div.setAttribute('class', 'blink-starrable blink-star-off');
 			else
-				$(element).addClass('blink-star-on');
+				div.setAttribute('class', 'blink-starrable blink-star-on');
+			$(element).replaceWith(div);
 		});
-	}, 300);
+	}, 350);
 }
 
 function onStarClick(event)
@@ -1883,7 +1892,7 @@ function onStarClick(event)
 			starsProfile[type] = { };
 		starsProfile[type][id] = data;
 	}
-	setAnswerSpaceItem('starsProfile', starsProfile)
+	setAnswerSpaceItem('starsProfile', starsProfile);
 }
 
 function setupGoogleMaps()
@@ -2179,7 +2188,7 @@ function generateMojoAnswer(xmlString, xslString, target)
 				condition += ' or ' + variable + '=\'' + star + '\'';
 			}
 			condition = condition.substr(4);
-			if (condition.length > 0);
+			if (condition.length > 0)
 				xslString = xslString.replace(/\(blink-stars\((.+),\W*(\w+)\W*\)\)/, '(' + condition + ')');
 		}
 	}
@@ -2316,6 +2325,15 @@ function extractDataTags(element)
 	return data;
 }
 
+function populateDataTags(element, data)
+{
+	if ($.type(element) !== 'object') return null;
+	for (d in data)
+	{
+		element.setAttribute('data-' + d, data[d]);
+	}
+}
+
 function stopInProgressAnimation()
 {
 	clearTimeout(MyAnswers.activityIndicatorTimer);
@@ -2335,7 +2353,6 @@ function startInProgressAnimation()
 
 function parseXMLElements(xmlString)
 {
-	console.log(typeof(window.DOMParser));
 	var xml;
 	if (typeof(window.DOMParser) === 'function' || typeof(window.DOMParser) === 'object')
 	{
@@ -2358,6 +2375,29 @@ function parseXMLElements(xmlString)
 		console.log('string parsed to XML using fake AJAX query', xml);
 	}
 	return xml;
+}
+
+function runListWithDelay(taskList, delay, callback) {
+	var ttt = taskList.concat();
+	if (typeof(callback) !== 'function')
+		throw("runListWithDelay: callback not a function");
+	setTimeout(function() {
+		var tt = ttt.shift();
+		var result;
+		try {
+			result = tt.apply(null, null);
+		} catch(e) {
+			MyAnswers.log("runListWithDelay: Exception");
+			MyAnswers.log(e);
+			MyAnswers.log(tt);
+		}
+		//MyAnswers.log("runListWithDelay: " + result + "[" + delay +"]");
+		if (ttt.length > 0 && result) {
+			setTimeout(arguments.callee, delay);
+		} else {
+			callback();
+		}
+	}, delay);
 }
 
 MyAnswers.main_Loaded = true;
