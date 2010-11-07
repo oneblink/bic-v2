@@ -798,6 +798,7 @@ function getSiteConfig()
 
 function processSiteConfig()
 {
+	console.log('processSiteConfig():');
 	hasMasterCategories = siteConfig.master_categories_config != 'no';
 	hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
 	hasCategories = siteConfig.categories_config != 'no';
@@ -864,7 +865,7 @@ function displayAnswerSpace()
 
 function processMoJOs(keyword)
 {
-	console.log('processMoJOs:', keyword);
+	console.log('processMoJOs(): keyword=' + keyword + ' caller=' + processMoJOs.caller.name);
 	if (deviceVars.disableXSLT === true) return;
 	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php';
 	var fetchedMoJOs = { };
@@ -884,10 +885,11 @@ function processMoJOs(keyword)
 			url: requestURL,
 			data: requestData,
 			dataType: 'json',
+			mojoName: mojoName,
 			beforeSend: function(xhr) {
 				console.log('GetMoJO transaction: ' + requestURL + '?' + requestData);
 			},
-			complete: function(xhr, xhrStatus) {
+			complete: function(xhr, xhrStatus, xhrOptions) {
 				if (!isAJAXError(xhrStatus) && xhr.status === 200)
 				{
 					var data = JSON.parse(xhr.responseText);
@@ -902,7 +904,7 @@ function processMoJOs(keyword)
 					else 
 					{
 						if (data.statusMessage !== 'NO UPDATES' && deviceVars.storageReady)
-							setAnswerSpaceItem('mojoMessage-' + siteConfig.mojoKeys[m], data);
+							setAnswerSpaceItem('mojoMessage-' + xhrOptions.mojoName, data);
 					}
 				}
 			},
