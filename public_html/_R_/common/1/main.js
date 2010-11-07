@@ -710,8 +710,10 @@ function getSiteConfig()
 		if (typeof(siteConfig) != 'undefined')
 			processSiteConfig();
 		else
+		{
 			alert(string);
 			window.location = '/demos';
+		}
 	};
 	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
 	var requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
