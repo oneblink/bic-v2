@@ -2176,6 +2176,7 @@ function processBlinkAnswerMessage(message)
 // take 2 plain strings, process them into XML, then transform the first using the second (XSL)
 function generateMojoAnswer(xmlString, xslString, target)
 {
+	console.log('generateMojoAnswer(): target=' + target + ' caller=' + generateMojoAnswer.caller.name);
 	if (typeof(xmlString) != 'string' || typeof(xslString) != 'string') return false;
 	if (xslString.indexOf('blink-stars(') !== -1) // check for star list
 	{
@@ -2191,8 +2192,9 @@ function generateMojoAnswer(xmlString, xslString, target)
 			}
 			condition = condition.substr(4);
 			if (condition.length > 0)
-				xslString = xslString.replace(/\(blink-stars\((.+),\W*(\w+)\W*\)\)/, '(' + condition + ')');
+				xslString = xslString.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
 		}
+		console.log('generateMojoAnswer(): condition=' + condition);
 	}
 	if (deviceVars.hasWebWorkers === true)
 	{
