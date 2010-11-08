@@ -258,6 +258,9 @@ function setCurrentView(view, reverseTransition)
 				currentView.removeClass('animating slid' + endPosition);
 			}, 300);
 		}
+		setTimeout(function() {
+			$('body').trigger('transitionComplete', [view]);
+		}, 350);
 	}, 0);
 }
 

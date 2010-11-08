@@ -62,7 +62,6 @@ if (!addEvent(window, "load", onBodyLoad)) {
       }
       try {
 				window.addEventListener('scroll', onScroll, false);
-				$('input, textarea, select').live('blur', function() { $(window).trigger('scroll'); });
 				$(window).trigger('scroll');
       } catch(e) {
         console.log("Unable to set onScroll: " + e);
@@ -224,6 +223,7 @@ function init_main(){
 	document.addEventListener('orientationChanged', updateOrientation, false);
 		
 	$('body').bind('answerDownloaded', onAnswerDownloaded);
+	$('body').bind('transitionComplete', onTransitionComplete);
 
 	//dumpLocalStorage();
 //
@@ -1897,6 +1897,14 @@ function onStarClick(event)
 		starsProfile[type][id] = data;
 	}
 	setAnswerSpaceItem('starsProfile', starsProfile);
+}
+
+function onTransitionComplete(event, view)
+{
+	console.log('onTransitionComplete():', event);
+	var inputs = $('input, textarea, select');
+	inputs.unbind('blur', onScroll);
+	inputs.bind('blur', onScroll);
 }
 
 function setupGoogleMaps()

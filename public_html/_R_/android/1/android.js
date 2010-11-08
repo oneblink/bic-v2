@@ -313,6 +313,7 @@ function setCurrentView(view, reverseTransition)
 		}
 		setTimeout(function() {
 			onScroll();
+			$('body').trigger('transitionComplete', [view]);
 		}, 350);
   }, 0);
 }
