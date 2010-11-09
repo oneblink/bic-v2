@@ -8,7 +8,7 @@ var activityIndicator, activityIndicatorTop;
 
 function init_device()
 {
-	console.log('init_device()');
+	MyAnswers.log('init_device()');
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion != null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
@@ -16,7 +16,8 @@ function init_device()
 	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
 	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
 
-	deviceVars.device = "iphone";
+	if (typeof(deviceVars.device) === 'undefined')
+		deviceVars.device = "iphone";
 	
 	// caching frequently-accessed selectors
 	navBoxHeader = $('#navBoxHeader');
@@ -28,6 +29,29 @@ function init_device()
 	activityIndicator = $('#activityIndicator');
 	navBar = $('.navBar');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
+}
+
+/* When this function is called, PhoneGap has been initialized and is ready to roll */
+function onDeviceReady() {
+  MyAnswers.log("Device Ready");
+  MyAnswers.log("URL to Load: " + window.Settings.LoadURL);
+  MyAnswers.log("Device: " + window.device.platform);
+  MyAnswers.log("Camera Present: " + window.device.camerapresent);
+  MyAnswers.log("Multitasking: " + window.device.multitasking);
+  MyAnswers.cameraPresent = window.device.camerapresent;
+  MyAnswers.loadURL = window.Settings.LoadURL;
+  siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^/]+)/)[1];
+  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+  MyAnswers.log("Domain: " + MyAnswers.domain);
+  MyAnswers.multiTasking = window.device.multitasking;
+  siteVars.serverAppVersion = window.Settings.codeVersion;
+  siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
+  siteVars.answerSpace = window.Settings.answerSpace;
+  deviceVars.device = "iphone_pg";
+  siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
+  deviceVars.deviceFileName = '/iphone.js';
+  MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
+  MyAnswers.log("AppPath: " + siteVars.serverAppPath);
 }
 
 /*
@@ -212,7 +236,7 @@ function startInProgressAnimation()
 
 function populateTextOnlyCategories(masterCategory)
 {
-	console.log('populateTextOnlyCategories(): ' + masterCategory);
+	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
 	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
 	var list = siteConfig.categories;
 	var select = document.createElement('select');
@@ -239,7 +263,7 @@ function populateTextOnlyCategories(masterCategory)
 
 function setCurrentView(view, reverseTransition)
 {
-  console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+  MyAnswers.log('setCurrentView(): ' + view + ' ' + reverseTransition);
 	setTimeout(function() {
 		setupParts();
 		window.scrollTo(0, 1);
@@ -322,27 +346,63 @@ function setupParts()
 	{
 		$('.backButton').each(function(index, element) {
 			var thisElement = $(element);
-			insertHTML(element, '<div class="backButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="backButtonRight"></div>');
+			var fragment = document.createDocumentFragment();
+			var left = document.createElement('div');
+			left.setAttribute('class', 'backButtonLeft');
+			fragment.appendChild(left);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'buttonLabel');
+			label.appendChild(document.createTextNode(thisElement.text()));
+			fragment.appendChild(label);
+			var right = document.createElement('div');
+			right.setAttribute('class', 'backButtonRight');
+			fragment.appendChild(right);
+			emptyDOMelement(element);
+			element.appendChild(fragment);
 		});
 		$('.roundButton').each(function(index, element) {
 			var thisElement = $(element);
-			insertHTML(element, '<div class="roundButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="roundButtonRight"></div>');
+			var fragment = document.createDocumentFragment();
+			var left = document.createElement('div');
+			left.setAttribute('class', 'roundButtonLeft');
+			fragment.appendChild(left);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'buttonLabel');
+			label.appendChild(document.createTextNode(thisElement.text()));
+			fragment.appendChild(label);
+			var right = document.createElement('div');
+			right.setAttribute('class', 'roundButtonRight');
+			fragment.appendChild(right);
+			emptyDOMelement(element);
+			element.appendChild(fragment);
 		});
 		$('.squareButton').each(function(index, element) {
 			var thisElement = $(element);
-			insertHTML(element, '<div class="squareButtonLeft"></div><div class="buttonLabel">' + thisElement.text() +  '</div><div class="squareButtonRight"></div>');
+			var fragment = document.createDocumentFragment();
+			var left = document.createElement('div');
+			left.setAttribute('class', 'squareButtonLeft');
+			fragment.appendChild(left);
+			var label = document.createElement('div');
+			label.setAttribute('class', 'buttonLabel');
+			label.appendChild(document.createTextNode(thisElement.text()));
+			fragment.appendChild(label);
+			var right = document.createElement('div');
+			right.setAttribute('class', 'squareButtonRight');
+			fragment.appendChild(right);
+			emptyDOMelement(element);
+			element.appendChild(fragment);
 		});
 	}
 }
 
 (function() {
   var timer = setInterval(function() {
-		if (typeof(MyAnswers.device_Loaded) != 'undefined') {
+		if (typeof(MyAnswers.device_Loaded) !== 'undefined') {
 			try {
 				MyAnswers.device_Loaded = true;
 				clearInterval(timer);
 			} catch(e) {
-				console.log("***** Unable to set: MyAnswers.device_Loaded => true");
+				MyAnswers.log("***** Unable to set: MyAnswers.device_Loaded => true");
 			}
 		}
   }, 100);

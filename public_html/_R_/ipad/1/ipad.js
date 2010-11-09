@@ -4,7 +4,7 @@ var homeButton;
 
 function init_device()
 {
-	console.log('init_device()');
+	MyAnswers.log('init_device()');
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion != null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
@@ -19,6 +19,29 @@ function init_device()
 	homeButton = $('.homeButton');
 }
 
+/* When this function is called, PhoneGap has been initialized and is ready to roll */
+function onDeviceReady() {
+  MyAnswers.log("Device Ready");
+  MyAnswers.log("URL to Load: " + window.Settings.LoadURL);
+  MyAnswers.log("Device: " + window.device.platform);
+  MyAnswers.log("Camera Present: " + window.device.camerapresent);
+  MyAnswers.log("Multitasking: " + window.device.multitasking);
+  MyAnswers.cameraPresent = window.device.camerapresent;
+  MyAnswers.loadURL = window.Settings.LoadURL;
+  siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^/]+)/)[1];
+  MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+  MyAnswers.log("Domain: " + MyAnswers.domain);
+  MyAnswers.multiTasking = window.device.multitasking;
+  siteVars.serverAppVersion = window.Settings.codeVersion;
+  siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
+  siteVars.answerSpace = window.Settings.answerSpace;
+	deviceVars.device = "ipad_pg";
+	siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
+	deviceVars.deviceFileName = '/ipad.js';
+  MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
+  MyAnswers.log("AppPath: " + siteVars.serverAppPath);
+}
+
 /*
  The purpose of the functions "prepare...ForDevice()" is to establish the
  buttons that can be displayed on the navBar and the function of the buttons
@@ -28,7 +51,7 @@ function init_device()
 
 function prepareAnswerSpacesListViewForDevice()
 {
-  console.log('prepareAnswerSpacesListViewForDevice()');
+  MyAnswers.log('prepareAnswerSpacesListViewForDevice()');
   backButtonHeader.addClass('hidden');
   homeButton.addClass('hidden');
   helpButton.addClass('hidden');
@@ -38,7 +61,7 @@ function prepareAnswerSpacesListViewForDevice()
 
 function prepareMasterCategoriesViewForDevice()
 {
-  console.log('prepareMasterCategoriesViewForDevice()');
+  MyAnswers.log('prepareMasterCategoriesViewForDevice()');
   backButtonHeader.addClass('hidden');
   homeButton.addClass('hidden');
   hideLeftBox();
@@ -50,7 +73,7 @@ function prepareMasterCategoriesViewForDevice()
 
 function prepareCategoriesViewForDevice()
 {
-  console.log('prepareCategoriesViewForDevice()');
+  MyAnswers.log('prepareCategoriesViewForDevice()');
   //backButtonHeader.unbind('click');
   if (hasMasterCategories)
   {
@@ -73,7 +96,7 @@ function prepareCategoriesViewForDevice()
 
 function prepareKeywordListViewForDevice(category)
 {
-  console.log('prepareKeywordListViewForDevice()');
+  MyAnswers.log('prepareKeywordListViewForDevice()');
   if (hasVisualCategories)
   {
 		backButtonHeader.removeClass('hidden');
@@ -107,7 +130,7 @@ function prepareKeywordListViewForDevice(category)
 
 function prepareKeywordViewForDevice(oneKeyword, showHelp)
 {
-  console.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
+  MyAnswers.log('prepareKeywordViewForDevice(): ' + oneKeyword + ' ' + showHelp);
 	if (oneKeyword)
 	{
 		backButtonHeader.addClass('hidden');
@@ -126,7 +149,7 @@ function prepareKeywordViewForDevice(oneKeyword, showHelp)
 
 function prepareAnswerViewForDevice()
 {
-  console.log('prepareAnswerViewForDevice()');
+  MyAnswers.log('prepareAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
 	if (typeof(siteConfig.keywords[currentKeyword].help) == 'string')
@@ -141,7 +164,7 @@ function prepareAnswerViewForDevice()
 
 function prepareSecondLevelAnswerViewForDevice()
 {
-  console.log('prepareSecondLevelAnswerViewForDevice()');
+  MyAnswers.log('prepareSecondLevelAnswerViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -149,7 +172,7 @@ function prepareSecondLevelAnswerViewForDevice()
 
 function prepareHelpViewForDevice()
 {
-  console.log('prepareHelpViewForDevice()');
+  MyAnswers.log('prepareHelpViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -157,7 +180,7 @@ function prepareHelpViewForDevice()
 
 function prepareLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+  MyAnswers.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -165,7 +188,7 @@ function prepareLoginViewForDevice()
 
 function prepareNewLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+  MyAnswers.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -173,7 +196,7 @@ function prepareNewLoginViewForDevice()
 
 function prepareActivateLoginViewForDevice()
 {
-  console.log('prepareLoginViewForDevice()');
+  MyAnswers.log('prepareLoginViewForDevice()');
   backButtonHeader.removeClass('hidden');
 	homeButton.removeClass('hidden');
   helpButton.addClass('hidden');
@@ -193,7 +216,7 @@ function startInProgressAnimation()
 
 function populateTextOnlyCategories(masterCategory)
 {
-	console.log('populateTextOnlyCategories(): ' + masterCategory);
+	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
 	$('#leftLabel').html(hasMasterCategories? siteConfig.master_categories[masterCategory].name : 'Categories');
 	var leftContent = $('#leftContent');
 	leftContent.empty();
@@ -216,7 +239,7 @@ function populateTextOnlyCategories(masterCategory)
 
 function setCurrentView(view, reverseTransition)
 {
-  console.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+  MyAnswers.log('setCurrentView(): ' + view + ' ' + reverseTransition);
 	setTimeout(function() {
 		window.scrollTo(0, 1);
 		var entranceDirection = (reverseTransition ? 'left' : 'right');
@@ -273,7 +296,7 @@ function showLeftBox()
 {
   if (!$('#leftBox').hasClass('leftShown'))
   {
-	 console.log('showLeftBox()');
+	 MyAnswers.log('showLeftBox()');
 	 $('#stackLayout').addClass('leftShown');
 	 $('#leftBox').addClass('leftShown');
   }
@@ -283,7 +306,7 @@ function hideLeftBox()
 {
   if ($('#leftBox').hasClass('leftShown'))
   {
-	 console.log('hideLeftBox()');
+	 MyAnswers.log('hideLeftBox()');
 	 $('#stackLayout').removeClass('leftShown');
 	 $('#leftBox').removeClass('leftShown');
   }
@@ -291,7 +314,7 @@ function hideLeftBox()
 
 function populateLeftBoxWithMasterCategories()
 {
-	console.log('populateLeftBoxWithMasterCategories()');
+	MyAnswers.log('populateLeftBoxWithMasterCategories()');
 	var leftContent = $('#leftContent');
 	var alreadyDone = $('#leftLabel').html() == 'Master Categories';
 	if (alreadyDone)
@@ -341,7 +364,7 @@ function populateLeftBoxWithMasterCategories()
 
 function populateLeftBoxWithCategories(masterCategory)
 {
-	console.log('populateLeftBoxWithCategories()');
+	MyAnswers.log('populateLeftBoxWithCategories()');
 	var leftContent = $('#leftContent');
 	var alreadyDone = $('#leftLabel').html() == (hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
 	if (alreadyDone)
@@ -414,7 +437,7 @@ function onScroll(event) {}
 				MyAnswers.device_Loaded = true;
 				clearInterval(timer);
 			} catch(e) {
-				console.log("***** Unable to set: MyAnswers.device_Loaded => true");
+				MyAnswers.log("***** Unable to set: MyAnswers.device_Loaded => true");
 			}
 		}
   }, 100);
