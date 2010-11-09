@@ -1037,10 +1037,36 @@ function showAnswerView(keywordID)
 	var keyword = siteConfig.keywords[keywordID];
 	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
-		$('body').trigger('taskBegun');
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
-		if (typeof(mojoMessage) != 'undefined' && mojoMessage != 'undefined')
+		console.log(keyword);
+		if (keyword.mojo.substr(0,6) === 'stars:')
 		{
+			$('body').trigger('taskBegun');
+			var xml;
+			var type = keyword.mojo.split(':')[1];
+			for (s in starsProfile[type])
+			{
+				xml += '<' + type + ' id="' + s + '">';
+				for (d in starsProfile[type][s])
+				{
+					xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
+				}
+				xml += '</' + type + '>';
+			}
+			xml = '<stars>' + xml + '</stars>';
+			var xslt = keyword.xslt;
+			for (a in args)
+			{
+				var regex = new RegExp(RegExp.quote('$' + a), 'g');
+				xslt = xslt.replace(regex, args[a]);
+			}
+			var html = generateMojoAnswer(xml, xslt, 'answerBox');
+			insertHTML(answerBox, html);
+			$('body').trigger('taskComplete');
+		}
+		else if (typeof(mojoMessage) !== 'undefined' && mojoMessage !== 'undefined')
+		{
+			$('body').trigger('taskBegun');
 			var args = deserialize(createParamsAndArgs(keywordID));
 			delete args.answerSpace;
 			delete args.keyword;
