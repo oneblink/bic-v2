@@ -3,7 +3,6 @@ var navButtons;
 var helpButton;
 var welcomeMessage;
 var mainLabel;
-var activityIndicator;
 var hashStack;
 
 // ** device-specific initialisation of variables and flags **
@@ -308,6 +307,7 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   MyAnswers.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+	$('body').trigger('taskBegun');
   setTimeout(function() {
 		window.scrollTo(0, 1);
 		var entranceDirection = (reverseTransition ? 'left' : 'right');
@@ -354,6 +354,7 @@ function setCurrentView(view, reverseTransition)
 		}
 		setTimeout(function() {
 			onScroll();
+			$('body').trigger('taskComplete');
 			$('body').trigger('transitionComplete', [view]);
 		}, 350);
   }, 0);
@@ -377,13 +378,13 @@ function onScroll()
 	{
 		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (deviceVars.progressDialogTop + scrollTop), deviceVars.scrollValue);
+	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (deviceVars.progressDialogTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)
 {
 	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
-	element.css(property, formattedValue);
+	$(element).css(property, formattedValue);
 }
 
 function showUnreadBulletins()

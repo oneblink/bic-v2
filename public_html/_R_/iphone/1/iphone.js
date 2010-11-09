@@ -4,7 +4,7 @@ var helpButton;
 var pendingFormButton, pendingFormButtonTop;
 var welcomeMessage;
 var mainLabel;
-var activityIndicator, activityIndicatorTop;
+var activityIndicatorTop;
 
 function init_device()
 {
@@ -26,7 +26,6 @@ function init_device()
 	pendingFormButton = $('#pendingButton');
 	welcomeMessage = $('#welcomeMsgArea');
 	mainLabel = $('#mainLabel');
-	activityIndicator = $('#activityIndicator');
 	navBar = $('.navBar');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
 }
@@ -223,17 +222,6 @@ function prepareActivateLoginViewForDevice()
   helpButton.addClass('hidden');
 }
 
-function stopInProgressAnimation()
-{
-	activityIndicator.addClass('hidden');
-}
-
-function startInProgressAnimation()
-{
-	if ($('#startUp').size() <= 0)
-	  activityIndicator.removeClass('hidden');
-}
-
 function populateTextOnlyCategories(masterCategory)
 {
 	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
@@ -264,6 +252,7 @@ function populateTextOnlyCategories(masterCategory)
 function setCurrentView(view, reverseTransition)
 {
   MyAnswers.log('setCurrentView(): ' + view + ' ' + reverseTransition);
+  $('body').trigger('taskBegun');
 	setTimeout(function() {
 		setupParts();
 		window.scrollTo(0, 1);
@@ -308,6 +297,7 @@ function setCurrentView(view, reverseTransition)
 		}
 		setTimeout(function() {
 			onScroll();
+			$('body').trigger('taskComplete');
 			$('body').trigger('transitionComplete', [view]);
 		}, 350);
 	}, 0);
@@ -331,17 +321,18 @@ function onScroll()
 	{
 		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
-	updatePartCSS(activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
 function updatePartCSS(element, property, value, valueFormat)
 {
 	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
-	element.css(property, formattedValue);
+	$(element).css(property, formattedValue);
 }
 
 function setupParts()
 {
+	$('body').trigger('taskBegun');
 	if (deviceVars.useCSS3buttons === false)
 	{
 		$('.backButton').each(function(index, element) {
@@ -393,6 +384,7 @@ function setupParts()
 			element.appendChild(fragment);
 		});
 	}
+	$('body').trigger('taskComplete');
 }
 
 (function() {
