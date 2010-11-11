@@ -1937,11 +1937,9 @@ function submitAction(keyword, action) {
 					insertHTML(currentBox[0], html);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
-				});
-				setTimeout(function() {
 					onScroll();
 					$('body').trigger('answerDownloaded', [$(currentBox).parent().attr('id')]);
-				}, 350);
+				});
 			}
 			else
 			{
@@ -1958,6 +1956,7 @@ function submitAction(keyword, action) {
 
 function onAnswerDownloaded(event, view)
 {
+	MyAnswers.log('onAnswerDownloaded(): view=' + view);
 	setTimeout(function() {
 		if ($('#' + view).find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 			$('body').trigger('taskBegun');
