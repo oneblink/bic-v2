@@ -813,7 +813,7 @@ function processSiteConfig()
 function displayAnswerSpace()
 {
 	var startUp = $('#startUp');
-	if (startUp.size() > 0 && typeof(siteConfig) != 'undefined')
+	if (startUp.size() > 0 && typeof(siteConfig) !== 'undefined')
 	{
 		if (answerSpaceOneKeyword)
 		{
@@ -839,8 +839,12 @@ function displayAnswerSpace()
 			showKeywordListView();
 		}
 		var keyword = siteVars.queryParameters.keyword;
+		var token = siteVars.queryParameters['_t'];
 		delete siteVars.queryParameters.keyword;
-		if (typeof(keyword) === 'string' && siteVars.queryParameters != {})
+		delete siteVars.queryParameters['_t'];
+		if (typeof(token) === 'string')
+			restoreSessionProfile(token);
+		else if (typeof(keyword) === 'string' && siteVars.queryParameters != {})
 			showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
 		else if (typeof(keyword) === 'string')
 			gotoNextScreen(keyword);
@@ -848,8 +852,7 @@ function displayAnswerSpace()
 			showKeywordListView(siteVars.queryParameters.category);
 		else if (typeof(siteVars.queryParameters.master_category) === 'string')
 			showCategoriesView(siteVars.queryParameters.master_category);
-		delete siteVars.queryParameters;
-		if (typeof(siteConfig.webClip) === 'string' && typeof(google) !== 'undefined' && typeof(google.bookmarkbubble) !== 'undefined') {
+		else if (typeof(siteConfig.webClip) === 'string' && typeof(google) !== 'undefined' && typeof(google.bookmarkbubble) !== 'undefined') {
 			setTimeout(function() {
 				var bookmarkBubble = new google.bookmarkbubble.Bubble();
 				bookmarkBubble.hasHashParameter = function() { return false; };
@@ -861,9 +864,52 @@ function displayAnswerSpace()
 				bookmarkBubble.showIfAllowed();
 			}, 1000);
 		}
+		delete siteVars.queryParameters;
 	}
 	startUp.remove();
 	$('#content').removeClass('hidden');
+}
+
+function restoreSessionProfile(token)
+{
+	MyAnswers.log('restoreSessionProfile(): caller=' + restoreSessionProfile.caller.name);
+	var requestUrl = siteVars.serverAppPath + '/util/GetSession.php';
+	var requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
+	ajaxQueue.add({
+		url: requestUrl,
+		data: requestData,
+		dataType: 'json',
+		beforeSend: function(xhr) {
+			MyAnswers.log("GetSession transaction: " + requestUrl + "?" + requestData);
+		},
+		complete: function(xhr, xhrStatus) {
+			if (isAJAXError(xhrStatus) || xhr.status !== 200)
+			{
+				alert('Connection error, please try again later.');
+				return;
+			}
+			var data = JSON.parse(xhr.responseText);
+			if (data === null)
+			{
+				MyAnswers.log('GetSiteConfig error: null siteConfig');
+				alert('Connection error, please try again later.');
+				return;
+			}
+			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
+			{
+				MyAnswers.log('GetSession success: no error messages, data: ' + data);
+				if (data.sessionProfile === null) return
+				setAnswerSpaceItem('starsProfile', data.sessionProfile.stars);
+				starsProfile = data.sessionProfile.stars;
+				return;
+			}
+			if (typeof(data.errorMessage) === 'string')
+			{
+				MyAnswers.log('GetSiteConfig error: ' + data.errorMessage);
+			}
+		},
+		timeout: computeTimeout(10 * 1024)
+	});
 }
 
 function processMoJOs(keyword)
@@ -876,6 +922,7 @@ function processMoJOs(keyword)
 	{
 		var mojoName = siteConfig.mojoKeys[m];
 		if (keyword !== undefined && keyword !== m) continue;
+		if (mojoName.substr(0,6) === 'stars:') continue;
 		if (fetchedMoJOs[mojoName] === true) continue;
 		var message = getAnswerSpaceItem('mojoMessage-' + mojoName);
 		var mojoHash;
@@ -902,7 +949,7 @@ function processMoJOs(keyword)
 					}
 					else if (data.errorMessage)
 					{
-						MyAnswers.log('GetMoJO error: ' + data.errorMessage);
+						MyAnswers.log('GetMoJO error: ' + mojoName + ' ' + data.errorMessage);
 					}
 					else 
 					{
@@ -1038,7 +1085,6 @@ function showAnswerView(keywordID)
 	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
-		console.log(keyword);
 		if (keyword.mojo.substr(0,6) === 'stars:')
 		{
 			$('body').trigger('taskBegun');
@@ -1211,6 +1257,7 @@ function gotoNextScreen(keywordID)
 
 function showSecondLevelAnswerView(keyword, arg0, reverse)
 {
+	MyAnswers.log('showSecondLevelAnswerView(): keyword=' + keyword + ' args=' + arg0);
 	keyword = decodeURIComponent(keyword);
 	arg0 = decodeURIComponent(arg0);
   prepareSecondLevelAnswerViewForDevice(keyword, arg0);
@@ -1227,7 +1274,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	var answerBox2 = document.getElementById('answerBox2');
 	var mainLabel = document.getElementById('mainLabel');
 	var keywordConfig = siteConfig.keywords[keywordID];
-	if (keywordConfig.type == 'xslt' && deviceVars.disableXSLT !== true)
+	if ($.type(keywordConfig) === 'object' && keywordConfig.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
 		MyAnswers.log('showSecondLevelAnswerView: detected XSLT keyword');
 		$('body').trigger('taskBegun');
@@ -1801,7 +1848,7 @@ function submitFormWithRetry() {
 		url: answerUrl,
 		data: requestData,
 		beforeSend: function(xhr) {
-		  MyAnswers.log("GetAnswer transaction GETx: " + answerUrl + "?...");
+			MyAnswers.log('GetAnswer ' + method + ' transaction request: ' + answerUrl + ' dataSize: ' + (typeof(requestData) === 'string') ? requestData.length : '');
 			httpAnswerRequest = xhr;
 			$('body').trigger('taskBegun');
 		},
@@ -1840,22 +1887,30 @@ function submitFormWithRetry() {
 }
 
 function submitAction(keyword, action) {
+	MyAnswers.log('submitAction(): keyword=' + keyword + ' action=' + action);
 	var currentBox = $('.view:visible > .box');
 	var form = currentBox.find('form').first();
+	var sessionInput = form.find('input[name=blink_session_data]');
 	var formData = (action == 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize();
 	var method = form.attr('method');
+	if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile))
+	{
+		serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
+		formData = formData.replace('blink_session_data=', 'blink_session_data=' + encodeURIComponent(serializedProfile));
+		method = 'post';
+	}
 
 	var requestData, requestUrl;
 	if (method == 'get')
 	{
 		method = 'GET';
 		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
-		requestData = '&' + formData + '&' + action;
+		requestData = '&' + formData + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 	}
 	else
 	{
 		method = 'POST'
-		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + "&" + action;
+		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 		requestData = formData;
 	}
 
@@ -1865,7 +1920,7 @@ function submitAction(keyword, action) {
 		url: requestUrl,
 		data: requestData,
 		beforeSend: function(xhr) {
-			MyAnswers.log("GetAnswer transaction: " + requestUrl + "?" + requestData);
+			MyAnswers.log('GetAnswer ' + method + ' transaction request: ' + requestUrl + " data: " + requestData);
 			httpAnswerRequest = xhr;
 			$('body').trigger('taskBegun');
 		},
@@ -1948,7 +2003,15 @@ function onStarClick(event)
 		$(this).removeClass('blink-star-off');
 		if ($.type(starsProfile[type]) !== 'object')
 			starsProfile[type] = { };
-		starsProfile[type][id] = data;
+		starsProfile[type][id] = { };
+		for (k in data)
+		{
+			starsProfile[type][id][k.toUpperCase()] = data[k];
+		}
+		var date = new Date();
+		starsProfile[type][id].time = date.getTime();
+		starsProfile[type][id].type = type;
+		starsProfile[type][id].id = id;
 	}
 	setAnswerSpaceItem('starsProfile', starsProfile);
 }

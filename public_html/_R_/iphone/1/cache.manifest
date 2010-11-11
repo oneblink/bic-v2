@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# svn revision 831
+# svn revision 835
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -24,6 +24,7 @@ NETWORK:
 ../../common/1/util/GetAnswer.php
 ../../common/1/util/GetMoJO.php
 ../../common/1/util/GetSiteConfig.php
+../../common/1/util/GetSession.php
 http://i.ytimg.com/
 http://maps.google.com/
 /images/
