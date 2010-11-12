@@ -17,9 +17,9 @@ var lowestTransferRateConst, maxTransactionTimeout;
 var ajaxQueue, ajaxQueueMoJO;
 
 MyAnswers.log = function(msgStr) {
- 	if ($.type(console) === 'object')
+ 	if (window.console !== undefined)
 		console.log(msgStr);
- 	else if ($.type(debug) === 'object')
+ 	else if (window.debug !== undefined)
 		debug.log(msgStr);
 }
 
@@ -62,7 +62,7 @@ if (!addEvent(window, "load", onBodyLoad)) {
         MyAnswers.log(e);
       }
       try {
-				window.addEventListener('scroll', onScroll, false);
+				addEvent(window, 'scroll', onScroll);
 				$(window).trigger('scroll');
       } catch(e) {
         MyAnswers.log("Unable to set onScroll: " + e);
@@ -205,7 +205,7 @@ function init_main(){
 	// to facilitate building regex replacements
 	RegExp.quote = function(str) { return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1"); };
 
-	document.addEventListener('orientationChanged', updateOrientation, false);
+	addEvent(document, 'orientationChanged', updateOrientation);
 		
 	$('body').bind('answerDownloaded', onAnswerDownloaded);
 	$('body').bind('transitionComplete', onTransitionComplete);
@@ -287,8 +287,8 @@ function clearStorage()
 
 if (typeof(webappCache) != "undefined")
 {
-  webappCache.addEventListener("updateready", updateCache, false);
-  webappCache.addEventListener("error", errorCache, false);
+  addEvent(webappCache, "updateready", updateCache);
+  addEvent(webappCache, "error", errorCache);
 }
 
 function setAnswerSpaceItem(key, value)
@@ -353,7 +353,7 @@ function populateKeywordList(category) {
 			image.setAttribute('src', list[order[id]].image);
 			image.setAttribute('alt', list[order[id]].name);
 			keywordBox.appendChild(image);
-			image.addEventListener('click', function() {
+			addEvent(image, 'click', function() {
 				gotoNextScreen(this.getAttribute('data-id'));
 			});
 		}
@@ -374,7 +374,7 @@ function populateKeywordList(category) {
 				item.appendChild(description);
 			}
 			keywordList.appendChild(item);
-			item.addEventListener('click', function() {
+			addEvent(item, 'click', function() {
 				gotoNextScreen(this.getAttribute('data-id'));
 			});
 		}
@@ -471,7 +471,7 @@ function populateMasterCategories()
 		image.setAttribute('src', list[order[id]].image);
 		image.setAttribute('alt', list[order[id]].name);
 		masterCategoriesBox.appendChild(image);
-		image.addEventListener('click', function() {
+		addEvent(image, 'click', function() {
 			showCategoriesView(this.getAttribute('data-id'));
 		});
 	}
@@ -534,7 +534,7 @@ function populateVisualCategories(masterCategory)
 		image.setAttribute('src', list[order[id]].image);
 		image.setAttribute('alt', list[order[id]].name);
 		categoriesBox.appendChild(image);
-		image.addEventListener('click', function() {
+		addEvent(image, 'click', function() {
 			showKeywordListView(this.getAttribute('data-id'));
 		});
 	}
@@ -870,7 +870,7 @@ function onSiteBootComplete(event)
 			bookmarkBubble.setHashParameter = $.noop;
 			bookmarkBubble.getViewportHeight = function() {	return window.innerHeight; };
 			bookmarkBubble.getViewportScrollY = function() { return window.pageYOffset;	};
-			bookmarkBubble.registerScrollHandler = function(handler) { window.addEventListener('scroll', handler, false); };
+			bookmarkBubble.registerScrollHandler = function(handler) { addEvent(window, 'scroll', handler); };
 			bookmarkBubble.deregisterScrollHandler = function(handler) { window.removeEventListener('scroll', handler, false); };
 			bookmarkBubble.showIfAllowed();
 		}, 1000);
@@ -1997,7 +1997,7 @@ function onAnswerDownloaded(event, view)
 			var div = document.createElement('div');
 			var data = extractDataTags(element);
 			populateDataTags(div, data);
-			div.addEventListener('click', onStarClick);
+			addEvent(div, 'click', onStarClick);
 			if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object')
 				div.setAttribute('class', 'blink-starrable blink-star-off');
 			else
