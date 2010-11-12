@@ -242,6 +242,7 @@ function init_main(){
   
   $('body').bind('taskBegun', onTaskBegun);
   $('body').bind('taskComplete', onTaskComplete);
+  $('body').bind('siteBootComplete', onSiteBootComplete);
 }
 
 function PictureSourceType() {};
@@ -838,36 +839,43 @@ function displayAnswerSpace()
 		{
 			showKeywordListView();
 		}
-		var keyword = siteVars.queryParameters.keyword;
 		var token = siteVars.queryParameters['_t'];
-		delete siteVars.queryParameters.keyword;
 		delete siteVars.queryParameters['_t'];
 		if (typeof(token) === 'string')
 			restoreSessionProfile(token);
-		else if (typeof(keyword) === 'string' && siteVars.queryParameters != {})
-			showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
-		else if (typeof(keyword) === 'string')
-			gotoNextScreen(keyword);
-		else if (typeof(siteVars.queryParameters.category) === 'string')
-			showKeywordListView(siteVars.queryParameters.category);
-		else if (typeof(siteVars.queryParameters.master_category) === 'string')
-			showCategoriesView(siteVars.queryParameters.master_category);
-		else if (typeof(siteConfig.webClip) === 'string' && typeof(google) !== 'undefined' && typeof(google.bookmarkbubble) !== 'undefined') {
-			setTimeout(function() {
-				var bookmarkBubble = new google.bookmarkbubble.Bubble();
-				bookmarkBubble.hasHashParameter = function() { return false; };
-				bookmarkBubble.setHashParameter = $.noop;
-				bookmarkBubble.getViewportHeight = function() {	return window.innerHeight; };
-				bookmarkBubble.getViewportScrollY = function() { return window.pageYOffset;	};
-				bookmarkBubble.registerScrollHandler = function(handler) { window.addEventListener('scroll', handler, false); };
-				bookmarkBubble.deregisterScrollHandler = function(handler) { window.removeEventListener('scroll', handler, false); };
-				bookmarkBubble.showIfAllowed();
-			}, 1000);
-		}
-		delete siteVars.queryParameters;
+		else
+			$('body').trigger('siteBootComplete');
 	}
 	startUp.remove();
 	$('#content').removeClass('hidden');
+}
+
+function onSiteBootComplete(event)
+{
+	MyAnswers.log('onSiteBootComplete():');
+	var keyword = siteVars.queryParameters.keyword;
+	delete siteVars.queryParameters.keyword;
+	if (typeof(keyword) === 'string' && ! $.isEmptyObject(siteVars.queryParameters))
+		showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
+	else if (typeof(keyword) === 'string')
+		gotoNextScreen(keyword);
+	else if (typeof(siteVars.queryParameters.category) === 'string')
+		showKeywordListView(siteVars.queryParameters.category);
+	else if (typeof(siteVars.queryParameters.master_category) === 'string')
+		showCategoriesView(siteVars.queryParameters.master_category);
+	else if (typeof(siteConfig.webClip) === 'string' && typeof(google) !== 'undefined' && typeof(google.bookmarkbubble) !== 'undefined') {
+		setTimeout(function() {
+			var bookmarkBubble = new google.bookmarkbubble.Bubble();
+			bookmarkBubble.hasHashParameter = function() { return false; };
+			bookmarkBubble.setHashParameter = $.noop;
+			bookmarkBubble.getViewportHeight = function() {	return window.innerHeight; };
+			bookmarkBubble.getViewportScrollY = function() { return window.pageYOffset;	};
+			bookmarkBubble.registerScrollHandler = function(handler) { window.addEventListener('scroll', handler, false); };
+			bookmarkBubble.deregisterScrollHandler = function(handler) { window.removeEventListener('scroll', handler, false); };
+			bookmarkBubble.showIfAllowed();
+		}, 1000);
+	}
+	delete siteVars.queryParameters;
 }
 
 function restoreSessionProfile(token)
@@ -901,12 +909,14 @@ function restoreSessionProfile(token)
 				if (data.sessionProfile === null) return
 				setAnswerSpaceItem('starsProfile', data.sessionProfile.stars);
 				starsProfile = data.sessionProfile.stars;
-				return;
 			}
 			if (typeof(data.errorMessage) === 'string')
 			{
 				MyAnswers.log('GetSiteConfig error: ' + data.errorMessage);
 			}
+			setTimeout(function() {
+				$('body').trigger('siteBootComplete');
+			}, 100);
 		},
 		timeout: computeTimeout(10 * 1024)
 	});
@@ -1073,8 +1083,24 @@ function getAnswer(event)
   showAnswerView(currentKeyword);
 }
 
-function showAnswerView(keywordID)
+function showAnswerView(keyword)
 {
+	if ($.type(siteConfig.keywords[keyword]) === 'object')
+	{
+		keywordID = keyword;
+	}
+	else
+	{
+		for (k in siteConfig.keywords)
+		{
+			if (keyword.toUpperCase() == siteConfig.keywords[k].name.toUpperCase())
+			{
+				var keywordID = k;
+				break;
+			}
+		}
+	}
+	if ($.type(siteConfig.keywords[keywordID]) !== 'object') return;
 	addBackHistory("goBackToTopLevelAnswerView();");
 	currentKeyword = keywordID;
   prepareAnswerViewForDevice();
