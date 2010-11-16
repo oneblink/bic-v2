@@ -21,6 +21,11 @@ http://maps.google.com/maps/api/js
 
 NETWORK:
 *
+../../common/1/util/GetLogin.php
+../../common/1/util/GetAnswer.php
+../../common/1/util/GetMoJO.php
+../../common/1/util/GetSiteConfig.php
+../../common/1/util/GetSession.php
 
 #FALLBACK: 
 #demoimages/ 
