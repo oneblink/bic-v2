@@ -143,38 +143,6 @@ function isAJAXError(status)
 	}
 }
 
-function extractDataTags(element)
-{
-	var attributes = element.attributes;
-	var data = { };
-	for (var a in attributes)
-	{
-		if (attributes.hasOwnProperty(a))
-		{
-			var tag = attributes.item(a).name;
-			var value = attributes.item(a).value;
-			if (value === '')
-			{
-				value = null;
-			}
-			else if (value === 'true')
-			{
-				value = true;
-			}
-			else if (value === 'false')
-			{
-				value = false;
-			}
-			var tagParts = tag.split('-');
-			if (tagParts[0] === 'data')
-			{
-				data[tag.replace('data-', '')] = value;
-			}
-		}
-	}
-	return data;
-}
-
 function populateDataTags(element, data)
 {
 	if ($.type(element) !== 'object') { return null; }
@@ -546,7 +514,7 @@ function onStarClick(event)
 {
 	var id = $(this).data('id');
 	var type = $(this).data('type');
-	var data = extractDataTags(this);
+	var data = $(this).data();
 	delete data.id;
 	delete data.type;
 	if ($(this).hasClass('blink-star-on'))
@@ -587,9 +555,9 @@ function onAnswerDownloaded(event, view)
 {
 	MyAnswers.log('onAnswerDownloaded(): view=' + view);
 	setTimeout(function() {
+		$('body').trigger('taskBegun');
 		if ($('#' + view).find('div.googlemap').size() > 0) // check for items requiring Google features (so far only #map)
 		{
-			$('body').trigger('taskBegun');
 			$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, function(data, textstatus) {
 				if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
 				{
@@ -603,7 +571,7 @@ function onAnswerDownloaded(event, view)
 		}
 		$('#' + view + ' .blink-starrable').each(function(index, element) {
 			var div = document.createElement('div');
-			var data = extractDataTags(element);
+			var data = $(element).data();
 			populateDataTags(div, data);
 			addEvent(div, 'click', onStarClick);
 			if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object')
@@ -616,6 +584,7 @@ function onAnswerDownloaded(event, view)
 			}
 			$(element).replaceWith(div);
 		});
+		$('body').trigger('taskComplete');
 	}, 350);
 }
 
@@ -1186,6 +1155,9 @@ function getSiteConfig()
 						MyAnswers.log("GetSiteConfig status: " + data.statusMessage, siteConfig);
 						break;
 					case 'NO KEYWORDS':
+						setAnswerSpaceItem('siteConfigMessage', data);
+						siteConfig = data.siteConfig;
+						siteConfigHash = data.siteHash;
 						MyAnswers.log("GetSiteConfig status: " + data.statusMessage, data);
 						break;
 				}
@@ -2256,6 +2228,7 @@ function stopTrackingLocation()
 function setupGoogleMapsBasic(element, data, map)
 {
 	MyAnswers.log('Google Maps Basic: initialising', data);
+	$('body').trigger('taskBegun');
 	var location = new google.maps.LatLng(data.latitude, data.longitude);
 	var options = {
 		zoom: parseInt(data.zoom, 10),
@@ -2290,11 +2263,13 @@ function setupGoogleMapsBasic(element, data, map)
 			});
 		}
 	}
+	$('body').trigger('taskComplete');
 }
 
 function setupGoogleMapsDirections(element, data, map)
 {
 	MyAnswers.log('Google Maps Directions: initialising', data);
+	$('body').trigger('taskBegun');
 	var origin, destination, language, region, geocoder;
 	if (typeof(data['origin-address']) === 'string')
 	{
@@ -2442,9 +2417,10 @@ function setupGoogleMapsDirections(element, data, map)
 
 function setupGoogleMaps()
 {
+	$('body').trigger('taskBegun');
 	$('div.googlemap').each(function(index, element) {
 		var googleMap = new google.maps.Map(element);
-		var data = extractDataTags(element);
+		var data = $(element).data();
 		if (data.sensor === true && isLocationAvailable())
 		{
 			startTrackingLocation();
@@ -2478,6 +2454,7 @@ function setupGoogleMaps()
 			});
 		}
 	});
+	$('body').trigger('taskComplete');
 }
 
 // *** BEGIN APPLICATION INIT ***
