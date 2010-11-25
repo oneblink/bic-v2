@@ -254,6 +254,58 @@ function runListWithDelay(taskList, delay, callback) {
 	}, delay);
 }
 
+// MIT/GPL from http://phpjs.org/functions/parse_url:485 version 1009.2513
+// note: Does not replace invalid characters with '_' as in PHP, nor does it return false for bad URLs
+// example 1: parse_url('http://username:password@hostname/path?arg=value#anchor');
+// returns 1: {scheme: 'http', host: 'hostname', user: 'username', pass: 'password', path: '/path', query: 'arg=value', fragment: 'anchor'}
+function parse_url (str, component) {
+	var o = {
+		strictMode: false,
+		key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+		q: {
+			name: "queryKey",
+			parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+		},
+		parser: {
+			strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+			loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/\/?)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/ // Added one optional slash to post-protocol to catch file:/// (should restrict this)
+		}
+	};
+	var m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+	uri = {},
+	i = 14;
+	while (i--) { uri[o.key[i]] = m[i] || ""; }
+	switch (component) {
+		case 'PHP_URL_SCHEME':
+			return uri.protocol;
+		case 'PHP_URL_HOST':
+			return uri.host;
+		case 'PHP_URL_PORT':
+			return uri.port;
+		case 'PHP_URL_USER':
+			return uri.user;
+		case 'PHP_URL_PASS':
+			return uri.password;
+		case 'PHP_URL_PATH':
+			return uri.path;
+		case 'PHP_URL_QUERY':
+			return uri.query;
+		case 'PHP_URL_FRAGMENT':
+			return uri.anchor;
+		default:
+			var retArr = {};
+			if (uri.protocol !== '') {retArr.scheme=uri.protocol;}
+			if (uri.host !== '') {retArr.host=uri.host;}
+			if (uri.port !== '') {retArr.port=uri.port;}
+			if (uri.user !== '') {retArr.user=uri.user;}
+			if (uri.password !== '') {retArr.pass=uri.password;}
+			if (uri.path !== '') {retArr.path=uri.path;}
+			if (uri.query !== '') {retArr.query=uri.query;}
+			if (uri.anchor !== '') {retArr.fragment=uri.anchor;}
+			return retArr;
+	}
+}
+
 // *** END OF UTILS ***
 
 // *** BEGIN PHONEGAP UTILS ***
@@ -2462,19 +2514,18 @@ function setupGoogleMaps()
 function onBrowserReady() {
   MyAnswers.log("onBrowserReady: " + window.location);
   try {
-		var stringToParse = window.location + '';
-		// TODO: JSLint doesn't like the regular expression below, we should replace [^/]
-		var splitUrl = stringToParse.match(/:\/\/(.[^/]+)\/_R_\/(.[^/]+)\/([^/]+)\/.+answerSpace=(.+)/);
-		MyAnswers.loadURL = 'http://' + splitUrl[1] + '/_R_/';
-		siteVars.serverAppVersion =  splitUrl[3];
-		siteVars.serverDomain = location.hostname;
-		siteVars.serverAppPath = 'http://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
-		siteVars.serverDevicePath = 'http://' + siteVars.serverDomain + '/_R_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+		var uriParts = parse_url(window.location);
+		var splitUrl = uriParts.path.match(/_R_\/(.+)\/(.+)\/index\.php/);
+		MyAnswers.loadURL = uriParts.scheme + '://' + uriParts.host + '/_R_/';
+		siteVars.serverAppVersion =  splitUrl[2];
+		siteVars.serverDomain = uriParts.host;
+		siteVars.serverAppPath = uriParts.scheme + '://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
+		siteVars.serverDevicePath = uriParts.scheme + '://' + siteVars.serverDomain + '/_R_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 		siteVars.queryParameters = getURLParameters();
 		siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 		delete siteVars.queryParameters.uid;
 		delete siteVars.queryParameters.answerSpace;
-		MyAnswers.domain = "http://" + siteVars.serverDomain + "/";
+		MyAnswers.domain = uriParts.scheme + '://' + siteVars.serverDomain + "/";
 		
 		if (document.getElementById('loginButton') !== null)
 		{
