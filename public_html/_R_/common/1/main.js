@@ -1494,14 +1494,23 @@ function showAnswerView(keyword)
 			}
 			xml = '<stars>' + xml + '</stars>';
 			xslt = keyword.xslt;
-			for (a in args)
+			var placeholders = xslt.match(/\$args\[\d+\]/g);
+			for (var p in placeholders)
+			{
+				if (placeholders.hasOwnProperty(p))
+				{
+					var value = typeof(args[placeholders[p]]) === 'string' ? args[placeholders[p]] : '';
+					xslt = xslt.replace(placeholders[p], value);
+				}
+			}
+/*			for (var a in args)
 			{
 				if (args.hasOwnProperty(a))
 				{
 					regex = new RegExp(RegExp.quote('$' + a), 'g');
 					xslt = xslt.replace(regex, args[a]);
 				}
-			}
+			} */
 			html = generateMojoAnswer(xml, xslt, 'answerBox');
 			insertHTML(answerBox, html);
 			$('body').trigger('taskComplete');
@@ -1647,14 +1656,23 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo;
 		var xslt = keywordConfig.xslt;
 		var args = deserialize(arg0);
-		for (var a in args)
+		var placeholders = xslt.match(/\$args\[\d+\]/g);
+		for (var p in placeholders)
+		{
+			if (placeholders.hasOwnProperty(p))
+			{
+				var value = typeof(args[placeholders[p]]) === 'string' ? args[placeholders[p]] : '';
+				xslt = xslt.replace(placeholders[p], value);
+			}
+		}
+/*		for (var a in args)
 		{
 			if (args.hasOwnProperty(a))
 			{
 				var regex = new RegExp(RegExp.quote('$' + a), 'g');
 				xslt = xslt.replace(regex, args[a]);
 			}
-		}
+		} */
 		html = generateMojoAnswer(xml, xslt, 'answerBox2');
 		insertHTML(answerBox2, html);
 		setCurrentView("answerView2", false, true);
