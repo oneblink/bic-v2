@@ -1930,7 +1930,10 @@ function updateLoginBar(){
 					$('#loginStatus, #logoutButton').addClass('hidden');
 					$('#loginButton').removeClass('hidden');
 				}
-				populateKeywordList(currentCategory);
+				if (currentCategory !== undefined)
+				{
+					populateKeywordList(currentCategory);
+				}
 			}
 		},
 		timeout: computeTimeout(500)
