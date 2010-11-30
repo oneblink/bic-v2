@@ -1499,18 +1499,10 @@ function showAnswerView(keyword)
 			{
 				if (placeholders.hasOwnProperty(p))
 				{
-					var value = typeof(args[placeholders[p]]) === 'string' ? args[placeholders[p]] : '';
+					var value = typeof(args[placeholders[p].substring(1)]) === 'string' ? args[placeholders[p].substring(1)] : '';
 					xslt = xslt.replace(placeholders[p], value);
 				}
 			}
-/*			for (var a in args)
-			{
-				if (args.hasOwnProperty(a))
-				{
-					regex = new RegExp(RegExp.quote('$' + a), 'g');
-					xslt = xslt.replace(regex, args[a]);
-				}
-			} */
 			html = generateMojoAnswer(xml, xslt, 'answerBox');
 			insertHTML(answerBox, html);
 			$('body').trigger('taskComplete');
@@ -1520,12 +1512,13 @@ function showAnswerView(keyword)
 			$('body').trigger('taskBegun');			
 			xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo;
 			xslt = keyword.xslt;
-			for (a in args)
+			var placeholders = xslt.match(/\$args\[\d+\]/g);
+			for (var p in placeholders)
 			{
-				if (args.hasOwnProperty(a))
+				if (placeholders.hasOwnProperty(p))
 				{
-					regex = new RegExp(RegExp.quote('$' + a), 'g');
-					xslt = xslt.replace(regex, args[a]);
+					var value = typeof(args[placeholders[p].substring(1)]) === 'string' ? args[placeholders[p].substring(1)] : '';
+					xslt = xslt.replace(placeholders[p], value);
 				}
 			}
 			html = generateMojoAnswer(xml, xslt, 'answerBox');
@@ -1661,18 +1654,10 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		{
 			if (placeholders.hasOwnProperty(p))
 			{
-				var value = typeof(args[placeholders[p]]) === 'string' ? args[placeholders[p]] : '';
+				var value = typeof(args[placeholders[p].substring(1)]) === 'string' ? args[placeholders[p].substring(1)] : '';
 				xslt = xslt.replace(placeholders[p], value);
 			}
 		}
-/*		for (var a in args)
-		{
-			if (args.hasOwnProperty(a))
-			{
-				var regex = new RegExp(RegExp.quote('$' + a), 'g');
-				xslt = xslt.replace(regex, args[a]);
-			}
-		} */
 		html = generateMojoAnswer(xml, xslt, 'answerBox2');
 		insertHTML(answerBox2, html);
 		setCurrentView("answerView2", false, true);
