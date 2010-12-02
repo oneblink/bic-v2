@@ -41,7 +41,7 @@ function addEvent(obj, evType, fn) {
 }
 
 function computeTimeout(messageLength) {
-  var t = (messageLength * lowestTransferRateConst) + 5000;
+  var t = (messageLength * lowestTransferRateConst) + 15000;
   return ((t < maxTransactionTimeout) ? t : maxTransactionTimeout);
 }
 
