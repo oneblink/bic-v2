@@ -365,7 +365,7 @@ function generateMojoAnswer(xmlString, xslString, target)
 	MyAnswers.log('generateMojoAnswer(): target=' + target + ' caller=' + generateMojoAnswer.caller.name);
 	var html, xml, xsl;
 	if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { return false; }
-	if (xslString.indexOf('blink-stars(') !== -1) // check for star list
+	while (xslString.indexOf('blink-stars(') !== -1) // check for star list
 	{
 		var type = xslString.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
 		var variable = type[1];
