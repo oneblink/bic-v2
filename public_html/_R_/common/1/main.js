@@ -2082,6 +2082,7 @@ function submitFormWithRetry() {
 					insertHTML(currentBox[0], html);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
+					$('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]);
 				});
 				setTimeout(function() {
 					onScroll();
@@ -2094,6 +2095,7 @@ function submitFormWithRetry() {
 				addBackHistory("");
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
+				$('body').trigger('answerDownloaded', ['answerView2']);
 			}
 			setSubmitCachedFormButton();
 			$('body').trigger('taskComplete');
@@ -2206,7 +2208,7 @@ function submitAction(keyword, action) {
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
 					onScroll();
-					$('body').trigger('answerDownloaded', [$(currentBox).parent().attr('id')]);
+					$('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]);
 				});
 			}
 			else
