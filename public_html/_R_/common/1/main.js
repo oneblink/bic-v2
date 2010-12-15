@@ -381,10 +381,14 @@ function generateMojoAnswer(xmlString, xslString, target)
 				}
 			}
 			condition = condition.substr(4);
-			if (condition.length > 0)
-			{
-				xslString = xslString.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
-			}
+		}
+		if (condition.length > 0)
+		{
+			xslString = xslString.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+		}
+		else
+		{
+			xslString = xslString.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
 		}
 		MyAnswers.log('generateMojoAnswer(): condition=' + condition);
 	}
@@ -2036,7 +2040,7 @@ function submitFormWithRetry() {
 	 MyAnswers.log("submitFormWithRetry(1b): ");
 	 return;
   }
-
+  
   var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?';
   if (arr[0] == "..") {
 	 answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(arr[1]) + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
