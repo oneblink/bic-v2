@@ -1761,6 +1761,9 @@ function showKeywordListView(category)
 	{
 		populateTextOnlyCategories(currentMasterCategory);
 	}
+	if (hasCategories && typeof(prepareHistorySideBar) === 'function') {
+		prepareHistorySideBar();
+	}
 	if ((hasCategories && siteConfig.categories[currentCategory].keywords.length == 1) ||
 			(!hasCategories && siteConfig.keywords.length == 1))
 	{

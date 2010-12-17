@@ -222,7 +222,6 @@ function populateTextOnlyCategories(masterCategory)
 	html += "</ul>";
 	leftContent.append(html);
 	currentCategory = currentCategory ? currentCategory : siteConfig.default_category;
-	$('#leftcategory' + currentCategory).addClass('selected');
 }
 
 function setCurrentView(view, reverseTransition)
@@ -302,18 +301,21 @@ function hideLeftBox()
   }
 }
 
+function prepareHistorySideBar() {
+	setTimeout(function() {
+		var leftContent = $('#leftContent');
+		leftContent.find('.selected').removeClass('selected');
+		$('#leftcategory' + currentCategory).addClass('selected');
+		$('#leftmaster' + currentMasterCategory).addClass('selected');
+	}, 25);
+}
+
 function populateLeftBoxWithMasterCategories()
 {
 	MyAnswers.log('populateLeftBoxWithMasterCategories()');
 	var leftContent = $('#leftContent');
 	var alreadyDone = $('#leftLabel').html() == 'Master Categories';
-	if (alreadyDone)
-	{
-		leftContent.find('.selected').removeClass('selected');
-		var selected = $('#leftmaster' + currentMasterCategory);
-		selected.addClass('selected');
-	}
-	else
+	if (!alreadyDone)
 	{
 		var order = siteConfig.master_categories_order;
 		var list = siteConfig.master_categories;
@@ -346,8 +348,6 @@ function populateLeftBoxWithMasterCategories()
 				showLeftBoxContents();
 			});
 		}
-		leftContent.find('.selected').removeClass('selected');
-		$('#leftmaster' + currentMasterCategory).addClass('selected');
 	}
 	$('#leftLabel').html('Master Categories');
 }
@@ -357,13 +357,7 @@ function populateLeftBoxWithCategories(masterCategory)
 	MyAnswers.log('populateLeftBoxWithCategories()');
 	var leftContent = $('#leftContent');
 	var alreadyDone = $('#leftLabel').html() == (hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
-	if (alreadyDone)
-	{
-		leftContent.find('.selected').removeClass('selected');
-		var selected = $('#leftcategory' + currentCategory);
-		selected.addClass('selected');
-	}
-	else
+	if (!alreadyDone)
 	{
 		if (siteConfig.sidebar_config === 'textonly')
 		{
@@ -387,8 +381,6 @@ function populateLeftBoxWithCategories(masterCategory)
 				showLeftBoxContents();
 			});
 		}
-		leftContent.find('.selected').removeClass('selected');
-		$('#leftcategory' + currentCategory).addClass('selected');
 	}
 	$('#leftLabel').html(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
 }
