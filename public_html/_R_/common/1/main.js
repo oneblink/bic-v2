@@ -83,10 +83,9 @@ function emptyDOMelement(element)
 {
 	if ($.type(element) === 'object')
 	{
-		var i, length = element.childNodes.length, children = element.childNodes;
-		for (i = 0; i < length; i++)
+		while (element.hasChildNodes())
 		{
-			MyAnswers.dispatch.add(function() { element.removeChild(children[i]); });
+			element.removeChild(element.lastChild);
 		}
 	}
 }
@@ -95,7 +94,7 @@ function insertHTML(element, html)
 {
 	if ($.type(element) === 'object')
 	{
-		emptyDOMelement(element);
+		MyAnswers.dispatch.add(function() { emptyDOMelement(element); });
 		MyAnswers.dispatch.add(function() { $(element).append(html); });
 	}
 }
@@ -104,7 +103,7 @@ function insertText(element, text)
 {
 	if ($.type(element) === 'object')
 	{
-		emptyDOMelement(element);
+		MyAnswers.dispatch.add(function() { emptyDOMelement(element); });
 		MyAnswers.dispatch.add(function() { element.appendChild(document.createTextNode(text)); });
 	}
 }
