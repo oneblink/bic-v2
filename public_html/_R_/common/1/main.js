@@ -83,7 +83,11 @@ function emptyDOMelement(element)
 {
 	if ($.type(element) === 'object')
 	{
-		while (element.hasChildNodes()) { element.removeChild(element.lastChild); }
+		var i, length = element.childNodes.length, children = element.childNodes;
+		for (i = 0; i < length; i++)
+		{
+			MyAnswers.dispatch.add(function() { element.removeChild(children[i]); });
+		}
 	}
 }
 
@@ -92,7 +96,7 @@ function insertHTML(element, html)
 	if ($.type(element) === 'object')
 	{
 		emptyDOMelement(element);
-		$(element).append(html);
+		MyAnswers.dispatch.add(function() { $(element).append(html); });
 	}
 }
 
@@ -101,7 +105,7 @@ function insertText(element, text)
 	if ($.type(element) === 'object')
 	{
 		emptyDOMelement(element);
-		element.appendChild(document.createTextNode(text));
+		MyAnswers.dispatch.add(function() { element.appendChild(document.createTextNode(text)); });
 	}
 }
 
@@ -229,30 +233,48 @@ function processBlinkAnswerMessage(message)
 	}
 }
 
-function runListWithDelay(taskList, delay, callback) {
-	var ttt = taskList.concat();
-	if (typeof(callback) !== 'function')
+var DOMDispatch = function()
+{
+	this._queue = []; // array to be treated as a FIFO
+	this._timeout = null; // use to allow only 1 timeout simultaneously
+	this._interval = 25; // time between dispatching tasks
+	this._intervalFn = function()
 	{
-		throw("runListWithDelay: callback not a function");
+		this._timeout = setTimeout(function() {
+			$(window.document).trigger('DOMDispatch-nextItem');
+		}, this._interval);
+	};
+	this._pop = function(event)
+	{
+		var dispatch = event.data.dispatch,
+			item = dispatch._queue.shift();
+		clearTimeout(dispatch._timeout);
+		dispatch._timeout = null;
+		if (dispatch._queue.length > 0)
+		{
+			dispatch._intervalFn();
+		}
+		if (typeof(item) === 'function')
+		{
+			item();
+		}
+		else
+		{
+			console.log('DOMDispatch:' + item);
+		}
+	};
+	$(window.document).bind('DOMDispatch-nextItem', { dispatch: this }, this._pop);
+	return this;
+};
+
+DOMDispatch.prototype.add = function(item)
+{
+	this._queue.push(item);
+	if (this._timeout === null)
+	{
+		this._intervalFn();
 	}
-	setTimeout(function() {
-		var tt = ttt.shift();
-		var result;
-		try {
-			result = tt.apply(null, null);
-		} catch(e) {
-			MyAnswers.log("runListWithDelay: Exception");
-			MyAnswers.log(e);
-			MyAnswers.log(tt);
-		}
-		//MyAnswers.log("runListWithDelay: " + result + "[" + delay +"]");
-		if (ttt.length > 0 && result) {
-			setTimeout(arguments.callee, delay);
-		} else {
-			callback();
-		}
-	}, delay);
-}
+};
 
 // MIT/GPL from http://phpjs.org/functions/parse_url:485 version 1009.2513
 // note: Does not replace invalid characters with '_' as in PHP, nor does it return false for bad URLs
@@ -1476,7 +1498,7 @@ function showAnswerView(keyword)
 	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
-		var xml, xslt;
+		var xml, xslt, placeholders;
 		if (keyword.mojo.substr(0,6) === 'stars:')
 		{
 			$('body').trigger('taskBegun');
@@ -1498,7 +1520,7 @@ function showAnswerView(keyword)
 			}
 			xml = '<stars>' + xml + '</stars>';
 			xslt = keyword.xslt;
-			var placeholders = xslt.match(/\$args\[\d+\]/g);
+			placeholders = xslt.match(/\$args\[\d+\]/g);
 			for (var p in placeholders)
 			{
 				if (placeholders.hasOwnProperty(p))
@@ -1516,7 +1538,7 @@ function showAnswerView(keyword)
 			$('body').trigger('taskBegun');			
 			xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo;
 			xslt = keyword.xslt;
-			var placeholders = xslt.match(/\$args\[\d+\]/g);
+			placeholders = xslt.match(/\$args\[\d+\]/g);
 			for (var p in placeholders)
 			{
 				if (placeholders.hasOwnProperty(p))
@@ -2690,6 +2712,7 @@ function init_main() {
 	maxTransactionTimeout = 180 * 1000;
 	ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
 	ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
+	MyAnswers.dispatch = new DOMDispatch();
 
 	MyAnswers.runningTasks = 0; // track the number of tasks in progress
 	
