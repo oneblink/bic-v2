@@ -413,6 +413,7 @@ function generateMojoAnswer(xmlString, xslString, target)
 		}
 		MyAnswers.log('generateMojoAnswer(): condition=' + condition);
 	}
+	/*
 	if (deviceVars.hasWebWorkers === true)
 	{
 		MyAnswers.log('generateMojoAnswer: enlisting Web Worker to perform XSLT');
@@ -424,6 +425,7 @@ function generateMojoAnswer(xmlString, xslString, target)
 		MyAnswers.webworker.postMessage(message);
 		return '<p>This keyword is being constructed entirely on your device.</p><p>Please wait...</p>';
 	}
+	*/
 	if (window.ActiveXObject !== undefined)
 	{
 		MyAnswers.log('generateMojoAnswer: using Internet Explorer method');
@@ -646,7 +648,7 @@ function onAnswerDownloaded(event, view)
 				}
 			});
 		}
-		$('#' + view + ' .blink-starrable').each(function(index, element) {
+		$('#' + view).find('.blink-starrable').each(function(index, element) {
 			var div = document.createElement('div');
 			var data = $(element).data();
 			populateDataTags(div, data);
@@ -661,8 +663,43 @@ function onAnswerDownloaded(event, view)
 			}
 			$(element).replaceWith(div);
 		});
+		$('#' + view).find('a').bind('click', onLinkClick);
 		$('body').trigger('taskComplete');
 	}, 350);
+}
+
+function onLinkClick(event)
+{
+	MyAnswers.log('onLinkClick(): ' + event.target);
+	var element = event.target,
+			attributes = element.attributes,
+			first = null,
+			args = { };
+	for (var a = 0; a < attributes.length; a++)
+	{
+		if (first === null)
+		{
+			first = attributes[a];
+			continue;
+		}
+		if (attributes[a].name.substr(0, 1) === '#')
+		{
+			args[attributes[a].name.substr(1)] = attributes[a].value;
+		}
+	}
+	if (first.name === 'keyword')
+	{
+		if ($.isEmptyObject(args))
+		{
+			gotoNextScreen(first.value);
+		}
+		else
+		{
+			showSecondLevelAnswerView(first.value, $.param(args));
+		}
+		return false;
+	}
+	return true;
 }
 
 function onTransitionComplete(event, view)
@@ -2578,6 +2615,7 @@ function onBrowserReady() {
 		//
 		
 		// HTML5 Web Worker
+		/*
 		deviceVars.hasWebWorkers = typeof(window.Worker) === 'function'; 
 		if (deviceVars.hasWebWorkers === true)
 		{
@@ -2602,6 +2640,7 @@ function onBrowserReady() {
 				}
 			};
 		}
+		*/
 		$(document).ajaxSend(function(event, xhr, options) {
 				/*
 				xhr.onprogress = function(e) {
