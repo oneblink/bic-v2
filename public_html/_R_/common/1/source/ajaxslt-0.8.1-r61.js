@@ -3789,7 +3789,7 @@ function xpathEval(select, context) {
 function xsltProcess(xmlDoc, stylesheet) {
   var output = domCreateDocumentFragment(new XDocument);
   xsltProcessContext(new ExprContext(xmlDoc), stylesheet, output);
-  var ret = xmlText(output);
+  var ret = xmlText(output, true);
   return ret;
 }
 
@@ -4008,7 +4008,15 @@ function xsltProcessContext(input, template, output) {
     case 'value-of':
       var select = xmlGetAttribute(template, 'select');
       var value = xpathEval(select, input).stringValue();
-      var node = domCreateTextNode(outputDocument, value);
+      var node;
+      if (xmlGetAttribute(template, 'disable-output-escaping') == 'yes')
+      {
+	      node = domCreateCDATASection(outputDocument, value);
+	    }
+	    else
+	    {
+	      node = domCreateTextNode(outputDocument, value);
+	    }
       output.appendChild(node);
       break;
 
