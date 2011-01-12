@@ -436,7 +436,6 @@ function generateMojoAnswer(xmlString, xslString, target)
 	}
 	xml = parseXMLElements(xmlString);
 	xsl = parseXMLElements(xslString);
-/*
 	if (window.XSLTProcessor !== undefined)
 	{
 		MyAnswers.log('generateMojoAnswer: performing XSLT via XSLTProcessor()');
@@ -445,7 +444,6 @@ function generateMojoAnswer(xmlString, xslString, target)
 		html = xsltProcessor.transformToFragment(xml, document);
 		return html;
 	}
-*/
 	if (xsltProcess !== undefined)
 	{
 		MyAnswers.log('generateMojoAnswer: performing XSLT via AJAXSLT library');
