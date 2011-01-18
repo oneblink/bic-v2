@@ -682,9 +682,9 @@ function onLinkClick(event)
 			first = attributes[a];
 			continue;
 		}
-		if (attributes[a].name.substr(0, 1) === '#')
+		if (attributes[a].name.substr(0, 1) === '_')
 		{
-			args[attributes[a].name.substr(1)] = attributes[a].value;
+			args['args[' + attributes[a].name.substr(1) + ']'] = attributes[a].value;
 		}
 	}
 	if (first.name === 'keyword')
