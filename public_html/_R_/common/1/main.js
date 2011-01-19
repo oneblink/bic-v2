@@ -1556,7 +1556,7 @@ function showAnswerView(keyword)
 			}
 			xml = '<stars>' + xml + '</stars>';
 			xslt = keyword.xslt;
-			placeholders = xslt.match(/\$args\[\d+\]/g);
+			placeholders = xslt.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
 			for (var p in placeholders)
 			{
 				if (placeholders.hasOwnProperty(p))
@@ -1574,7 +1574,7 @@ function showAnswerView(keyword)
 			$('body').trigger('taskBegun');			
 			xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo;
 			xslt = keyword.xslt;
-			placeholders = xslt.match(/\$args\[\d+\]/g);
+			placeholders = xslt.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
 			for (var p in placeholders)
 			{
 				if (placeholders.hasOwnProperty(p))
@@ -1711,7 +1711,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo;
 		var xslt = keywordConfig.xslt;
 		var args = deserialize(arg0);
-		var placeholders = xslt.match(/\$args\[\d+\]/g);
+		var placeholders = xslt.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
 		for (var p in placeholders)
 		{
 			if (placeholders.hasOwnProperty(p))
