@@ -1,6 +1,6 @@
 CACHE MANIFEST 
 # This is a comment. 
-# svn revision 903
+# svn revision 929
 # If you change the version number in this comment, 
 # the cache manifest is no longer byte-for-byte 
 # identical.
@@ -30,10 +30,6 @@ Images/ActivityIndicator.png
 Images/ActivityIndicatorWhite.png
 Images/backButton.png
 Images/backgroundStripes.png
-Images/blink-logo.gif
-Images/blink-mydot-intro.jpg
-Images/blink-mydot-intro.png
-Images/BlinkAnswerSpace1.jpg
 Images/button.png
 Images/chevron_white.png
 Images/chevron.png

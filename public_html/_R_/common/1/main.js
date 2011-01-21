@@ -212,7 +212,7 @@ function parseXMLElements(xmlString)
 
 function processBlinkAnswerMessage(message)
 {
-	message = JSON.parse(message);
+	message = $.parseJSON(message);
 	MyAnswers.log(message);
 	if (typeof(message.loginStatus) == 'string' && typeof(message.loginKeyword) == 'string' && typeof(message.logoutKeyword) == 'string') {
 		MyAnswers.log('blinkAnswerMessage: loginStatus detected');
@@ -326,6 +326,24 @@ function parse_url (str, component) {
 			return retArr;
 	}
 }
+
+// duck-punching $.unique to be useful
+// http://paulirish.com/2010/duck-punching-with-jquery/
+(function($){
+	var _old = $.unique, arr2 = [];
+	$.unique = function(arr) {
+		if ($.isArray(arr)) {
+			if (!!arr[0].nodeType){
+				arr2 = _old.apply(this,arguments);
+			} else {
+				arr2 = $.grep(arr,function(v,k) {
+					return $.inArray(v,arr) === k;
+				});
+			}
+		}
+		return arr2;
+	};
+})(jQuery);
 
 // *** END OF UTILS ***
 
@@ -1008,7 +1026,7 @@ function restoreSessionProfile(token)
 				alert('Connection error, please try again later.');
 				return;
 			}
-			var data = JSON.parse(xhr.responseText);
+			var data = $.parseJSON(xhr.responseText);
 			if (data === null)
 			{
 				MyAnswers.log('GetSiteConfig error: null siteConfig');
@@ -1143,7 +1161,7 @@ function processMoJOs(keyword)
 	var ajaxComplete = function(xhr, xhrStatus, xhrOptions) {
 		if (!isAJAXError(xhrStatus) && xhr.status === 200)
 		{
-			var data = JSON.parse(xhr.responseText);
+			var data = $.parseJSON(xhr.responseText);
 			if (data === null)
 			{
 				MyAnswers.log('GetSiteConfig error: null siteConfig');
@@ -1244,7 +1262,7 @@ function getSiteConfig()
 			 *	'NO KEYWORDS'
 			 *	'NO UPDATES'
 			 */
-			var data = JSON.parse(xhr.responseText);
+			var data = $.parseJSON(xhr.responseText);
 			if (data === null)
 			{
 				MyAnswers.log('GetSiteConfig error: null siteConfig');
@@ -1974,7 +1992,7 @@ function updateLoginBar(){
 		complete: function(xhr, xhrStatus) {
 			$('body').trigger('taskComplete');
 			if (isAJAXError(xhrStatus) || xhr.status !== 200) { return; }
-			var data = JSON.parse(xhr.responseText);
+			var data = $.parseJSON(xhr.responseText);
 			if (data !== null)
 			{
 				if (data.status == "LOGGED IN")
@@ -2701,7 +2719,7 @@ function loaded()
 		var message = getAnswerSpaceItem('siteConfigMessage');
 		if (typeof(message) === 'string')
 		{
-			message = JSON.parse(message);
+			message = $.parseJSON(message);
 		}
 		if (typeof(message) === 'object')
 		{
@@ -2711,7 +2729,7 @@ function loaded()
 		starsProfile = getAnswerSpaceItem('starsProfile');
 		if (typeof(starsProfile) === 'string')
 		{
-			starsProfile = JSON.parse(starsProfile);
+			starsProfile = $.parseJSON(starsProfile);
 		}
 		if (typeof(starsProfile) !== 'object')
 		{
