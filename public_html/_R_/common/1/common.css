@@ -45,7 +45,13 @@ input[type=file] {
 
 hr { margin: 15px 0px; }
 
-[onclick] { cursor: pointer; }
+a, [onclick] {
+	cursor: pointer;
+}
+
+a {
+	text-decoration: underline;
+}
 
 header {
 	overflow: hidden;

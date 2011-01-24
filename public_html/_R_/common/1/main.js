@@ -733,8 +733,8 @@ function onAnswerDownloaded(event, view)
 
 function onLinkClick(event)
 {
-	MyAnswers.log('onLinkClick(): ' + event.target);
-	var element = event.target,
+	MyAnswers.log('onLinkClick(): ', this);
+	var element = this,
 			attributes = element.attributes,
 			first = null,
 			args = { };
