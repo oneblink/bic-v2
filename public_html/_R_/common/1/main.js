@@ -681,20 +681,35 @@ function onStarClick(event)
 function onAnswerDownloaded(event, view)
 {
 	MyAnswers.log('onAnswerDownloaded(): view=' + view);
+	var onGoogleJSLoaded = function(data, textstatus) {
+		if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
+		{
+			if ($.type(google.maps) !== 'object')
+			{
+				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
+			}
+			else
+			{
+				setupGoogleMaps();
+			}
+		}
+	};
 	setTimeout(function() {
 		$('body').trigger('taskBegun');
 		if ($('#' + view).find('div.googlemap').size() > 0) // check for items requiring Google features (so far only #map)
 		{
-			$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, function(data, textstatus) {
-				if ($('div.googlemap').size() > 0) // check for items requiring Google Maps
-				{
-					google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
-				}
-				else
-				{
-					stopTrackingLocation();
-				}
-			});
+			if ($.type(window.google) !== 'object' || $.type(google.load) !== 'function')
+			{
+				$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, onGoogleJSLoaded);
+			}
+			else
+			{
+				onGoogleJSLoaded();
+			}
+		}
+		else
+		{
+			stopTrackingLocation();
 		}
 		$('#' + view).find('.blink-starrable').each(function(index, element) {
 			var div = document.createElement('div');
