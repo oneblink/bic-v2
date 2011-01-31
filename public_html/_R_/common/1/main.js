@@ -1365,86 +1365,12 @@ function getSiteConfig()
 	});
 }
 
-/*
-function populateAnswerSpacesList() {
-	MyAnswers.log('populateAnswerSpacesList()');
-	var welcome = document.getElementById('answerSpacesListView').getElementById('welcomeBox');
-	var listBox = $('#answerSpacesList');
-  listBox.empty();
-	var list = answerSpacesList.answerSpaces;
-	for (var a in list)
-  {
-		if (list.hasOwnProperty(a))
-		{
-			var html = "<a href=\"/" + list[a].name + "\"><li>";
-			html += list[a].icon ? "<img src=\"" + list[a].icon + "\" alt=\"" + list[a].title + "\" />" : "";
-			html += "<div class='label'" + (!list[a].icon ? "style=\"width:90%\"" : "") + ">" + list[a].title + "</div>";
-			html += "<div class='description'>" + list[a].name + "</div>";
-			html += "</li></a>";
-			listBox.append(html);
-		}
-  }
-	if (listBox.children().size() > 0)
-	{
-		listBox.removeClass('hidden');
-		if (siteVars.answerSpace)
-		{
-			insertText(welcome, 'Please check the address you have entered, or choose from a range of answerSpaces below.');
-		}
-		else
-		{
-			insertText(welcome, 'Please choose from a range of answerSpaces below.');
-		}
-	}
-	else
-	{
-		insertText(welcome, 'Please check the address you have entered.');
-	}
-}
-*/
-
 if (typeof(webappCache) !== "undefined")
 {
   addEvent(webappCache, "updateready", updateCache);
   addEvent(webappCache, "error", errorCache);
 }
  
-function getAnswerSpacesList()
-{
-	$('body').trigger('taskBegun');
-	var answerSpacesUrl = siteVars.serverAppPath + '/util/GetAnswerSpaces.php';
-	var requestData = answerSpacesHash ? "sha1=" + answerSpacesHash : "";
-	MyAnswers.log("GetAnswerSpaces transaction: " + answerSpacesUrl + "?" + requestData);
-	$.getJSON(answerSpacesUrl, requestData,
-		function(data, textstatus) { // readystate == 4
-			MyAnswers.log("GetAnswerSpaces transaction complete: " + textstatus);
-			//MyAnswers.log(data);
-			$('body').trigger('taskComplete');
-			if (textstatus != 'success') { return; }
-			if (data.errorMessage)
-			{
-				MyAnswers.log("GetAnswerSpaces error: " + data.errorMessage);
-			}
-			else
-			{
-				MyAnswers.log("GetAnswerSpaces status: " + data.statusMessage);
-				if (!data.statusMessage || data.statusMessage != "NO UPDATES")
-				{
-					answerSpacesHash = data.listHash;
-					answerSpacesList = data.list;
-				}
-				var startUp = $('#startUp');
-				if (startUp.size() > 0)
-				{
-					populateAnswerSpacesList();
-					showAnswerSpacesListView();
-					startUp.remove();
-					$('#content').removeClass('hidden');
-				}
-			}
-		});
-}
-
 function dumpLocalStorage() {
   var numElements = localStorage.length;
   for (var i = 0; i < numElements; i++)
@@ -2457,7 +2383,6 @@ function setupGoogleMapsBasic(element, data, map)
 function setupGoogleMapsDirections(element, data, map)
 {
 	MyAnswers.log('Google Maps Directions: initialising', data);
-	$('body').trigger('taskBegun');
 	var origin, destination, language, region, geocoder;
 	if (typeof(data['origin-address']) === 'string')
 	{
@@ -2574,6 +2499,7 @@ function setupGoogleMapsDirections(element, data, map)
 		}
 	}
 	MyAnswers.log('Google Maps Directions: both origin and destination provided', origin, destination);
+	$('body').trigger('taskBegun');
 	var directionsOptions = {
 		origin: origin,
 		destination: destination,
@@ -2783,11 +2709,6 @@ function loaded()
 		setSubmitCachedFormButton();
 		getSiteConfig();
 		updateLoginBar();
-	/* }
-	else
-	{
-		getAnswerSpacesList();
-	}*/
 	} catch(e) {
 		MyAnswers.log("Exception loaded: ");
 		MyAnswers.log(e);
@@ -2887,7 +2808,7 @@ if (!addEvent(window, "load", onBodyLoad)) {
   throw("Unable to add load handler");
 }
 
-(function() {
+(function(window, document, undefined) {
   var waitJSLoaded = setInterval(function() {
     if (MyAnswers.main_Loaded && MyAnswers.device_Loaded && MyAnswers.browserReady_Loaded) {
       clearInterval(waitJSLoaded);
@@ -2902,7 +2823,7 @@ if (!addEvent(window, "load", onBodyLoad)) {
 			MyAnswers.log("User-Agent: " + navigator.userAgent);
 	  }
   }, 500);
-})();
+})(window, window.document, undefined);
 
 // END APPLICATION INIT
 
