@@ -928,7 +928,7 @@ function populateVisualCategories(masterCategory)
 			var item = document.createElement('img'),
 				$item = $(item);
 			$item.attr({
-				'class': 'v' + siteConfig.categories_config,
+				'class': 'category v' + siteConfig.categories_config,
 				'src': list[order[id]].image,
 				'alt': list[order[id]].name
 			});
@@ -1023,7 +1023,7 @@ function populateKeywordList(category) {
 			if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 			{
 				item = document.createElement('img');
-				item.setAttribute('class', 'v' + siteConfig.keywords_config);
+				item.setAttribute('class', 'interaction v' + siteConfig.keywords_config);
 				item.setAttribute('src', list[order[id]].image);
 				item.setAttribute('alt', list[order[id]].name);
 				keywordBox.appendChild(item);
@@ -1031,6 +1031,7 @@ function populateKeywordList(category) {
 			else
 			{
 				item = document.createElement('li');
+				$(item).addClass('interaction');
 				var label = document.createElement('div');
 				label.setAttribute('class', 'label');
 				insertText(label, list[order[id]].name);
@@ -1198,7 +1199,7 @@ function populateMasterCategories()
 			var item = document.createElement('img'),
 				$item = $(item);
 			$item.attr({
-				'class': 'v' + siteConfig.master_categories_config,
+				'class': 'masterCategory v' + siteConfig.master_categories_config,
 				'src': list[order[id]].image,
 				'alt': list[order[id]].name
 			});
