@@ -55,37 +55,33 @@ button, input[type=submit] {
 .bordered {
 	border: 1px solid #B7B7BC;
 	background-color: #FFF;
-	border-radius: 8px;
 	-moz-border-radius: 8px;
 	-webkit-border-radius: 8px;
+	border-radius: 8px;
 }
 
-.roundedTopLeft {
-	border: none;
-	border-top-left-radius: 8px;
+.topLeft {
 	-moz-border-top-left-radius: 8px;
 	-webkit-border-top-left-radius: 8px;
+	border-top-left-radius: 8px;
 }
 
-.roundedTopRight {
-	border: none;
-	border-top-right-radius: 8px;
+.topRight {
 	-moz-border-top-right-radius: 8px;
 	-webkit-border-top-right-radius: 8px;
+	border-top-right-radius: 8px;
 }
 
-.roundedBottomLeft {
-	border: none;
-	border-bottom-left-radius: 8px;
+.bottomLeft {
 	-moz-border-bottom-left-radius: 8px;
 	-webkit-border-bottom-left-radius: 8px;
+	border-bottom-left-radius: 8px;
 }
 
-.roundedBottomRight {
-	border: none;
-	border-bottom-right-radius: 8px;
+.bottomRight {
 	-moz-border-bottom-right-radius: 8px;
 	-webkit-border-bottom-right-radius: 8px;
+	border-bottom-right-radius: 8px;
 }
 
 .navBar {

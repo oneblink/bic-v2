@@ -66,14 +66,16 @@ header img {
 
 .bForm-add, .bForm-edit, .bForm-delete, .bForm-results, .bForm-view {
 	overflow: hidden;
-	width: 100%;
 	max-width: 100%;
+	min-width: 100%;
+	width: 100%;
 	text-align: left;
 	border-spacing: 0;
+	table-layout: fixed;
 }
 
 .bForm-label, .bForm-value { font-size: smaller; }
-.bForm-input { font-size: medium; }
+.bForm-input { font-size: medium; width: 60%; }
 .bForm-input .radiooption, .bForm-input .checkoption { display: table-row; }
 .bForm-input label, .bForm-input input[type=radio], .bForm-input input[type=checkbox] { display: table-cell; }
 
@@ -221,8 +223,7 @@ ul.box {
 	background: #FFF;
 }
 
-ul.box > li {
-	margin: 0;
+ul.box li {
 	position: relative;
 	text-align: left;
 	overflow: hidden;

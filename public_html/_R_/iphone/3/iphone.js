@@ -24,7 +24,7 @@ function onDeviceReady() {
   MyAnswers.log("Multitasking: " + window.device.multitasking);
   MyAnswers.cameraPresent = window.device.camerapresent;
   MyAnswers.loadURL = window.Settings.LoadURL;
-  siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^/]+)/)[1];
+	siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
   MyAnswers.domain = "//" + siteVars.serverDomain + "/";
   MyAnswers.log("Domain: " + MyAnswers.domain);
   MyAnswers.multiTasking = window.device.multitasking;
@@ -39,20 +39,24 @@ function onDeviceReady() {
 
 function populateTextOnlyCategories(masterCategory)
 {
+	MyAnswers.dispatch.add(function() {
 	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
-	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
+		var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order,
+			o, oLength = order.length,
+			id;
 	var list = siteConfig.categories;
 	var select = document.createElement('select');
 	select.setAttribute('id', 'categoriesList');
-	for (var id in order)
+		for (o = 0; o < oLength; o++)
 	{
-		if (list[order[id]].status != 'active') { continue; }
+			id = order[o];
+			if (list[id].status != 'active') { continue; }
 		var option = document.createElement('option');
-		option.setAttribute('value', order[id]);
-		if (order[id] == currentCategory) {
+			option.setAttribute('value', id);
+			if (id == currentCategory) {
 			option.setAttribute('selected', 'true');
 		}
-		option.appendChild(document.createTextNode(list[order[id]].name));
+			option.appendChild(document.createTextNode(list[id].name));
 		select.appendChild(option);
 	}
 	var categorySelector = document.getElementById('categorySelector');
@@ -62,6 +66,7 @@ function populateTextOnlyCategories(masterCategory)
 	select.addEventListener('change', function() {
 	 showKeywordListView(this.options[this.selectedIndex].value);
 	}, true);
+	});
 }
 
 (function(window, global, undefined) {
@@ -104,7 +109,7 @@ function populateTextOnlyCategories(masterCategory)
 					$view.hide();
 					$view.removeClass('animating slid' + endPosition);
 					MyAnswers.dispatch.resume('hideView');
-				}, 300);
+				}, 350);
 			});
 		};
 		MyAnswersDevice.showView = function($view, reverseTransition) {
@@ -123,11 +128,10 @@ function populateTextOnlyCategories(masterCategory)
 				}, 0);
 				setTimeout(function() {
 					$view.removeClass('animating');
-					$(window).trigger('scroll');
 					$('body').trigger('transitionComplete', [ $view.attr('id') ]);
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
-				}, 300);
+				}, 350);
 			});
 		};
 		return MyAnswersDevice;
@@ -141,26 +145,22 @@ function populateTextOnlyCategories(masterCategory)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
 
-function onScroll()
-{
-	var headerBottom = $('.header').height();
-	var scrollTop = window.scrollY;
-	if (scrollTop > headerBottom)
-	{
-		var offset = scrollTop - headerBottom;
-		updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
+function updatePartCSS(element, property, value, valueFormat) {
+	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
+	$(element).css(property, formattedValue);
 	}
-	else
-	{
+
+function onScroll() {
+	var headerBottom = $('.header').height(),
+		scrollTop = window.scrollY,
+		offset;
+	if (scrollTop > headerBottom) {
+		offset = scrollTop - headerBottom;
+		updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
+	} else {
 		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
-}
-
-function updatePartCSS(element, property, value, valueFormat)
-{
-	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
-	$(element).css(property, formattedValue);
 }
 
 function setupParts()
