@@ -3,12 +3,6 @@
 	padding: 0;
 }
 
-#content, #stackLayout {
-	position: relative;
-	height: 100%;
-	min-height: 100%;
-}
-
 html, body {
 	min-width: 100%;
 	width: 100%;
@@ -19,6 +13,14 @@ html, body {
 
 header {
 	display: block;
+	overflow: hidden;
+	width: 100%;
+	background-color: #FFF;
+}
+
+header img {
+	display: block;
+	width: 100%;
 }
 
 select {
@@ -53,15 +55,8 @@ a[href], a[keyword] {
 	text-decoration: underline;
 }
 
-header {
-	overflow: hidden;
-	width: 100%;
-	background-color: #FFF;
-}
-
-header img {
-	display: block;
-	width: 100%;
+#content, #stackLayout {
+	position: relative;
 }
 
 .bForm-add, .bForm-edit, .bForm-delete, .bForm-results, .bForm-view {
@@ -223,16 +218,12 @@ ul.box {
 	background: #FFF;
 }
 
-ul.box li {
+ul.box > li {
 	position: relative;
+	margin: 0;
 	text-align: left;
 	overflow: hidden;
 	border-bottom: 1px solid rgb(224, 224, 224);
-}
-
-ul.box img {
-	float: right;
-	width: 25%;
 }
 
 ul.box .label {

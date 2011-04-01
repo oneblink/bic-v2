@@ -1130,6 +1130,45 @@ function processSiteConfig() {
 	}
 }
 
+function requestConfig(requestData) {
+	var id = requestData._t + requestData._id;
+	MyAnswers.log('requestConfig(): ' + id);
+	ajaxQueue.add({
+		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
+		data: requestData,
+		dataType: 'json',
+		complete: function(xhr, xhrStatus) {
+			var data;
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
+				$.noop();
+			} else {
+				if (typeof siteVars.config === 'undefined') {
+					siteVars.config = {};
+				}
+				data = $.parseJSON(xhr.responseText);
+				MyAnswers.log(data);
+				siteVars.config[id] = data.data.config;
+				siteVars.features = data.deviceFeatures;
+				if (requestData._t === 'a') {
+					siteVars.map = data.map;
+					if (siteVars.config[id].pertinent.defaultScreen === 'login') {
+						$.noop(); // TODO: fix behaviour for default to login
+					} else {
+						
+					}
+				}
+				// TODO: store these in client-side storage somewhere
+			}
+			if ($.type(siteVars.config[id]) === 'object') {
+				MyAnswers.log(currentMasterCategory, currentCategory, currentKeyword);
+			} else {
+				MyAnswers.log('requestConfig(): unable to retrieve ' + id);
+			}
+		},
+		timeout: computeTimeout(40 * 1024)
+	});
+}
+
 function getSiteConfig() {
 	MyAnswers.log("getSiteConfig(): typeof(siteConfig) => " + $.type(siteConfig));
 	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php',
@@ -2274,14 +2313,10 @@ function onBrowserReady() {
 // Function: loaded()
 // Called by Window's load event when the web application is ready to start
 //
-function loaded()
-{
+function loaded() {
 	MyAnswers.log('loaded():');
-
-  if (typeof(webappCache) !== 'undefined')
-  {
-		switch(webappCache.status)
-		{
+	if (typeof webappCache  !== 'undefined') {
+		switch(webappCache.status) {
 			case 0:
 				MyAnswers.log("Cache status: Uncached"); break;
 			case 1:
@@ -2296,11 +2331,8 @@ function loaded()
 				MyAnswers.log("Cache status: Obsolete"); break;
 		}
 	}
-		
+
 	try {
-/*
- * if (siteVars.answerSpace) {
- */
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 		MyAnswers.store.get('siteConfigMessage', function(key, message) {
@@ -2311,8 +2343,9 @@ function loaded()
 				siteConfig = message.siteConfig;
 				siteConfigHash = message.siteHash;
 			}
-			getSiteConfig();
+//			getSiteConfig();
 			requestLoginStatus();
+			requestConfig({ _id: $('body').data('id'), _t: 'a' });
 		});
 		MyAnswers.store.get('starsProfile', function(key, stars) {
 			if (typeof stars === 'string') {
