@@ -800,14 +800,14 @@ function goBackToMasterCategoriesView()
 }
 
 function populateItemListing(level) {
-	MyAnswers.log('populateItemListing():', arguments);
-	var config, order, list, $visualBox, $listBox,
+	MyAnswers.log('populateItemListing(): ' + level);
+	var arrangement, display, order, list, $visualBox, $listBox, type,
 		onMasterCategoryClick = function(event) { showCategoriesView($(this).data('id')); },
 		onCategoryClick = function(event) { showKeywordListView($(this).data('id')); },
 		onKeywordClick = function(event) { gotoNextScreen($(this).data('id')); },
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hookInteraction = function() {
-			if (siteConfig.keywords[$item.data('id')].type === 'hyperlink' && siteConfig.keywords[$item.data('id')].hyperlink) {
+			if (siteVars.config['i' + $item.data('id')].pertinent.type === 'hyperlink' && siteVars.config['i' + $item.data('id')].pertinent.hyperlink) {
 				$item.data('hyperlink', list[order[o]].hyperlink);
 				$item.bind('click', onHyperlinkClick);
 			} else {
@@ -815,24 +815,25 @@ function populateItemListing(level) {
 			}
 		},
 		hookCategory = function() {
-			if (siteConfig.categories[$item.data('id')].keywords.length === 1) {
-				$item.data('id', siteConfig.categories[$item.data('id')].keywords[0]);
+			if (siteVars.map['c' + $item.data('id')].length === 1) {
+				$item.data('id', siteVars.map['c' + $item.data('id')][0]);
 				hookInteraction();
 			} else {
 				$item.bind('click', onCategoryClick);
 			}
 		},
 		hookMasterCategory = function() {
-			if (siteConfig.master_categories[$item.data('id')].categories.length === 1) {
-				$item.data('id', siteConfig.master_categories[$item.data('id')].categories[0]);
+			if (siteVars.map['m' + $item.data('id')].length === 1) {
+				$item.data('id', siteVars.map['m' + $item.data('id')][0]);
 				hookCategory();
 			} else {
 				$item.bind('click', onMasterCategoryClick);
 			}
 		},
 		o, oLength,
-		$item, $label, $description,
-		category, columns, $images;
+		name, $item, $label, $description,
+		category, columns, $images,
+		itemConfig;
 	switch (level) {
 		case 'masterCategories':
 			config = siteConfig.master_categories_config;
@@ -842,31 +843,36 @@ function populateItemListing(level) {
 			$listBox = $('#masterCategoriesList');
 			break;
 		case 'categories':
-			config = siteConfig.categories_config;
-			order = hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].categories : siteConfig.categories_order;
-			list = siteConfig.categories;
+			arrangement = siteVars.config['a' + siteVars.id].pertinent.categoriesArrangement;
+			display = siteVars.config['a' + siteVars.id].pertinent.categoriesDisplay;
+			order = siteVars.map.categories;
+			list = currentMasterCategory ? siteVars.map['m' + currentMasterCategory] : order;
+			type = 'c';
 			$visualBox = $('#categoriesBox');
 			$listBox = $('#categoriesList');
 			break;
 		case 'interactions':
-			config = siteConfig.keywords_config;
-			order = hasCategories ? siteConfig.categories[currentCategory].keywords : siteConfig.keywords_order;
-			list = siteConfig.keywords;
+			arrangement = siteVars.config['a' + siteVars.id].pertinent.interactionsArrangement;
+			display = siteVars.config['a' + siteVars.id].pertinent.interactionsDisplay;
+			order = siteVars.map.interactions;
+			list = currentCategory ? siteVars.map['c' + currentCategory] : order;
+			type = 'i';
 			$visualBox = $('#keywordBox');
 			$listBox = $('#keywordList');
 			break;
 	}
-	switch (config) {
-		case "1col":
+	MyAnswers.log('populateItemListing(): '+ arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
+	switch (arrangement) {
+		case "list":
 			columns = 1;
 			break;
-		case "2col":
+		case "2 column":
 			columns = 2;
 			break;
-		case "3col":
+		case "3 column":
 			columns = 3;
 			break;
-		case "4col":
+		case "4 column":
 			columns = 4;
 			break;
 	}
@@ -875,28 +881,29 @@ function populateItemListing(level) {
 	oLength = order.length;
 	MyAnswers.dispatch.add(function() {
 		for (o = 0; o < oLength; o++) {
-			if (list[order[o]].status === 'active') {
-				if (config !== 'no' && list[order[o]].image) {
+			itemConfig = siteVars.config[type + order[o]];
+			if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && (itemConfig.pertinent.status === 'active' || itemConfig.pertinent.status === 'disabled')) {
+				name = itemConfig.pertinent.displayName ? itemConfig.pertinent.displayName : itemConfig.pertinent.name;
+				if (display !== 'text only' && itemConfig.pertinent.icon) {
 					$item = $('<img />');
 					$item.attr({
-						'class': 'v' + config,
-						'src': list[order[o]].image,
-						'alt': list[order[o]].name
+						'class': 'v' + columns + 'col',
+						'src': itemConfig.pertinent.icon,
+						'alt': name
 					});
 					$visualBox.append($item);
 				} else {
 					$item = $('<li />');
 					$label = $('<div class="label" />');
-					$label.text(list[order[o]].name);
+					$label.text(name);
 					$item.append($label);
-					if (typeof list[order[o]].description === 'string') {
+					if (typeof itemConfig.pertinent.description === 'string') {
 						$description = $('<div class="description" />');
-						$description.text(list[order[o]].description);
+						$description.text(itemConfig.pertinent.description);
 						$item.append($description);
 					}
 					$listBox.append($item);
 				}
-
 				$item.data('id', order[o]);
 				if (level === 'interactions') {
 					hookInteraction();
@@ -958,7 +965,7 @@ function showCategoriesView(masterCategory) {
 		currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
 	}
 	addBackHistory("goBackToCategoriesView();");
-	if (hasVisualCategories)
+	if (hasCategories)
 	{
 		MyAnswersDevice.hideView();
 		setMainLabel(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
@@ -1026,27 +1033,14 @@ function restoreSessionProfile(token)
 function displayAnswerSpace()
 {
 	var startUp = $('#startUp');
-	if (startUp.size() > 0 && typeof(siteConfig) !== 'undefined')
-	{
-		if (answerSpaceOneKeyword)
-		{
+	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
+		if (answerSpaceOneKeyword) {
 			showKeywordView(0);
-		}
-		else if (hasMasterCategories)
-		{
+		} else if (hasMasterCategories) {
 			showMasterCategoriesView();
-		}
-		else if (hasVisualCategories)
-		{
+		} else if (hasCategories) {
 			showCategoriesView();
-		}
-		else if (hasCategories)
-		{
-			currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
-			showKeywordListView();
-		}
-		else
-		{
+		} else {
 			showKeywordListView();
 		}
 		var token = siteVars.queryParameters._t;
@@ -1112,58 +1106,95 @@ function processMoJOs(keyword)
 	}
 }
 
-function processSiteConfig() {
-	MyAnswers.log('processSiteConfig():');
-	try {
-		hasMasterCategories = siteConfig.master_categories_config !== 'no';
-		hasVisualCategories = siteConfig.categories_config !== 'yes' && siteConfig.categories_config !== 'no';
-		hasCategories = siteConfig.categories_config !== 'no' && ! $.isEmptyObject(siteConfig.categories);
-		answerSpaceOneKeyword = siteConfig.keywords.length === 1; // TODO this line accomplishes nothing, always false
-		if ($.type(MyAnswersDevice.processSiteConfig) === 'function') {
-			MyAnswersDevice.processSiteConfig();
+function processConfig() {
+	MyAnswers.log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentKeyword);
+	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
+		hasMasterCategories = siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0;
+		hasCategories = (hasMasterCategories || siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'categories') && siteVars.map.categories.length > 0;
+		answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
+		if (siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'categories' &&
+				currentMasterCategory !== null &&
+				$.type(siteVars.config['c' + siteVars.map.categories[0]]) === 'object') {
+			currentMasterCategory = null;
+			displayAnswerSpace();
+			processMoJOs();
 		}
-		displayAnswerSpace();
-		processMoJOs();
-	} catch(e) {
-		MyAnswers.log("processSiteConfig: Exception");
-		MyAnswers.log(e);
+	} else {
+		MyAnswers.log('requestConfig(): unable to retrieve answerSpace config');
 	}
 }
 
 function requestConfig(requestData) {
-	var id = requestData._t + requestData._id;
-	MyAnswers.log('requestConfig(): ' + id);
+	if ($.type(requestData._id) === 'array') {
+		MyAnswers.log('requestConfig(): ' + requestData._t + '[' + requestData._id.join(',') + ']');
+	} else {
+		MyAnswers.log('requestConfig(): ' + requestData._t + '[' + requestData._id + ']');
+	}
+	if ($.type(deviceVars.features) === 'array' && deviceVars.features.length > 0) {
+		requestData._f = deviceVars.features;
+	}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
 		data: requestData,
 		dataType: 'json',
 		complete: function(xhr, xhrStatus) {
-			var data;
+			var data,
+				items,
+				type,
+				id, ids, i, iLength;
 			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
 				$.noop();
 			} else {
 				if (typeof siteVars.config === 'undefined') {
 					siteVars.config = {};
 				}
+				if ($.type(requestData._id) === 'array') {
+					ids = requestData._id;
+				} else {
+					ids = [ requestData._id ];
+				}
+				iLength = ids.length;
 				data = $.parseJSON(xhr.responseText);
-				MyAnswers.log(data);
-				siteVars.config[id] = data.data.config;
-				siteVars.features = data.deviceFeatures;
-				if (requestData._t === 'a') {
-					siteVars.map = data.map;
-					if (siteVars.config[id].pertinent.defaultScreen === 'login') {
-						$.noop(); // TODO: fix behaviour for default to login
-					} else {
-						
+				for (i = 0; i < iLength; i++) {
+					id = requestData._t + ids[i];
+					if (typeof data[id] === 'undefined') {
+						MyAnswers.log('no config for ' + id);
+						continue;
 					}
+					siteVars.config[id] = data[id].config;
+					deviceVars.features = data.deviceFeatures;
+					if (requestData._t === 'a') {
+						siteVars.map = data.map;
+						if (siteVars.config[id].pertinent.defaultScreen === 'login') {
+							$.noop(); // TODO: fix behaviour for default to login
+						} else if (siteVars.config[id].pertinent.defaultScreen === 'interaction') {
+							$.noop(); // TODO: fix behaviour for default to interaction
+						} else if (siteVars.config[id].pertinent.defaultScreen === 'category') {
+							$.noop(); // TODO: fix behaviour for default to category
+						} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
+							$.noop(); // TODO: fix behaviour for default to master category
+						} else {
+							if (siteVars.config[id].pertinent.siteStructure === 'categories') {
+								items = siteVars.map.categories;
+								type = 'c';
+							}
+							requestConfig({ _id: items, _t: type });
+						}
+					}
+				}
+				if (requestData._t === 'c') {
+					$.each(siteVars.map.categories, function(i, v) {
+						if (typeof items === 'undefined') {
+							items = siteVars.map['c' + v];
+						} else {
+							items = items.concat(siteVars.map['c' + v]);
+						}
+					});
+					requestConfig({ _id: items, _t: 'i' });
 				}
 				// TODO: store these in client-side storage somewhere
 			}
-			if ($.type(siteVars.config[id]) === 'object') {
-				MyAnswers.log(currentMasterCategory, currentCategory, currentKeyword);
-			} else {
-				MyAnswers.log('requestConfig(): unable to retrieve ' + id);
-			}
+			processConfig();
 		},
 		timeout: computeTimeout(40 * 1024)
 	});
@@ -1210,7 +1241,7 @@ function getSiteConfig() {
 				MyAnswers.store.set('siteConfigMessage', xhr.responseText);
 				siteConfig = data.siteConfig;
 				siteConfigHash = data.siteHash;
-				processSiteConfig();
+				//processSiteConfig();
 				MyAnswers.store.get('siteConfigMessage', function(key, value) {
 					MyAnswers.log('post-store siteConfig type: ' + $.type(value));
 				});
@@ -1228,7 +1259,7 @@ function getSiteConfig() {
 						MyAnswers.log("GetSiteConfig status: " + data.statusMessage + ' ' + $.type(data));
 						break;
 				}
-				processSiteConfig();
+				//processSiteConfig();
 				return;
 			}
 			if (typeof data.errorMessage === 'string') {
@@ -1484,9 +1515,9 @@ function showKeywordListView(category) {
 	} else {
 		mainLabel = "Keywords";
 	}
-	if (hasCategories && !hasVisualCategories) {
+/*	if (hasCategories && !hasVisualCategories) {
 		populateTextOnlyCategories(currentMasterCategory);
-	}
+	} */
 	addBackHistory("goBackToKeywordListView();");
 	MyAnswersDevice.hideView();
 	populateItemListing('interactions');
@@ -2345,7 +2376,7 @@ function loaded() {
 			}
 //			getSiteConfig();
 			requestLoginStatus();
-			requestConfig({ _id: $('body').data('id'), _t: 'a' });
+			requestConfig({ _id: siteVars.id, _t: 'a' });
 		});
 		MyAnswers.store.get('starsProfile', function(key, stars) {
 			if (typeof stars === 'string') {
@@ -2365,6 +2396,8 @@ function loaded() {
 
 function init_main() {
 	MyAnswers.log("init_main(): ");
+	
+	siteVars.id = $('body').data('id');
 
 	hasCategories = false;
 	hasMasterCategories = false;
