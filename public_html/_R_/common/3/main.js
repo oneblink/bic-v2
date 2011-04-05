@@ -807,6 +807,7 @@ function populateItemListing(level) {
 		onKeywordClick = function(event) { gotoNextScreen($(this).data('id')); },
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hookInteraction = function() {
+			MyAnswers.log($item.data('id'), siteVars.config['i' + $item.data('id')]);
 			if (siteVars.config['i' + $item.data('id')].pertinent.type === 'hyperlink' && siteVars.config['i' + $item.data('id')].pertinent.hyperlink) {
 				$item.data('hyperlink', list[order[o]].hyperlink);
 				$item.bind('click', onHyperlinkClick);
@@ -836,9 +837,11 @@ function populateItemListing(level) {
 		itemConfig;
 	switch (level) {
 		case 'masterCategories':
-			config = siteConfig.master_categories_config;
-			order = siteConfig.master_categories_order;
-			list = siteConfig.master_categories;
+			arrangement = siteVars.config['a' + siteVars.id].pertinent.masterCategoriesArrangement;
+			display = siteVars.config['a' + siteVars.id].pertinent.masterCategoriesDisplay;
+			order = siteVars.map.masterCategories;
+			list = order;
+			type = 'm';
 			$visualBox = $('#masterCategoriesBox');
 			$listBox = $('#masterCategoriesList');
 			break;
@@ -1112,8 +1115,10 @@ function processConfig() {
 		hasMasterCategories = siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0;
 		hasCategories = (hasMasterCategories || siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'categories') && siteVars.map.categories.length > 0;
 		answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
-		if (siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'categories' &&
-				currentMasterCategory !== null &&
+		if (hasMasterCategories && $.type(siteVars.config['c' + siteVars.map.masterCategories[0]]) === 'object') {
+			displayAnswerSpace();
+			processMoJOs();
+		} else if (hasCategories && currentMasterCategory === undefined &&
 				$.type(siteVars.config['c' + siteVars.map.categories[0]]) === 'object') {
 			currentMasterCategory = null;
 			displayAnswerSpace();
@@ -1157,32 +1162,45 @@ function requestConfig(requestData) {
 				data = $.parseJSON(xhr.responseText);
 				for (i = 0; i < iLength; i++) {
 					id = requestData._t + ids[i];
-					if (typeof data[id] === 'undefined') {
-						MyAnswers.log('no config for ' + id);
-						continue;
-					}
-					siteVars.config[id] = data[id].config;
-					deviceVars.features = data.deviceFeatures;
-					if (requestData._t === 'a') {
-						siteVars.map = data.map;
-						if (siteVars.config[id].pertinent.defaultScreen === 'login') {
-							$.noop(); // TODO: fix behaviour for default to login
-						} else if (siteVars.config[id].pertinent.defaultScreen === 'interaction') {
-							$.noop(); // TODO: fix behaviour for default to interaction
-						} else if (siteVars.config[id].pertinent.defaultScreen === 'category') {
-							$.noop(); // TODO: fix behaviour for default to category
-						} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
-							$.noop(); // TODO: fix behaviour for default to master category
-						} else {
-							if (siteVars.config[id].pertinent.siteStructure === 'categories') {
-								items = siteVars.map.categories;
-								type = 'c';
+					if (typeof data[id] !== 'undefined') {
+						siteVars.config[id] = data[id];
+						deviceVars.features = data.deviceFeatures;
+						if (requestData._t === 'a') {
+							siteVars.map = data.map;
+							if (siteVars.config[id].pertinent.defaultScreen === 'login') {
+								$.noop(); // TODO: fix behaviour for default to login
+							} else if (siteVars.config[id].pertinent.defaultScreen === 'interaction') {
+								$.noop(); // TODO: fix behaviour for default to interaction
+							} else if (siteVars.config[id].pertinent.defaultScreen === 'category') {
+								$.noop(); // TODO: fix behaviour for default to category
+							} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
+								$.noop(); // TODO: fix behaviour for default to master category
+							} else {
+								if (siteVars.config[id].pertinent.siteStructure === 'master categories') {
+									items = siteVars.map.masterCategories;
+									type = 'm';
+								} else if (siteVars.config[id].pertinent.siteStructure === 'categories') {
+									items = siteVars.map.categories;
+									type = 'c';
+								} else {
+									items = siteVars.map.interactions;
+									type = 'i';
+								}
+								requestConfig({ _id: items, _t: type });
 							}
-							requestConfig({ _id: items, _t: type });
 						}
 					}
 				}
-				if (requestData._t === 'c') {
+				if (requestData._t === 'm') {
+					$.each(siteVars.map.masterCategories, function(i, v) {
+						if (typeof items === 'undefined') {
+							items = siteVars.map['m' + v];
+						} else {
+							items = items.concat(siteVars.map['m' + v]);
+						}
+					});
+					requestConfig({ _id: items, _t: 'c' });
+				} else if (requestData._t === 'c') {
 					$.each(siteVars.map.categories, function(i, v) {
 						if (typeof items === 'undefined') {
 							items = siteVars.map['c' + v];
