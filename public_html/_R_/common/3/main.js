@@ -4,7 +4,7 @@ var MyAnswers = MyAnswers || {},
 	locationTracker, latitude, longitude, webappCache,
 	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
 	currentInteraction, currentCategory, currentMasterCategory,
-	siteConfig, siteConfigHash, starsProfile,
+	starsProfile, siteConfig = {},
 	backStack,
 	lowestTransferRateConst, maxTransactionTimeout,
 	ajaxQueue, ajaxQueueMoJO;
@@ -744,14 +744,16 @@ function updateNavigationButtons() {
 		{
 			case 'keywordView':
 			case 'answerView':
-			case 'answerView2':				
-				helpContents = siteConfig.keywords[currentInteraction].help;
+			case 'answerView2':
+				if (currentInteraction) {
+					helpContents = siteVars.config['i' + currentInteraction].pertinent.help;
+				}
 				break;
 			case 'helpView':
 				helpContents = null;
 				break;
 			default:
-				helpContents = siteConfig.help;
+				helpContents = siteVars.config['a' + siteVars.id];
 				break;
 		}
 		if (typeof(helpContents) === 'string') {
@@ -950,43 +952,18 @@ function populateItemListing(level) {
 function showCategoriesView(masterCategory) {
 	MyAnswers.log('showCategoriesView(): ' + masterCategory);
 	currentMasterCategory = masterCategory;
-	if (masterCategory && siteConfig.master_categories[masterCategory])
-	{
-		var masterConfig = siteConfig.master_categories[masterCategory];
-		if ($.type(siteConfig.default_category) === 'number' && $.type(masterConfig.categories[siteConfig.default_category]) === 'object')
-		{
-			currentCategory = siteConfig.default_category;
-		}
-		else
-		{
-			currentCategory = masterConfig.categories[0];
-		}
-	}
-	else
-	{
-		currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
-	}
 	addBackHistory("goBackToCategoriesView();");
-	if (hasCategories)
-	{
-		MyAnswersDevice.hideView();
-		setMainLabel(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
-		populateItemListing('categories');
-		MyAnswersDevice.showView($('#categoriesView'));
-	}
-	else
-	{
-		populateTextOnlyCategories(masterCategory);
-		showKeywordListView();
-	}
+	MyAnswersDevice.hideView();
+	setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
+	populateItemListing('categories');
+	MyAnswersDevice.showView($('#categoriesView'));
 }
 
-function goBackToCategoriesView()
-{
+function goBackToCategoriesView() {
 	MyAnswers.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
 	MyAnswersDevice.hideView(true);
-	setMainLabel(hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].name : 'Categories');
+	setMainLabel(currentMasterCategory ? siteVars.config['m' + currentMasterCategory].pertinent.name : 'Categories');
 	MyAnswersDevice.showView($('#categoriesView'), true);
 }
 
@@ -1068,6 +1045,7 @@ function displayAnswerSpace() {
 
 function processMoJOs(keyword)
 {
+	return; // TODO: fix MoJO downloads
 	MyAnswers.log('processMoJOs(): keyword=' + keyword);
 	if (deviceVars.disableXSLT === true) { return; }
 	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php',
@@ -1078,7 +1056,7 @@ function processMoJOs(keyword)
 			if (!isAJAXError(xhrStatus) && xhr.status === 200) {
 				var data = $.parseJSON(xhr.responseText);
 				if (data === null) {
-					MyAnswers.log('GetSiteConfig error: null siteConfig');
+					MyAnswers.log('GetMoJO error: null data');
 				} else if (data.errorMessage) {
 					MyAnswers.log('GetMoJO error: ' + xhrOptions.mojoName + ' ' + data.errorMessage);
 				} else {
@@ -1292,10 +1270,13 @@ function goBack()
 }
 
 function createParamsAndArgs(keywordID) {
-	var returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name),
-		args = "",
+	MyAnswers.log(arguments);
+	var config = siteVars.config['i' + keywordID],
+		returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(config.pertinent.name),
+		args = '',
 		argElements = $('#argsBox').find('input, textarea, select');
-	if (!siteConfig.keywords[keywordID].input_config) { return returnValue; }
+	if (typeof config === 'undefined' || !config.pertinent.interactionInputPrompt) { return returnValue; }	
+	args = '';
 	argElements.each(function(index, element) {
 		if (this.type && (this.type.toLowerCase() === "radio" || this.type.toLowerCase() === "checkbox") && !this.checked) {
 			$.noop(); // do nothing if not checked
@@ -1313,10 +1294,10 @@ function createParamsAndArgs(keywordID) {
 	return returnValue;
 }
 
-function showAnswerView(keyword, argsString, reverse)
-{
+function showAnswerView(keyword, argsString, reverse) {
 	MyAnswers.log('showAnswerView(): keyword=' + keyword + ' args=' + argsString);
-	var keywordID, keywordConfig, html, args, k,
+	var html, args,
+		config, i, iLength = siteVars.map.interactions.length,
 		answerBox = document.getElementById('answerBox'),
 		completeFn = function() {
 			MyAnswersDevice.showView($('#answerView'), reverse);
@@ -1324,46 +1305,47 @@ function showAnswerView(keyword, argsString, reverse)
 			setMainLabel(keyword.name);
 			MyAnswers.dispatch.add(function() { $('body').trigger('taskComplete'); });
 		};
-	if ($.type(siteConfig.keywords[keyword]) === 'object') {
-		keywordID = keyword;
-	} else {
+	config = siteVars.config['i' + keyword];
+	if ($.type(config) !== 'object') {
 		keyword = decodeURIComponent(keyword);
-		for (k in siteConfig.keywords) {
-			if (siteConfig.keywords.hasOwnProperty(k)) {
-				if (keyword.toUpperCase() === siteConfig.keywords[k].name.toUpperCase()) {
-					keywordID = k;
+		for (i = 0; i < iLength; i++) {
+			config = siteVars.config['i' + siteVars.map.interactions[i]];
+			if ($.type(config) === 'object') {
+				if (keyword.toUpperCase() === config.pertinent.name.toUpperCase()) {
+					keyword = siteVars.map.interactions[i];
 					break;
 				}
 			}
 		}
 	}
-	if (keywordID === null || $.type(siteConfig.keywords[keywordID]) !== 'object') { return; }
+	if ($.type(config) !== 'object') { return; }
+	MyAnswers.log(config);
 	MyAnswersDevice.hideView(reverse);
 	$('body').trigger('taskBegun');			
 	addBackHistory("showAnswerView(\"" + keyword + "\", \"" + (argsString || '') + "\", true);");
-	currentInteraction = keywordID;
-	processMoJOs(keywordID);
-	keywordConfig = siteConfig.keywords[keywordID];
+	currentInteraction = keyword;
+	processMoJOs(keyword);
+	config = config.pertinent;
 	if (typeof argsString === 'string' && argsString.length > 0) {
 		args = deserialize(decodeURIComponent(argsString));
 	} else {
-		args = deserialize(createParamsAndArgs(keywordID), args);
+		args = deserialize(createParamsAndArgs(keyword), args);
 		delete args.answerSpace;
 		delete args.keyword;
 	}
-	if (keywordConfig.type === 'xslt' && deviceVars.disableXSLT !== true) {
-		generateMojoAnswer(keywordConfig, args, answerBox);
+	if (config.type === 'xslt' && deviceVars.disableXSLT !== true) {
+		generateMojoAnswer(config, args, answerBox);
 		completeFn();
 	} else if (reverse) {
-		MyAnswers.store.get('answer___' + keywordID, function(key, html) {
+		MyAnswers.store.get('answer___' + keyword, function(key, html) {
 			insertHTML(answerBox, html);
 			completeFn();
 		});
 	} else {
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php',
-			requestData = 'answerSpace=' + siteVars.answerSpace + "&keyword=" + encodeURIComponent(keywordConfig.name) + '&_device=' + deviceVars.device,
+			requestData = 'answerSpace=' + siteVars.answerSpace + "&keyword=" + encodeURIComponent(config.name) + '&_device=' + deviceVars.device,
 			fallbackToStorage = function() {
-				MyAnswers.store.get('answer___' + keywordID, function(key, html) {
+				MyAnswers.store.get('answer___' + keyword, function(key, html) {
 					if (typeof html === 'undefined') {
 						html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
 					}
@@ -1387,7 +1369,7 @@ function showAnswerView(keyword, argsString, reverse)
 					if (blinkAnswerMessage !== null) {
 						processBlinkAnswerMessage(blinkAnswerMessage[1]);
 					}
-					MyAnswers.store.set('answer___' + keywordID, html);
+					MyAnswers.store.set('answer___' + keyword, html);
 				}
 				insertHTML(answerBox, html);
 				completeFn();
@@ -1399,27 +1381,31 @@ function showAnswerView(keyword, argsString, reverse)
 
 function getAnswer(event) { showAnswerView(currentInteraction); }
 
-function gotoNextScreen(keywordID) {
-	var k;
-	MyAnswers.log("gotoNextScreen(" + keywordID + ")");
-	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not code
-		for (k in siteConfig.keywords) {
-			if (siteConfig.keywords.hasOwnProperty(k)) {
-				if (keywordID.toUpperCase() === siteConfig.keywords[k].name.toUpperCase()) {
-					keywordID = k;
+function gotoNextScreen(keyword) {
+	var config,
+		i, iLength = siteVars.map.interactions.length;
+	MyAnswers.log("gotoNextScreen(" + keyword + ")");
+	config = siteVars.config['i' + keyword];
+	if ($.type(config) !== 'object') {
+		keyword = decodeURIComponent(keyword);
+		for (i = 0; i < iLength; i++) {
+			config = siteVars.config['i' + siteVars.map.interactions[i]];
+			if ($.type(config) === 'object') {
+				if (keyword.toUpperCase() === config.pertinent.name.toUpperCase()) {
+					keyword = siteVars.map.interactions[i];
 					break;
 				}
 			}
 		}
 	}
-	if (!siteConfig.keywords[keywordID]) {
-		alert('Unable to locate keyword. It may be missing or protected.');
+	if ($.type(config) !== 'object') {
+//		alert('Unable to locate keyword. It may be missing or protected.');
 		return;
 	}
-	if (siteConfig.keywords[keywordID].input_config) {
-		showKeywordView(keywordID);
+	if (config.pertinent.interactionInputPrompt) {
+		showKeywordView(keyword);
 	} else {
-		showAnswerView(keywordID);
+		showAnswerView(keyword);
 	}
 }
 
@@ -1428,51 +1414,46 @@ function showSecondLevelAnswerView(keyword, arg0, reverse) {
 	showAnswerView(keyword, arg0, reverse);
 }
 
-function showKeywordView(keywordID) 
-{
+function showKeywordView(keyword) {
 	addBackHistory("goBackToKeywordView(\"" + keywordID + "\");");
 	MyAnswersDevice.hideView();
-	var keyword = siteConfig.keywords[keywordID],
-		argsBox = document.getElementById('argsBox'),
-		descriptionBox = document.getElementById(descriptionBox);
-	currentInteraction = keywordID;
-	insertHTML(argsBox, keyword.input_config);
-	if (keyword.description) {
-		insertHTML(descriptionBox, keyword.description);
+	var config = siteVars.config['i' + keyword].pertinent,
+		argsBox = $('#argsBox')[0],
+		descriptionBox = $('#descriptionBox')[0];
+	currentInteraction = keyword;
+	insertHTML(argsBox, config.interactionInputPrompt);
+	if (config.description) {
+		insertHTML(descriptionBox, config.description);
 		$(descriptionBox).removeClass('hidden');
 	} else {
 		$(descriptionBox).addClass('hidden');
 	}
 	MyAnswersDevice.showView($('#keywordView'));
-	setMainLabel(keyword.name);
+	setMainLabel(config.displayName || config.name);
 }
 
-function goBackToKeywordView(keywordID)
-{
+function goBackToKeywordView(keyword) {
 	MyAnswersDevice.hideView(true);
-	var keyword = siteConfig.keywords[keywordID];
-	currentInteraction = keywordID;
+	var config = siteVars.config['i' + keyword].pertinent;
+	currentInteraction = keyword;
 	MyAnswersDevice.showView($('#keywordView'), true);
-	setMainLabel(keyword.name);
+	setMainLabel(config.displayName || config.name);
 }
 
 function showKeywordListView(category) {
-	var mainLabel;
+	var mainLabel,
+		config;
 	currentCategory = category;
 	MyAnswers.log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
 	if (hasCategories) {
+		config = siteVars.config['c' + category].pertinent;
 		if (typeof prepareHistorySideBar === 'function') {
 			prepareHistorySideBar();
 		}
-		mainLabel = siteConfig.categories[category].name;
-	} else if (hasMasterCategories && currentMasterCategory) {
-		mainLabel = siteConfig.master_categories[currentMasterCategory].name;
+		mainLabel = config.displayName || config.name;
 	} else {
-		mainLabel = "Keywords";
+		mainLabel = 'Interactions';
 	}
-/*	if (hasCategories && !hasVisualCategories) {
-		populateTextOnlyCategories(currentMasterCategory);
-	} */
 	addBackHistory("goBackToKeywordListView();");
 	MyAnswersDevice.hideView();
 	populateItemListing('interactions');
@@ -1480,26 +1461,31 @@ function showKeywordListView(category) {
 	setMainLabel(mainLabel);
 }
 
-function goBackToKeywordListView(event)
-{
+function goBackToKeywordListView(event) {
+	var mainLabel,
+	config;
   // MyAnswers.log('goBackToKeywordListView()');
-  if (answerSpaceOneKeyword) {
+	if (answerSpaceOneKeyword) {
 		showKeywordView(0);
 		return;
-  }
-  if (hasMasterCategories && currentMasterCategory === null)
-  {
+	}
+	if (hasMasterCategories && currentMasterCategory === null) {
 		goBackToMasterCategoriesView();
 		return;
-  }
-  if (hasVisualCategories && currentCategory === null)
-  {
+	}
+	if (hasCategories && currentCategory === null) {
 		goBackToCategoriesView(hasMasterCategories ? currentCategory : null);
 		return;
-  }
+	}
+	if (hasCategories) {
+		config = siteVars.config['c' + currentCategory].pertinent;
+		mainLabel = config.displayName || config.name;
+	} else {
+		mainLabel = 'Interactions';
+	}
 	MyAnswersDevice.hideView(true);
 	MyAnswersDevice.showView($('#keywordListView'), true);
-	setMainLabel(hasCategories ? siteConfig.categories[currentCategory].name : 'Keywords');
+	setMainLabel(mainLabel);
 }
 
 function showHelpView(event)
@@ -1513,10 +1499,12 @@ function showHelpView(event)
 		case 'keywordView':
 		case 'answerView':
 		case 'answerView2':
-			helpContents = siteConfig.keywords[currentInteraction].help || "Sorry, no guidance has been prepared for this item.";
+			if (currentInteraction) {
+				helpContents = siteVars.config['i' + currentInteraction].pertinent.help || "Sorry, no guidance has been prepared for this item.";
+			}
 			break;
 		default:
-			helpContents = siteConfig.help || "Sorry, no guidance has been prepared for this item.";
+			helpContents = siteVars.config['a' + siteVars.id].pertinent.help || "Sorry, no guidance has been prepared for this item.";
 	}
 	insertHTML(helpBox, helpContents);
 	MyAnswersDevice.showView($('#helpView'));
