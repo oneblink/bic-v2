@@ -2,8 +2,8 @@ var MyAnswers = MyAnswers || {},
 	siteVars = siteVars || {},
 	deviceVars = deviceVars || {},
 	locationTracker, latitude, longitude, webappCache,
-	hasCategories, hasMasterCategories, hasVisualCategories, answerSpaceOneKeyword,
-	currentKeyword, currentCategory, currentMasterCategory,
+	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
+	currentInteraction, currentCategory, currentMasterCategory,
 	siteConfig, siteConfigHash, starsProfile,
 	backStack,
 	lowestTransferRateConst, maxTransactionTimeout,
@@ -745,7 +745,7 @@ function updateNavigationButtons() {
 			case 'keywordView':
 			case 'answerView':
 			case 'answerView2':				
-				helpContents = siteConfig.keywords[currentKeyword].help;
+				helpContents = siteConfig.keywords[currentInteraction].help;
 				break;
 			case 'helpView':
 				helpContents = null;
@@ -819,7 +819,7 @@ function populateItemListing(level) {
 			if (siteVars.map['c' + $item.data('id')].length === 1) {
 				$item.data('id', siteVars.map['c' + $item.data('id')][0]);
 				hookInteraction();
-			} else {
+			} else if (siteVars.map['c' + $item.data('id')].length > 0) {
 				$item.bind('click', onCategoryClick);
 			}
 		},
@@ -827,7 +827,7 @@ function populateItemListing(level) {
 			if (siteVars.map['m' + $item.data('id')].length === 1) {
 				$item.data('id', siteVars.map['m' + $item.data('id')][0]);
 				hookCategory();
-			} else {
+			} else if (siteVars.map['m' + $item.data('id')].length > 0) {
 				$item.bind('click', onMasterCategoryClick);
 			}
 		},
@@ -891,7 +891,7 @@ function populateItemListing(level) {
 					$item = $('<img />');
 					$item.attr({
 						'class': 'v' + columns + 'col',
-						'src': itemConfig.pertinent.icon,
+						'src': '/images/' + siteVars.id + '/' + itemConfig.pertinent.icon,
 						'alt': name
 					});
 					$visualBox.append($item);
@@ -1110,19 +1110,52 @@ function processMoJOs(keyword)
 }
 
 function processConfig() {
-	MyAnswers.log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentKeyword);
+	var items;
+	MyAnswers.log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
-		hasMasterCategories = siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0;
-		hasCategories = (hasMasterCategories || siteVars.config['a' + siteVars.id].pertinent.siteStructure === 'categories') && siteVars.map.categories.length > 0;
-		answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
-		if (hasMasterCategories && $.type(siteVars.config['c' + siteVars.map.masterCategories[0]]) === 'object') {
-			displayAnswerSpace();
-			processMoJOs();
-		} else if (hasCategories && currentMasterCategory === undefined &&
-				$.type(siteVars.config['c' + siteVars.map.categories[0]]) === 'object') {
-			currentMasterCategory = null;
-			displayAnswerSpace();
-			processMoJOs();
+		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
+			case 'master categories':
+				hasMasterCategories = siteVars.map.masterCategories.length > 0;
+				if (hasMasterCategories && $.type(siteVars.config['m' + siteVars.map.masterCategories[0]]) !== 'object') {
+					MyAnswers.log('processConfig(): stop while waiting for master category data');
+					requestConfig({ _id: siteVars.map.masterCategories, _t: 'm' });
+					break;
+				}
+			case 'categories':
+				hasCategories = siteVars.map.categories.length > 0;
+				if (hasCategories && $.type(siteVars.config['c' + siteVars.map.categories[0]]) !== 'object') {
+					MyAnswers.log('processConfig(): stop while waiting for category data');
+					$.each(siteVars.map.masterCategories, function(i, v) {
+						if (typeof items === 'undefined') {
+							items = siteVars.map['m' + v];
+						} else {
+							items = items.concat(siteVars.map['m' + v]);
+						}
+					});
+					// TODO: remove duplicates from items before making request
+					requestConfig({ _id: items, _t: 'c' });
+					break;
+				}
+			case 'interactions only':
+				hasInteractions = siteVars.map.interactions.length > 0;
+				answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
+				if (hasInteractions && $.type(siteVars.config['i' + siteVars.map.interactions[0]]) !== 'object') {
+					MyAnswers.log('processConfig(): stop while waiting for interaction data');
+					$.each(siteVars.map.categories, function(i, v) {
+						if (typeof items === 'undefined') {
+							items = siteVars.map['c' + v];
+						} else {
+							items = items.concat(siteVars.map['c' + v]);
+						}
+					});
+					// TODO: remove duplicates from items before making request
+					requestConfig({ _id: items, _t: 'i' });
+					break;
+				}
+				if (currentMasterCategory === undefined && currentCategory === undefined && currentInteraction === undefined) {
+					displayAnswerSpace();
+					processMoJOs();
+				}
 		}
 	} else {
 		MyAnswers.log('requestConfig(): unable to retrieve answerSpace config');
@@ -1176,127 +1209,14 @@ function requestConfig(requestData) {
 							} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
 								$.noop(); // TODO: fix behaviour for default to master category
 							} else {
-								if (siteVars.config[id].pertinent.siteStructure === 'master categories') {
-									items = siteVars.map.masterCategories;
-									type = 'm';
-								} else if (siteVars.config[id].pertinent.siteStructure === 'categories') {
-									items = siteVars.map.categories;
-									type = 'c';
-								} else {
-									items = siteVars.map.interactions;
-									type = 'i';
-								}
-								requestConfig({ _id: items, _t: type });
+								$.noop(); // TODO: is there anything we need to do for default to home?
 							}
 						}
 					}
 				}
-				if (requestData._t === 'm') {
-					$.each(siteVars.map.masterCategories, function(i, v) {
-						if (typeof items === 'undefined') {
-							items = siteVars.map['m' + v];
-						} else {
-							items = items.concat(siteVars.map['m' + v]);
-						}
-					});
-					requestConfig({ _id: items, _t: 'c' });
-				} else if (requestData._t === 'c') {
-					$.each(siteVars.map.categories, function(i, v) {
-						if (typeof items === 'undefined') {
-							items = siteVars.map['c' + v];
-						} else {
-							items = items.concat(siteVars.map['c' + v]);
-						}
-					});
-					requestConfig({ _id: items, _t: 'i' });
-				}
 				// TODO: store these in client-side storage somewhere
 			}
 			processConfig();
-		},
-		timeout: computeTimeout(40 * 1024)
-	});
-}
-
-function getSiteConfig() {
-	MyAnswers.log("getSiteConfig(): typeof(siteConfig) => " + $.type(siteConfig));
-	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php',
-		requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof siteConfigHash === 'string' ? "&sha1=" + siteConfigHash : ""),
-		fallbackToStorage = function(string) {
-			if (typeof siteConfig !== 'undefined') {
-				processSiteConfig();
-			} else {
-				alert(string);
-				window.location = '/demos';
-			}
-		};
-	ajaxQueue.add({
-		url: requestUrl,
-		data: requestData,
-		dataType: 'json',
-		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
-				fallbackToStorage('Content unreachable, please try later.');
-				return;
-			}
-			/*
-			 * possible values of errorMessage: 'No answerSpace specified.'
-			 * 'Could not connect to the database.' 'Error performing
-			 * answerSpace query: ' ... 'NOT LOGGED IN' 'Error performing master
-			 * categories query: ' ... 'Error performing categories query: ' ...
-			 * 'Error performing keywords query: ' ...
-			 * 
-			 * possible values of statusMessage: 'NO KEYWORDS' 'NO UPDATES'
-			 */
-			var data = $.parseJSON(xhr.responseText);
-			if (data === null) {
-				MyAnswers.log('GetSiteConfig error: null siteConfig');
-				fallbackToStorage('Content unreachable, please try again later.');
-				return;
-			}
-			if (typeof data.errorMessage !== 'string' && typeof data.statusMessage !== 'string') {
-				MyAnswers.log('GetSiteConfig success: no status or error messages' + ' ' + $.type(data));
-				MyAnswers.store.set('siteConfigMessage', xhr.responseText);
-				siteConfig = data.siteConfig;
-				siteConfigHash = data.siteHash;
-				//processSiteConfig();
-				MyAnswers.store.get('siteConfigMessage', function(key, value) {
-					MyAnswers.log('post-store siteConfig type: ' + $.type(value));
-				});
-				return;
-			}
-			if (typeof data.statusMessage === 'string') {
-				switch (data.statusMessage) {
-					case 'NO UPDATES':
-						MyAnswers.log("GetSiteConfig status: " + data.statusMessage + ' ' + $.type(siteConfig));
-						break;
-					case 'NO KEYWORDS':
-						MyAnswers.store.set('siteConfigMessage', xhr.responseText);
-						siteConfig = data.siteConfig;
-						siteConfigHash = data.siteHash;
-						MyAnswers.log("GetSiteConfig status: " + data.statusMessage + ' ' + $.type(data));
-						break;
-				}
-				//processSiteConfig();
-				return;
-			}
-			if (typeof data.errorMessage === 'string') {
-				MyAnswers.log('GetSiteConfig error: ' + data.errorMessage);
-				switch (data.errorMessage) {
-					case 'NOT LOGGED IN':
-						alert('This answerSpace requires users to log in.');
-						displayAnswerSpace();
-						break;
-					case 'NO MATCHING ANSWERSPACE':
-					case 'ANSWERSPACE UNSPECIFIED':
-						fallbackToStorage('Please check the name of the answerSpace and try again.');
-						break;
-					default:
-						fallbackToStorage('Content unreachable, please try again later.');
-						break;
-				}
-				return;
-			}
 		},
 		timeout: computeTimeout(40 * 1024)
 	});
@@ -1334,7 +1254,7 @@ function goBackToHome()
 	else { goBackToKeywordListView(); }
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
-	getSiteConfig();
+//	getSiteConfig();
 	if (MyAnswers.hasHashChange) {
 		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
 	}
@@ -1404,7 +1324,7 @@ function showAnswerView(keyword, argsString, reverse)
 	MyAnswersDevice.hideView(reverse);
 	$('body').trigger('taskBegun');			
 	addBackHistory("showAnswerView(\"" + keyword + "\", \"" + (argsString || '') + "\", true);");
-	currentKeyword = keywordID;
+	currentInteraction = keywordID;
 	processMoJOs(keywordID);
 	keywordConfig = siteConfig.keywords[keywordID];
 	if (typeof argsString === 'string' && argsString.length > 0) {
@@ -1460,7 +1380,7 @@ function showAnswerView(keyword, argsString, reverse)
 	}
 }
 
-function getAnswer(event) { showAnswerView(currentKeyword); }
+function getAnswer(event) { showAnswerView(currentInteraction); }
 
 function gotoNextScreen(keywordID) {
 	var k;
@@ -1498,7 +1418,7 @@ function showKeywordView(keywordID)
 	var keyword = siteConfig.keywords[keywordID],
 		argsBox = document.getElementById('argsBox'),
 		descriptionBox = document.getElementById(descriptionBox);
-	currentKeyword = keywordID;
+	currentInteraction = keywordID;
 	insertHTML(argsBox, keyword.input_config);
 	if (keyword.description) {
 		insertHTML(descriptionBox, keyword.description);
@@ -1514,7 +1434,7 @@ function goBackToKeywordView(keywordID)
 {
 	MyAnswersDevice.hideView(true);
 	var keyword = siteConfig.keywords[keywordID];
-	currentKeyword = keywordID;
+	currentInteraction = keywordID;
 	MyAnswersDevice.showView($('#keywordView'), true);
 	setMainLabel(keyword.name);
 }
@@ -1576,7 +1496,7 @@ function showHelpView(event)
 		case 'keywordView':
 		case 'answerView':
 		case 'answerView2':
-			helpContents = siteConfig.keywords[currentKeyword].help || "Sorry, no guidance has been prepared for this item.";
+			helpContents = siteConfig.keywords[currentInteraction].help || "Sorry, no guidance has been prepared for this item.";
 			break;
 		default:
 			helpContents = siteConfig.help || "Sorry, no guidance has been prepared for this item.";
@@ -1723,7 +1643,7 @@ function submitLogin()
 					}
 				}
 				updateLoginButtons();
-				getSiteConfig();
+//				getSiteConfig();
 				goBack();
 			} else {
 				alert('Unable to login: ' + xhr.responseText);
@@ -1756,7 +1676,7 @@ function submitLogout(event)
 						}
 					}
 					updateLoginButtons();
-					getSiteConfig();
+//					getSiteConfig();
 					goBackToHome();
 				}
 			}
@@ -2335,17 +2255,25 @@ function onBrowserReady() {
 		 * $('body').trigger('taskComplete'); break; } }; }
 		 */
 		$(document).ajaxSend(function(event, xhr, options) {
-				/*
-				 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
-				 * phpName; MyAnswers.log(string + ' ' + e.position + ' ' +
-				 * e.total + ' ' + xhr + ' ' + options); }
-				 */
-				MyAnswers.log('AJAX start: ' + options.url);
+			var url = decodeURI(options.url);
+			/*
+			 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
+			 * phpName; MyAnswers.log(string + ' ' + e.position + ' ' +
+			 * e.total + ' ' + xhr + ' ' + options); }
+			 */
+			if (url.length > 100) {
+				url = url.substring(0, 100) + '...';
+			} 
+			MyAnswers.log('AJAX start: ' + url);
 		});
 		$(document).ajaxSuccess(function(event, xhr, options) {
-				var status = typeof(xhr) === 'undefined' ? null : xhr.status,
-					readyState = typeof(xhr) === 'undefined' ? 4 : xhr.readyState;
-				MyAnswers.log('AJAX complete: ' + options.url + ' ' + readyState + ' ' + status);
+			var status = typeof(xhr) === 'undefined' ? null : xhr.status,
+				readyState = typeof(xhr) === 'undefined' ? 4 : xhr.readyState,
+				url = decodeURI(options.url);
+			if (url.length > 100) {
+				url = url.substring(0, 100) + '...';
+			} 
+			MyAnswers.log('AJAX complete: ' + url + ' ' + readyState + ' ' + status);
 		});
 /*
  * $(document).ajaxError(function(event, xhr, options, error) {
