@@ -807,7 +807,6 @@ function populateItemListing(level) {
 		onKeywordClick = function(event) { gotoNextScreen($(this).data('id')); },
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hookInteraction = function() {
-			MyAnswers.log($item.data('id'), siteVars.config['i' + $item.data('id')]);
 			if (siteVars.config['i' + $item.data('id')].pertinent.type === 'hyperlink' && siteVars.config['i' + $item.data('id')].pertinent.hyperlink) {
 				$item.data('hyperlink', list[order[o]].hyperlink);
 				$item.bind('click', onHyperlinkClick);
@@ -1033,8 +1032,20 @@ function restoreSessionProfile(token)
 }
 
 
-function displayAnswerSpace()
-{
+function displayAnswerSpace() {
+	/*
+	if (siteVars.config[id].pertinent.defaultScreen === 'login') {
+		$.noop(); // TODO: fix behaviour for default to login
+	} else if (siteVars.config[id].pertinent.defaultScreen === 'interaction') {
+		$.noop(); // TODO: fix behaviour for default to interaction
+	} else if (siteVars.config[id].pertinent.defaultScreen === 'category') {
+		$.noop(); // TODO: fix behaviour for default to category
+	} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
+		$.noop(); // TODO: fix behaviour for default to master category
+	} else {
+		$.noop(); // TODO: is there anything we need to do for default to home?
+	}
+	*/
 	var startUp = $('#startUp');
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
 		if (answerSpaceOneKeyword) {
@@ -1110,52 +1121,58 @@ function processMoJOs(keyword)
 }
 
 function processConfig() {
-	var items;
+	var items, firstItem;
 	MyAnswers.log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
 			case 'master categories':
 				hasMasterCategories = siteVars.map.masterCategories.length > 0;
-				if (hasMasterCategories && $.type(siteVars.config['m' + siteVars.map.masterCategories[0]]) !== 'object') {
+				if (hasMasterCategories && typeof currentMasterCategory === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for master category data');
-					requestConfig({ _id: siteVars.map.masterCategories, _t: 'm' });
+					requestConfig({ _t: 'm', _id: siteVars.map.masterCategories });
 					break;
 				}
 			case 'categories':
 				hasCategories = siteVars.map.categories.length > 0;
-				if (hasCategories && $.type(siteVars.config['c' + siteVars.map.categories[0]]) !== 'object') {
+				if (hasCategories && typeof currentCategory === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for category data');
-					$.each(siteVars.map.masterCategories, function(i, v) {
-						if (typeof items === 'undefined') {
-							items = siteVars.map['m' + v];
-						} else {
-							items = items.concat(siteVars.map['m' + v]);
-						}
-					});
-					// TODO: remove duplicates from items before making request
-					requestConfig({ _id: items, _t: 'c' });
+					if (hasMasterCategories) {
+						$.each(siteVars.map.masterCategories, function(i, v) {
+							if (typeof items === 'undefined') {
+								items = siteVars.map['m' + v];
+							} else {
+								items = items.concat(siteVars.map['m' + v]);
+							}
+						});
+						// TODO: remove duplicates from items before making request
+						requestConfig({  _t: 'c', _id: items });
+					} else {
+						requestConfig({  _t: 'c', _id: siteVars.map.categories });
+					}
 					break;
 				}
 			case 'interactions only':
 				hasInteractions = siteVars.map.interactions.length > 0;
 				answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
-				if (hasInteractions && $.type(siteVars.config['i' + siteVars.map.interactions[0]]) !== 'object') {
+				if (hasInteractions && typeof currentInteraction === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for interaction data');
-					$.each(siteVars.map.categories, function(i, v) {
-						if (typeof items === 'undefined') {
-							items = siteVars.map['c' + v];
-						} else {
-							items = items.concat(siteVars.map['c' + v]);
-						}
-					});
-					// TODO: remove duplicates from items before making request
-					requestConfig({ _id: items, _t: 'i' });
+					if (hasCategories) {
+						$.each(siteVars.map.categories, function(i, v) {
+							if (typeof items === 'undefined') {
+								items = siteVars.map['c' + v];
+							} else {
+								items = items.concat(siteVars.map['c' + v]);
+							}
+						});
+						// TODO: remove duplicates from items before making request
+						requestConfig({ _t: 'i', _id: items });
+					} else {
+						requestConfig({ _t: 'i', _id: siteVars.map.interactions });
+					}
 					break;
 				}
-				if (currentMasterCategory === undefined && currentCategory === undefined && currentInteraction === undefined) {
-					displayAnswerSpace();
-					processMoJOs();
-				}
+				displayAnswerSpace();
+				processMoJOs();
 		}
 	} else {
 		MyAnswers.log('requestConfig(): unable to retrieve answerSpace config');
@@ -1198,19 +1215,19 @@ function requestConfig(requestData) {
 					if (typeof data[id] !== 'undefined') {
 						siteVars.config[id] = data[id];
 						deviceVars.features = data.deviceFeatures;
-						if (requestData._t === 'a') {
-							siteVars.map = data.map;
-							if (siteVars.config[id].pertinent.defaultScreen === 'login') {
-								$.noop(); // TODO: fix behaviour for default to login
-							} else if (siteVars.config[id].pertinent.defaultScreen === 'interaction') {
-								$.noop(); // TODO: fix behaviour for default to interaction
-							} else if (siteVars.config[id].pertinent.defaultScreen === 'category') {
-								$.noop(); // TODO: fix behaviour for default to category
-							} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
-								$.noop(); // TODO: fix behaviour for default to master category
-							} else {
-								$.noop(); // TODO: is there anything we need to do for default to home?
-							}
+						switch (requestData._t) {
+							case 'a':
+								siteVars.map = data.map;
+								break;
+							case 'm':
+								currentMasterCategory = null;
+								break;
+							case 'c':
+								currentCategory = null;
+								break;
+							case 'i':
+								currentInteraction = null;
+								break;
 						}
 					}
 				}
