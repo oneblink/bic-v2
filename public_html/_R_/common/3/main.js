@@ -886,7 +886,7 @@ function populateItemListing(level) {
 	MyAnswers.dispatch.add(function() {
 		for (o = 0; o < oLength; o++) {
 			itemConfig = siteVars.config[type + order[o]];
-			if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && (itemConfig.pertinent.status === 'active' || itemConfig.pertinent.status === 'disabled')) {
+			if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display === 'show') {
 				name = itemConfig.pertinent.displayName ? itemConfig.pertinent.displayName : itemConfig.pertinent.name;
 				if (display !== 'text only' && itemConfig.pertinent.icon) {
 					$item = $('<img />');
