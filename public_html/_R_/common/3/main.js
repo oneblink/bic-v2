@@ -1270,7 +1270,6 @@ function goBack()
 }
 
 function createParamsAndArgs(keywordID) {
-	MyAnswers.log(arguments);
 	var config = siteVars.config['i' + keywordID],
 		returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(config.pertinent.name),
 		args = '',
@@ -1319,7 +1318,6 @@ function showAnswerView(keyword, argsString, reverse) {
 		}
 	}
 	if ($.type(config) !== 'object') { return; }
-	MyAnswers.log(config);
 	MyAnswersDevice.hideView(reverse);
 	$('body').trigger('taskBegun');			
 	addBackHistory("showAnswerView(\"" + keyword + "\", \"" + (argsString || '') + "\", true);");
@@ -1937,7 +1935,7 @@ function startTrackingLocation() {
 	{
 		if (typeof(navigator.geolocation) !== 'undefined')
 		{
-			navigator.geolocation.watchPosition(function(position) {
+			locationTracker = navigator.geolocation.watchPosition(function(position) {
 				if (latitude !== position.coords.latitude || longitude !== position.coords.longitude)
 				{
 					latitude = position.coords.latitude;
@@ -1949,7 +1947,7 @@ function startTrackingLocation() {
 		}
 		else if (typeof(google) !== 'undefined' && typeof(google.gears) !== 'undefined')
 		{
-			google.gears.factory.create('beta.geolocation').watchPosition(function(position) {
+			locationTracker = google.gears.factory.create('beta.geolocation').watchPosition(function(position) {
 				if (latitude !== position.latitude || longitude !== position.longitude)
 				{
 					latitude = position.latitude;

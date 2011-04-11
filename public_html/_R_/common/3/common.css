@@ -23,6 +23,12 @@ header img {
 	width: 100%;
 }
 
+form img {
+	max-width: 100%;
+	max-height: 10em;
+}
+
+
 select {
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -43,6 +49,16 @@ td > input[type=text], td > input[type=email], td > textarea {
 
 input[type=file] {
 	font-size: smaller;
+}
+
+form [type=button], form [type=submit], form [type=reset] {
+	-webkit-appearance: none;
+	padding: 1em;
+	min-width: 6em;
+	font-weight: bold;
+}
+form [type=reset] {
+	color: #A00;
 }
 
 hr { margin: 15px 0px; }
@@ -363,6 +379,32 @@ ul.box .description {
 .blink-star-off {
 	background-image: url(/gfx/star-off32.png);
 }
+
+/* begin signature pad styles */
+
+#signaturePad {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: 0;
+	left: 0;
+	background-color: transparent;
+}
+
+.signaturePad {
+	display: none;
+	clear: both;
+}
+	
+.signaturePad > canvas {
+	margin: 0px auto;
+	border: 2px solid #A00;
+	background-color: #FFF;
+	position: relative;
+	cursor: crosshair;
+}
+
+/* end signature pad styles */
 
 @-webkit-keyframes pulse {
 	from {
