@@ -76,20 +76,24 @@ function populateTextOnlyCategories(masterCategory)
 			window.scrollTo(0, 1);
 		};
 		MyAnswersDevice.processSiteConfig = function() {
-			$('#answerSpacesListView').remove();
-			var $categoriesView = $('#categoriesView');
+			var $masterCategoriesView = $('#masterCategoriesView'),
+				$categoriesView = $('#categoriesView'),
 				$keywordListView = $('#keywordListView');
-			if (!hasMasterCategories) {
-				$('#masterCategoriesView').remove();
-			} else {
-				$categoriesView.find('.welcomeBox').remove();
-				$keywordListView.find('.welcomeBox').remove();
+			switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
+				case 'interactions only':
+					$('#masterCategoriesView').remove();
+					$categoriesView.remove();
+					break;
+				case 'categories':
+					$masterCategoriesView.remove();
+					$keywordListView.find('.welcomeBox').remove();
+					break;
+				case 'master categories':
+					$categoriesView.find('.welcomeBox').remove();
+					$keywordListView.find('.welcomeBox').remove();
+					break;
 			}
-			if (!hasVisualCategories) {
-				$categoriesView.remove();
-			} else {
-				$keywordListView.find('.welcomeBox').remove();
-			}
+			$('#answerSpacesListView').remove();
 		};
 		MyAnswersDevice.hideView = function(reverseTransition) {
 			MyAnswers.dispatch.add(function() {
@@ -99,6 +103,7 @@ function populateTextOnlyCategories(masterCategory)
 					$view = $('.view:visible'),
 					$navBoxHeader = $('#navBoxHeader');
 				if ($view.size() < 1) { return; }
+				$('#activeContent > footer').addClass('hidden');
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating');
@@ -131,6 +136,7 @@ function populateTextOnlyCategories(masterCategory)
 					$('body').trigger('transitionComplete', [ $view.attr('id') ]);
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
+					$('#activeContent > footer').removeClass('hidden');
 				}, 350);
 			});
 		};

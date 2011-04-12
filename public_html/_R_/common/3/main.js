@@ -3,7 +3,7 @@ var MyAnswers = MyAnswers || {},
 	deviceVars = deviceVars || {},
 	locationTracker, latitude, longitude, webappCache,
 	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
-	currentInteraction, currentCategory, currentMasterCategory,
+	currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
 	starsProfile, siteConfig = {},
 	backStack,
 	lowestTransferRateConst, maxTransactionTimeout,
@@ -801,6 +801,71 @@ function goBackToMasterCategoriesView()
 	MyAnswersDevice.showView($('#masterCategoriesView'), true);
 }
 
+// run after any change to current*
+function updateCurrentConfig() {
+	// TODO: using non-standard __proto__, need to have a fallback for IE<9 and Opera
+	// see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
+	// TODO: need to fold orientation-specific config into this somewhere
+	MyAnswers.log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
+	var lastPrototype;
+	currentConfig = siteVars.config['a' + siteVars.id].pertinent;
+	if (typeof currentMasterCategory !== 'undefined' && currentMasterCategory !== null) {
+		lastPrototype = currentConfig;
+		currentConfig = siteVars.config['m' + currentMasterCategory].pertinent;
+		currentConfig.__proto__ = lastPrototype;
+	}
+	if (typeof currentCategory !== 'undefined' && currentCategory !== null) {
+		lastPrototype = currentConfig;
+		currentConfig = siteVars.config['c' + currentCategory].pertinent;
+		currentConfig.__proto__ = lastPrototype;
+	}
+	if (typeof currentInteraction !== 'undefined' && currentInteraction !== null) {
+		lastPrototype = currentConfig;
+		currentConfig = siteVars.config['i' + currentInteraction].pertinent;
+		currentConfig.__proto__ = lastPrototype;
+	}
+	// perform inherited changes
+	MyAnswers.dispatch.add(function() {
+		var $image = $('#bannerBox > img'); 
+		if (typeof currentConfig.logoBanner === 'string') {
+			$image.first().attr('src', '/images/' + siteVars.id + '/' + currentConfig.logoBanner);
+			$image.removeClass('hidden');
+		} else {
+			$image.addClass('hidden');
+		}
+	});
+	MyAnswers.dispatch.add(function() {
+		$('style[data-setting="styleSheet"]').text(currentConfig.styleSheet);
+	});
+	MyAnswers.dispatch.add(function() {
+		$('style[data-setting="interfaceStyle"]').text('body, #content, #activeContent { ' + currentConfig.interfaceStyle + ' }');
+	});
+	MyAnswers.dispatch.add(function() {
+		$('style[data-setting="backgroundStyle"]').text('.box { ' + currentConfig.backgroundStyle + ' }');
+	});
+	MyAnswers.dispatch.add(function() {
+		$('style[data-setting="inputPromptStyle"]').text('#argsBox { ' + currentConfig.inputPromptStyle + ' }');
+	});
+	MyAnswers.dispatch.add(function() {
+		$('style[data-setting="oddRowStyle"]').text('ul.box > li:nth-child(odd) { ' + currentConfig.oddRowStyle + ' }');
+		$('style[data-setting="evenRowStyle"]').text('ul.box > li:nth-child(even) { ' + currentConfig.evenRowStyle + ' }');
+	});
+	MyAnswers.dispatch.add(function() {
+		$('#content > header').attr('style', currentConfig.headerStyle);
+	});
+	MyAnswers.dispatch.add(function() {
+		var $footer = $('#activeContent > footer');
+		$footer.attr('style', currentConfig.footerStyle);
+		$footer.text(currentConfig.footer);
+		$('style[data-setting="evenRowStyle"]').text('ul.box > li:nth-child(even) { ' + currentConfig.evenRowStyle + ' }');
+	});
+	MyAnswers.dispatch.add(function() {
+		$('style[data-setting="masterCategoriesStyle"]').text('#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }');
+		$('style[data-setting="categoriesStyle"]').text('#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }');
+		$('style[data-setting="interactionsStyle"]').text('#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }');
+	});
+}
+
 function populateItemListing(level) {
 	MyAnswers.log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
@@ -838,8 +903,8 @@ function populateItemListing(level) {
 		itemConfig;
 	switch (level) {
 		case 'masterCategories':
-			arrangement = siteVars.config['a' + siteVars.id].pertinent.masterCategoriesArrangement;
-			display = siteVars.config['a' + siteVars.id].pertinent.masterCategoriesDisplay;
+			arrangement = currentConfig.masterCategoriesArrangement;
+			display = currentConfig.masterCategoriesDisplay;
 			order = siteVars.map.masterCategories;
 			list = order;
 			type = 'm';
@@ -847,8 +912,8 @@ function populateItemListing(level) {
 			$listBox = $('#masterCategoriesList');
 			break;
 		case 'categories':
-			arrangement = siteVars.config['a' + siteVars.id].pertinent.categoriesArrangement;
-			display = siteVars.config['a' + siteVars.id].pertinent.categoriesDisplay;
+			arrangement = currentConfig.categoriesArrangement;
+			display = currentConfig.categoriesDisplay;
 			order = siteVars.map.categories;
 			list = currentMasterCategory ? siteVars.map['m' + currentMasterCategory] : order;
 			type = 'c';
@@ -856,8 +921,8 @@ function populateItemListing(level) {
 			$listBox = $('#categoriesList');
 			break;
 		case 'interactions':
-			arrangement = siteVars.config['a' + siteVars.id].pertinent.interactionsArrangement;
-			display = siteVars.config['a' + siteVars.id].pertinent.interactionsDisplay;
+			arrangement = currentConfig.interactionsArrangement;
+			display = currentConfig.interactionsDisplay;
 			order = siteVars.map.interactions;
 			list = currentCategory ? siteVars.map['c' + currentCategory] : order;
 			type = 'i';
@@ -952,6 +1017,7 @@ function populateItemListing(level) {
 function showCategoriesView(masterCategory) {
 	MyAnswers.log('showCategoriesView(): ' + masterCategory);
 	currentMasterCategory = masterCategory;
+	updateCurrentConfig();
 	addBackHistory("goBackToCategoriesView();");
 	MyAnswersDevice.hideView();
 	setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
@@ -1025,6 +1091,9 @@ function displayAnswerSpace() {
 	*/
 	var startUp = $('#startUp');
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
+		if (typeof MyAnswersDevice.processSiteConfig === 'function') {
+			MyAnswersDevice.processSiteConfig();
+		}
 		if (answerSpaceOneKeyword) {
 			showKeywordView(0);
 		} else if (hasMasterCategories) {
@@ -1245,7 +1314,7 @@ function goBackToHome()
 	backStack = [];
 	hashStack = [];
 	if (hasMasterCategories) { goBackToMasterCategoriesView(); }
-	else if (hasVisualCategories) { goBackToCategoriesView(); }
+	else if (hasCategories) { goBackToCategoriesView(); }
 	else { goBackToKeywordListView(); }
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
@@ -1322,6 +1391,7 @@ function showAnswerView(keyword, argsString, reverse) {
 	$('body').trigger('taskBegun');			
 	addBackHistory("showAnswerView(\"" + keyword + "\", \"" + (argsString || '') + "\", true);");
 	currentInteraction = keyword;
+	updateCurrentConfig();
 	processMoJOs(keyword);
 	config = config.pertinent;
 	if (typeof argsString === 'string' && argsString.length > 0) {
@@ -1419,6 +1489,7 @@ function showKeywordView(keyword) {
 		argsBox = $('#argsBox')[0],
 		descriptionBox = $('#descriptionBox')[0];
 	currentInteraction = keyword;
+	updateCurrentConfig();
 	insertHTML(argsBox, config.interactionInputPrompt);
 	if (config.description) {
 		insertHTML(descriptionBox, config.description);
@@ -1434,6 +1505,7 @@ function goBackToKeywordView(keyword) {
 	MyAnswersDevice.hideView(true);
 	var config = siteVars.config['i' + keyword].pertinent;
 	currentInteraction = keyword;
+	updateCurrentConfig();
 	MyAnswersDevice.showView($('#keywordView'), true);
 	setMainLabel(config.displayName || config.name);
 }
@@ -1442,6 +1514,7 @@ function showKeywordListView(category) {
 	var mainLabel,
 		config;
 	currentCategory = category;
+	updateCurrentConfig();
 	MyAnswers.log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
 	if (hasCategories) {
 		config = siteVars.config['c' + category].pertinent;
@@ -2228,8 +2301,8 @@ function onBrowserReady() {
 		delete siteVars.queryParameters.answerSpace;
 		MyAnswers.domain = '//' + siteVars.serverDomain + "/";
 		
-		if (document.getElementById('loginButton') !== null)
-		{
+		if (document.getElementById('loginButton') !== null) {
+			// TODO: get hasLogin working directly off new config field
 			siteVars.hasLogin = true;
 		}
 	
