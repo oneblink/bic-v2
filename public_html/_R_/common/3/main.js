@@ -15,8 +15,8 @@ function lastPictureTaken () {}
 // *** BEGIN UTILS ***
 
 MyAnswers.log = function() {
-	if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
-	else if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+	if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 };
 
 function isCameraPresent() {
@@ -350,6 +350,7 @@ function isHome() {
 // take a keywordConfig object (from siteConfig)
 // perform all steps necessary to populate element with MoJO result
 function generateMojoAnswer(keyword, args, element) {
+	return; // TODO: fix MoJO generation
 	MyAnswers.log('generateMojoAnswer(): keyword=' + keyword.name);
 	MyAnswers.store.get('mojoMessage-' + keyword.mojo, function(key, mojoMessage) {
 		var type,
@@ -870,8 +871,8 @@ function populateItemListing(level) {
 	MyAnswers.log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
 		onMasterCategoryClick = function(event) { showCategoriesView($(this).data('id')); },
-		onCategoryClick = function(event) { showKeywordListView($(this).data('id')); },
-		onKeywordClick = function(event) { gotoNextScreen($(this).data('id')); },
+		onCategoryClick = function(event) { showKeywordListView($(this).data('id'), $(this).data('masterCategory')); },
+		onKeywordClick = function(event) { gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory')); },
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hookInteraction = function() {
 			if (siteVars.config['i' + $item.data('id')].pertinent.type === 'hyperlink' && siteVars.config['i' + $item.data('id')].pertinent.hyperlink) {
@@ -883,6 +884,7 @@ function populateItemListing(level) {
 		},
 		hookCategory = function() {
 			if (siteVars.map['c' + $item.data('id')].length === 1) {
+				$item.data('category', $item.data('id'));
 				$item.data('id', siteVars.map['c' + $item.data('id')][0]);
 				hookInteraction();
 			} else if (siteVars.map['c' + $item.data('id')].length > 0) {
@@ -891,6 +893,7 @@ function populateItemListing(level) {
 		},
 		hookMasterCategory = function() {
 			if (siteVars.map['m' + $item.data('id')].length === 1) {
+				$item.data('masterCategory', $item.data('id'));
 				$item.data('id', siteVars.map['m' + $item.data('id')][0]);
 				hookCategory();
 			} else if (siteVars.map['m' + $item.data('id')].length > 0) {
@@ -1016,7 +1019,11 @@ function populateItemListing(level) {
 
 function showCategoriesView(masterCategory) {
 	MyAnswers.log('showCategoriesView(): ' + masterCategory);
-	currentMasterCategory = masterCategory;
+	currentInteraction = null;
+	currentCategory = null;
+	if (hasMasterCategories && masterCategory) {
+		currentMasterCategory = masterCategory;
+	}
 	updateCurrentConfig();
 	addBackHistory("goBackToCategoriesView();");
 	MyAnswersDevice.hideView();
@@ -1026,6 +1033,9 @@ function showCategoriesView(masterCategory) {
 }
 
 function goBackToCategoriesView() {
+	currentInteraction = null;
+	currentCategory = null;
+	updateCurrentConfig();
 	MyAnswers.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
 	MyAnswersDevice.hideView(true);
@@ -1449,7 +1459,7 @@ function showAnswerView(keyword, argsString, reverse) {
 
 function getAnswer(event) { showAnswerView(currentInteraction); }
 
-function gotoNextScreen(keyword) {
+function gotoNextScreen(keyword, category, masterCategory) {
 	var config,
 		i, iLength = siteVars.map.interactions.length;
 	MyAnswers.log("gotoNextScreen(" + keyword + ")");
@@ -1470,6 +1480,13 @@ function gotoNextScreen(keyword) {
 //		alert('Unable to locate keyword. It may be missing or protected.');
 		return;
 	}
+	if (hasMasterCategories && masterCategory) {
+		currentMasterCategory = masterCategory;
+	}
+	if (hasCategories && category) {
+		currentCategory = category;
+	}
+	currentInteraction = keyword;
 	if (config.pertinent.interactionInputPrompt) {
 		showKeywordView(keyword);
 	} else {
@@ -1510,10 +1527,14 @@ function goBackToKeywordView(keyword) {
 	setMainLabel(config.displayName || config.name);
 }
 
-function showKeywordListView(category) {
+function showKeywordListView(category, masterCategory) {
 	var mainLabel,
 		config;
+	currentInteraction = null;
 	currentCategory = category;
+	if (hasMasterCategories && masterCategory) {
+		currentMasterCategory = masterCategory;
+	}
 	updateCurrentConfig();
 	MyAnswers.log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
 	if (hasCategories) {
@@ -1534,7 +1555,8 @@ function showKeywordListView(category) {
 
 function goBackToKeywordListView(event) {
 	var mainLabel,
-	config;
+		config;
+	currentInteraction = null;
   // MyAnswers.log('goBackToKeywordListView()');
 	if (answerSpaceOneKeyword) {
 		showKeywordView(0);
@@ -1554,6 +1576,7 @@ function goBackToKeywordListView(event) {
 	} else {
 		mainLabel = 'Interactions';
 	}
+	updateCurrentConfig();
 	MyAnswersDevice.hideView(true);
 	MyAnswersDevice.showView($('#keywordListView'), true);
 	setMainLabel(mainLabel);
@@ -2310,8 +2333,8 @@ function onBrowserReady() {
 		// The following variables are initialised here so the JS can be tested
 		// within Safari
 		//
-		MyAnswers.cameraPresent = false;
-		MyAnswers.multiTasking = false;
+//		MyAnswers.cameraPresent = false;
+//		MyAnswers.multiTasking = false;
 		//
 		// End of device overriden variables
 		//
@@ -2441,7 +2464,6 @@ function init_main() {
 
 	MyAnswers.runningTasks = 0; // track the number of tasks in progress
 	
-	// TODO: JSLint doesn't like the regular expression below ??? unescaped & [ -
 	// to facilitate building regex replacements
 	RegExp.quote = function(str) { return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1"); };
 
