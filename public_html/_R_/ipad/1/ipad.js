@@ -213,7 +213,7 @@ function populateTextOnlyCategories(masterCategory)
 	var html = "<ul id='categoriesList'>"
 	for (id in order)
 	{
-		if (list[order[id]].status != 'active')
+		if (list[order[id]].status !== 'active' || list[order[id]].keywords.length === 0)
 			continue;
 		html += "<a onclick=\"showKeywordListView('" + order[id] + "')\">";
 		html += "<li id='leftcategory" + order[id] + "'>" + list[order[id]].name + "</li>";
@@ -325,6 +325,8 @@ function populateLeftBoxWithMasterCategories()
 			var html = "<ul>"
 			for (id in order)
 			{
+				if (list[order[id]].status !== 'active' || list[order[id]].categories.length === 0)
+					continue;
 				html += "<a onclick=\"showCategoriesView('" + order[id] + "')\">";
 				html += "<li id='leftmaster" + order[id] + "'>" + list[order[id]].name + "</li>";
 				html += "</a>";

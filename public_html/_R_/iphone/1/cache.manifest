@@ -1,50 +1,31 @@
-CACHE MANIFEST 
-# This is a comment. 
-# svn revision 950
-# If you change the version number in this comment, 
-# the cache manifest is no longer byte-for-byte 
-# identical.
-
 CACHE:
-index.php
-iphone.css
-iphone.js
-../../common/1/common.css
-../../common/1/common.min.js
-../../common/1/bookmark_bubble.min.js
-../../common/1/main.js
-../../common/1/ajaxslt-0.8.1-r61.min.js
-../../common/1/webworker.js
-http://maps.google.com/maps/api/js
+/_R_/iphone/1/iphone.css
+/_R_/iphone/1/iphone.js
+/_R_/common/1/bookmark_bubble.min.js
 
 NETWORK:
 *
-../../common/1/util/GetLogin.php
-../../common/1/util/GetAnswer.php
-../../common/1/util/GetMoJO.php
-../../common/1/util/GetSiteConfig.php
-../../common/1/util/GetSession.php
+/_R_/common/1/util/GetLogin.php
+/_R_/common/1/util/GetAnswer.php
+/_R_/common/1/util/GetMoJO.php
+/_R_/common/1/util/GetSiteConfig.php
+/_R_/common/1/util/GetSession.php
 http://i.ytimg.com/
 http://maps.google.com/
 /images/
 /gfx/
 ocs.arcs.org.au
 
-#FALLBACK: 
-#demoimages/ 
-#images/
-#Images/
-
 CACHE:
-Images/ActivityIndicator.png
-Images/ActivityIndicatorWhite.png
-Images/backButton.png
-Images/backgroundStripes.png
-Images/button.png
-Images/chevron_white.png
-Images/chevron.png
-Images/homeButton.png
-Images/nextButton.png
-Images/roundButton.png
-Images/squareButton.png
-Images/WebClipIcon.png
+/_R_/iphone/1/Images/ActivityIndicator.png
+/_R_/iphone/1/Images/ActivityIndicatorWhite.png
+/_R_/iphone/1/Images/backButton.png
+/_R_/iphone/1/Images/backgroundStripes.png
+/_R_/iphone/1/Images/button.png
+/_R_/iphone/1/Images/chevron_white.png
+/_R_/iphone/1/Images/chevron.png
+/_R_/iphone/1/Images/homeButton.png
+/_R_/iphone/1/Images/nextButton.png
+/_R_/iphone/1/Images/roundButton.png
+/_R_/iphone/1/Images/squareButton.png
+/_R_/iphone/1/Images/WebClipIcon.png

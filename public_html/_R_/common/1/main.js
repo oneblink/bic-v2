@@ -353,7 +353,7 @@ if (typeof Math.uuid !== 'function') {
 			}
 		}
 		return uuid.join('');
-	}
+	};
 	Math.uuid.CHARS = '0123456789ABCDEFG'.split('');
 }
 
@@ -678,6 +678,40 @@ function onStarClick(event)
 	setAnswerSpaceItem('starsProfile', starsProfile);
 }
 
+function onLinkClick(event)
+{
+	MyAnswers.log('onLinkClick(): ', this);
+	var element = this,
+			attributes = element.attributes,
+			first = null,
+			args = { };
+	for (var a = 0; a < attributes.length; a++)
+	{
+		if (first === null)
+		{
+			first = attributes[a];
+			continue;
+		}
+		if (attributes[a].name.substr(0, 1) === '_')
+		{
+			args['args[' + attributes[a].name.substr(1) + ']'] = attributes[a].value;
+		}
+	}
+	if (first.name === 'keyword')
+	{
+		if ($.isEmptyObject(args))
+		{
+			gotoNextScreen(first.value);
+		}
+		else
+		{
+			showSecondLevelAnswerView(first.value, $.param(args));
+		}
+		return false;
+	}
+	return true;
+}
+
 function onAnswerDownloaded(event, view)
 {
 	MyAnswers.log('onAnswerDownloaded(): view=' + view);
@@ -729,40 +763,6 @@ function onAnswerDownloaded(event, view)
 		$('#' + view).find('a').bind('click', onLinkClick);
 		$('body').trigger('taskComplete');
 	}, 350);
-}
-
-function onLinkClick(event)
-{
-	MyAnswers.log('onLinkClick(): ', this);
-	var element = this,
-			attributes = element.attributes,
-			first = null,
-			args = { };
-	for (var a = 0; a < attributes.length; a++)
-	{
-		if (first === null)
-		{
-			first = attributes[a];
-			continue;
-		}
-		if (attributes[a].name.substr(0, 1) === '_')
-		{
-			args['args[' + attributes[a].name.substr(1) + ']'] = attributes[a].value;
-		}
-	}
-	if (first.name === 'keyword')
-	{
-		if ($.isEmptyObject(args))
-		{
-			gotoNextScreen(first.value);
-		}
-		else
-		{
-			showSecondLevelAnswerView(first.value, $.param(args));
-		}
-		return false;
-	}
-	return true;
 }
 
 function onTransitionComplete(event, view)
@@ -850,28 +850,44 @@ function goBackToMasterCategoriesView()
 function populateVisualCategories(masterCategory)
 {
 	MyAnswers.log('populateVisualCategories(): caller=' + populateVisualCategories.caller.name);
-	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
-	var list = siteConfig.categories;
-	var categoriesBox = document.getElementById('categoriesBox');
+	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order,
+		list = siteConfig.categories,
+		categoriesBox = document.getElementById('categoriesBox'),
+		onCategoryClick = function(event) { showKeywordListView(this.getAttribute('data-id')); },
+		onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); },
+		onHyperlinkClick = function(event) { window.location.assign(this.getAttribute('data-hyperlink')); };
 	emptyDOMelement(categoriesBox);
-	var onCategoryClick = function(event) { showKeywordListView(this.getAttribute('data-id')); };
 	for (var id in order)
 	{
 		if (order.hasOwnProperty(id))
 		{
 			if (list[order[id]].status != 'active') { continue; }
-			var image = document.createElement('img');
-			image.setAttribute('class', 'v' + siteConfig.categories_config);
-			image.setAttribute('data-id', order[id]);
-			image.setAttribute('src', list[order[id]].image);
-			image.setAttribute('alt', list[order[id]].name);
-			categoriesBox.appendChild(image);
-			addEvent(image, 'click', onCategoryClick);
+			var item = document.createElement('img'),
+				$item = $(item);
+			$item.attr({
+				'class': 'v' + siteConfig.categories_config,
+				'src': list[order[id]].image,
+				'alt': list[order[id]].name
+			});
+			if (list[order[id]].keywords.length === 1) {
+				var keyword = siteConfig.keywords[list[order[id]].keywords[0]];
+				if (keyword.type === 'hyperlink' && keyword.hyperlink) {
+					$item.attr('data-hyperlink', keyword.hyperlink);
+					addEvent(item, 'click', onHyperlinkClick);
+				} else {
+					$item.attr('data-id', list[order[id]].keywords[0]);
+					addEvent(item, 'click', onKeywordClick);
+				}
+			} else {
+				$item.attr('data-id', order[id]);
+				addEvent(item, 'click', onCategoryClick);
+			}
+			$item.appendTo(categoriesBox);
 		}
 	}
 	if (siteConfig.categories_config != 'auto')
 	{
-		var width, columns;
+		var columns;
 		switch (siteConfig.categories_config)
 		{
 			case "1col":
@@ -888,7 +904,6 @@ function populateVisualCategories(masterCategory)
 				break;
 		}
 		var images = $(categoriesBox).find('img');
-		images.width(width);
 		if (siteConfig.categories_config === '1col')
 		{
 			images.first().addClass('roundedTopLeft roundedTopRight');
@@ -912,7 +927,7 @@ function populateVisualCategories(masterCategory)
 
 function populateKeywordList(category) {
 	MyAnswers.log('populateKeywordList(): category=' +  category + ' hasCategories=' + hasCategories + ' caller=' + populateKeywordList.caller.name);
-	var width, columns;
+	var columns;
 	switch (siteConfig.keywords_config)
 	{
 		case "1col":
@@ -928,33 +943,32 @@ function populateKeywordList(category) {
 			columns = 4;
 			break;
 	}
-	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order;
-	var list = siteConfig.keywords;
-	var keywordList = document.getElementById('keywordList');
-	var keywordBox = document.getElementById('keywordBox');
+	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order,
+		list = siteConfig.keywords,
+		keywordList = document.getElementById('keywordList'),
+		keywordBox = document.getElementById('keywordBox');
 	emptyDOMelement(keywordList);
 	emptyDOMelement(keywordBox);
-	var onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); };
+	var onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); },
+		onHyperlinkClick = function(event) { window.location.assign(this.getAttribute('data-hyperlink')); };
 	for (var id in order)
-  {
+	{
 		if (order.hasOwnProperty(id))
 		{
 			if (list[order[id]].status != 'active') { continue; }
+			var item;
 			if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
 			{
-				var image = document.createElement('img');
-				image.setAttribute('class', 'v' + siteConfig.keywords_config);
-				image.setAttribute('data-id', order[id]);
-				image.setAttribute('src', list[order[id]].image);
-				image.setAttribute('alt', list[order[id]].name);
-				keywordBox.appendChild(image);
-				addEvent(image, 'click', onKeywordClick);
+				item = document.createElement('img');
+				item.setAttribute('class', 'v' + siteConfig.keywords_config);
+				item.setAttribute('src', list[order[id]].image);
+				item.setAttribute('alt', list[order[id]].name);
+				keywordBox.appendChild(item);
 			}
 			else
 			{
-				var item = document.createElement('li');
-				item.setAttribute('data-id', order[id]);
-				var label = document.createElement('div');
+				item = document.createElement('li');
+				var	label = document.createElement('div');
 				label.setAttribute('class', 'label');
 				insertText(label, list[order[id]].name);
 				item.appendChild(label);
@@ -967,16 +981,21 @@ function populateKeywordList(category) {
 					item.appendChild(description);
 				}
 				keywordList.appendChild(item);
+			}
+			if (list[order[id]].type === 'hyperlink' && list[order[id]].hyperlink) {
+				item.setAttribute('data-hyperlink', list[order[id]].hyperlink);
+				addEvent(item, 'click', onHyperlinkClick);
+			} else {
+				item.setAttribute('data-id', order[id]);
 				addEvent(item, 'click', onKeywordClick);
 			}
 		}
-  }
+	}
 	keywordList = $(keywordList);
 	keywordBox = $(keywordBox);
 	if (keywordBox.children().size() > 0)
 	{
 		var images = keywordBox.find('img');
-		images.width(width);
 		if (siteConfig.keywords_config === '1col')
 		{
 			images.first().addClass('roundedTopLeft roundedTopRight');
@@ -1101,27 +1120,52 @@ function populateMasterCategories()
 {
 	MyAnswers.log('populateMasterCategories(): caller=' + populateMasterCategories.caller.name);
 	var order = siteConfig.master_categories_order;
-	var list = siteConfig.master_categories;
-	var masterCategoriesBox = document.getElementById('masterCategoriesBox');
+		list = siteConfig.master_categories,
+		masterCategoriesBox = document.getElementById('masterCategoriesBox'),
+		onMasterCategoryClick = function(event) { showCategoriesView(this.getAttribute('data-id')); },
+		onCategoryClick = function(event) { showKeywordListView(this.getAttribute('data-id')); },
+		onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); },
+		onHyperlinkClick = function(event) { window.location.assign(this.getAttribute('data-hyperlink')); };
 	emptyDOMelement(masterCategoriesBox);
-	var onMasterCategoryClick = function(event) { showCategoriesView(this.getAttribute('data-id')); };
 	for (var id in order)
 	{
 		if (order.hasOwnProperty(id))
 		{
 			if (list[order[id]].status != 'active') { continue; }
-			var image = document.createElement('img');
-			image.setAttribute('class', 'v' + siteConfig.master_categories_config);
-			image.setAttribute('data-id', order[id]);
-			image.setAttribute('src', list[order[id]].image);
-			image.setAttribute('alt', list[order[id]].name);
-			masterCategoriesBox.appendChild(image);
-			addEvent(image, 'click', onMasterCategoryClick);
+			var item = document.createElement('img'),
+				$item = $(item);
+			$item.attr({
+				'class': 'v' + siteConfig.master_categories_config,
+				'src': list[order[id]].image,
+				'alt': list[order[id]].name
+			});
+			if (list[order[id]].categories.length === 0) {
+				$item.attr('data-id', order[id]);
+			} else if (list[order[id]].categories.length === 1) {
+				var category = siteConfig.categories[list[order[id]].categories[0]];
+				if (category.keywords.length === 1) {
+					var keyword = siteConfig.keywords[category.keywords[0]];
+					if (keyword.type === 'hyperlink' && keyword.hyperlink) {
+						$item.attr('data-hyperlink', keyword.hyperlink);
+						addEvent(item, 'click', onHyperlinkClick);
+					} else {
+						$item.attr('data-id', category.keywords[0]);
+						addEvent(item, 'click', onKeywordClick);
+					}
+				} else {
+					$item.attr('data-id', list[order[id]].categories[0]);
+					addEvent(item, 'click', onCategoryClick);
+				}
+			} else {
+				$item.attr('data-id', order[id]);
+				addEvent(item, 'click', onMasterCategoryClick);
+			}
+			$item.appendTo(masterCategoriesBox);
 		}
 	}
 	if (siteConfig.master_categories_config != 'auto')
 	{
-		var width, columns;
+		var columns;
 		switch (siteConfig.master_categories_config)
 		{
 			case "1col":
@@ -1138,7 +1182,6 @@ function populateMasterCategories()
 				break;
 		}
 		var images = $(masterCategoriesBox).find('img');
-		images.width(width);
 		if (siteConfig.master_categories_config === '1col')
 		{
 			images.first().addClass('roundedTopLeft roundedTopRight');
@@ -1233,8 +1276,11 @@ function processMoJOs(keyword)
 			if (mojoName.substr(0,6) === 'stars:') { continue; }
 			if (fetchedMoJOs[mojoName] === true) { continue; }
 			var message = getAnswerSpaceItem('mojoMessage-' + mojoName);
+			if ($.type(message) === 'string') {
+				message = $.parseJSON(message);
+			}
 			var mojoHash;
-			if (typeof(message) !== 'undefined' && message !== null)
+			if ($.type(message) === 'object')
 			{
 				mojoHash = message.mojoHash;
 			}
@@ -1401,6 +1447,7 @@ function goBackToHome()
 	else if (hasVisualCategories) { goBackToCategoriesView(); }
 	else { goBackToKeywordListView(); }
 	stopTrackingLocation();
+	$('body').trigger('taskComplete');
 	getSiteConfig();
 }
 
@@ -1410,13 +1457,18 @@ function goBack()
 	if (backStack.length >= 1) { eval(backStack[backStack.length-1]); }
 	else { goBackToHome(); }
 	stopTrackingLocation();
-	if (isHome()) { getSiteConfig(); }
+	if (isHome())
+	{
+		$('body').trigger('taskComplete');
+		getSiteConfig();
+	}
 }
 
 function createParamsAndArgs(keywordID)
 {
   var returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
   var args = "";
+  if (!siteConfig.keywords[keywordID].input_config) { return returnValue; }
   var argElements = $('#argsBox').find('input, textarea, select');
   argElements.each(function(index, element) {
 		if (this.type && (this.type.toLowerCase() == "radio" || this.type.toLowerCase() == "checkbox") && !this.checked)
@@ -1523,6 +1575,9 @@ function showAnswerView(keyword)
 	if (keyword.type == 'xslt' && deviceVars.disableXSLT !== true)
 	{
 		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo);
+		if ($.type(mojoMessage) === 'string') {
+			mojoMessage = $.parseJSON(mojoMessage);
+		}
 		var xml, xslt, placeholders;
 		if (keyword.mojo.substr(0,6) === 'stars:')
 		{
@@ -1558,10 +1613,10 @@ function showAnswerView(keyword)
 			insertHTML(answerBox, html);
 			$('body').trigger('taskComplete');
 		}
-		else if (typeof(mojoMessage) !== 'undefined' && mojoMessage !== 'undefined')
+		else if ($.type(mojoMessage) === 'object')
 		{
 			$('body').trigger('taskBegun');			
-			xml = getAnswerSpaceItem('mojoMessage-' + keyword.mojo).mojo;
+			xml = mojoMessage.mojo;
 			xslt = keyword.xslt;
 			placeholders = xslt.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
 			for (var p in placeholders)
@@ -1587,7 +1642,7 @@ function showAnswerView(keyword)
 			answerBox.appendChild(paragraph2);
 		}
 		setCurrentView("answerView", false, true);
-		$('body').trigger('answerDownloaded', ['answerView']);
+		MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView']); }); 
 		setMainLabel(keyword.name);
 	}
 	else
@@ -1626,7 +1681,7 @@ function showAnswerView(keyword)
 			setSubmitCachedFormButton();
 			setCurrentView("answerView", false, true);
 			setupForms($('#answerView'));
-			$('body').trigger('answerDownloaded', ['answerView']);
+			MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView']); });
 			setMainLabel(keyword.name);
 			$('body').trigger('taskComplete');
 		 },
@@ -1697,7 +1752,11 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 	{
 		MyAnswers.log('showSecondLevelAnswerView: detected XSLT keyword');
 		$('body').trigger('taskBegun');
-		var xml = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo).mojo;
+		var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keywordConfig.mojo);
+		if ($.type(mojoMessage) === 'string') {
+			mojoMessage = $.parseJSON(mojoMessage);
+		}
+		var xml = mojoMessage.mojo;
 		var xslt = keywordConfig.xslt;
 		var args = deserialize(arg0);
 		var placeholders = xslt.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
@@ -1712,7 +1771,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 		html = generateMojoAnswer(xml, xslt, 'answerBox2');
 		insertHTML(answerBox2, html);
 		setCurrentView("answerView2", false, true);
-		$('body').trigger('answerDownloaded', ['answerView2']);
+		MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
 		setMainLabel(keywordConfig.name);
 		$('body').trigger('taskComplete');
 	}
@@ -1749,8 +1808,8 @@ function showSecondLevelAnswerView(keyword, arg0, reverse)
 				}
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
-				$('body').trigger('answerDownloaded', ['answerView2']);
-				setupForms($("#answerView2"));
+				MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
+				MyAnswers.dispatch.add(function() { setupForms($("#answerView2")); });
 				$('body').trigger('taskComplete');
 			}
 		});
@@ -1810,13 +1869,6 @@ function showKeywordListView(category)
 	}
 	if (hasCategories && typeof(prepareHistorySideBar) === 'function') {
 		prepareHistorySideBar();
-	}
-	if ((hasCategories && siteConfig.categories[currentCategory].keywords.length == 1) ||
-			(!hasCategories && siteConfig.keywords.length == 1))
-	{
-		MyAnswers.log('category only has one keyword, jumping to that keyword');
-		gotoNextScreen(siteConfig.categories[currentCategory].keywords[0]);
-		return;
 	}
 	addBackHistory("goBackToKeywordListView();");
 	setMainLabel(mainLabel);
@@ -2136,7 +2188,19 @@ function submitFormWithRetry() {
 					insertHTML(currentBox[0], html);
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
-					$('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]);
+					if (currentBox.attr('id') === 'answerBox')
+					{
+						MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox']); });
+					}
+					else if (currentBox.attr('id') === 'answerBox2')
+					{
+						MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox2']); });
+					}
+					else
+					{
+						// potentially unnecessary to have this here
+						MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]); });
+					}
 				});
 				setTimeout(function() {
 					onScroll();
@@ -2149,7 +2213,7 @@ function submitFormWithRetry() {
 				addBackHistory("");
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
-				$('body').trigger('answerDownloaded', ['answerView2']);
+				MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
 			}
 			setSubmitCachedFormButton();
 			$('body').trigger('taskComplete');
@@ -2262,7 +2326,19 @@ function submitAction(keyword, action) {
 					currentBox.show('slide', { direction: 'right'}, 300);
 					window.scrollTo(0, 1);
 					onScroll();
-					$('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]);
+					if (currentBox.attr('id') === 'answerBox')
+					{
+						MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox']); });
+					}
+					else if (currentBox.attr('id') === 'answerBox2')
+					{
+						MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox2']); });
+					}
+					else
+					{
+						// potentially unnecessary to have this here
+						MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]); });
+					}
 				});
 			}
 			else
@@ -2272,7 +2348,7 @@ function submitAction(keyword, action) {
 				addBackHistory("");
 				insertHTML(answerBox2, html);
 				setCurrentView('answerView2', false, true);   
-				$('body').trigger('answerDownloaded', ['answerView2']);
+				MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
 			}
 		},
 		timeout: computeTimeout(requestUrl.length + requestData.length)
@@ -2577,12 +2653,13 @@ function onBrowserReady() {
   MyAnswers.log("onBrowserReady: " + window.location);
   try {
 		var uriParts = parse_url(window.location);
-		var splitUrl = uriParts.path.match(/_R_\/(.+)\/(.+)\/index\.php/);
-		MyAnswers.loadURL = uriParts.scheme + '://' + uriParts.host + '/_R_/';
-		siteVars.serverAppVersion =  splitUrl[2];
+		var splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
+		siteVars.serverAppBranch =  splitUrl[1];
+		MyAnswers.loadURL = uriParts.scheme + '://' + uriParts.host + '/_' + siteVars.serverAppBranch + '_/';
+		siteVars.serverAppVersion =  splitUrl[3];
 		siteVars.serverDomain = uriParts.host;
-		siteVars.serverAppPath = uriParts.scheme + '://' + siteVars.serverDomain + '/_R_/common/' + siteVars.serverAppVersion;
-		siteVars.serverDevicePath = uriParts.scheme + '://' + siteVars.serverDomain + '/_R_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+		siteVars.serverAppPath = uriParts.scheme + '://' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
+		siteVars.serverDevicePath = uriParts.scheme + '://' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 		siteVars.queryParameters = getURLParameters();
 		siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 		delete siteVars.queryParameters.uid;
@@ -2823,7 +2900,7 @@ if (!addEvent(window, "load", onBodyLoad)) {
 			MyAnswers.log("User-Agent: " + navigator.userAgent);
 	  }
   }, 500);
-})(window, window.document, undefined);
+})(window, window.document);
 
 // END APPLICATION INIT
 

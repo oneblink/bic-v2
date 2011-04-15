@@ -49,7 +49,7 @@ a, [onclick] {
 	cursor: pointer;
 }
 
-a {
+a[href], a[keyword] {
 	text-decoration: underline;
 }
 
@@ -203,11 +203,11 @@ img.v4col { width: 25%; }
 	color: white;
 }
 
-#masterCategoriesBox, #categoriesBox, #keywordVisualBox {
+#masterCategoriesBox, #categoriesBox, #keywordBox {
 	line-height: 0px;
 }
 
-#masterCategoriesBox img, #categoriesBox img, #keywordVisualBox img, #answerSpacesList img {
+#masterCategoriesBox img, #categoriesBox img, #keywordBox img, #answerSpacesList img {
 	display: inline-block;
 }
 
