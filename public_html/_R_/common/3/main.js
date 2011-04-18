@@ -1042,20 +1042,20 @@ function restoreSessionProfile(token)
 			var data = $.parseJSON(xhr.responseText);
 			if (data === null)
 			{
-				MyAnswers.log('GetSiteConfig error: null siteConfig');
+				MyAnswers.log('restoreSessionProfile error: null data');
 				alert('Connection error, please try again later.');
 				return;
 			}
 			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
 			{
-				MyAnswers.log('GetSession success: no error messages, data: ' + data);
+				MyAnswers.log('restoreSessionProfile success: no error messages, data: ' + data);
 				if (data.sessionProfile === null) { return; }
 				MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
 				starsProfile = data.sessionProfile.stars;
 			}
 			if (typeof(data.errorMessage) === 'string')
 			{
-				MyAnswers.log('GetSiteConfig error: ' + data.errorMessage);
+				MyAnswers.log('restoreSessionProfile error: ' + data.errorMessage);
 			}
 			setTimeout(function() {
 				$('body').trigger('siteBootComplete');
@@ -1674,7 +1674,7 @@ function updateLoginButtons() {
 function requestLoginStatus() {
 	if (!siteVars.hasLogin) { return; }
 	ajaxQueue.add({
-		url: siteVars.serverAppPath + '/util/GetLogin.php',
+		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		dataType: 'json',
 		complete: function(xhr, xhrStatus) {
 			if (isAJAXError(xhrStatus) || xhr.status !== 200) { return; }
@@ -1702,7 +1702,7 @@ function submitLogin()
 	ajaxQueue.add({
 		type: 'GET',
 		cache: "false",
-		url: siteVars.serverAppPath + '/util/GetLogin.php',
+		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		data: $('#loginView').find('form').serializeArray(),
 		complete: function(xhr, textstatus) {
 			$('#loginView').find('input[type=password]').val('');
@@ -1736,7 +1736,7 @@ function submitLogout(event)
 		ajaxQueue.add({
 			type: 'GET',
 			cache: "false",
-			url: siteVars.serverAppPath + '/util/GetLogin.php',
+			url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 			data: { '_a': 'logout' },
 			complete: function(xhr, textstatus) {
 				if (xhr.status === 200) {
