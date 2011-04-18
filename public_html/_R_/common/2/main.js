@@ -1,16 +1,13 @@
-var
-locationTracker, latitude, longitude, webappCache,
-
-hasCategories, hasMasterCategories, hasVisualCategories, answerSpaceOneKeyword,
-
-currentKeyword, currentCategory, currentMasterCategory,
-
-siteConfig, siteConfigHash,
-starsProfile,
-backStack,
-
-lowestTransferRateConst, maxTransactionTimeout,
-ajaxQueue, ajaxQueueMoJO;
+var MyAnswers = MyAnswers || {},
+	siteVars = siteVars || {},
+	deviceVars = deviceVars || {},
+	locationTracker, latitude, longitude, webappCache,
+	hasCategories, hasMasterCategories, hasVisualCategories, answerSpaceOneKeyword,
+	currentKeyword, currentCategory, currentMasterCategory,
+	siteConfig, siteConfigHash, starsProfile,
+	backStack,
+	lowestTransferRateConst, maxTransactionTimeout,
+	ajaxQueue, ajaxQueueMoJO;
 
 function PictureSourceType() {}
 function lastPictureTaken () {}
@@ -18,25 +15,25 @@ function lastPictureTaken () {}
 // *** BEGIN UTILS ***
 
 MyAnswers.log = function() {
-	if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
-	else if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+	if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 };
 
 function isCameraPresent() {
-  MyAnswers.log("isCameraPresent: " + window.device.camerapresent);
-  return MyAnswers.cameraPresent;
+	MyAnswers.log("isCameraPresent: " + window.device.camerapresent);
+	return MyAnswers.cameraPresent;
 }
 
 function addEvent(obj, evType, fn) { 
-  if (obj.addEventListener) { 
-    obj.addEventListener(evType, fn, false); 
-    return true; 
-  } else if (obj.attachEvent) { 
-    var r = obj.attachEvent("on"+evType, fn); 
-    return r; 
-  } else { 
-    return false; 
-  } 
+	if (obj.addEventListener) { 
+		obj.addEventListener(evType, fn, false); 
+		return true; 
+	} else if (obj.attachEvent) { 
+		var r = obj.attachEvent("on"+evType, fn); 
+		return r; 
+	} else { 
+		return false; 
+	} 
 }
 
 function removeEvent(obj, evType, fn) { 
@@ -54,21 +51,6 @@ function removeEvent(obj, evType, fn) {
 function computeTimeout(messageLength) {
   var t = (messageLength * lowestTransferRateConst) + 15000;
   return ((t < maxTransactionTimeout) ? t : maxTransactionTimeout);
-}
-
-function setAnswerSpaceItem(key, value)
-{
-	if (deviceVars.storageReady) { jStore.set(key, value); }
-}
-
-function getAnswerSpaceItem(key)
-{
-	return deviceVars.storageReady ? jStore.get(key) : null;
-}
-
-function removeAnswerSpaceItem(key)
-{
-	if (deviceVars.storageReady) { jStore.remove(key); }
 }
 
 function emptyDOMelement(element)
@@ -126,14 +108,14 @@ function changeDOMclass(element, options) {
 
 //convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
 function deserialize(argsString) {
-	var args = argsString.split('&');
-	var result = { };
-	for (var a in args) {
-		if (args.hasOwnProperty(a)) {
-			var terms = args[a].split('=');
-			if (terms[0].length > 0) {
-				result[decodeURIComponent(terms[0])] = decodeURIComponent(terms[1]);
-			}
+	var args = argsString.split('&'),
+		a, aLength = args.length,
+		result = { },
+		terms;
+	for (a = 0; a < aLength; a++) {
+		terms = args[a].split('=');
+		if (terms[0].length > 0) {
+			result[decodeURIComponent(terms[0])] = decodeURIComponent(terms[1]);
 		}
 	}
 	return result;
@@ -141,9 +123,9 @@ function deserialize(argsString) {
 
 function getURLParameters() {
 	var queryString = window.location.href.split('?')[1].split('#')[0];
-	if (typeof(queryString) === 'string') {
+	if (typeof queryString === 'string') {
 		var parameters = deserialize(queryString);
-		if (typeof(parameters.keyword) == 'string') {
+		if (typeof parameters.keyword === 'string') {
 			parameters.keyword = parameters.keyword.replace('/', '');
 		}
 		return parameters;
@@ -166,40 +148,13 @@ function isAJAXError(status)
 	}
 }
 
-function populateDataTags(element, data)
-{
+function populateDataTags(element, data) {
+	var d;
 	if ($.type(element) !== 'object') { return; }
-	for (var d in data) {
+	for (d in data) {
 		if (data.hasOwnProperty(d)) {
 			element.setAttribute('data-' + d, data[d]);
 		}
-	}
-}
-
-// jStore doesn't do this for us, so this function will empty client-side
-// storage
-function clearStorage()
-{
-	var storageType = jStore.activeEngine().flavor;
-	MyAnswers.log('clearStorage: ' + storageType);
-	switch (storageType)
-	{
-		case 'jstore-html5-sql':
-			jStore.activeEngine().database.transaction(function (database) {
-				database.executeSql('TRUNCATE TABLE jstore');
-			});
-			break;
-		case 'jstore-html5-local':
-			window.localStorage.clear();
-			break;
-		case 'jstore-flash':
-			break;
-		case 'jstore-msie':
-			break;
-		case 'jstore-google-gears':
-			break;
-		default:
-			MyAnswers.log('unidentified jStore engine');
 	}
 }
 
@@ -226,13 +181,12 @@ function parseXMLElements(xmlString)
 	return xml;
 }
 
-function processBlinkAnswerMessage(message)
-{
+function processBlinkAnswerMessage(message) {
 	message = $.parseJSON(message);
 	MyAnswers.log(message);
-	if (typeof(message.loginStatus) == 'string' && typeof(message.loginKeyword) == 'string' && typeof(message.logoutKeyword) == 'string') {
+	if (typeof message.loginStatus === 'string' && typeof message.loginKeyword === 'string' && typeof message.logoutKeyword === 'string') {
 		MyAnswers.log('blinkAnswerMessage: loginStatus detected');
-		if (message.loginStatus == "LOGGED IN") {
+		if (message.loginStatus === 'LOGGED IN') {
 			$('#loginButton').addClass('hidden');
 			$('#logoutButton').removeAttr('onclick').unbind('click').removeClass('hidden');
 			$('#logoutButton').bind('click', function() {
@@ -251,7 +205,7 @@ function processBlinkAnswerMessage(message)
 var DOMDispatch = function() {
 	this._queue = []; // array to be treated as a FIFO
 	this._timeout = null; // use to allow only 1 timeout simultaneously
-	this._interval = 25; // time between dispatching tasks
+	this._interval = 47; // time between dispatching tasks
 	this._isPaused = false;
 	this._intervalFn = function() {
 		if (this._isPaused) { return; }
@@ -293,52 +247,6 @@ DOMDispatch.prototype.resume = function(caller) {
 		this._intervalFn();
 	}
 };
-
-/*
- * Math.uuid.js, minimalistic uuid generator. Original script from Robert
- * Kieffer, http://www.broofa.com Dual licensed under the MIT and GPL licenses.
- * example: >>> Math.uuid(); // returns RFC4122, version 4 ID
- * "92329D39-6F5C-4520-ABFC-AAB64544E172"
- */
-if (typeof Math.uuid !== 'function') {
-	Math.uuid = function() {
-		var chars = Math.uuid.CHARS, uuid = [],
-			r, i = 36;
- 
-		// rfc4122 requires these characters
-		uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
-		uuid[14] = '4';
- 
-		// Fill in random data. At i==19 set the high bits of clock sequence as
-		// per rfc4122, sec. 4.1.5
-		while (i--) {
-			if (!uuid[i]) {
-				r = Math.random()*16|0;
-				uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
-			}
-		}
-		return uuid.join('');
-	};
-	Math.uuid.CHARS = '0123456789ABCDEFG'.split('');
-}
-
-// duck-punching $.unique to be useful
-// http://paulirish.com/2010/duck-punching-with-jquery/
-(function($){
-	var _old = $.unique, arr2 = [];
-	$.unique = function(arr) {
-		if ($.isArray(arr)) {
-			if (!!arr[0].nodeType){
-				arr2 = _old.apply(this,arguments);
-			} else {
-				arr2 = $.grep(arr,function(v,k) {
-					return $.inArray(v,arr) === k;
-				});
-			}
-		}
-		return arr2;
-	};
-})(jQuery);
 
 //take 2 plain XML strings, then transform the first using the second (XSL)
 //insert the result into element
@@ -383,18 +291,18 @@ function performXSLT(xmlString, xslString, element)
 // *** BEGIN PHONEGAP UTILS ***
 
 function getPicture_Success(imageData) {
+	var i;
 //	MyAnswers.log("getPicture_Success: " + imageData);
   lastPictureTaken.image.put(lastPictureTaken.currentName, imageData);
-  for (var i in document.forms[0].elements) {
-		if (document.forms[0].elements.hasOwnProperty(i))
-		{
+  for (i in document.forms[0].elements) {
+		if (document.forms[0].elements.hasOwnProperty(i)) {
 			var thisElement = document.forms[0].elements[i];
 			if (thisElement.name) {
 				if(thisElement.type && (thisElement.type.toLowerCase() === "radio" || thisElement.type.toLowerCase() === "checkbox") && thisElement.checked === false) {
 					$.noop(); // do nothing for unchecked radio or checkbox
 				} else {
 					if (thisElement.type && (thisElement.type.toLowerCase() === "button") && (lastPictureTaken.image.size() > 0)) {
-						if (lastPictureTaken.currentName ==  thisElement.name) {
+						if (lastPictureTaken.currentName === thisElement.name) {
 							thisElement.style.backgroundColor = "red";
 						} 
 					}
@@ -433,7 +341,7 @@ function selectLibrary(nameStr) {
 
 //test to see if the user it viewing the highest level screen
 function isHome() {
-	if ($('.view:visible').first().attr('id') == $('.box:not(:empty)').first().parent().attr('id')) {
+	if ($('.view:visible').first().attr('id') === $('.box:not(:empty)').first().parent().attr('id')) {
 		return true;
 	}
 	return false;
@@ -443,152 +351,171 @@ function isHome() {
 // perform all steps necessary to populate element with MoJO result
 function generateMojoAnswer(keyword, args, element) {
 	MyAnswers.log('generateMojoAnswer(): keyword=' + keyword.name);
-	var mojoMessage = getAnswerSpaceItem('mojoMessage-' + keyword.mojo),
-		type;
-	if ($.type(mojoMessage) === 'string') {
-		mojoMessage = $.parseJSON(mojoMessage);
-	}
-	var xml,
-		xsl = keyword.xslt,
-		placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
-	for (var p in placeholders) {
-		if (placeholders.hasOwnProperty(p)) {
-			var value = typeof(args[placeholders[p].substring(1)]) === 'string' ? args[placeholders[p].substring(1)] : '';
+	MyAnswers.store.get('mojoMessage-' + keyword.mojo, function(key, mojoMessage) {
+		var type,
+			xml,
+			xsl = keyword.xslt,
+			placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g),
+			p, pLength = placeholders.length,
+			value,
+			variable, condition,
+			d, s, star;
+		if ($.type(mojoMessage) === 'string') {
+			mojoMessage = $.parseJSON(mojoMessage);
+		}
+		for (p = 0; p < pLength; p++) {
+			value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
 			xsl = xsl.replace(placeholders[p], value);
 		}
-	}
-	while (xsl.indexOf('blink-stars(') !== -1) // fix star lists
-	{
-		var variable = type[1],
+		while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
 			condition = '';
-		type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
-		type = type[2];
-		if ($.type(starsProfile[type]) === 'object') {
-			for (var star in starsProfile[type]) {
-				if (starsProfile[type].hasOwnProperty(star)) {
-					condition += ' or ' + variable + '=\'' + star + '\'';
-				}
-			}
-			condition = condition.substr(4);
-		}
-		if (condition.length > 0) {
-			xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
-		} else {
-			xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
-		}
-		MyAnswers.log('generateMojoAnswer(): condition=' + condition);
-	}
-	if (keyword.mojo.substr(0,6) === 'stars:') { // use starred items
-		type = keyword.mojo.split(':')[1];
-		for (var s in starsProfile[type]) {
-			if (starsProfile[type].hasOwnProperty(s)) {
-				xml += '<' + type + ' id="' + s + '">';
-				for (var d in starsProfile[type][s]) {
-					if (starsProfile[type][s].hasOwnProperty(d)) {
-						xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
+			type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+			variable = type[1];
+			type = type[2];
+			if ($.type(starsProfile[type]) === 'object') {
+				for (star in starsProfile[type]) {
+					if (starsProfile[type].hasOwnProperty(star)) {
+						condition += ' or ' + variable + '=\'' + star + '\'';
 					}
 				}
-				xml += '</' + type + '>';
+				condition = condition.substr(4);
 			}
+			if (condition.length > 0) {
+				xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+			} else {
+				xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+			}
+			MyAnswers.log('generateMojoAnswer(): condition=' + condition);
 		}
-		xml = '<stars>' + xml + '</stars>';
-		performXSLT(xml, xsl, element);
-	}
-	else if ($.type(mojoMessage) === 'object')
-	{
-		$('body').trigger('taskBegun');			
-		xml = mojoMessage.mojo;
-		performXSLT(xml, xsl, element);
-		$('body').trigger('taskComplete');
-	}
-	else
-	{
-		html = '<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>';
-		insertHTML(element, html);
-	}
+		if (keyword.mojo.substr(0,6) === 'stars:') { // use starred items
+			type = keyword.mojo.split(':')[1];
+			for (s in starsProfile[type]) {
+				if (starsProfile[type].hasOwnProperty(s)) {
+					xml += '<' + type + ' id="' + s + '">';
+					for (d in starsProfile[type][s]) {
+						if (starsProfile[type][s].hasOwnProperty(d)) {
+							xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
+						}
+					}
+					xml += '</' + type + '>';
+				}
+			}
+			xml = '<stars>' + xml + '</stars>';
+			performXSLT(xml, xsl, element);
+		}
+		else if ($.type(mojoMessage) === 'object')
+		{
+			$('body').trigger('taskBegun');			
+			xml = mojoMessage.mojo;
+			performXSLT(xml, xsl, element);
+			$('body').trigger('taskComplete');
+		}
+		else
+		{
+			html = '<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>';
+			insertHTML(element, html);
+		}
+	});
 }
 
-function countPendingFormData() {
-  if (getAnswerSpaceItem("_pendingFormDataString")) {
-    var q1 = getAnswerSpaceItem("_pendingFormDataString").split(":");
-    MyAnswers.log("countPendingFormData: q1.length = " + q1.length + ";");
-    return q1.length;
-  } else {
-    return 0;
-  }
+function countPendingFormData(callback) {
+	MyAnswers.store.get('_pendingFormDataString', function(key, value) {
+		var q1;
+		if (typeof value === 'string') {
+			q1 = value.split(':');
+			MyAnswers.log("countPendingFormData: q1.length = " + q1.length + ";");
+			callback(q1.length);
+		} else {
+			callback(0);
+		}
+	});
 }
 
 function setSubmitCachedFormButton() {
-	var queueCount = countPendingFormData(),
-		button = document.getElementById('pendingButton');
-	MyAnswers.dispatch.add(function() {
-		if (queueCount !== 0) {
-			MyAnswers.log("setSubmitCachedFormButton: Cached items");
-			insertText(button, queueCount + ' Pending');
-			$(button).removeClass('hidden');
-		} else {
-			MyAnswers.log("setSubmitCachedFormButton: NO Cached items");
-			$(button).addClass('hidden');
+	countPendingFormData(function(queueCount) {
+		var button = document.getElementById('pendingButton');
+		MyAnswers.dispatch.add(function() {
+			if (queueCount !== 0) {
+				MyAnswers.log("setSubmitCachedFormButton: Cached items");
+				insertText(button, queueCount + ' Pending');
+				$(button).removeClass('hidden');
+			} else {
+				MyAnswers.log("setSubmitCachedFormButton: NO Cached items");
+				$(button).addClass('hidden');
+			}
+		});
+		if (typeof setupParts === 'function') {
+			MyAnswers.dispatch.add(setupParts);
 		}
 	});
-	if (typeof setupParts === 'function') {
-		MyAnswers.dispatch.add(setupParts);
-	}
 }
 
-function headPendingFormData() {
-  if (countPendingFormData() === 0) {
-    return ["", ""];
-  }
-  var q1 = getAnswerSpaceItem("_pendingFormDataString").split(":");
-  var q2 = getAnswerSpaceItem("_pendingFormDataArrayAsString").split(":");
-  var q3 = getAnswerSpaceItem("_pendingFormMethod").split(":");
-  var q4 = getAnswerSpaceItem("_pendingFormUUID").split(":");
-  MyAnswers.log('headPendingFormData():');
-  return [q1[0], decodeURIComponent(q2[0]), decodeURIComponent(q3[0]), decodeURIComponent(q4[0])];
+function headPendingFormData(callback) {
+	countPendingFormData(function(queueCount) {
+		if (queueCount === 0) {
+			callback(['', '']);
+			return;
+		}
+		MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+			MyAnswers.store.get('_pendingFormDataArrayAsString', function(key, dataArray) {
+				MyAnswers.store.get('_pendingFormMethod', function(key, method) {
+					MyAnswers.store.get('_pendingFormUUID', function(key, uuid) {
+						var q1 = dataString.split(':')[0],
+							q2 = dataArray.split(':')[0],
+							q3 = method.split(':')[0],
+							q4 = uuid.split(':')[0];
+						MyAnswers.log('headPendingFormData():');
+						callback([q1, decodeURIComponent(q2), decodeURIComponent(q3), decodeURIComponent(q4)]);
+					});
+				});
+			});
+		});
+	});
 }
 
 function removeFormRetryData() {
-    removeAnswerSpaceItem("_pendingFormDataString");  
-    removeAnswerSpaceItem("_pendingFormDataArrayAsString");  
-    removeAnswerSpaceItem("_pendingFormMethod");  
-    removeAnswerSpaceItem("_pendingFormUUID");  
+    MyAnswers.store.remove('_pendingFormDataString');  
+    MyAnswers.store.remove('_pendingFormDataArrayAsString');  
+    MyAnswers.store.remove('_pendingFormMethod');  
+    MyAnswers.store.remove('_pendingFormUUID');  
     MyAnswers.log("removeFormRetryData: Clearing local storage"); 
 	setSubmitCachedFormButton();
 }
 
 function delHeadPendingFormData() {
-  var count;
-  if ((count = countPendingFormData()) === 0) {
-    MyAnswers.log("delHeadPendingFormData: count 0, returning");
-    return;
-  }
-  if (count == 1) {
-    MyAnswers.log("*** Emptying Form Queue");
-    removeFormRetryData();
-    return;
-  }
-  setAnswerSpaceItem("_pendingFormDataString", 
-		     getAnswerSpaceItem("_pendingFormDataString").substring(getAnswerSpaceItem("_pendingFormDataString").indexOf(":") + 1));
-  setAnswerSpaceItem("_pendingFormDataArrayAsString", 
-		     getAnswerSpaceItem("_pendingFormDataArrayAsString").substring(getAnswerSpaceItem("_pendingFormDataArrayAsString").indexOf(":") + 1));
-	setSubmitCachedFormButton();
-}
-
-function checkFormRetryData() {
-    return (getAnswerSpaceItem("_pendingFormDataString"));
+	countPendingFormData(function(queueCount) {
+		if (queueCount === 0) {
+			MyAnswers.log("delHeadPendingFormData: count 0, returning");
+			return;
+		} else if (queueCount === 1) {
+			removeFormRetryData();
+			return;
+		}
+		MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+			dataString = dataString.substring(dataString.indexOf(':') + 1);
+			MyAnswers.store.set('_pendingFormDataString', dataString);
+			MyAnswers.store.get('_pendingFormDataArrayAsString', function(key, dataArray) {
+				dataArray = dataArray.substring(dataArray.indexOf(':') + 1);
+				MyAnswers.store.set('_pendingFormDataArrayAsString', dataArray, function() {
+					setSubmitCachedFormButton();
+				});
+			});
+		});
+	});
 }
 
 function processCachedFormData() {
-  if (checkFormRetryData()) {
-    if (confirm("Submit pending form data \nfrom previous forms?\nNote: Subsequent forms will continue to pend\nuntil you empty the pending list.")) {
-      submitFormWithRetry();
-    } else {
-      if (confirm("Delete pending form data\nfrom previous forms?")) {
-		  removeFormRetryData();
-      }
-    }
-  }
+	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+		if (typeof dataString === 'string') {
+			if (confirm("Submit pending form data \nfrom previous forms?\nNote: Subsequent forms will continue to pend\nuntil you empty the pending list.")) {
+				submitFormWithRetry();
+			} else {
+				if (confirm("Delete pending form data\nfrom previous forms?")) {
+					removeFormRetryData();
+				}
+			}
+		}
+	});
 }
 
 // *** END BLINK UTILS ***
@@ -598,7 +525,7 @@ function processCachedFormData() {
 function updateCache()
 {
   MyAnswers.log("updateCache: " + webappCache.status);
-  if (webappCache.status != window.applicationCache.IDLE) {
+  if (webappCache.status !== window.applicationCache.IDLE) {
     webappCache.swapCache();
     MyAnswers.log("Cache has been updated due to a change found in the manifest");
   } else {
@@ -646,9 +573,11 @@ function onTaskComplete(event)
 
 function onStarClick(event)
 {
-	var id = $(this).data('id');
-	var type = $(this).data('type');
-	var data = $(this).data();
+	var id = $(this).data('id'),
+		type = $(this).data('type'),
+		data = $(this).data(),
+		k,
+		date = new Date();
 	delete data.id;
 	delete data.type;
 	if ($(this).hasClass('blink-star-on'))
@@ -656,8 +585,7 @@ function onStarClick(event)
 		$(this).addClass('blink-star-off');
 		$(this).removeClass('blink-star-on');
 		delete starsProfile[type][id];
-		if (starsProfile[type] == { })
-		{
+		if ($.isEmptyObject(starsProfile[type])) {
 			delete starsProfile[type];
 		}
 	}
@@ -665,39 +593,30 @@ function onStarClick(event)
 	{
 		$(this).addClass('blink-star-on');
 		$(this).removeClass('blink-star-off');
-		if ($.type(starsProfile[type]) !== 'object')
-		{
+		if ($.type(starsProfile[type]) !== 'object') {
 			starsProfile[type] = { };
 		}
 		starsProfile[type][id] = { };
-		for (var k in data)
-		{
-			if (data.hasOwnProperty(k))
-			{
+		for (k in data)	{
+			if (data.hasOwnProperty(k)) {
 				starsProfile[type][id][k.toUpperCase()] = data[k];
 			}
 		}
-		var date = new Date();
 		starsProfile[type][id].time = date.getTime();
 		starsProfile[type][id].type = type;
 		starsProfile[type][id].id = id;
 	}
-	setAnswerSpaceItem('starsProfile', starsProfile);
+	MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
 }
 
 function onAnswerDownloaded(event, view)
 {
 	MyAnswers.log('onAnswerDownloaded(): view=' + view);
 	var onGoogleJSLoaded = function(data, textstatus) {
-		if ($('div.googlemap').size() > 0) // check for items requiring Google
-											// Maps
-		{
-			if ($.type(google.maps) !== 'object')
-			{
+		if ($('div.googlemap').size() > 0) { // check for items requiring Google Maps
+			if ($.type(google.maps) !== 'object') {
 				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
-			}
-			else
-			{
+			} else {
 				setupGoogleMaps();
 			}
 		}
@@ -721,29 +640,21 @@ function onLinkClick(event)
 {
 	MyAnswers.log('onLinkClick(): ', this);
 	var element = this,
-			attributes = element.attributes,
-			first = null,
-			args = { };
-	for (var a = 0; a < attributes.length; a++)
-	{
-		if (first === null)
-		{
+		attributes = element.attributes,
+		a, aLength = attributes.length,
+		first = null,
+		args = { };
+	for (a = 0; a < aLength; a++) {
+		if (first === null) {
 			first = attributes[a];
-			continue;
-		}
-		if (attributes[a].name.substr(0, 1) === '_')
-		{
+		} else if (attributes[a].name.substr(0, 1) === '_') {
 			args['args[' + attributes[a].name.substr(1) + ']'] = attributes[a].value;
 		}
 	}
-	if (first.name === 'keyword')
-	{
-		if ($.isEmptyObject(args))
-		{
+	if (first.name === 'keyword') {
+		if ($.isEmptyObject(args)) {
 			gotoNextScreen(first.value);
-		}
-		else
-		{
+		} else {
 			showSecondLevelAnswerView(first.value, $.param(args));
 		}
 		return false;
@@ -782,24 +693,15 @@ function onSiteBootComplete(event)
 	MyAnswers.log('onSiteBootComplete():');
 	var keyword = siteVars.queryParameters.keyword;
 	delete siteVars.queryParameters.keyword;
-	if (typeof(keyword) === 'string' && ! $.isEmptyObject(siteVars.queryParameters))
-	{
+	if (typeof(keyword) === 'string' && ! $.isEmptyObject(siteVars.queryParameters)) {
 		showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
-	}
-	else if (typeof(keyword) === 'string')
-	{
+	} else if (typeof(keyword) === 'string') {
 		gotoNextScreen(keyword);
-	}
-	else if (typeof(siteVars.queryParameters.category) === 'string')
-	{
+	} else if (typeof(siteVars.queryParameters.category) === 'string') {
 		showKeywordListView(siteVars.queryParameters.category);
-	}
-	else if (typeof(siteVars.queryParameters.master_category) === 'string')
-	{
+	} else if (typeof(siteVars.queryParameters.master_category) === 'string') {
 		showCategoriesView(siteVars.queryParameters.master_category);
-	}
-	else if (typeof(siteConfig.webClip) === 'string' && typeof(google) !== 'undefined' && typeof(google.bookmarkbubble) !== 'undefined')
-	{
+	} else if (typeof siteConfig.webClip === 'string' && typeof google !== 'undefined' && typeof google.bookmarkbubble !== 'undefined') {
 		setTimeout(function() {
 			var bookmarkBubble = new google.bookmarkbubble.Bubble();
 			bookmarkBubble.hasHashParameter = function() { return false; };
@@ -817,7 +719,6 @@ function onSiteBootComplete(event)
 function updateOrientation()
 {
 	MyAnswers.log("orientationChanged: " + Orientation.currentOrientation);
-	setupForms($('.view:visible'));
 }
 
 // *** END EVENT HANDLERS ***
@@ -830,7 +731,7 @@ if (!addEvent(document, "deviceready", onDeviceReady)) {
 function addBackHistory(item)
 {
 	MyAnswers.log("addBackHistory(): " + item);
-	if ($.inArray(item, backStack) == -1) { backStack.push(item); }
+	if ($.inArray(item, backStack) === -1) { backStack.push(item); }
 }
 
 function updateNavigationButtons() {
@@ -843,7 +744,7 @@ function updateNavigationButtons() {
 		{
 			case 'keywordView':
 			case 'answerView':
-			case 'answerView2':
+			case 'answerView2':				
 				helpContents = siteConfig.keywords[currentKeyword].help;
 				break;
 			case 'helpView':
@@ -861,11 +762,13 @@ function updateNavigationButtons() {
 		}
 		if (isHome()) {
 			$navButtons.addClass('hidden');
-			if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || countPendingFormData() > 0) {
-				$navBoxHeader.removeClass('hidden');
-			} else {
-				$navBoxHeader.addClass('hidden');
-			}
+			countPendingFormData(function(queueCount) {
+				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
+					$navBoxHeader.removeClass('hidden');
+				} else {
+					$navBoxHeader.addClass('hidden');
+				}
+			});
 		} else {
 			$navButtons.removeClass('hidden');
 			$navButtons.removeAttr('disabled');
@@ -882,6 +785,7 @@ function showMasterCategoriesView()
 	MyAnswers.log('showMasterCategoriesView()');
 	addBackHistory("goBackToMasterCategoriesView();");
 	MyAnswersDevice.hideView();
+	populateItemListing('masterCategories');
 	setMainLabel('Master Categories');
 	MyAnswersDevice.showView($('#masterCategoriesView'));
 }
@@ -895,89 +799,64 @@ function goBackToMasterCategoriesView()
 	MyAnswersDevice.showView($('#masterCategoriesView'), true);
 }
 
-function populateVisualCategories(masterCategory)
-{
-	MyAnswers.log('populateVisualCategories():');
-	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order,
-		list = siteConfig.categories,
-		categoriesBox = document.getElementById('categoriesBox'),
-		onCategoryClick = function(event) { showKeywordListView(this.getAttribute('data-id')); },
-		onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); },
-		onHyperlinkClick = function(event) { window.location.assign(this.getAttribute('data-hyperlink')); };
-	emptyDOMelement(categoriesBox);
-	for (var id in order)
-	{
-		if (order.hasOwnProperty(id))
-		{
-			if (list[order[id]].status != 'active') { continue; }
-			var item = document.createElement('img'),
-				$item = $(item);
-			$item.attr({
-				'class': 'v' + siteConfig.categories_config,
-				'src': list[order[id]].image,
-				'alt': list[order[id]].name
-			});
-			if (list[order[id]].keywords.length === 1) {
-				var keyword = siteConfig.keywords[list[order[id]].keywords[0]];
-				if (keyword.type === 'hyperlink' && keyword.hyperlink) {
-					$item.attr('data-hyperlink', keyword.hyperlink);
-					addEvent(item, 'click', onHyperlinkClick);
-				} else {
-					$item.attr('data-id', list[order[id]].keywords[0]);
-					addEvent(item, 'click', onKeywordClick);
-				}
+function populateItemListing(level) {
+	MyAnswers.log('populateItemListing():', arguments);
+	var config, order, list, $visualBox, $listBox,
+		onMasterCategoryClick = function(event) { showCategoriesView($(this).data('id')); },
+		onCategoryClick = function(event) { showKeywordListView($(this).data('id')); },
+		onKeywordClick = function(event) { gotoNextScreen($(this).data('id')); },
+		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
+		hookInteraction = function() {
+			if (siteConfig.keywords[$item.data('id')].type === 'hyperlink' && siteConfig.keywords[$item.data('id')].hyperlink) {
+				$item.data('hyperlink', list[order[o]].hyperlink);
+				$item.bind('click', onHyperlinkClick);
 			} else {
-				$item.attr('data-id', order[id]);
-				addEvent(item, 'click', onCategoryClick);
+				$item.bind('click', onKeywordClick);
 			}
-			$item.appendTo(categoriesBox);
-		}
+		},
+		hookCategory = function() {
+			if (siteConfig.categories[$item.data('id')].keywords.length === 1) {
+				$item.data('id', siteConfig.categories[$item.data('id')].keywords[0]);
+				hookInteraction();
+			} else {
+				$item.bind('click', onCategoryClick);
+			}
+		},
+		hookMasterCategory = function() {
+			if (siteConfig.master_categories[$item.data('id')].categories.length === 1) {
+				$item.data('id', siteConfig.master_categories[$item.data('id')].categories[0]);
+				hookCategory();
+			} else {
+				$item.bind('click', onMasterCategoryClick);
+			}
+		},
+		o, oLength,
+		$item, $label, $description,
+		category, columns, $images;
+	switch (level) {
+		case 'masterCategories':
+			config = siteConfig.master_categories_config;
+			order = siteConfig.master_categories_order;
+			list = siteConfig.master_categories;
+			$visualBox = $('#masterCategoriesBox');
+			$listBox = $('#masterCategoriesList');
+			break;
+		case 'categories':
+			config = siteConfig.categories_config;
+			order = hasMasterCategories ? siteConfig.master_categories[currentMasterCategory].categories : siteConfig.categories_order;
+			list = siteConfig.categories;
+			$visualBox = $('#categoriesBox');
+			$listBox = $('#categoriesList');
+			break;
+		case 'interactions':
+			config = siteConfig.keywords_config;
+			order = hasCategories ? siteConfig.categories[currentCategory].keywords : siteConfig.keywords_order;
+			list = siteConfig.keywords;
+			$visualBox = $('#keywordBox');
+			$listBox = $('#keywordList');
+			break;
 	}
-	if (siteConfig.categories_config != 'auto')
-	{
-		var columns;
-		switch (siteConfig.categories_config)
-		{
-			case "1col":
-				columns = 1;
-				break;
-			case "2col":
-				columns = 2;
-				break;
-			case "3col":
-				columns = 3;
-				break;
-			case "4col":
-				columns = 4;
-				break;
-		}
-		var images = $(categoriesBox).find('img');
-		if (siteConfig.categories_config === '1col')
-		{
-			images.first().addClass('roundedTopLeft roundedTopRight');
-			images.last().addClass('roundedBottomLeft roundedBottomRight');
-		}
-		else
-		{
-			images.first().addClass('roundedTopLeft');
-			if (images.size() >= columns)
-			{
-				images.eq(columns - 1).addClass('roundedTopRight');
-			}
-			if (images.size() % columns === 0)
-			{
-				images.eq(0 - columns).addClass('roundedBottomLeft');
-				images.last().addClass('roundedBottomRight');
-			}
-		}
-	}
-}
-
-function populateKeywordList(category) {
-	MyAnswers.log('populateKeywordList(): category=' +  category + ' hasCategories=' + hasCategories);
-	var columns;
-	switch (siteConfig.keywords_config)
-	{
+	switch (config) {
 		case "1col":
 			columns = 1;
 			break;
@@ -991,99 +870,79 @@ function populateKeywordList(category) {
 			columns = 4;
 			break;
 	}
-	var order = hasCategories ? siteConfig.categories[category].keywords : siteConfig.keywords_order,
-		list = siteConfig.keywords,
-		keywordList = document.getElementById('keywordList'),
-		keywordBox = document.getElementById('keywordBox');
-	emptyDOMelement(keywordList);
-	emptyDOMelement(keywordBox);
-	var onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); },
-		onHyperlinkClick = function(event) { window.location.assign(this.getAttribute('data-hyperlink')); };
-	for (var id in order)
-  {
-		if (order.hasOwnProperty(id))
-		{
-			if (list[order[id]].status != 'active') { continue; }
-			var item;
-			if (siteConfig.keywords_config != 'no' && (!hasCategories || siteConfig.categories[category].textKeywords != 'Y') && list[order[id]].image)
-			{
-				item = document.createElement('img');
-				item.setAttribute('class', 'v' + siteConfig.keywords_config);
-				item.setAttribute('src', list[order[id]].image);
-				item.setAttribute('alt', list[order[id]].name);
-				keywordBox.appendChild(item);
-			}
-			else
-			{
-				item = document.createElement('li');
-				var label = document.createElement('div');
-				label.setAttribute('class', 'label');
-				insertText(label, list[order[id]].name);
-				item.appendChild(label);
-				// htmlList += "<div class='nextArrow'></div>";
-				if (typeof(list[order[id]].description) == 'string')
-				{
-					var description = document.createElement('div');
-					description.setAttribute('class', 'description');
-					insertText(description, list[order[id]].description);
-					item.appendChild(description);
+	emptyDOMelement($visualBox[0]);
+	emptyDOMelement($listBox[0]);
+	oLength = order.length;
+	MyAnswers.dispatch.add(function() {
+		for (o = 0; o < oLength; o++) {
+			if (list[order[o]].status === 'active') {
+				if (config !== 'no' && list[order[o]].image) {
+					$item = $('<img />');
+					$item.attr({
+						'class': 'v' + config,
+						'src': list[order[o]].image,
+						'alt': list[order[o]].name
+					});
+					$visualBox.append($item);
+				} else {
+					$item = $('<li />');
+					$label = $('<div class="label" />');
+					$label.text(list[order[o]].name);
+					$item.append($label);
+					if (typeof list[order[o]].description === 'string') {
+						$description = $('<div class="description" />');
+						$description.text(list[order[o]].description);
+						$item.append($description);
+					}
+					$listBox.append($item);
 				}
-				keywordList.appendChild(item);
+
+				$item.data('id', order[o]);
+				if (level === 'interactions') {
+					hookInteraction();
+				} else if (level === 'categories') {
+					hookCategory();
+				} else if (level === 'masterCategories') {
+					hookMasterCategory();
+				}
 			}
-			if (list[order[id]].type === 'hyperlink' && list[order[id]].hyperlink) {
-				item.setAttribute('data-hyperlink', list[order[id]].hyperlink);
-				addEvent(item, 'click', onHyperlinkClick);
+		}
+	});
+	MyAnswers.dispatch.add(function() {
+		if ($visualBox.children().size() > 0) {
+			$images = $visualBox.find('img');
+			if (columns === 1) {
+				$images.first().addClass('topLeft topRight');
+				$images.last().addClass('bottomLeft bottomRight');
 			} else {
-				item.setAttribute('data-id', order[id]);
-				addEvent(item, 'click', onKeywordClick);
+				$images.first().addClass('topLeft');
+				if ($images.size() >= columns) {
+					$images.eq(columns - 1).addClass('topRight');
+				}
+				if ($images.size() % columns === 0) {
+					$images.eq(columns * -1).addClass('bottomLeft');
+					$images.last().addClass('bottomRight');
+				}
 			}
+			$visualBox.removeClass('hidden');
+		} else {
+			$visualBox.addClass('hidden');
 		}
-  }
-	keywordList = $(keywordList);
-	keywordBox = $(keywordBox);
-	if (keywordBox.children().size() > 0)
-	{
-		var images = keywordBox.find('img');
-		if (siteConfig.keywords_config === '1col')
-		{
-			images.first().addClass('roundedTopLeft roundedTopRight');
-			images.last().addClass('roundedBottomLeft roundedBottomRight');
+	});
+	MyAnswers.dispatch.add(function() {
+		if ($listBox.children().size() > 0) {
+			$listBox.removeClass('hidden');
+		} else {
+			$listBox.addClass('hidden');
 		}
-		else
-		{
-			images.first().addClass('roundedTopLeft');
-			if (images.size() >= columns)
-			{
-				images.eq(columns - 1).addClass('roundedTopRight');
-			}
-			if (images.size() % columns === 0)
-			{
-				images.eq(0 - columns).addClass('roundedBottomLeft');
-				images.last().addClass('roundedBottomRight');
-			}
-		}
-		keywordBox.removeClass('hidden');
-	}
-	else
-	{
-		keywordBox.addClass('hidden');
-	}
-	if (keywordList.children().size() > 0)
-	{
-		keywordList.removeClass('hidden');
-	}
-	else
-	{
-		keywordList.addClass('hidden');
-	}
+	});
 }
 
-function showCategoriesView(masterCategory)
-{
+function showCategoriesView(masterCategory) {
 	MyAnswers.log('showCategoriesView(): ' + masterCategory);
+	currentMasterCategory = masterCategory;
 	if (masterCategory && siteConfig.master_categories[masterCategory])
 	{
-		currentMasterCategory = masterCategory;
 		var masterConfig = siteConfig.master_categories[masterCategory];
 		if ($.type(siteConfig.default_category) === 'number' && $.type(masterConfig.categories[siteConfig.default_category]) === 'object')
 		{
@@ -1103,13 +962,12 @@ function showCategoriesView(masterCategory)
 	{
 		MyAnswersDevice.hideView();
 		setMainLabel(hasMasterCategories ? siteConfig.master_categories[masterCategory].name : 'Categories');
-		populateVisualCategories(masterCategory);
+		populateItemListing('categories');
 		MyAnswersDevice.showView($('#categoriesView'));
 	}
 	else
 	{
 		populateTextOnlyCategories(masterCategory);
-		populateKeywordList(currentCategory);
 		showKeywordListView();
 	}
 }
@@ -1149,7 +1007,7 @@ function restoreSessionProfile(token)
 			{
 				MyAnswers.log('GetSession success: no error messages, data: ' + data);
 				if (data.sessionProfile === null) { return; }
-				setAnswerSpaceItem('starsProfile', data.sessionProfile.stars);
+				MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
 				starsProfile = data.sessionProfile.stars;
 			}
 			if (typeof(data.errorMessage) === 'string')
@@ -1164,92 +1022,6 @@ function restoreSessionProfile(token)
 	});
 }
 
-function populateMasterCategories()
-{
-	MyAnswers.log('populateMasterCategories():');
-	var order = siteConfig.master_categories_order,
-		list = siteConfig.master_categories,
-		masterCategoriesBox = document.getElementById('masterCategoriesBox'),
-		onMasterCategoryClick = function(event) { showCategoriesView(this.getAttribute('data-id')); },
-		onCategoryClick = function(event) { showKeywordListView(this.getAttribute('data-id')); },
-		onKeywordClick = function(event) { gotoNextScreen(this.getAttribute('data-id')); },
-		onHyperlinkClick = function(event) { window.location.assign(this.getAttribute('data-hyperlink')); };
-	emptyDOMelement(masterCategoriesBox);
-	for (var id in order)
-	{
-		if (order.hasOwnProperty(id))
-		{
-			if (list[order[id]].status != 'active') { continue; }
-			var item = document.createElement('img'),
-				$item = $(item);
-			$item.attr({
-				'class': 'v' + siteConfig.master_categories_config,
-				'src': list[order[id]].image,
-				'alt': list[order[id]].name
-			});
-			if (list[order[id]].categories.length === 0) {
-				$item.attr('data-id', order[id]);
-			} else if (list[order[id]].categories.length === 1) {
-				var category = siteConfig.categories[list[order[id]].categories[0]];
-				if (category.keywords.length === 1) {
-					var keyword = siteConfig.keywords[category.keywords[0]];
-					if (keyword.type === 'hyperlink' && keyword.hyperlink) {
-						$item.attr('data-hyperlink', keyword.hyperlink);
-						addEvent(item, 'click', onHyperlinkClick);
-					} else {
-						$item.attr('data-id', category.keywords[0]);
-						addEvent(item, 'click', onKeywordClick);
-					}
-				} else {
-					$item.attr('data-id', list[order[id]].categories[0]);
-					addEvent(item, 'click', onCategoryClick);
-				}
-			} else {
-				$item.attr('data-id', order[id]);
-				addEvent(item, 'click', onMasterCategoryClick);
-			}
-			$item.appendTo(masterCategoriesBox);
-		}
-	}
-	if (siteConfig.master_categories_config != 'auto')
-	{
-		var columns;
-		switch (siteConfig.master_categories_config)
-		{
-			case "1col":
-				columns = 1;
-				break;
-			case "2col":
-				columns = 2;
-				break;
-			case "3col":
-				columns = 3;
-				break;
-			case "4col":
-				columns = 4;
-				break;
-		}
-		var images = $(masterCategoriesBox).find('img');
-		if (siteConfig.master_categories_config === '1col')
-		{
-			images.first().addClass('roundedTopLeft roundedTopRight');
-			images.last().addClass('roundedBottomLeft roundedBottomRight');
-		}
-		else
-		{
-			images.first().addClass('roundedTopLeft');
-			if (images.size() >= columns)
-			{
-				images.eq(columns - 1).addClass('roundedTopRight');
-			}
-			if (images.size() % columns === 0)
-			{
-				images.eq(0 - columns).addClass('roundedBottomLeft');
-				images.last().addClass('roundedBottomRight');
-			}
-		}
-	}
-}
 
 function displayAnswerSpace()
 {
@@ -1262,7 +1034,6 @@ function displayAnswerSpace()
 		}
 		else if (hasMasterCategories)
 		{
-			populateMasterCategories();
 			showMasterCategoriesView();
 		}
 		else if (hasVisualCategories)
@@ -1272,7 +1043,7 @@ function displayAnswerSpace()
 		else if (hasCategories)
 		{
 			currentCategory = siteConfig.default_category ? siteConfig.default_category : siteConfig.categories_order[0] ;
-			showKeywordListView(currentCategory);
+			showKeywordListView();
 		}
 		else
 		{
@@ -1291,47 +1062,32 @@ function processMoJOs(keyword)
 {
 	MyAnswers.log('processMoJOs(): keyword=' + keyword);
 	if (deviceVars.disableXSLT === true) { return; }
-	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php';
-	var fetchedMoJOs = { };
-	var ajaxComplete = function(xhr, xhrStatus, xhrOptions) {
-		if (!isAJAXError(xhrStatus) && xhr.status === 200)
-		{
-			var data = $.parseJSON(xhr.responseText);
-			if (data === null)
-			{
-				MyAnswers.log('GetSiteConfig error: null siteConfig');
-			}
-			else if (data.errorMessage)
-			{
-				MyAnswers.log('GetMoJO error: ' + xhrOptions.mojoName + ' ' + data.errorMessage);
-			}
-			else 
-			{
-				if (data.statusMessage !== 'NO UPDATES' && deviceVars.storageReady)
-				{
-					setAnswerSpaceItem('mojoMessage-' + xhrOptions.mojoName, data);
+	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php',
+		requestData,
+		fetchedMoJOs = { },
+		m, mojoName, mojoHash,
+		ajaxComplete = function(xhr, xhrStatus, xhrOptions) {
+			if (!isAJAXError(xhrStatus) && xhr.status === 200) {
+				var data = $.parseJSON(xhr.responseText);
+				if (data === null) {
+					MyAnswers.log('GetSiteConfig error: null siteConfig');
+				} else if (data.errorMessage) {
+					MyAnswers.log('GetMoJO error: ' + xhrOptions.mojoName + ' ' + data.errorMessage);
+				} else {
+					if (data.statusMessage !== 'NO UPDATES' && deviceVars.storageReady) {
+						MyAnswers.store.set('mojoMessage-' + xhrOptions.mojoName, xhr.responseText);
+					}
 				}
 			}
-		}
-	};
-	for (var m in siteConfig.mojoKeys)
-	{
-		if (siteConfig.mojoKeys.hasOwnProperty(m))
-		{
-			var mojoName = siteConfig.mojoKeys[m];
-			if (keyword !== undefined && keyword !== m) { continue; }
-			if (mojoName.substr(0,6) === 'stars:') { continue; }
-			if (fetchedMoJOs[mojoName] === true) { continue; }
-			var message = getAnswerSpaceItem('mojoMessage-' + mojoName);
-			if ($.type(message) === 'string') {
+		},
+		getCallback = function(key, message) {
+			if (typeof message  === 'string') {
 				message = $.parseJSON(message);
 			}
-			var mojoHash;
-			if ($.type(message) === 'object')
-			{
+			if ($.type(message) === 'object') {
 				mojoHash = message.mojoHash;
 			}
-			var requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + mojoName + (typeof(mojoHash) === 'string' ? "&sha1=" + mojoHash : "");
+			requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + mojoName + (typeof(mojoHash) === 'string' ? "&sha1=" + mojoHash : "");
 			ajaxQueueMoJO.add({
 				url: requestURL,
 				data: requestData,
@@ -1341,18 +1097,28 @@ function processMoJOs(keyword)
 				timeout: computeTimeout(500 * 1024)
 			});
 			fetchedMoJOs[mojoName] = true;
+		};
+	for (m in siteConfig.mojoKeys) {
+		if (siteConfig.mojoKeys.hasOwnProperty(m)) {
+			mojoName = siteConfig.mojoKeys[m];
+			if (keyword !== undefined && keyword !== m) {
+				$.noop();
+			} else if (mojoName.substr(0,6) === 'stars:' || fetchedMoJOs[mojoName] === true) {
+				$.noop();
+			} else {
+				MyAnswers.store.get('mojoMessage-' + mojoName, getCallback);
+			}
 		}
 	}
 }
 
-function processSiteConfig()
-{
+function processSiteConfig() {
 	MyAnswers.log('processSiteConfig():');
 	try {
-		hasMasterCategories = siteConfig.master_categories_config != 'no';
-		hasVisualCategories = siteConfig.categories_config != 'yes' && siteConfig.categories_config != 'no';
+		hasMasterCategories = siteConfig.master_categories_config !== 'no';
+		hasVisualCategories = siteConfig.categories_config !== 'yes' && siteConfig.categories_config !== 'no';
 		hasCategories = siteConfig.categories_config !== 'no' && ! $.isEmptyObject(siteConfig.categories);
-		answerSpaceOneKeyword = siteConfig.keywords.length == 1; // TODO this line accomplishes nothing, always false
+		answerSpaceOneKeyword = siteConfig.keywords.length === 1; // TODO this line accomplishes nothing, always false
 		if ($.type(MyAnswersDevice.processSiteConfig) === 'function') {
 			MyAnswersDevice.processSiteConfig();
 		}
@@ -1364,29 +1130,24 @@ function processSiteConfig()
 	}
 }
 
-function getSiteConfig()
-{
+function getSiteConfig() {
 	MyAnswers.log("getSiteConfig(): typeof(siteConfig) => " + $.type(siteConfig));
-	var fallbackToStorage = function(string) {
-		if (typeof(siteConfig) != 'undefined')
-		{
-			processSiteConfig();
-		}
-		else
-		{
-			alert(string);
-			window.location = '/demos';
-		}
-	};
-	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php';
-	var requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof(siteConfigHash) == 'string' ? "&sha1=" + siteConfigHash : "");
+	var requestUrl = siteVars.serverAppPath + '/util/GetSiteConfig.php',
+		requestData = 'device=' + deviceVars.device + '&answerSpace=' + siteVars.answerSpace + (typeof siteConfigHash === 'string' ? "&sha1=" + siteConfigHash : ""),
+		fallbackToStorage = function(string) {
+			if (typeof siteConfig !== 'undefined') {
+				processSiteConfig();
+			} else {
+				alert(string);
+				window.location = '/demos';
+			}
+		};
 	ajaxQueue.add({
 		url: requestUrl,
 		data: requestData,
 		dataType: 'json',
 		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200)
-			{
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
 				fallbackToStorage('Content unreachable, please try later.');
 				return;
 			}
@@ -1400,44 +1161,40 @@ function getSiteConfig()
 			 * possible values of statusMessage: 'NO KEYWORDS' 'NO UPDATES'
 			 */
 			var data = $.parseJSON(xhr.responseText);
-			if (data === null)
-			{
+			if (data === null) {
 				MyAnswers.log('GetSiteConfig error: null siteConfig');
 				fallbackToStorage('Content unreachable, please try again later.');
 				return;
 			}
-			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
-			{
-				MyAnswers.log('GetSiteConfig success: no status or error messages', data);
-				setAnswerSpaceItem('siteConfigMessage', data);
+			if (typeof data.errorMessage !== 'string' && typeof data.statusMessage !== 'string') {
+				MyAnswers.log('GetSiteConfig success: no status or error messages' + ' ' + $.type(data));
+				MyAnswers.store.set('siteConfigMessage', xhr.responseText);
 				siteConfig = data.siteConfig;
 				siteConfigHash = data.siteHash;
 				processSiteConfig();
-				MyAnswers.log('post-store siteConfig type:' + typeof(getAnswerSpaceItem('siteConfigMessage')));
+				MyAnswers.store.get('siteConfigMessage', function(key, value) {
+					MyAnswers.log('post-store siteConfig type: ' + $.type(value));
+				});
 				return;
 			}
-			if (typeof(data.statusMessage) === 'string')
-			{
-				switch (data.statusMessage)
-				{
+			if (typeof data.statusMessage === 'string') {
+				switch (data.statusMessage) {
 					case 'NO UPDATES':
-						MyAnswers.log("GetSiteConfig status: " + data.statusMessage, siteConfig);
+						MyAnswers.log("GetSiteConfig status: " + data.statusMessage + ' ' + $.type(siteConfig));
 						break;
 					case 'NO KEYWORDS':
-						setAnswerSpaceItem('siteConfigMessage', data);
+						MyAnswers.store.set('siteConfigMessage', xhr.responseText);
 						siteConfig = data.siteConfig;
 						siteConfigHash = data.siteHash;
-						MyAnswers.log("GetSiteConfig status: " + data.statusMessage, data);
+						MyAnswers.log("GetSiteConfig status: " + data.statusMessage + ' ' + $.type(data));
 						break;
 				}
 				processSiteConfig();
 				return;
 			}
-			if (typeof(data.errorMessage) === 'string')
-			{
+			if (typeof data.errorMessage === 'string') {
 				MyAnswers.log('GetSiteConfig error: ' + data.errorMessage);
-				switch (data.errorMessage)
-				{
+				switch (data.errorMessage) {
 					case 'NOT LOGGED IN':
 						alert('This answerSpace requires users to log in.');
 						displayAnswerSpace();
@@ -1463,16 +1220,18 @@ if (typeof(webappCache) !== "undefined")
   addEvent(webappCache, "error", errorCache);
 }
  
-function dumpLocalStorage() {
-  var numElements = localStorage.length;
-  for (var i = 0; i < numElements; i++)
-  {
-		var key, value;
-		key = localStorage.key(i);
-		value = localStorage.getItem(key);
-		value = value.length > 20 ? value.substring(0, 20) + "..." : value;
-		MyAnswers.log("dumpLocalStorage: key = " + key + "; value = " + value + ";");
-  }
+function dumpStorage(store) {
+	var getCallback = function(key, value) {
+			value = value.length > 20 ? value.substring(0, 20) + "..." : value;
+			MyAnswers.log('dumpStorage(): key=' + key + '; value=' + value);
+		},
+		keysCallback = function(keys) {
+			var k, kLength = keys.length;
+			for (k = 0; k < kLength; k++) {
+				store.get(keys[k], getCallback);
+			}
+		}; 
+	store.keys(keysCallback);
 }
 
 function goBackToHome()
@@ -1507,88 +1266,43 @@ function goBack()
 	}
 }
 
-function createParamsAndArgs(keywordID)
-{
-  var returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name);
-  var args = "";
-  if (!siteConfig.keywords[keywordID].input_config) { return returnValue; }
-  var argElements = $('#argsBox').find('input, textarea, select');
-  argElements.each(function(index, element) {
-		if (this.type && (this.type.toLowerCase() == "radio" || this.type.toLowerCase() == "checkbox") && !this.checked)
-		{
+function createParamsAndArgs(keywordID) {
+	var returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(siteConfig.keywords[keywordID].name),
+		args = "",
+		argElements = $('#argsBox').find('input, textarea, select');
+	if (!siteConfig.keywords[keywordID].input_config) { return returnValue; }
+	argElements.each(function(index, element) {
+		if (this.type && (this.type.toLowerCase() === "radio" || this.type.toLowerCase() === "checkbox") && !this.checked) {
 			$.noop(); // do nothing if not checked
-		}
-		else if (this.name)
-		{
+		} else if (this.name) {
 			args += "&" + this.name + "=" + (this.value ? encodeURIComponent(this.value) : "");
-		}
-		else if (this.id && this.id.match(/\d+/g))
-		{
+		} else if (this.id && this.id.match(/\d+/g)) {
 			args += "&args[" + this.id.match(/\d+/g) + "]=" + (this.value ? encodeURIComponent(this.value) : "");
 		}
-  });
-  if (args.length > 0)
-  {
-	 returnValue += encodeURI(args);
-  }
-	else if (argElements.size() == 1 && this.value)
-	{
+	});
+	if (args.length > 0) {
+		returnValue += encodeURI(args);
+	} else if (argElements.size() === 1 && this.value) {
 		returnValue += "&args=" + encodeURIComponent(this.value);
 	}
-  return returnValue;
+	return returnValue;
 }
 
-function setupForms(view)
-{
-	var hasHiddenColumns = false;
-	MyAnswers.dispatch.add(function() {
-		$('body').trigger('taskBegun');
-	});
-	// correct input elements that are too large in forms
-	MyAnswers.dispatch.add(function() {
-		var form = view.find('form'),
-			totalWidth = form.width(),
-			firstColumnWidth = $('.bForm-input').first().siblings().first().width(),
-			targetWidth = totalWidth - firstColumnWidth - 32;
-		form.find('td, select, input, textarea').each(function(index, element) {
-			if ($(element).width() > targetWidth)
-			{
-				$(element).width(targetWidth);
-			}
+function setupForms($view) {
+	// TODO: drop in call to new BlinkForms2 library here
+	if (!isCameraPresent()) {
+		MyAnswers.dispatch.add(function() {
+			$view.find('form input[onclick*="selectCamera"]').each(function(index, element) {
+				$(element).attr('disabled', 'disabled');
+			});
 		});
-	});
-	// correct result tables that are too wide
-	MyAnswers.dispatch.add(function() {
-		var results = view.find('.bForm-results');
-		results.find('.hidden').removeClass('hidden');
-		var columns = results.find('tr').first().find('td, th').size();
-		var attempts = 5;
-		while (results.width() > view.width() && columns >= 2 && attempts > 0)
-		{
-			results.find('td:nth-child(' + columns + '), th:nth-child(' + columns + ')').addClass('hidden');
-			hasHiddenColumns = true;
-			columns--;
-			attempts--;
-		}
-	});
-	MyAnswers.dispatch.add(function() {
-		$('body').trigger('taskComplete');
-	});
-	MyAnswers.dispatch.add(function() {
-		if (hasHiddenColumns) {
-			if (window.orientation == -90 || window.orientation == 90) {
-				alert('One or more columns has been hidden to fit this display.');
-			} else {
-				alert('Rotating your device may allow more columns to be displayed.');
-			}
-		}
-	});
+	}
 }
 
 function showAnswerView(keyword, argsString, reverse)
 {
 	MyAnswers.log('showAnswerView(): keyword=' + keyword + ' args=' + argsString);
-	var keywordID, keywordConfig, html, args,
+	var keywordID, keywordConfig, html, args, k,
 		answerBox = document.getElementById('answerBox'),
 		completeFn = function() {
 			MyAnswersDevice.showView($('#answerView'), reverse);
@@ -1601,9 +1315,9 @@ function showAnswerView(keyword, argsString, reverse)
 		keywordID = keyword;
 	} else {
 		keyword = decodeURIComponent(keyword);
-		for (var k in siteConfig.keywords) {
+		for (k in siteConfig.keywords) {
 			if (siteConfig.keywords.hasOwnProperty(k)) {
-				if (keyword.toUpperCase() == siteConfig.keywords[k].name.toUpperCase()) {
+				if (keyword.toUpperCase() === siteConfig.keywords[k].name.toUpperCase()) {
 					keywordID = k;
 					break;
 				}
@@ -1628,17 +1342,21 @@ function showAnswerView(keyword, argsString, reverse)
 		generateMojoAnswer(keywordConfig, args, answerBox);
 		completeFn();
 	} else if (reverse) {
-		html = getAnswerSpaceItem("answer___" + keywordID);
-		insertHTML(answerBox, html);
-		completeFn();
+		MyAnswers.store.get('answer___' + keywordID, function(key, html) {
+			insertHTML(answerBox, html);
+			completeFn();
+		});
 	} else {
 		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php',
 			requestData = 'answerSpace=' + siteVars.answerSpace + "&keyword=" + encodeURIComponent(keywordConfig.name) + '&_device=' + deviceVars.device,
 			fallbackToStorage = function() {
-				html = getAnswerSpaceItem("answer___" + keywordID);
-				if (html === undefined) {
-					html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
-				}
+				MyAnswers.store.get('answer___' + keywordID, function(key, html) {
+					if (typeof html === 'undefined') {
+						html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+					}
+					insertHTML(answerBox, html);
+					completeFn();
+				});
 			};
 		if (!$.isEmptyObject(args)) {
 			requestData += '&' + $.param(args);
@@ -1647,7 +1365,7 @@ function showAnswerView(keyword, argsString, reverse)
 			type: 'GET',
 			url: answerUrl,
 			data: requestData,
-			complete: function(xhr, textstatus) { // readystate == 4
+			complete: function(xhr, textstatus) { // readystate === 4
 				if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
 				else {
 					MyAnswers.log('GetAnswer: storing server response');
@@ -1656,7 +1374,7 @@ function showAnswerView(keyword, argsString, reverse)
 					if (blinkAnswerMessage !== null) {
 						processBlinkAnswerMessage(blinkAnswerMessage[1]);
 					}
-					setAnswerSpaceItem("answer___" + keywordID, html);
+					MyAnswers.store.set('answer___' + keywordID, html);
 				}
 				insertHTML(answerBox, html);
 				completeFn();
@@ -1668,36 +1386,28 @@ function showAnswerView(keyword, argsString, reverse)
 
 function getAnswer(event) { showAnswerView(currentKeyword); }
 
-function gotoNextScreen(keywordID)
-{
-  MyAnswers.log("gotoNextScreen(" + keywordID + ")");
-	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not
-											// code
-		for (var k in siteConfig.keywords)
-		{
-			if (siteConfig.keywords.hasOwnProperty(k))
-			{
-				if (keywordID.toUpperCase() == siteConfig.keywords[k].name.toUpperCase())
-				{
+function gotoNextScreen(keywordID) {
+	var k;
+	MyAnswers.log("gotoNextScreen(" + keywordID + ")");
+	if (!siteConfig.keywords[keywordID]) { // in case parameter is name not code
+		for (k in siteConfig.keywords) {
+			if (siteConfig.keywords.hasOwnProperty(k)) {
+				if (keywordID.toUpperCase() === siteConfig.keywords[k].name.toUpperCase()) {
 					keywordID = k;
 					break;
 				}
 			}
 		}
 	}
-	if (!siteConfig.keywords[keywordID])
-	{
+	if (!siteConfig.keywords[keywordID]) {
 		alert('Unable to locate keyword. It may be missing or protected.');
 		return;
 	}
-  if (siteConfig.keywords[keywordID].input_config)
-  {
+	if (siteConfig.keywords[keywordID].input_config) {
 		showKeywordView(keywordID);
-  }
-  else
-  {
+	} else {
 		showAnswerView(keywordID);
-  }
+	}
 }
 
 function showSecondLevelAnswerView(keyword, arg0, reverse) {
@@ -1733,40 +1443,26 @@ function goBackToKeywordView(keywordID)
 	setMainLabel(keyword.name);
 }
 
-function showKeywordListView(category)
-{
+function showKeywordListView(category) {
 	var mainLabel;
-	MyAnswers.log('showKeywordListView(): ' + category);
 	currentCategory = category;
-	if (hasCategories)
-	{
+	MyAnswers.log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
+	if (hasCategories) {
+		if (typeof prepareHistorySideBar === 'function') {
+			prepareHistorySideBar();
+		}
 		mainLabel = siteConfig.categories[category].name;
-	}
-	else if (hasMasterCategories && currentMasterCategory)
-	{
+	} else if (hasMasterCategories && currentMasterCategory) {
 		mainLabel = siteConfig.master_categories[currentMasterCategory].name;
-	}
-	else
-	{
+	} else {
 		mainLabel = "Keywords";
 	}
-	if (hasCategories && !hasVisualCategories)
-	{
+	if (hasCategories && !hasVisualCategories) {
 		populateTextOnlyCategories(currentMasterCategory);
-	}
-	if (hasCategories && typeof(prepareHistorySideBar) === 'function') {
-		prepareHistorySideBar();
-	}
-	if ((hasCategories && siteConfig.categories[currentCategory].keywords.length == 1) ||
-			(!hasCategories && siteConfig.keywords.length == 1))
-	{
-		MyAnswers.log('category only has one keyword, jumping to that keyword');
-		gotoNextScreen(siteConfig.categories[currentCategory].keywords[0]);
-		return;
 	}
 	addBackHistory("goBackToKeywordListView();");
 	MyAnswersDevice.hideView();
-	populateKeywordList(category);
+	populateItemListing('interactions');
 	MyAnswersDevice.showView($('#keywordListView'));
 	setMainLabel(mainLabel);
 }
@@ -1824,7 +1520,7 @@ function showNewLoginView(isActivating)
 		cache: "false",
 		url: loginUrl,
 		data: requestData,
-		complete: function(xhr, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate === 4
 			var newLoginBox = document.getElementById('newLoginBox');
 			if (isAJAXError(textstatus) && xhr.status !== 200)
 			{
@@ -1849,7 +1545,7 @@ function showActivateLoginView(event)
 		type: 'GET',
 		cache: "false",
 		url: loginUrl,
-		complete: function(xhr, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate === 4
 			var activateLoginBox = document.getElementById('activateLoginBox');
 			if (isAJAXError(textstatus) && xhr.status !== 200)
 			{
@@ -1898,7 +1594,7 @@ function updateLoginButtons() {
 		changeDOMclass(loginButton, { remove: 'hidden' });
 	}
 	if (currentCategory !== undefined) {
-		MyAnswers.dispatch.add(function() { populateKeywordList(currentCategory); });
+		populateItemListing('interactions');
 	}
 }
 
@@ -2000,116 +1696,114 @@ function goBackToTopLevelAnswerView(event)
 	MyAnswersDevice.showView($('#answerView'), true);
 }
 
-function queuePendingFormData(str, arrayAsString, method, uuid) {
-  if (getAnswerSpaceItem("_pendingFormDataString")) {
-    setAnswerSpaceItem("_pendingFormDataString", getAnswerSpaceItem("_pendingFormDataString") + ":" + str);
-    setAnswerSpaceItem("_pendingFormDataArrayAsString", getAnswerSpaceItem("_pendingFormDataArrayAsString") + ":" + encodeURIComponent(arrayAsString));
-    setAnswerSpaceItem("_pendingFormMethod", getAnswerSpaceItem("_pendingFormMethod") + ":" + encodeURIComponent(method));
-    setAnswerSpaceItem("_pendingFormUUID", getAnswerSpaceItem("_pendingFormUUID") + ":" + encodeURIComponent(uuid));
-  } else {
-    setAnswerSpaceItem("_pendingFormDataString", str);
-    setAnswerSpaceItem("_pendingFormDataArrayAsString", encodeURIComponent(arrayAsString));
-    setAnswerSpaceItem("_pendingFormMethod", encodeURIComponent(method));
-    setAnswerSpaceItem("_pendingFormUUID", encodeURIComponent(uuid));
-  }
+function queuePendingFormData(str, arrayAsString, method, uuid, callback) {
+	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+		if (typeof dataString === 'string') {
+			dataString += ':' + str;
+			MyAnswers.store.set('_pendingFormDataString', dataString);
+			MyAnswers.store.get('_pendingFormDataArrayAsString', function(key, dataArray) {
+				dataArray += ':' + encodeURIComponent(arrayAsString);
+				MyAnswers.store.set('_pendingFormDataArrayAsString', dataArray);
+			});
+			MyAnswers.store.get('_pendingFormMethod', function(key, dataMethod) {
+				dataMethod += ':' + encodeURIComponent(method);
+				MyAnswers.store.set('_pendingFormMethod', dataMethod);
+			});
+			MyAnswers.store.get('_pendingFormUUID', function(key, dataUUID) {
+				dataUUID += ':' + encodeURIComponent(uuid);
+				MyAnswers.store.set('_pendingFormUUID', dataUUID);
+			});
+		} else {
+			MyAnswers.store.set('_pendingFormDataString', str, function() {
+				MyAnswers.store.set('_pendingFormDataArrayAsString', encodeURIComponent(arrayAsString), function() {
+					MyAnswers.store.set('_pendingFormMethod', encodeURIComponent(method), function() {
+						MyAnswers.store.set('_pendingFormUUID', encodeURIComponent(uuid), function() {
+							callback();
+						});
+					});
+				});
+			});
+		}
+	});
 }
 
 function submitFormWithRetry() {    
-  var str;
-  var arr;
-  var method;
-  var uuid;
-  var localKeyword;
-
-  if (checkFormRetryData()) {
-	 MyAnswers.log("submitFormWithRetry(1a): ");
-	 var qx = headPendingFormData();
-	 str = qx[0];
-	 arr = qx[1].split("/");
-	 method = qx[2];
-	 uuid = qx[3];
-  } else {
-	 MyAnswers.log("submitFormWithRetry(1b): ");
-	 return;
-  }
-  
-  var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?';
-  if (arr[0] == "..") {
-	 answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(arr[1]) + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
-	 localKeyword = arr[1];
-  } else {
-	 answerUrl += "answerSpace=" + arr[1] + "&keyword=" + encodeURIComponent(arr[2]) + '&_device=' + deviceVars.device;
-	 localKeyword = arr[2];
-  }
-
-	var currentBox = $('.view:visible > .box').first();
-	var requestData;
-	if (method == 'get')
-	{
-		method = 'GET';
-		requestData = '&' + str;
-	}
-	else
-	{
-		method = 'POST';
-		requestData = str;
-	}
-
-	$('body').trigger('taskBegun');
-	ajaxQueue.add({
-		type: method,
-		cache: 'false',
-		url: answerUrl,
-		data: requestData,
-		complete: function(xhr, textstatus) { // readystate == 4
-			var html;
-			if (isAJAXError(textstatus) || xhr.status !== 200)
-			{
-				html = 'Unable to contact server. Your submission has been stored for future attempts.';
-			}
-			else
-			{
-				delHeadPendingFormData();
-				html = xhr.responseText;
-			}
-			MyAnswersDevice.hideView();
-			if (currentBox.attr('id').indexOf('answerBox') !== -1)
-			{
-				insertHTML(currentBox[0], html);
-				currentBox.show('slide', { direction: 'right'}, 300);
-				MyAnswersDevice.showView(currentBox.closest('.view'));
-				if (currentBox.attr('id') === 'answerBox')
-				{
-					MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox']); });
+	var str, arr, method, uuid,
+		localKeyword;
+	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+		if (typeof dataString === 'string') {
+			headPendingFormData(function(qx) {
+				str = qx[0];
+				arr = qx[1].split("/");
+				method = qx[2];
+				uuid = qx[3];
+				var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?',
+					currentBox = $('.view:visible > .box').first(),
+					requestData;
+				if (arr[0] === '..') {
+					answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(arr[1]) + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+					localKeyword = arr[1];
+				} else {
+					answerUrl += "answerSpace=" + arr[1] + "&keyword=" + encodeURIComponent(arr[2]) + '&_device=' + deviceVars.device;
+					localKeyword = arr[2];
 				}
-				else if (currentBox.attr('id') === 'answerBox2')
-				{
-					MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox2']); });
+				if (method === 'get') {
+					method = 'GET';
+					requestData = '&' + str;
+				} else {
+					method = 'POST';
+					requestData = str;
 				}
-				else
-				{
-					// potentially unnecessary to have this here
-					MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]); });
-				}
-			}
-			else
-			{
-				var answerBox2 = document.getElementById('answerBox2');
-				addBackHistory("");
-				insertHTML(answerBox2, html);
-				MyAnswersDevice.showView($('#answerView2'));
-				MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
-			}
-			$('body').trigger('taskComplete');
-		},
-		timeout: computeTimeout(answerUrl.length + requestData.length)
+	
+				$('body').trigger('taskBegun');
+				ajaxQueue.add({
+					type: method,
+					cache: 'false',
+					url: answerUrl,
+					data: requestData,
+					complete: function(xhr, textstatus) { // readystate === 4
+						var html;
+						if (isAJAXError(textstatus) || xhr.status !== 200) {
+							html = 'Unable to contact server. Your submission has been stored for future attempts.';
+						} else {
+							delHeadPendingFormData();
+							html = xhr.responseText;
+						}
+						MyAnswersDevice.hideView();
+						if (currentBox.attr('id').indexOf('answerBox') !== -1) {
+							insertHTML(currentBox[0], html);
+							currentBox.show('slide', { direction: 'right'}, 300);
+							MyAnswersDevice.showView(currentBox.closest('.view'));
+							if (currentBox.attr('id') === 'answerBox') {
+								MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox']); });
+							} else if (currentBox.attr('id') === 'answerBox2') {
+								MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox2']); });
+							} else {
+								// potentially unnecessary to have this here
+								MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]); });
+							}
+						} else {
+							var answerBox2 = document.getElementById('answerBox2');
+							addBackHistory("");
+							insertHTML(answerBox2, html);
+							MyAnswersDevice.showView($('#answerView2'));
+							MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
+						}
+						$('body').trigger('taskComplete');
+					},
+					timeout: computeTimeout(answerUrl.length + requestData.length)
+				});
+			});
+		} else {
+			MyAnswers.log('submitFormWithRetry(): error: no forms in the queue');
+		}
 	});
 }
 
 function submitForm() {
-  var str = '';
-	var form = $('.view:visible').find('form').first();
-  form.find('input, textarea, select').each(function(index, element) {
+	var str = '',
+		form = $('.view:visible').find('form').first();
+	form.find('input, textarea, select').each(function(index, element) {
     if (element.name)
     {
       if (element.type && (element.type.toLowerCase() === 'radio' || element.type.toLowerCase() === 'checkbox') && element.checked === false)
@@ -2128,9 +1822,8 @@ function submitForm() {
         }
         else
         {
-          if (element.type && (element.type.toLowerCase() == "button"))
-          {
-            if ((element.value !== "Gallery") && (element.value != "Camera"))
+          if (element.type && (element.type.toLowerCase() === 'button')) {
+            if ((element.value !== "Gallery") && (element.value !== "Camera"))
             { 
               str += "&" + element.name + "=" + element.value;
             }
@@ -2154,45 +1847,39 @@ function submitForm() {
   // var str = $('form').first().find('input, textarea, select').serialize();
   MyAnswers.log("submitForm(2): " + document.forms[0].action);
   // MyAnswers.log("submitForm(2a): " + str);
-  queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid());
-  submitFormWithRetry();
+  queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
 }
 
 function submitAction(keyword, action) {
 	MyAnswers.log('submitAction(): keyword=' + keyword + ' action=' + action);
-	var currentBox = $('.view:visible > .box');
-	var form = currentBox.find('form').first();
-	var sessionInput = form.find('input[name=blink_session_data]');
-	var formData = (action == 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize();
-	var method = form.attr('method');
-	if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile))
-	{
-		var serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
+	var currentBox = $('.view:visible > .box'),
+		form = currentBox.find('form').first(),
+		sessionInput = form.find('input[name=blink_session_data]'),
+		formData = (action === 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize(),
+		method = form.attr('method'),
+		requestData, requestUrl,
+		serializedProfile;
+	if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile)) {
+		serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
 		formData = formData.replace('blink_session_data=', 'blink_session_data=' + encodeURIComponent(serializedProfile));
 		method = 'post';
 	}
-
-	var requestData, requestUrl;
-	if (method == 'get')
-	{
+	if (method === 'get') {
 		method = 'GET';
 		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
 		requestData = '&' + formData + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
-	}
-	else
-	{
+	} else {
 		method = 'POST';
 		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 		requestData = formData;
 	}
-
 	$('body').trigger('taskBegun');
 	ajaxQueue.add({
 		type: method,
 		cache: 'false',
 		url: requestUrl,
 		data: requestData,
-		complete: function(xhr, textstatus) { // readystate == 4
+		complete: function(xhr, textstatus) { // readystate === 4
 			$('body').trigger('taskComplete');
 			var html;
 			if (isAJAXError(textstatus) || xhr.status !== 200)
@@ -2235,43 +1922,38 @@ function submitAction(keyword, action) {
 	});
 }
 
-function isLocationAvailable()
-{
-	if (typeof(navigator.geolocation) != 'undefined')
-	{
+function isLocationAvailable() {
+	if (typeof navigator.geolocation !== 'undefined') {
 		return true;
-	}
-	else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
-	{
+	} else if (typeof google  !== 'undefined' && typeof google.gears !== 'undefined') {
 		return google.gears.factory.getPermission(siteVars.answerSpace, 'See your location marked on maps.');
 	}
 	return false;
 }
 
-function startTrackingLocation()
-{
+function startTrackingLocation() {
 	if (locationTracker === null)
 	{
-		if (typeof(navigator.geolocation) != 'undefined')
+		if (typeof(navigator.geolocation) !== 'undefined')
 		{
 			navigator.geolocation.watchPosition(function(position) {
-				if (latitude != position.coords.latitude || longitude != position.coords.longitude)
+				if (latitude !== position.coords.latitude || longitude !== position.coords.longitude)
 				{
 					latitude = position.coords.latitude;
 					longitude = position.coords.longitude;
-					MyAnswers.log('Location Event: Updated', latitude, longitude);
+					MyAnswers.log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
 					$('body').trigger('locationUpdated');
 				}
 			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
 		}
-		else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
+		else if (typeof(google) !== 'undefined' && typeof(google.gears) !== 'undefined')
 		{
 			google.gears.factory.create('beta.geolocation').watchPosition(function(position) {
-				if (latitude != position.latitude || longitude != position.longitude)
+				if (latitude !== position.latitude || longitude !== position.longitude)
 				{
 					latitude = position.latitude;
 					longitude = position.longitude;
-					MyAnswers.log('Location Event: Updated', latitude, longitude);
+					MyAnswers.log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
 					$('body').trigger('locationUpdated');
 				}
 			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
@@ -2283,11 +1965,11 @@ function stopTrackingLocation()
 {
 	if (locationTracker !== null)
 	{
-		if (typeof(navigator.geolocation) != 'undefined')
+		if (typeof(navigator.geolocation) !== 'undefined')
 		{
 			navigator.geolocation.clearWatch(locationTracker);
 		}
-		else if (typeof(google) != 'undefined' && typeof(google.gears) != 'undefined')
+		else if (typeof(google) !== 'undefined' && typeof(google.gears) !== 'undefined')
 		{
 			google.gears.factory.create('beta.geolocation').clearWatch(locationTracker);
 		}
@@ -2297,7 +1979,7 @@ function stopTrackingLocation()
 
 function setupGoogleMapsBasic(element, data, map)
 {
-	MyAnswers.log('Google Maps Basic: initialising', data);
+	MyAnswers.log('Google Maps Basic: initialising ' + $.type(data));
 	$('body').trigger('taskBegun');
 	var location = new google.maps.LatLng(data.latitude, data.longitude);
 	var options = {
@@ -2340,7 +2022,7 @@ function setupGoogleMapsBasic(element, data, map)
 
 function setupGoogleMapsDirections(element, data, map)
 {
-	MyAnswers.log('Google Maps Directions: initialising', data);
+	MyAnswers.log('Google Maps Directions: initialising ' + $.type(data));
 	var origin, destination, language, region, geocoder;
 	if (typeof(data['origin-address']) === 'string')
 	{
@@ -2368,7 +2050,7 @@ function setupGoogleMapsDirections(element, data, map)
 	}
 	if (origin === undefined && destination !== undefined)
 	{
-		MyAnswers.log('Google Maps Directions: missing origin', destination);
+		MyAnswers.log('Google Maps Directions: missing origin, ' + destination);
 		if (isLocationAvailable())
 		{
 			insertText($(element).next('.googledirections')[0], 'Attempting to use your most recent location as the origin.');
@@ -2396,7 +2078,7 @@ function setupGoogleMapsDirections(element, data, map)
 					region: region,
 					language: language
 				}, function(result, status) {
-				if (status != google.maps.GeocoderStatus.OK)
+				if (status !== google.maps.GeocoderStatus.OK)
 				{
 					insertText($(element).next('.googledirections')[0], 'Missing origin and unable to locate the destination.');
 				}
@@ -2413,7 +2095,7 @@ function setupGoogleMapsDirections(element, data, map)
 	}
 	if (origin !== undefined && destination === undefined)
 	{
-		MyAnswers.log('Google Maps Directions: missing destination', origin);
+		MyAnswers.log('Google Maps Directions: missing destination ' + origin);
 		if (isLocationAvailable())
 		{
 			insertText($(element).next('.googledirections')[0], 'Attempting to use your most recent location as the destination.');
@@ -2441,7 +2123,7 @@ function setupGoogleMapsDirections(element, data, map)
 					region: region,
 					language: language
 				}, function(result, status) {
-				if (status != google.maps.GeocoderStatus.OK)
+				if (status !== google.maps.GeocoderStatus.OK)
 				{
 					insertText($(element).next('.googledirections')[0], 'Missing destination and unable to locate the origin.');
 				}
@@ -2456,7 +2138,7 @@ function setupGoogleMapsDirections(element, data, map)
 			return;
 		}
 	}
-	MyAnswers.log('Google Maps Directions: both origin and destination provided', origin, destination);
+	MyAnswers.log('Google Maps Directions: both origin and destination provided, ' + origin + ', ' + destination);
 	$('body').trigger('taskBegun');
 	var directionsOptions = {
 		origin: origin,
@@ -2475,7 +2157,7 @@ function setupGoogleMapsDirections(element, data, map)
 	directionsDisplay.setPanel($(element).next('.googledirections')[0]);
 	var directionsService = new google.maps.DirectionsService();
 	directionsService.route(directionsOptions, function(result, status) {
-		if (status == google.maps.DirectionsStatus.OK)
+		if (status === google.maps.DirectionsStatus.OK)
 		{
 			directionsDisplay.setDirections(result);
 		}
@@ -2556,8 +2238,8 @@ function onBrowserReady() {
 		// The following variables are initialised here so the JS can be tested
 		// within Safari
 		//
-		MyAnswers.cameraPresent = false;
-		MyAnswers.multiTasking = false;
+//		MyAnswers.cameraPresent = false;
+//		MyAnswers.multiTasking = false;
 		//
 		// End of device overriden variables
 		//
@@ -2582,12 +2264,12 @@ function onBrowserReady() {
 				 * phpName; MyAnswers.log(string + ' ' + e.position + ' ' +
 				 * e.total + ' ' + xhr + ' ' + options); }
 				 */
-				MyAnswers.log('AJAX start: ', options.url);
+				MyAnswers.log('AJAX start: ' + options.url);
 		});
 		$(document).ajaxSuccess(function(event, xhr, options) {
-				var status = typeof(xhr) === 'undefined' ? null : xhr.status;
-				var readyState = typeof(xhr) === 'undefined' ? 4 : xhr.readyState;
-				MyAnswers.log('AJAX complete: ', options.url, readyState, status, xhr, options);
+				var status = typeof(xhr) === 'undefined' ? null : xhr.status,
+					readyState = typeof(xhr) === 'undefined' ? 4 : xhr.readyState;
+				MyAnswers.log('AJAX complete: ' + options.url + ' ' + readyState + ' ' + status);
 		});
 /*
  * $(document).ajaxError(function(event, xhr, options, error) {
@@ -2632,29 +2314,28 @@ function loaded()
  * if (siteVars.answerSpace) {
  */
 		backStack = [];
-		if (getAnswerSpaceItem('answerSpace') == 'undefined' || getAnswerSpaceItem('answerSpace') != siteVars.answerSpace) { clearStorage(); }
-		setAnswerSpaceItem('answerSpace', siteVars.answerSpace);
-		var message = getAnswerSpaceItem('siteConfigMessage');
-		if (typeof(message) === 'string')
-		{
-			message = $.parseJSON(message);
-		}
-		if (typeof(message) === 'object')
-		{
-			siteConfig = message.siteConfig;
-			siteConfigHash = message.siteHash;
-		}
-		starsProfile = getAnswerSpaceItem('starsProfile');
-		if (typeof(starsProfile) === 'string')
-		{
-			starsProfile = $.parseJSON(starsProfile);
-		}
-		if (typeof(starsProfile) !== 'object')
-		{
-			starsProfile = { };
-		}
-		getSiteConfig();
-		requestLoginStatus();
+		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
+		MyAnswers.store.get('siteConfigMessage', function(key, message) {
+			if (typeof message === 'string') {
+				message = $.parseJSON(message);
+			}
+			if ($.type(message) === 'object') {
+				siteConfig = message.siteConfig;
+				siteConfigHash = message.siteHash;
+			}
+			getSiteConfig();
+			requestLoginStatus();
+		});
+		MyAnswers.store.get('starsProfile', function(key, stars) {
+			if (typeof stars === 'string') {
+				stars = $.parseJSON(stars);
+			}
+			if ($.type(stars) === 'object') {
+				starsProfile = stars;
+			} else {
+				starsProfile = { };
+			}
+		});
 	} catch(e) {
 		MyAnswers.log("Exception loaded: ");
 		MyAnswers.log(e);
@@ -2674,7 +2355,7 @@ function init_main() {
   lastPictureTaken.image = new Hashtable();
   lastPictureTaken.currentName = null;
 
-	jQuery.fx.interval = 25; // default is 13, increasing this to be kinder on devices
+	jQuery.fx.interval = 29; // default is 13, increasing this to be kinder on devices
 	
 	lowestTransferRateConst = 1000 / (4800 / 8);
 	maxTransactionTimeout = 180 * 1000;
@@ -2693,43 +2374,36 @@ function init_main() {
 		$(window).bind('scroll', onScroll);
 		$(window).trigger('scroll');
 	}
-		
+
+	if (typeof window.openDatabase !== 'undefined') {
+		MyAnswers.log('MyAnswersStorage(): websqldatabase ' + siteVars.answerSpace + ' jstore');
+		MyAnswers.store = new MyAnswersStorage('websqldatabase', siteVars.answerSpace, 'jstore');
+	} else if (typeof window.localStorage !== 'undefined') {
+		MyAnswers.log('MyAnswersStorage(): localstorage ' + siteVars.answerSpace + ' jstore');
+		MyAnswers.store = new MyAnswersStorage('localstorage', siteVars.answerSpace, 'jstore');
+	} else if (typeof window.sessionStorage !== 'undefined') {
+		MyAnswers.log('MyAnswersStorage(): sessionstorage ' + siteVars.answerSpace + ' jstore');
+		MyAnswers.store = new MyAnswersStorage('sessionstorage', siteVars.answerSpace, 'jstore');
+	} else {
+		MyAnswers.log('MyAnswersStorage: no compatible local storage mechanism available');
+		MyAnswers.log('MyAnswersStorage(): memory ' + siteVars.answerSpace + ' jstore');
+		MyAnswers.store = new MyAnswersStorage('memory', siteVars.answerSpace, 'jstore');
+	}
+	
+	MyAnswers.store.ready(function() {
+//		dumpStorage(MyAnswers.store);
+		loaded();
+		MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
+	});
+
+	MyAnswers.activityIndicator = document.getElementById('activityIndicator');
+	MyAnswers.activityIndicatorTimer = null;
+
 	$('body').bind('answerDownloaded', onAnswerDownloaded);
 	$('body').bind('transitionComplete', onTransitionComplete);
-
-	// dumpLocalStorage();
-//
-// Do fiddle faddle to get jStore initialised
-//
-	jStore.init(siteVars.answerSpace, {});
-	jStore.error(function(e) { MyAnswers.log('jStore: ' + e); });
-
-	deviceVars.storageReady = false;
-  var storageEngineCheck = setInterval(function() {
-    MyAnswers.log("jStore: storageEngineCheck");
-    if (deviceVars.storageReady === true) {
-      MyAnswers.log('jStore storageReady: ' + deviceVars.storageReady);
-      setTimeout(function() { 
-        try {
-          MyAnswers.log('jStore storageReady: running loaded(): ' + jStore.activeEngine().jri);
-          loaded(); 
-          MyAnswers.log('jStore storageReady: loaded() returned');
-        } catch(e) {
-          MyAnswers.log("jStore storageReady exception: ");
-          MyAnswers.log(e);
-        }
-      }, 1000);
-      clearInterval(storageEngineCheck);
-    }
-    deviceVars.storageReady = jStore.activeEngine().isReady;
-  }, 100);	
-  
-  MyAnswers.activityIndicator = document.getElementById('activityIndicator');
-  MyAnswers.activityIndicatorTimer = null;
-  
-  $('body').bind('taskBegun', onTaskBegun);
-  $('body').bind('taskComplete', onTaskComplete);
-  $('body').bind('siteBootComplete', onSiteBootComplete);
+	$('body').bind('taskBegun', onTaskBegun);
+	$('body').bind('taskComplete', onTaskComplete);
+	$('body').bind('siteBootComplete', onSiteBootComplete);
 }
 
 function onBodyLoad() {
@@ -2757,21 +2431,21 @@ if (!addEvent(window, "load", onBodyLoad)) {
 }
 
 (function(window, document, undefined) {
-  var waitJSLoaded = setInterval(function() {
-    if (MyAnswers.main_Loaded && MyAnswers.device_Loaded && MyAnswers.browserReady_Loaded) {
-      clearInterval(waitJSLoaded);
-      MyAnswers.log("onBrowserReady: running JS init");
-      try {
+	var waitJSLoaded = setInterval(function() {
+		if (MyAnswers.main_Loaded && MyAnswers.device_Loaded && MyAnswers.browserReady_Loaded) {
+			clearInterval(waitJSLoaded);
+			MyAnswers.log("onBrowserReady: running JS init");
+			try {
 				init_device();
 				init_main();
-      } catch(e) {
+			} catch(e) {
 				MyAnswers.log("onBrowserReady: Exception");
 				MyAnswers.log(e);
-      }
+			}
 			MyAnswers.log("User-Agent: " + navigator.userAgent);
-	  }
-  }, 500);
-})(window, window.document);
+		}
+	}, 500);
+}(window, window.document));
 
 // END APPLICATION INIT
 

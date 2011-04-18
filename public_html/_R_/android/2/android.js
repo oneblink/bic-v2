@@ -1,5 +1,31 @@
 var hashStack;
 
+function onHashChange(event) {
+	var hashState = $.bbq.getState(),
+		hashString = JSON.stringify(hashState);
+	if (location.hash.length > 1 && hashStack.indexOf(hashString) === -1) {
+		hashStack.push(hashString);
+	} else if (hashStack.length === 0 || location.hash.length <= 1) {
+		goBackToHome();
+	} else if (hashStack[hashStack.length - 2] === hashString) {
+		hashStack.pop();
+		goBack();
+	}
+}
+
+/*
+ using jQuery BBQ, courtesy of Ben Alman
+ storing state in the hash
+ m = current master category
+ c = current category
+ k = current keyword
+ a = current answer
+ a2k = keyword for second level answer
+ a2a = argument for second level answer
+ l = Activate | New | Login
+ h = Help
+*/
+
 // ** device-specific initialisation of variables and flags **
 
 function init_device()
@@ -21,8 +47,8 @@ function init_device()
 	hashStack = [];
 //	deviceVars.disableXSLT = true;
 
-	deviceVars.headerHeight = $('header').height();
 	deviceVars.progressDialogTop = Math.floor(screen.height / 2);
+	deviceVars.navBar = $('.navBar');
 
 //	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 //	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
@@ -68,22 +94,23 @@ function onDeviceReady() {
 function populateTextOnlyCategories(masterCategory)
 {
 	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
-	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order;
-	var list = siteConfig.categories;
-	var select = document.createElement('select');
+	var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order,
+		list = siteConfig.categories,
+		select = document.createElement('select'),
+		id, option, categorySelector;
 	select.setAttribute('id', 'categoriesList');
-	for (var id in order)
-	{
-		if (list[order[id]].status != 'active') { continue; }
-		var option = document.createElement('option');
-		option.setAttribute('value', order[id]);
-		if (order[id] == currentCategory) {
-			option.setAttribute('selected', 'true');
+	for (id in order) {
+		if (list[order[id]].status === 'active') {
+			option = document.createElement('option');
+			option.setAttribute('value', order[id]);
+			if (order[id] === currentCategory) {
+				option.setAttribute('selected', 'true');
+			}
+			option.appendChild(document.createTextNode(list[order[id]].name));
+			select.appendChild(option);
 		}
-		option.appendChild(document.createTextNode(list[order[id]].name));
-		select.appendChild(option);
 	}
-	var categorySelector = document.getElementById('categorySelector');
+	categorySelector = document.getElementById('categorySelector');
 	emptyDOMelement(categorySelector);
 	categorySelector.appendChild(select);
 	$('#categorySelectorArea').removeClass('hidden');
@@ -215,7 +242,7 @@ function populateTextOnlyCategories(masterCategory)
 		return MyAnswersDevice;
 	};
 	global.MyAnswersDevice = new MyAnswersDevice();
-})(window, (function() { return this || (1,eval)('this'); })());
+}(window, (function() { return this || (1,eval)('this'); }())));
 // window is only passed because hideLocationBar function needs it
 
 /*
@@ -224,72 +251,22 @@ function populateTextOnlyCategories(masterCategory)
 */
 
 function updatePartCSS(element, property, value, valueFormat) {
-	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
+	var formattedValue = String(value).replace(/(\d+)/, valueFormat);
 	$(element).css(property, formattedValue);
 }
 
 function onScroll() {
-	var headerBottom = $('.header').height();
-	var scrollTop = $(window).scrollTop();
+	var headerBottom = $('header').height(),
+		scrollTop = $(window).scrollTop(),
+		offset;
 	if (scrollTop > headerBottom) {
-		var offset = scrollTop - headerBottom;
-		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
+		offset = scrollTop - headerBottom;
+		updatePartCSS(deviceVars.navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
 	} else {
-		updatePartCSS(navBoxHeader, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
+		updatePartCSS(deviceVars.navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (deviceVars.progressDialogTop + scrollTop), deviceVars.scrollValue);
 }
-
-function showUnreadBulletins()
-{
-	var bulletins = $.jStore.get('bulletins') || new Array();
-	$('#bulletins').find('.bulletin').each(function(index, element) {
-		var bulletin = $(element);
-		var name = bulletin.attr('id');
-		if (bulletins.indexOf(name) == -1)
-			bulletin.show('slide', 300).removeClass('hidden');
-	});
-}
-
-function dismissBulletin()
-{
-	var bulletin = $(this);
-	bulletin.hide('slide', 300);
-	var name = bulletin.attr('id');
-	var bulletins = $.jStore.get('bulletins') || new Array();
-	if (typeof(bulletins) == 'string')
-		bulletins = JSON.parse(bulletins);
-	bulletins.push(name);
-	$.jStore.set('bulletins', JSON.stringify(bulletins));
-	return false;
-}
-
-function onHashChange(event)
-{
-	var hashState = $.bbq.getState();
-	var hashString = JSON.stringify(hashState);
-	if (location.hash.length > 1 && hashStack.indexOf(hashString) == -1) {
-		hashStack.push(hashString);
-	} else if (hashStack.length == 0 || location.hash.length <= 1) {
-		goBackToHome();
-	} else if (hashStack[hashStack.length - 2] == hashString) {
-		hashStack.pop();
-		goBack();
-	}
-}
-
-/*
- using jQuery BBQ, courtesy of Ben Alman
- storing state in the hash
- m = current master category
- c = current category
- k = current keyword
- a = current answer
- a2k = keyword for second level answer
- a2a = argument for second level answer
- l = Activate | New | Login
- h = Help
-*/
 
 (function() {
   var timer = setInterval(function() {
@@ -302,4 +279,4 @@ function onHashChange(event)
 			}
 		}
   }, 100);
-})();
+}());
