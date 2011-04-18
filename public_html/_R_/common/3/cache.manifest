@@ -4,6 +4,7 @@ CACHE MANIFEST
 CACHE:
 /_R_/common/1/common.css
 /_R_/common/1/common.min.js
+/_R_/common/1/jquery-1.5.2.min.js
 /_R_/common/1/main.js
 /_R_/common/1/ajaxslt-0.8.1-r61.min.js
 /_R_/common/1/webworker.js
