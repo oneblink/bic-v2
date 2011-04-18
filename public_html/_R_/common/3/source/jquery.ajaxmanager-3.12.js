@@ -2,12 +2,13 @@
  * project-site: http://plugins.jquery.com/project/AjaxManager
  * repository: http://github.com/aFarkas/Ajaxmanager
  * @author Alexander Farkas
- * @version 3.05
+ * @version 3.12
  * Copyright 2010, Alexander Farkas
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 
 (function($){
+	"use strict";
 	var managed = {},
 		cache   = {}
 	;
@@ -39,14 +40,19 @@
 		this.name = name;
 		this.qName = name;
 		
-		this.opts = $.extend({}, $.ajaxSettings, $.manageAjax.defaults, opts);
+		this.opts = $.extend({}, $.manageAjax.defaults, opts);
 		if(opts && opts.queue && opts.queue !== true && typeof opts.queue === 'string' && opts.queue !== 'clear'){
 			this.qName = opts.queue;
 		}
 	};
 	
 	$.manageAjax._manager.prototype = {
-		add: function(o){
+		add: function(url, o){
+			if(typeof url == 'object'){
+				o = url;
+			} else if(typeof url == 'string'){
+				o = $.extend(o || {}, {url: url});
+			}
 			o = $.extend({}, this.opts, o);
 			
 			var origCom		= o.complete || $.noop,
@@ -58,8 +64,15 @@
 				that 		= this,
 				ajaxFn 		= this._createAjax(xhrID, o, origSuc, origCom)
 			;
-			
-			if(this.requests[xhrID] && o.preventDoubbleRequests){
+			if(o.preventDoubleRequests && o.queueDuplicateRequests){
+				if(o.preventDoubleRequests){
+					o.queueDuplicateRequests = false;
+				}
+				setTimeout(function(){
+					throw("preventDoubleRequests and queueDuplicateRequests can't be both true");
+				}, 0);
+			}
+			if(this.requests[xhrID] && o.preventDoubleRequests){
 				return;
 			}
 			ajaxFn.xhrID = xhrID;
@@ -106,9 +119,9 @@
 				$(document).clearQueue(this.qName);
 			}
 			
-			if(o.queue){
+			if(o.queue || (o.queueDuplicateRequests && this.requests[xhrID])){
 				$.queue(document, this.qName, ajaxFn);
-				if(this.inProgress < o.maxRequests){
+				if(this.inProgress < o.maxRequests && (!this.requests[xhrID] || !o.queueDuplicateRequests)){
 					$.dequeue(document, this.qName);
 				}
 				return xhrID;
@@ -124,12 +137,17 @@
 					$.event.trigger(that.name +'AjaxStart');
 				}
 				if(o.cacheResponse && cache[id]){
-					that.requests[id] = {};
-					setTimeout(function(){
-						that._complete.call(that, o.context || o, origCom, {}, 'success', id, o);
-						that._success.call(that, o.context || o, origSuc, cache[id], 'success', {}, o);
-					}, 0);
-				} else {
+					if(!cache[id].cacheTTL || cache[id].cacheTTL < 0 || ((new Date().getTime() - cache[id].timestamp) < cache[id].cacheTTL)){
+                        that.requests[id] = {};
+                        setTimeout(function(){
+							that._success.call(that, o.context || o, origSuc, cache[id]._successData, 'success', cache[id], o);
+                        	that._complete.call(that, o.context || o, origCom, cache[id], 'success', id, o);
+                        }, 0);
+                    } else {
+						 delete cache[id];
+					}
+				} 
+				if(!o.cacheResponse || !cache[id]) {
 					if (o.async) {
 						that.requests[id] = $.ajax(o);
 					} else {
@@ -140,20 +158,26 @@
 			};
 		},
 		_removeXHR: function(xhrID){
-			if(this.opts.queue){
+			if(this.opts.queue || this.opts.queueDuplicateRequests){
 				$.dequeue(document, this.qName);
 			}
 			this.inProgress--;
 			this.requests[xhrID] = null;
 			delete this.requests[xhrID];
 		},
-		_isAbort: function(xhr, o){
-			var ret = !!( o.abortIsNoSuccess && ( !xhr || xhr.readyState === 0 || this.lastAbort === o.xhrID ) );
+		clearCache: function () {
+            cache = {};
+        },
+		_isAbort: function(xhr, status, o){
+			if(!o.abortIsNoSuccess || (!xhr && !status)){
+				return false;
+			}
+			var ret = !!(  ( !xhr || xhr.readyState === 0 || this.lastAbort === o.xhrID ) );
 			xhr = null;
 			return ret;
 		},
 		_complete: function(context, origFn, xhr, status, xhrID, o){
-			if(this._isAbort(xhr, o)){
+			if(this._isAbort(xhr, status, o)){
 				status = 'abort';
 				o.abort.call(context, xhr, status, o);
 			}
@@ -176,7 +200,7 @@
 		},
 		_success: function(context, origFn, data, status, xhr, o){
 			var that = this;
-			if(this._isAbort(xhr, o)){
+			if(this._isAbort(xhr, status, o)){
 				xhr = null;
 				return;
 			}
@@ -189,7 +213,37 @@
 				});
 			}
 			if(o.cacheResponse && !cache[o.xhrID]){
-				cache[o.xhrID] = data;
+				if(!xhr){
+					xhr = {};
+				}
+				cache[o.xhrID] = {
+					status: xhr.status,
+					statusText: xhr.statusText,
+					responseText: xhr.responseText,
+					responseXML: xhr.responseXML,
+					_successData: data,
+					cacheTTL: o.cacheTTL, 
+					timestamp: new Date().getTime()
+				};
+				if('getAllResponseHeaders' in xhr){
+					var responseHeaders = xhr.getAllResponseHeaders();
+					var parsedHeaders;
+					var parseHeaders = function(){
+						if(parsedHeaders){return;}
+						parsedHeaders = {};
+						$.each(responseHeaders.split("\n"), function(i, headerLine){
+							var delimiter = headerLine.indexOf(":");
+		                    parsedHeaders[headerLine.substr(0, delimiter)] = headerLine.substr(delimiter + 2);
+						});
+					};
+					$.extend(cache[o.xhrID], {
+						getAllResponseHeaders: function() {return responseHeaders;},
+						getResponseHeader: function(name) {
+							parseHeaders();
+							return (name in parsedHeaders) ? parsedHeaders[name] : null;
+						}
+					});
+				}
 			}
 			origFn.call(context, data, status, xhr, o);
 			$.event.trigger(this.name +'AjaxSuccess', [xhr, o, data]);
@@ -261,9 +315,12 @@
 		abortIsNoSuccess: true,
 		maxRequests: 1,
 		cacheResponse: false,
+		async: true,
 		domCompleteTrigger: false,
 		domSuccessTrigger: false,
-		preventDoubbleRequests: true,
+		preventDoubleRequests: true,
+		queueDuplicateRequests: false,
+		cacheTTL: -1,
 		queue: false // true, false, clear
 	};
 	
