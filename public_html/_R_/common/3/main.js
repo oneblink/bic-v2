@@ -19,6 +19,14 @@ MyAnswers.log = function() {
 	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 };
 
+function concatenateObjects(a, b) {
+	for (property in b) {
+		if (b.hasOwnProperty(property)) {
+			a[property] = b[property];
+		}
+	}
+};
+
 function isCameraPresent() {
 	MyAnswers.log("isCameraPresent: " + window.device.camerapresent);
 	return MyAnswers.cameraPresent;
@@ -158,29 +166,6 @@ function populateDataTags(element, data) {
 	}
 }
 
-function parseXMLElements(xmlString)
-{
-	var xml;
-	if (typeof(window.DOMParser) === 'function' || typeof(window.DOMParser) === 'object')
-	{
-		var domParser = new DOMParser();
-		xml = domParser.parseFromString(xmlString, 'application/xml');
-	}
-	else if (typeof(xmlParse) === 'function')
-	{
-		xml = xmlParse(xmlString);
-	}
-	else
-	{
-		var url = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlString);
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', url, false);
-		xhr.send(null);
-		xml = xhr.responseXML;
-	}
-	return xml;
-}
-
 function processBlinkAnswerMessage(message) {
 	message = $.parseJSON(message);
 	MyAnswers.log(message);
@@ -255,6 +240,8 @@ function performXSLT(xmlString, xslString, element)
 	MyAnswers.log('performXSLT(): target=' + $(element).attr('id'));
 	var html, xml, xsl;
 	if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { return false; }
+	xml = $.parseXML(xmlString);
+	xsl = $.parseXML(xslString);
 	/*
 	 * if (deviceVars.hasWebWorkers === true) {
 	 * MyAnswers.log('performXSLT(): enlisting Web Worker to perform
@@ -265,20 +252,14 @@ function performXSLT(xmlString, xslString, element)
 	 */
 	if (window.ActiveXObject !== undefined) {
 		MyAnswers.log('performXSLT(): using Internet Explorer method');
-		xml = XML.newDocument().loadXML(xmlString);
-		xsl = XML.newDocument().loadXML(xslString);
 		html = xml.transformNode(xsl);
 	} else if (window.XSLTProcessor !== undefined) {
 		MyAnswers.log('performXSLT(): performing XSLT via XSLTProcessor()');
-		xml = parseXMLElements(xmlString);
-		xsl = parseXMLElements(xslString);
 		var xsltProcessor = new XSLTProcessor();
 		xsltProcessor.importStylesheet(xsl);
 		html = xsltProcessor.transformToFragment(xml, document);
 	} else if (xsltProcess !== undefined) {
 		MyAnswers.log('performXSLT(): performing XSLT via AJAXSLT library');
-		xml = parseXMLElements(xmlString);
-		xsl = parseXMLElements(xslString);
 		html = xsltProcess(xml, xsl);
 	} else {
 		html = '<p>Your browser does not support MoJO keywords.</p>'; 
@@ -1213,19 +1194,7 @@ function processConfig() {
 				answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
 				if (hasInteractions && typeof currentInteraction === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for interaction data');
-					if (hasCategories) {
-						$.each(siteVars.map.categories, function(i, v) {
-							if (typeof items === 'undefined') {
-								items = siteVars.map['c' + v];
-							} else {
-								items = items.concat(siteVars.map['c' + v]);
-							}
-						});
-						// TODO: remove duplicates from items before making request
-						requestConfig({ _t: 'i', _id: items });
-					} else {
-						requestConfig({ _t: 'i', _id: siteVars.map.interactions });
-					}
+					requestConfig({ _t: 'i', _id: siteVars.map.interactions });
 					break;
 				}
 				displayAnswerSpace();
@@ -1372,25 +1341,25 @@ function createParamsAndArgs(keywordID) {
 	return returnValue;
 }
 
-function showAnswerView(keyword, argsString, reverse) {
-	MyAnswers.log('showAnswerView(): keyword=' + keyword + ' args=' + argsString);
+function showAnswerView(interaction, argsString, reverse) {
+	MyAnswers.log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
 	var html, args,
 		config, i, iLength = siteVars.map.interactions.length,
 		answerBox = document.getElementById('answerBox'),
 		completeFn = function() {
 			MyAnswersDevice.showView($('#answerView'), reverse);
 			MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView']); }); 
-			setMainLabel(keyword.name);
+			setMainLabel(interaction.name);
 			MyAnswers.dispatch.add(function() { $('body').trigger('taskComplete'); });
 		};
-	config = siteVars.config['i' + keyword];
+	config = siteVars.config['i' + interaction];
 	if ($.type(config) !== 'object') {
-		keyword = decodeURIComponent(keyword);
+		interaction = decodeURIComponent(interaction);
 		for (i = 0; i < iLength; i++) {
 			config = siteVars.config['i' + siteVars.map.interactions[i]];
 			if ($.type(config) === 'object') {
-				if (keyword.toUpperCase() === config.pertinent.name.toUpperCase()) {
-					keyword = siteVars.map.interactions[i];
+				if (interaction.toUpperCase() === config.pertinent.name.toUpperCase()) {
+					interaction = siteVars.map.interactions[i];
 					break;
 				}
 			}
@@ -1399,31 +1368,37 @@ function showAnswerView(keyword, argsString, reverse) {
 	if ($.type(config) !== 'object') { return; }
 	MyAnswersDevice.hideView(reverse);
 	$('body').trigger('taskBegun');			
-	addBackHistory("showAnswerView(\"" + keyword + "\", \"" + (argsString || '') + "\", true);");
-	currentInteraction = keyword;
+	addBackHistory("showAnswerView(\"" + interaction + "\", \"" + (argsString || '') + "\", true);");
+	currentInteraction = interaction;
 	updateCurrentConfig();
-	processMoJOs(keyword);
+	processMoJOs(interaction);
 	config = config.pertinent;
 	if (typeof argsString === 'string' && argsString.length > 0) {
 		args = deserialize(decodeURIComponent(argsString));
 	} else {
-		args = deserialize(createParamsAndArgs(keyword), args);
+		args = deserialize(createParamsAndArgs(interaction), args);
 		delete args.answerSpace;
-		delete args.keyword;
+		delete args.interaction;
 	}
-	if (config.type === 'xslt' && deviceVars.disableXSLT !== true) {
+	if (config.type === 'message') {
+		insertHTML(answerBox, config.message);
+		completeFn();
+	} else if (config.type === 'xslt' && deviceVars.disableXSLT !== true) {
 		generateMojoAnswer(config, args, answerBox);
 		completeFn();
 	} else if (reverse) {
-		MyAnswers.store.get('answer___' + keyword, function(key, html) {
+		MyAnswers.store.get('answer___' + interaction, function(key, html) {
 			insertHTML(answerBox, html);
 			completeFn();
 		});
 	} else {
-		var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php',
-			requestData = 'answerSpace=' + siteVars.answerSpace + "&keyword=" + encodeURIComponent(config.name) + '&_device=' + deviceVars.device,
+		var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
+			requestData = {
+				_i: interaction,
+				_device: deviceVars.device
+			},
 			fallbackToStorage = function() {
-				MyAnswers.store.get('answer___' + keyword, function(key, html) {
+				MyAnswers.store.get('answer___' + interaction, function(key, html) {
 					if (typeof html === 'undefined') {
 						html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
 					}
@@ -1431,8 +1406,11 @@ function showAnswerView(keyword, argsString, reverse) {
 					completeFn();
 				});
 			};
+		if ($.type(deviceVars.features) === 'array' && deviceVars.features.length > 0) {
+			requestData._f = deviceVars.features;
+		}
 		if (!$.isEmptyObject(args)) {
-			requestData += '&' + $.param(args);
+			concatenateObjects(requestData, args);
 		}
 		ajaxQueue.add({
 			type: 'GET',
@@ -1447,7 +1425,7 @@ function showAnswerView(keyword, argsString, reverse) {
 					if (blinkAnswerMessage !== null) {
 						processBlinkAnswerMessage(blinkAnswerMessage[1]);
 					}
-					MyAnswers.store.set('answer___' + keyword, html);
+					MyAnswers.store.set('answer___' + interaction, html);
 				}
 				insertHTML(answerBox, html);
 				completeFn();
@@ -1832,7 +1810,7 @@ function submitFormWithRetry() {
 				arr = qx[1].split("/");
 				method = qx[2];
 				uuid = qx[3];
-				var answerUrl = siteVars.serverAppPath + '/util/GetAnswer.php?',
+				var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
 					currentBox = $('.view:visible > .box').first(),
 					requestData;
 				if (arr[0] === '..') {
@@ -1961,11 +1939,11 @@ function submitAction(keyword, action) {
 	}
 	if (method === 'get') {
 		method = 'GET';
-		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
+		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
 		requestData = '&' + formData + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 	} else {
 		method = 'POST';
-		requestUrl = siteVars.serverAppPath + '/util/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
+		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 		requestData = formData;
 	}
 	$('body').trigger('taskBegun');
