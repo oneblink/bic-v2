@@ -1171,6 +1171,7 @@ function processConfig() {
 					break;
 				}
 			case 'categories':
+				// TODO: investigate whether this behaviour needs to be more like interactions and/or master categories
 				hasCategories = siteVars.map.categories.length > 0;
 				if (hasCategories && typeof currentCategory === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for category data');
@@ -1182,7 +1183,6 @@ function processConfig() {
 								items = items.concat(siteVars.map['m' + v]);
 							}
 						});
-						// TODO: remove duplicates from items before making request
 						requestConfig({  _t: 'c', _id: items });
 					} else {
 						requestConfig({  _t: 'c', _id: siteVars.map.categories });
