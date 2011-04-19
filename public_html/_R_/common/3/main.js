@@ -1303,8 +1303,10 @@ function goBackToHome()
 	}
 }
 
-function goBack()
-{
+function goBack(event) {
+	if (event) {
+		event.preventDefault();
+	}
 	if (MyAnswers.hasHashChange) {
 		MyAnswers.log('onHashChange de-registration: ', removeEvent(window, 'hashchange', onHashChange));
 	}
@@ -1421,7 +1423,6 @@ function showAnswerView(interaction, argsString, reverse) {
 		ajaxQueue.add({
 			type: 'POST',
 			url: requestUrl,
-			data: args,
 			complete: function(xhr, textstatus) { // readystate === 4
 				if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
 				else {
