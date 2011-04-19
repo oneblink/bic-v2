@@ -28,7 +28,7 @@ function concatenateObjects(a, b) {
 };
 
 function isCameraPresent() {
-	MyAnswers.log("isCameraPresent: " + window.device.camerapresent);
+	MyAnswers.log("isCameraPresent: " + MyAnswers.cameraPresent);
 	return MyAnswers.cameraPresent;
 }
 
@@ -1341,14 +1341,34 @@ function createParamsAndArgs(keywordID) {
 	return returnValue;
 }
 
+function setupForms($view) {
+	var interactionConfig = siteVars.config['i' + currentInteraction].pertinent;
+	MyAnswers.dispatch.add(function() {
+		if (!isCameraPresent()) {
+			MyAnswers.dispatch.add(function() {
+				$view.find('form input[onclick*="selectCamera"]').each(function(index, element) {
+					$(element).attr('disabled', 'disabled');
+				});
+			});
+		}
+	});
+	MyAnswers.dispatch.add(function() {
+		if (interactionConfig.type === 'form') {
+			BlinkForms.setupForm($view.find('form').first());
+		}		
+	});
+}
+
 function showAnswerView(interaction, argsString, reverse) {
 	MyAnswers.log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
 	var html, args,
 		config, i, iLength = siteVars.map.interactions.length,
-		answerBox = document.getElementById('answerBox'),
+		$answerBox = $('#answerBox'),
+		answerBox = $answerBox[0],
 		completeFn = function() {
 			MyAnswersDevice.showView($('#answerView'), reverse);
 			MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView']); }); 
+			setupForms($answerBox);
 			setMainLabel(interaction.name);
 			MyAnswers.dispatch.add(function() { $('body').trigger('taskComplete'); });
 		};
@@ -1391,6 +1411,31 @@ function showAnswerView(interaction, argsString, reverse) {
 			insertHTML(answerBox, html);
 			completeFn();
 		});
+	} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
+		var requestUrl = '//' + siteVars.serverDomain + '/admin2/bf_formview.php?name=' + config.blinkFormObjectName + '&_form=' + config.blinkFormAction,
+			fallbackToStorage = function() {
+				html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+				insertHTML(answerBox, html);
+				completeFn();
+			};
+		ajaxQueue.add({
+			type: 'POST',
+			url: requestUrl,
+			data: args,
+			complete: function(xhr, textstatus) { // readystate === 4
+				if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
+				else {
+					html = xhr.responseText;
+					insertHTML(answerBox, html);
+					MyAnswers.dispatch.add(function() {
+						var $form = $answerBox.find('form').first();
+						$form.bind('submit', submitForm);
+					});
+					completeFn();
+				}
+			},
+			timeout: 30 * 1000 // 30 seconds
+		});
 	} else {
 		var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
 			requestData = {
@@ -1426,9 +1471,9 @@ function showAnswerView(interaction, argsString, reverse) {
 						processBlinkAnswerMessage(blinkAnswerMessage[1]);
 					}
 					MyAnswers.store.set('answer___' + interaction, html);
+					insertHTML(answerBox, html);
+					completeFn();
 				}
-				insertHTML(answerBox, html);
-				completeFn();
 			},
 			timeout: 30 * 1000 // 30 seconds
 		});
@@ -1921,6 +1966,7 @@ function submitForm() {
   MyAnswers.log("submitForm(2): " + document.forms[0].action);
   // MyAnswers.log("submitForm(2a): " + str);
   queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
+  return false;
 }
 
 function submitAction(keyword, action) {
@@ -1993,6 +2039,7 @@ function submitAction(keyword, action) {
 		},
 		timeout: computeTimeout(requestUrl.length + requestData.length)
 	});
+	return false;
 }
 
 function isLocationAvailable() {
@@ -2287,10 +2334,11 @@ function setupGoogleMaps()
 // *** BEGIN APPLICATION INIT ***
 
 function onBrowserReady() {
-  MyAnswers.log("onBrowserReady: " + window.location);
-  try {
-		var uriParts = parse_url(window.location);
-		var splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
+	MyAnswers.log("onBrowserReady: " + window.location);
+	try {
+		var uriParts = parse_url(window.location),
+			splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
+		$('html').removeAttr('class');
 		siteVars.serverAppBranch =  splitUrl[1];
 		siteVars.serverAppVersion =  splitUrl[3];
 		siteVars.serverDomain = uriParts.host;
@@ -2301,7 +2349,7 @@ function onBrowserReady() {
 		delete siteVars.queryParameters.uid;
 		delete siteVars.queryParameters.answerSpace;
 		MyAnswers.domain = '//' + siteVars.serverDomain + "/";
-		
+
 		if (document.getElementById('loginButton') !== null) {
 			// TODO: get hasLogin working directly off new config field
 			siteVars.hasLogin = true;
