@@ -761,6 +761,9 @@ function updateNavigationButtons() {
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
 		setSubmitCachedFormButton();
 		MyAnswers.dispatch.add(function() { $(window).trigger('scroll'); });
+		if ($.type(MyAnswersSideBar) === 'object') {
+			MyAnswersSideBar.update();
+		}
 	});
 }
 

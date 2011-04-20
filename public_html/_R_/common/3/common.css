@@ -73,6 +73,7 @@ a[href], a[keyword] {
 
 #content, #stackLayout {
 	position: relative;
+	z-index: 1;
 }
 
 .bForm-add, .bForm-edit, .bForm-delete, .bForm-results, .bForm-view {
@@ -104,7 +105,7 @@ a[href], a[keyword] {
 	color: blue;
 }
 
-header, .navBar, #leftBox, #answerSpacesListView, #masterCategoriesView, #categoriesView, #keywordListView {
+header, nav, #leftBox, #answerSpacesListView, #masterCategoriesView, #categoriesView, #keywordListView {
 	user-select: none;
 	-o-user-select: none;
 	-moz-user-select: none;
@@ -222,11 +223,6 @@ img.v4col { width: 25%; }
 #masterCategoriesBox img, #categoriesBox img, #keywordBox img, #answerSpacesList img {
 	display: inline-block;
 }
-
-ul.box > a:link { color: inherit; text-decoration: none; }
-ul.box > a:hover { color: blue; text-decoration: none; }
-ul.box > a:visited { color: inherit; text-decoration: none; }
-ul.box > a:active { color: inherit; text-decoration: none; }
 
 ul.box {
 	position: relative;
@@ -380,7 +376,37 @@ ul.box .description {
 	background-image: url(/gfx/star-off32.png);
 }
 
-/* begin signature pad styles */
+/* MyAnswersSideBar styles */
+
+#MyAnswersSideBar {
+	position: absolute;
+	top: 0;
+	min-height: 100%;
+	border-right: 1px solid #000;
+	z-index: 2;
+}
+
+#MyAnswersSideBar > ul {
+	list-style: none;
+}
+
+#MyAnswersSideBar > ul > li {
+	padding: 20px 10px;
+	border-top: 1px solid #EDEEF0;
+	border-bottom: 1px solid #D7D8DB;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+#MyAnswersSideBar > ul > li.selected {
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
+	color: white;
+	text-shadow: 0px -1px 1px #1D2863;
+}
+
+/* end MyAnswersSideBar styles */
+
+/* signature pad styles */
 
 #signaturePad {
 	position: absolute;
