@@ -7,9 +7,16 @@
 			$sideBar = $('#MyAnswersSideBar'),
 			$stack = $('#stackLayout'),
 			// TODO: detect appropriate width dynamically
-			width = 240;
+			width = 180;
+		MyAnswersSideBar.isEnoughRoom = function() {
+			if ((width * 4) > $(window).width()) {
+				return false;
+			}
+			return true;
+		};
 		MyAnswersSideBar.show = function() {
 			if (!$sideBar.hasClass('hidden')) { return; }
+			if (!this.isEnoughRoom()) { return; }
 			MyAnswers.dispatch.add(function() {
 				$sideBar.removeClass('hidden');
 				$stack.css({
@@ -66,19 +73,22 @@
 				name, $item, $label, $description,
 				category, columns, $images,
 				itemConfig;
+			if (!this.isEnoughRoom()) { return; }
 			if ($sideBar.data('level') === level) {
-				$sideBar.find('.selected').removeClass('selected');
-				switch (level) {
-					case 'masterCategories':
-						$sideBar.find('[data-id=' + currentMasterCategory + ']').addClass('selected');
-						break;
-					case 'categories':
-						$sideBar.find('[data-id=' + currentCategory + ']').addClass('selected');
-						break;
-					case 'interactions':
-						$sideBar.find('[data-id=' + currentInteraction + ']').addClass('selected');
-						break;
-				}
+				MyAnswers.dispatch.add(function() {
+					$sideBar.find('.selected').removeClass('selected');
+					switch (level) {
+						case 'masterCategories':
+							$sideBar.find('[data-id=' + currentMasterCategory + ']').addClass('selected');
+							break;
+						case 'categories':
+							$sideBar.find('[data-id=' + currentCategory + ']').addClass('selected');
+							break;
+						case 'interactions':
+							$sideBar.find('[data-id=' + currentInteraction + ']').addClass('selected');
+							break;
+					}
+				});
 				return;
 			}
 			$sideBar.data('level', level);
@@ -112,7 +122,7 @@
 						name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
 						$item = $('<li />');
 						$item.text(name);
-						if (order[o] == currentInteraction) {
+						if (order[o] == currentItem) {
 							$item.addClass('selected');
 						}
 						$listBox.append($item);

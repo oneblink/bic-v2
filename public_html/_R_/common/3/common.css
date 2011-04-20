@@ -105,7 +105,7 @@ a[href], a[keyword] {
 	color: blue;
 }
 
-header, nav, #leftBox, #answerSpacesListView, #masterCategoriesView, #categoriesView, #keywordListView {
+header, nav, ul.box {
 	user-select: none;
 	-o-user-select: none;
 	-moz-user-select: none;
@@ -180,6 +180,10 @@ img.v4col { width: 25%; }
 	text-align: center;
 }
 
+#activityIndicator, .navBar {
+	z-index: 5;
+}
+
 .navLeft {
 	float:left;
 }
@@ -238,12 +242,19 @@ ul.box > li {
 	border-bottom: 1px solid rgb(224, 224, 224);
 }
 
-ul.box .label {
+ul.box > li > .label, ul.box > li > .description {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	margin: 2px;
+}
+
+ul.box > li > .label {
 	font-size: larger;
 	font-weight: bold;
 }
 
-ul.box .description {
+ul.box > li > .description {
 	font-size: smaller;
 }
 
@@ -382,7 +393,6 @@ ul.box .description {
 	position: absolute;
 	top: 0;
 	min-height: 100%;
-	border-right: 1px solid #000;
 	z-index: 2;
 }
 
@@ -391,17 +401,9 @@ ul.box .description {
 }
 
 #MyAnswersSideBar > ul > li {
-	padding: 20px 10px;
-	border-top: 1px solid #EDEEF0;
-	border-bottom: 1px solid #D7D8DB;
+	padding: 1em .8em;
 	font-weight: bold;
 	cursor: pointer;
-}
-
-#MyAnswersSideBar > ul > li.selected {
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
-	color: white;
-	text-shadow: 0px -1px 1px #1D2863;
 }
 
 /* end MyAnswersSideBar styles */
