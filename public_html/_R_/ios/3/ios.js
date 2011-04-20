@@ -160,12 +160,14 @@ function onScroll() {
 	var headerBottom = $('.header').height(),
 		scrollTop = window.scrollY,
 		offset;
-	if (scrollTop > headerBottom) {
+/*	if (scrollTop > headerBottom) {
 		offset = scrollTop - headerBottom;
 		updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
 	} else {
 		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
 	}
+*/
+	updatePartCSS(navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 

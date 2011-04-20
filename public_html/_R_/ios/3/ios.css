@@ -30,7 +30,6 @@ button, input[type=submit] {
 	border-radius: 10px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
-	z-index: 5;
 	color: white;
 }
 
@@ -94,7 +93,6 @@ button, input[type=submit] {
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
 	height: 41px;
-	z-index: 1;
 }
 
 .navButtonsHolder {
@@ -164,7 +162,6 @@ ul.box {
 }
 
 ul.box > li {
-	overflow: hidden;
 	padding: 8px;
 	border-bottom: 1px solid rgb(224, 224, 224);
 	border-left: 1px solid #B7B7BC;
@@ -195,30 +192,8 @@ ul.box > li:last-child {
 	-webkit-border-bottom-right-radius: 8px;
 }
 
-ul.box > li > .label {
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
-	font-size: larger;
-	font-weight: bold;
-}
-
-#answerSpacesList .label {
-	overflow: auto;
-	white-space: normal;
-}
-
-#keywordList .label, #keywordList .description {
-	margin-right: 30px;
-}
-
-ul.box > li > .description {
-	position: relative;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-	margin-top: 2px;
-	font-size: smaller;
+ul.box > li > .label, ul.box > li > .description {
+	margin-right: 6%;
 }
 
 #descriptionBox, #argsBox {
@@ -228,6 +203,25 @@ ul.box > li > .description {
 .bLive-box, .bLive-link {
 	border-radius: 8px;
 }
+
+/* MyAnswersSideBar styles */
+
+#MyAnswersSideBar {
+	border-right: 1px solid #000;
+}
+
+#MyAnswersSideBar > ul > li {
+	border-top: 1px solid #EDEEF0;
+	border-bottom: 1px solid #D7D8DB;
+}
+
+#MyAnswersSideBar > ul > li.selected {
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
+	color: white;
+	text-shadow: 0px -1px 1px #1D2863;
+}
+
+/* end MyAnswersSideBar styles */
 
 @-webkit-keyframes spinner {
 	from {
