@@ -1,4 +1,5 @@
 var activityIndicatorTop, navBar, hashStack;
+MyAnswers.deviceDeferred = new $.Deferred();
 
 function onHashChange(event) {
 	var hashState = $.bbq.getState(),
@@ -225,15 +226,4 @@ function onScroll() {
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
-(function() {
-  var timer = setInterval(function() {
-		if (typeof(MyAnswers.device_Loaded) !== 'undefined') {
-			try {
-				MyAnswers.device_Loaded = true;
-				clearInterval(timer);
-			} catch(e) {
-				MyAnswers.log("***** Unable to set: MyAnswers.device_Loaded => true");
-			}
-		}
-  }, 100);
-}());
+MyAnswers.deviceDeferred.resolve();

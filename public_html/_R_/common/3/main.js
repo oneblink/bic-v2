@@ -12,6 +12,9 @@ var MyAnswers = MyAnswers || {},
 function PictureSourceType() {}
 function lastPictureTaken () {}
 
+MyAnswers.browserDeferred = new $.Deferred();
+MyAnswers.mainDeferred = new $.Deferred();
+
 // *** BEGIN UTILS ***
 
 MyAnswers.log = function() {
@@ -2426,10 +2429,11 @@ function onBrowserReady() {
  * MyAnswers.log('AJAX error: ' + options.url + ' ' + xhr + ' ' + options + ' ' +
  * error); });
  */
-		MyAnswers.browserReady_Loaded = true;
+		MyAnswers.browserDeferred.resolve();
   } catch(e) {
 		MyAnswers.log("onBrowserReady: Exception");
 		MyAnswers.log(e);
+		MyAnswers.browserDeferred.reject();
 	}
 }
 
@@ -2487,14 +2491,9 @@ function loaded() {
 }
 
 function init_main() {
+	var $body = $('body');
 	MyAnswers.log("init_main(): ");
-	
-	siteVars.id = $('body').data('id');
-
-	hasCategories = false;
-	hasMasterCategories = false;
-	hasVisualCategories = false;
-	answerSpaceOneKeyword = false;
+	siteVars.id = $body.data('id');
 
 	PictureSourceType.PHOTO_LIBRARY = 0;
 	PictureSourceType.CAMERA = 1;
@@ -2541,11 +2540,11 @@ function init_main() {
 	MyAnswers.activityIndicator = document.getElementById('activityIndicator');
 	MyAnswers.activityIndicatorTimer = null;
 
-	$('body').bind('answerDownloaded', onAnswerDownloaded);
-	$('body').bind('transitionComplete', onTransitionComplete);
-	$('body').bind('taskBegun', onTaskBegun);
-	$('body').bind('taskComplete', onTaskComplete);
-	$('body').bind('siteBootComplete', onSiteBootComplete);
+	$body.bind('answerDownloaded', onAnswerDownloaded);
+	$body.bind('transitionComplete', onTransitionComplete);
+	$body.bind('taskBegun', onTaskBegun);
+	$body.bind('taskComplete', onTaskComplete);
+	$body.bind('siteBootComplete', onSiteBootComplete);
 }
 
 function onBodyLoad() {
@@ -2572,23 +2571,26 @@ if (!addEvent(window, "load", onBodyLoad)) {
   throw("Unable to add load handler");
 }
 
-(function(window, document, undefined) {
-	var waitJSLoaded = setInterval(function() {
-		if (MyAnswers.main_Loaded && MyAnswers.device_Loaded && MyAnswers.browserReady_Loaded) {
-			clearInterval(waitJSLoaded);
-			MyAnswers.log("onBrowserReady: running JS init");
-			try {
-				init_device();
-				init_main();
-			} catch(e) {
-				MyAnswers.log("onBrowserReady: Exception");
-				MyAnswers.log(e);
-			}
-			MyAnswers.log("User-Agent: " + navigator.userAgent);
+(function(window, undefined) {
+	$.when(
+		MyAnswers.deviceDeferred.promise(),
+		MyAnswers.browserDeferred.promise(),
+		MyAnswers.mainDeferred.promise()
+	).then(function() {
+		MyAnswers.log("all promises kept, initialising...");
+		try {
+			init_device();
+			init_main();
+		} catch(e) {
+			MyAnswers.log("onBrowserReady: Exception");
+			MyAnswers.log(e);
 		}
-	}, 500);
-}(window, window.document));
+		MyAnswers.log("User-Agent: " + navigator.userAgent);
+	}).fail(function() {
+		MyAnswers.log('init failed, not all promises kept');
+	});
+}(this));
 
 // END APPLICATION INIT
 
-MyAnswers.main_Loaded = true;
+MyAnswers.mainDeferred.resolve();

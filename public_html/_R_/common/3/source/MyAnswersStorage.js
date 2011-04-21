@@ -55,11 +55,12 @@
 				}
 			};
 			
-			this.remove = function(key, callback) {
-				localStorage.removeItem(partition + ':' + section + ':' + key);
-				if (typeof callback === 'function') {
-					callback();
-				}
+			this.remove = function(key) {
+				$.Deferred(function(deferred) {
+					localStorage.removeItem(partition + ':' + section + ':' + key);
+					deferred.resolve();
+				});
+				return deferred.promise();
 			};
 
 			this.keys = function(callback) {
@@ -102,11 +103,12 @@
 				}
 			};
 			
-			this.remove = function(key, callback) {
-				sessionStorage.removeItem(partition + ':' + section + ':' + key);
-				if (typeof callback === 'function') {
-					callback();
-				}
+			this.remove = function(key) {
+				$.Deferred(function(deferred) {
+					sessionStorage.removeItem(partition + ':' + section + ':' + key);
+					deferred.resolve();
+				});
+				return deferred.promise();
 			};
 
 			this.keys = function(callback) {
@@ -138,7 +140,7 @@
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (tx, error) {
 				log('MyAnswersStorage error:', arguments);
-				readyDeferred.fail();
+				readyDeferred.reject();
 			};
 			
 			try {
@@ -190,17 +192,23 @@
 				}, errorHandler, successHandler);
 			};
 			
+			this.remove = function(key) {
+				$.Deferred(function(deferred) {
+					db.transaction(function(tx) {
+						tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
+							if (result.rowsAffected === 1) {
+								deferred.resolve();
+							} else {
+								deferred.reject();
+								throw('MyAnswersStorage: failed DELETE');
+							}
+						});
+					}, errorHandler, successHandler);
+				});
+				return deferred.promise();
+			};
+
 			this.remove = function(key, callback) {
-				db.transaction(function(tx) {
-					tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
-						if (result.rowsAffected !== 1) {
-							throw('MyAnswersStorage: failed DELETE');
-						}
-						if (typeof callback === 'function') {
-							callback();
-						}
-					});
-				}, errorHandler, successHandler);
 			};
 
 			this.keys = function(callback) {
@@ -252,11 +260,12 @@
 				}
 			};
 			
-			this.remove = function(key, callback) {
-				delete this.memory[partition + ':' + section + ':' + key];
-				if (typeof callback === 'function') {
-					callback();
-				}
+			this.remove = function(key) {
+				$.Deferred(function(deferred) {
+					delete this.memory[partition + ':' + section + ':' + key];
+					deferred.resolve();
+				});
+				return deferred.promise();
 			};
 
 			this.keys = function(callback) {
@@ -305,7 +314,4 @@
 	}
 	available.push('memory');
 	log('MyAnswersStorage(): available=[' + available.join(',') + ']');
-	window.MyAnswersStorage.prototype.test = function() {
-
-	}; 
 }(this, this.jQuery));

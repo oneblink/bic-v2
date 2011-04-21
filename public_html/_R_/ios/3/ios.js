@@ -1,4 +1,5 @@
 var activityIndicatorTop, navBar;
+MyAnswers.deviceDeferred = new $.Deferred();
 
 function init_device()
 {
@@ -175,15 +176,4 @@ function setupParts()
 	$('body').trigger('taskComplete');
 }
 
-(function() {
-  var timer = setInterval(function() {
-		if (typeof(MyAnswers.device_Loaded) !== 'undefined') {
-			try {
-				MyAnswers.device_Loaded = true;
-				clearInterval(timer);
-			} catch(e) {
-				MyAnswers.log("***** Unable to set: MyAnswers.device_Loaded => true");
-			}
-		}
-  }, 100);
-})();
+MyAnswers.deviceDeferred.resolve();
