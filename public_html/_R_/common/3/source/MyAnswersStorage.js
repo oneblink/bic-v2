@@ -16,14 +16,9 @@
 (function(window, $, undefined) {
 	window.MyAnswersStorage = function(type, partition, section) {
 		var isReady = false,
-			readyFn,
+			readyDeferred = new $.Deferred(),
 			db, // for websqldatabase
-			memory, // for memory
-			available = [],
-			log = function() {
-				if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
-				else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
-			};
+			memory; // for memory
 		if (typeof partition !== 'string' || partition.length < 1) {
 			partition = 'default';
 		}
@@ -31,41 +26,17 @@
 			section = 'main';
 		}
 		
-		// TODO: add detection for indexedDB
-		if (typeof window.openDatabase !== 'undefined') {
-			available.push('websqldatabase');
-		}
-		if (typeof window.localStorage !== 'undefined') {
-			available.push('localstorage');
-		}
-		if (typeof window.sessionStorage !== 'undefined') {
-			available.push('sessionstorage');
-		}
-		available.push('memory');
-		
-		log('MyAnswersStorage(): available=[' + available.join(',') + ']');
-		
 		if (typeof type !== 'string') {
 			type = available[0];
-			log('MyAnswersStorage(): automatic=' + type);
 		} else if (!$.inArray(type, available)) {
-			log('MyAnswersStorage(): ' + type + '=unavailable; automatic= ' + available[0]);
 			type = available[0];
 		}
-
-		this.ready = function(fn) {
-			if (isReady) {
-				log('MyAnswersStorage(): ' + partition + ':' + section + ' ready');
-				if (typeof fn === 'function') {
-					fn();
-				}
-				if (typeof readyFn === 'function') {
-					readyFn();
-				}
-			} else {
-				readyFn = fn;
-				setTimeout(this.ready, 200);
-			}
+		
+		readyDeferred.done(function() {
+			log('MyAnswersStorage(): ' + type + ' -> ' + partition + ' : ' + section + ' ready');
+		});
+		this.ready = function() {
+			return readyDeferred.promise();
 		};
 		
 		if (type === 'localstorage') {
@@ -113,7 +84,7 @@
 				}
 			};
 			
-			isReady = true;
+			readyDeferred.resolve();
 			
 		} else if (type === 'sessionstorage') {
 			
@@ -160,13 +131,14 @@
 				}
 			};
 			
-			isReady = true;
+			readyDeferred.resolve();
 
 		} else if (type === 'websqldatabase') {
 			
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (tx, error) {
 				log('MyAnswersStorage error:', arguments);
+				readyDeferred.fail();
 			};
 			
 			try {
@@ -179,9 +151,7 @@
 				tx.executeSql(
 					'CREATE TABLE IF NOT EXISTS ' + section + ' (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)',
 					[],
-					function() {
-						isReady = true;
-					},
+					readyDeferred.resolve,
 					errorHandler
 				);
 			}, errorHandler, successHandler);
@@ -312,7 +282,30 @@
 				}
 			};
 			
-			isReady = true;
+			readyDeferred.resolve();
 		}
+		return this;
 	};
+	window.MyAnswersStorage.prototype.log = function() {
+		if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+		else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
+	}; 
+	window.MyAnswersStorage.prototype.available = [];
+	var available = window.MyAnswersStorage.prototype.available,
+		log = window.MyAnswersStorage.prototype.log;
+	// TODO: add detection for indexedDB
+	if (typeof window.openDatabase !== 'undefined') {
+		available.push('websqldatabase');
+	}
+	if (typeof window.localStorage !== 'undefined') {
+		available.push('localstorage');
+	}
+	if (typeof window.sessionStorage !== 'undefined') {
+		available.push('sessionstorage');
+	}
+	available.push('memory');
+	log('MyAnswersStorage(): available=[' + available.join(',') + ']');
+	window.MyAnswersStorage.prototype.test = function() {
+
+	}; 
 }(this, this.jQuery));

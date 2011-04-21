@@ -2525,9 +2525,14 @@ function init_main() {
 	MyAnswers.storeConfig = new MyAnswersStorage(null, siteVars.answerSpace, 'config');
 	MyAnswers.storeMoJO = new MyAnswersStorage(null, siteVars.answerSpace, 'mojo');
 	MyAnswers.storeForm = new MyAnswersStorage(null, siteVars.answerSpace, 'form');
-
 	MyAnswers.store = new MyAnswersStorage(null, siteVars.answerSpace, 'jstore');
-	MyAnswers.store.ready(function() {
+	$.when(
+		MyAnswers.storeCache.ready(),
+		MyAnswers.storeConfig.ready(),
+		MyAnswers.storeMoJO.ready(),
+		MyAnswers.storeForm.ready(),
+		MyAnswers.store.ready()
+	).then(function() {
 //		dumpStorage(MyAnswers.store);
 		loaded();
 		MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
