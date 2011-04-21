@@ -28,7 +28,6 @@ form img {
 	max-height: 10em;
 }
 
-
 select {
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -47,13 +46,15 @@ td > input[type=text], td > input[type=email], td > textarea {
 	width: 95%;
 }
 
-input[type=file] {
+[type=file] {
 	font-size: smaller;
 }
 
-form [type=button], form [type=submit], form [type=reset] {
+button[disabled], .button[disabled] { opacity: 0.5; }
+button, [type=button], [type=submit], [type=reset] {
 	-webkit-appearance: none;
-	padding: 1em;
+	margin: .2em;
+	padding: .5em 1em;
 	min-width: 6em;
 	font-weight: bold;
 }
@@ -231,7 +232,7 @@ img.v4col { width: 25%; }
 ul.box {
 	position: relative;
 	list-style-type: none;
-	background: #FFF;
+	background: none;
 }
 
 ul.box > li {
@@ -239,7 +240,6 @@ ul.box > li {
 	margin: 0;
 	text-align: left;
 	overflow: hidden;
-	border-bottom: 1px solid rgb(224, 224, 224);
 }
 
 ul.box > li > .label, ul.box > li > .description {

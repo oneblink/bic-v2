@@ -1,6 +1,9 @@
 body {
-	background-color: #E3E4EA;
 	font-family: Helvetica;
+}
+
+body, nav {
+	background-color: #E3E4EA;
 }
 
 td {
@@ -11,10 +14,6 @@ textarea, input[type=text], input[type=email], input[type=url], input[type=tel],
 	padding: 4px;
 	border: 1px solid #AAAAAA;
 	-webkit-border-radius: 4px;
-}
-
-button, input[type=submit] {
-	padding: .25em 0.5em;
 }
 
 .bForm-results {
@@ -119,10 +118,6 @@ button, input[type=submit] {
 	z-index: 2;
 }
 
-.button[disabled] {
-	opacity: 0.5;
-}
-
 #homeButton {
 	padding: 0;
 }
@@ -157,10 +152,6 @@ button, input[type=submit] {
 	padding: 10px;
 }
 
-ul.box {
-	background: none;
-}
-
 ul.box > li {
 	padding: 8px;
 	border-bottom: 1px solid rgb(224, 224, 224);
@@ -170,10 +161,6 @@ ul.box > li {
 	background-image: url(Images/chevron.png);
 	background-repeat: no-repeat;
 	background-position: 95% center;
-}
-
-ul.box > li.selected {
-	background-image: url(Images/chevron_white.png);
 }
 
 ul.box > li:first-child {

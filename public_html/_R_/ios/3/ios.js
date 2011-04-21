@@ -31,69 +31,17 @@ function onDeviceReady() {
   siteVars.serverAppVersion = window.Settings.codeVersion;
   siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
   siteVars.answerSpace = window.Settings.answerSpace;
-  siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
-  deviceVars.deviceFileName = '/iphone.js';
+  siteVars.serverDevicePath = MyAnswers.loadURL + 'ios/' + siteVars.serverAppVersion + '/';
+  deviceVars.deviceFileName = '/ios.js';
   MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
   MyAnswers.log("AppPath: " + siteVars.serverAppPath);
 }
 
-function populateTextOnlyCategories(masterCategory)
-{
-	MyAnswers.dispatch.add(function() {
-	MyAnswers.log('populateTextOnlyCategories(): ' + masterCategory);
-		var order = hasMasterCategories ? siteConfig.master_categories[masterCategory].categories : siteConfig.categories_order,
-			o, oLength = order.length,
-			id;
-	var list = siteConfig.categories;
-	var select = document.createElement('select');
-	select.setAttribute('id', 'categoriesList');
-		for (o = 0; o < oLength; o++)
-	{
-			id = order[o];
-			if (list[id].status != 'active') { continue; }
-		var option = document.createElement('option');
-			option.setAttribute('value', id);
-			if (id == currentCategory) {
-			option.setAttribute('selected', 'true');
-		}
-			option.appendChild(document.createTextNode(list[id].name));
-		select.appendChild(option);
-	}
-	var categorySelector = document.getElementById('categorySelector');
-	emptyDOMelement(categorySelector);
-	categorySelector.appendChild(select);
-	$('#categorySelectorArea').removeClass('hidden');
-	select.addEventListener('change', function() {
-	 showKeywordListView(this.options[this.selectedIndex].value);
-	}, true);
-	});
-}
-
-(function(window, global, undefined) {
+(function(window, undefined) {
 	var MyAnswersDevice = function() {
 		var MyAnswersDevice = function() {};
 		MyAnswersDevice.hideLocationBar = function() {
 			window.scrollTo(0, 1);
-		};
-		MyAnswersDevice.processSiteConfig = function() {
-			var $masterCategoriesView = $('#masterCategoriesView'),
-				$categoriesView = $('#categoriesView'),
-				$keywordListView = $('#keywordListView');
-			switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
-				case 'interactions only':
-					$('#masterCategoriesView').remove();
-					$categoriesView.remove();
-					break;
-				case 'categories':
-					$masterCategoriesView.remove();
-					$keywordListView.find('.welcomeBox').remove();
-					break;
-				case 'master categories':
-					$categoriesView.find('.welcomeBox').remove();
-					$keywordListView.find('.welcomeBox').remove();
-					break;
-			}
-			$('#answerSpacesListView').remove();
 		};
 		MyAnswersDevice.hideView = function(reverseTransition) {
 			MyAnswers.dispatch.add(function() {
@@ -142,9 +90,8 @@ function populateTextOnlyCategories(masterCategory)
 		};
 		return MyAnswersDevice;
 	};
-	global.MyAnswersDevice = new MyAnswersDevice();
-})(window, (function() { return this || (1,eval)('this'); })());
-// window is only passed because hideLocationBar function needs it
+	window.MyAnswersDevice = new MyAnswersDevice();
+}(this));
 
 /*
  ABOVE: all methods need implementation per device (directly called from main.js)
@@ -157,8 +104,8 @@ function updatePartCSS(element, property, value, valueFormat) {
 	}
 
 function onScroll() {
-	var headerBottom = $('.header').height(),
-		scrollTop = window.scrollY,
+	var //headerBottom = $('.header').height(),
+		scrollTop = $(window).scrollTop(),
 		offset;
 /*	if (scrollTop > headerBottom) {
 		offset = scrollTop - headerBottom;

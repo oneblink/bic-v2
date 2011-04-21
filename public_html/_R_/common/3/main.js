@@ -1083,11 +1083,26 @@ function displayAnswerSpace() {
 		$.noop(); // TODO: is there anything we need to do for default to home?
 	}
 	*/
-	var startUp = $('#startUp');
+	var startUp = $('#startUp'),
+		$masterCategoriesView = $('#masterCategoriesView'),
+		$categoriesView = $('#categoriesView'),
+		$keywordListView = $('#keywordListView');
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
-		if (typeof MyAnswersDevice.processSiteConfig === 'function') {
-			MyAnswersDevice.processSiteConfig();
+		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
+			case 'interactions only':
+				$masterCategoriesView.remove();
+				$categoriesView.remove();
+				break;
+			case 'categories':
+				$masterCategoriesView.remove();
+				$keywordListView.find('.welcomeBox').remove();
+				break;
+			case 'master categories':
+				$categoriesView.find('.welcomeBox').remove();
+				$keywordListView.find('.welcomeBox').remove();
+				break;
 		}
+		$('#answerSpacesListView').remove();
 		if (answerSpaceOneKeyword) {
 			showKeywordView(0);
 		} else if (hasMasterCategories) {
