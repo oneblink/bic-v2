@@ -1,5 +1,6 @@
 /*
  * custom library to abstract access to available local storage mechanisms
+ * requires: jQuery 1.5+
  * 
  * valid storage types are: localstorage, sessionstorage, websqldatabase, indexeddb
  * 
@@ -7,18 +8,21 @@
  * so all functions require a callback in order to pass results back to the caller.
  * 
  * The mechanism-specific terms "database" and "table" have been replaced with
- * the more neutral "partition" and "section", respectively.  
+ * the more neutral "partition" and "section", respectively.
  */
 
-(function(global, undefined) {
-	global.MyAnswersStorage = function(type, partition, section) {
+// TODO: re-implement using jQuery promises
+
+(function(window, $, undefined) {
+	window.MyAnswersStorage = function(type, partition, section) {
 		var isReady = false,
 			readyFn,
 			db, // for websqldatabase
 			memory, // for memory
-			log = function(msgStr) {
-				if (global.console !== undefined) {	console.log(msgStr); }
-				else if (global.debug !== undefined) { debug.log(msgStr); }
+			available = [],
+			log = function() {
+				if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+				else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 			};
 		if (typeof partition !== 'string' || partition.length < 1) {
 			partition = 'default';
@@ -27,9 +31,31 @@
 			section = 'main';
 		}
 		
+		// TODO: add detection for indexedDB
+		if (typeof window.openDatabase !== 'undefined') {
+			available.push('websqldatabase');
+		}
+		if (typeof window.localStorage !== 'undefined') {
+			available.push('localstorage');
+		}
+		if (typeof window.sessionStorage !== 'undefined') {
+			available.push('sessionstorage');
+		}
+		available.push('memory');
+		
+		log('MyAnswersStorage(): available=[' + available.join(',') + ']');
+		
+		if (typeof type !== 'string') {
+			type = available[0];
+			log('MyAnswersStorage(): automatic=' + type);
+		} else if (!$.inArray(type, available)) {
+			log('MyAnswersStorage(): ' + type + '=unavailable; automatic= ' + available[0]);
+			type = available[0];
+		}
 
 		this.ready = function(fn) {
 			if (isReady) {
+				log('MyAnswersStorage(): ' + partition + ':' + section + ' ready');
 				if (typeof fn === 'function') {
 					fn();
 				}
@@ -289,4 +315,4 @@
 			isReady = true;
 		}
 	};
-})((function() { return this || (1,eval)('this'); })());
+}(this, this.jQuery));

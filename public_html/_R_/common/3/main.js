@@ -4,7 +4,7 @@ var MyAnswers = MyAnswers || {},
 	locationTracker, latitude, longitude, webappCache,
 	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
 	currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
-	starsProfile, siteConfig = {},
+	starsProfile,
 	backStack,
 	lowestTransferRateConst, maxTransactionTimeout,
 	ajaxQueue, ajaxQueueMoJO;
@@ -295,13 +295,14 @@ function getPicture_Success(imageData) {
 }
 
 function getPicture(sourceType) {
-  var options = { quality: siteConfig.imageQuality, imageScale: siteConfig.imageScale };
-  if (sourceType !== undefined)
-  {
-    options.sourceType = sourceType;
-  }
-  // if no sourceType specified, the default is CAMERA
-  navigator.camera.getPicture(getPicture_Success, null, options);
+	// TODO: feed quality and imageScale values from configuration
+//  var options = { quality: siteConfig.imageQuality, imageScale: siteConfig.imageScale };
+	var options = { quality: 60, imageScale: 40 };
+	if (sourceType !== undefined) {
+		options.sourceType = sourceType;
+	}
+	// if no sourceType specified, the default is CAMERA
+	navigator.camera.getPicture(getPicture_Success, null, options);
 }
 
 function selectCamera(nameStr) {
@@ -328,7 +329,6 @@ function isHome() {
 	return false;
 }
 
-// take a keywordConfig object (from siteConfig)
 // perform all steps necessary to populate element with MoJO result
 function generateMojoAnswer(keyword, args, element) {
 	return; // TODO: fix MoJO generation
@@ -607,7 +607,9 @@ function onAnswerDownloaded(event, view)
 		$('body').trigger('taskBegun');
 		if ($('#' + view).find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 			if ($.type(window.google) !== 'object' || $.type(google.load) !== 'function') {
-				$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, onGoogleJSLoaded);
+				// TODO: pass real Google API key through somehow
+//				$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, onGoogleJSLoaded);
+				$.getScript('http://www.google.com/jsapi', onGoogleJSLoaded);
 			} else {
 				onGoogleJSLoaded();
 			}
@@ -670,10 +672,10 @@ function onTransitionComplete(event, view)
 	$view.find('a').bind('click', onLinkClick);
 }
 
-function onSiteBootComplete(event)
-{
+function onSiteBootComplete(event) {
 	MyAnswers.log('onSiteBootComplete():');
-	var keyword = siteVars.queryParameters.keyword;
+	var keyword = siteVars.queryParameters.keyword,
+		config = siteVars.config['a' + siteVars.id].pertinent;
 	delete siteVars.queryParameters.keyword;
 	if (typeof(keyword) === 'string' && ! $.isEmptyObject(siteVars.queryParameters)) {
 		showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
@@ -683,7 +685,7 @@ function onSiteBootComplete(event)
 		showKeywordListView(siteVars.queryParameters.category);
 	} else if (typeof(siteVars.queryParameters.master_category) === 'string') {
 		showCategoriesView(siteVars.queryParameters.master_category);
-	} else if (typeof siteConfig.webClip === 'string' && typeof google !== 'undefined' && typeof google.bookmarkbubble !== 'undefined') {
+	} else if (typeof config.icon === 'string' && typeof google !== 'undefined' && typeof google.bookmarkbubble !== 'undefined') {
 		setTimeout(function() {
 			var bookmarkBubble = new google.bookmarkbubble.Bubble();
 			bookmarkBubble.hasHashParameter = function() { return false; };
@@ -854,38 +856,43 @@ function updateCurrentConfig() {
 function populateItemListing(level) {
 	MyAnswers.log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
+		name, $item, $label, $description,
 		onMasterCategoryClick = function(event) { showCategoriesView($(this).data('id')); },
 		onCategoryClick = function(event) { showKeywordListView($(this).data('id'), $(this).data('masterCategory')); },
 		onKeywordClick = function(event) { gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory')); },
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
-		hookInteraction = function() {
-			if (siteVars.config['i' + $item.data('id')].pertinent.type === 'hyperlink' && siteVars.config['i' + $item.data('id')].pertinent.hyperlink) {
-				$item.data('hyperlink', list[order[o]].hyperlink);
-				$item.bind('click', onHyperlinkClick);
-			} else {
-				$item.bind('click', onKeywordClick);
-			}
-		},
-		hookCategory = function() {
-			if (siteVars.map['c' + $item.data('id')].length === 1) {
-				$item.data('category', $item.data('id'));
-				$item.data('id', siteVars.map['c' + $item.data('id')][0]);
-				hookInteraction();
-			} else if (siteVars.map['c' + $item.data('id')].length > 0) {
-				$item.bind('click', onCategoryClick);
-			}
-		},
-		hookMasterCategory = function() {
-			if (siteVars.map['m' + $item.data('id')].length === 1) {
-				$item.data('masterCategory', $item.data('id'));
-				$item.data('id', siteVars.map['m' + $item.data('id')][0]);
-				hookCategory();
-			} else if (siteVars.map['m' + $item.data('id')].length > 0) {
-				$item.bind('click', onMasterCategoryClick);
-			}
+		hook = {
+				interactions: function($item) {
+					var id = $item.attr('data-id');
+					if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
+						$item.attr('data-hyperlink', list[order[o]].hyperlink);
+						$item.bind('click', onHyperlinkClick);
+					} else {
+						$item.bind('click', onKeywordClick);
+					}
+				},
+				categories: function($item) {
+					var id = $item.attr('data-id');
+					if (siteVars.map['c' + id].length === 1) {
+						$item.attr('data-category', id);
+						$item.attr('data-id', siteVars.map['c' + id][0]);
+						hook.interactions($item);
+					} else if (siteVars.map['c' + id].length > 0) {
+						$item.bind('click', onCategoryClick);
+					}
+				},
+				masterCategories: function($item) {
+					var id = $item.attr('data-id');
+					if (siteVars.map['m' + id].length === 1) {
+						$item.attr('data-masterCategory', id);
+						$item.attr('data-id', siteVars.map['m' + id][0]);
+						hook.categories($item);
+					} else if (siteVars.map['m' + id].length > 0) {
+						$item.bind('click', onMasterCategoryClick);
+					}
+				}
 		},
 		o, oLength,
-		name, $item, $label, $description,
 		category, columns, $images,
 		itemConfig;
 	switch (level) {
@@ -902,7 +909,7 @@ function populateItemListing(level) {
 			arrangement = currentConfig.categoriesArrangement;
 			display = currentConfig.categoriesDisplay;
 			order = siteVars.map.categories;
-			list = currentMasterCategory ? siteVars.map['m' + currentMasterCategory] : order;
+			list = siteVars.map['m' + currentMasterCategory] || order;
 			type = 'c';
 			$visualBox = $('#categoriesBox');
 			$listBox = $('#categoriesList');
@@ -911,7 +918,7 @@ function populateItemListing(level) {
 			arrangement = currentConfig.interactionsArrangement;
 			display = currentConfig.interactionsDisplay;
 			order = siteVars.map.interactions;
-			list = currentCategory ? siteVars.map['c' + currentCategory] : order;
+			list = siteVars.map['c' + currentCategory] || order;
 			type = 'i';
 			$visualBox = $('#keywordBox');
 			$listBox = $('#keywordList');
@@ -939,7 +946,7 @@ function populateItemListing(level) {
 		for (o = 0; o < oLength; o++) {
 			itemConfig = siteVars.config[type + order[o]];
 			if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display === 'show') {
-				name = itemConfig.pertinent.displayName ? itemConfig.pertinent.displayName : itemConfig.pertinent.name;
+				name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
 				if (display !== 'text only' && itemConfig.pertinent.icon) {
 					$item = $('<img />');
 					$item.attr({
@@ -960,14 +967,8 @@ function populateItemListing(level) {
 					}
 					$listBox.append($item);
 				}
-				$item.data('id', order[o]);
-				if (level === 'interactions') {
-					hookInteraction();
-				} else if (level === 'categories') {
-					hookCategory();
-				} else if (level === 'masterCategories') {
-					hookMasterCategory();
-				}
+				$item.attr('data-id', order[o]);
+				hook[level]($item);
 			}
 		}
 	});
@@ -1224,6 +1225,7 @@ function processConfig() {
 }
 
 function requestConfig(requestData) {
+	var now = $.now();
 	if ($.type(requestData._id) === 'array') {
 		MyAnswers.log('requestConfig(): ' + requestData._t + '[' + requestData._id.join(',') + ']');
 	} else {
@@ -2518,21 +2520,13 @@ function init_main() {
 		$(window).trigger('scroll');
 	}
 
-	if (typeof window.openDatabase !== 'undefined') {
-		MyAnswers.log('MyAnswersStorage(): websqldatabase ' + siteVars.answerSpace + ' jstore');
-		MyAnswers.store = new MyAnswersStorage('websqldatabase', siteVars.answerSpace, 'jstore');
-	} else if (typeof window.localStorage !== 'undefined') {
-		MyAnswers.log('MyAnswersStorage(): localstorage ' + siteVars.answerSpace + ' jstore');
-		MyAnswers.store = new MyAnswersStorage('localstorage', siteVars.answerSpace, 'jstore');
-	} else if (typeof window.sessionStorage !== 'undefined') {
-		MyAnswers.log('MyAnswersStorage(): sessionstorage ' + siteVars.answerSpace + ' jstore');
-		MyAnswers.store = new MyAnswersStorage('sessionstorage', siteVars.answerSpace, 'jstore');
-	} else {
-		MyAnswers.log('MyAnswersStorage: no compatible local storage mechanism available');
-		MyAnswers.log('MyAnswersStorage(): memory ' + siteVars.answerSpace + ' jstore');
-		MyAnswers.store = new MyAnswersStorage('memory', siteVars.answerSpace, 'jstore');
-	}
-	
+	// TODO: only initialise these databases when necessary
+	MyAnswers.storeCache = new MyAnswersStorage(null, siteVars.answerSpace, 'cache');
+	MyAnswers.storeConfig = new MyAnswersStorage(null, siteVars.answerSpace, 'config');
+	MyAnswers.storeMoJO = new MyAnswersStorage(null, siteVars.answerSpace, 'mojo');
+	MyAnswers.storeForm = new MyAnswersStorage(null, siteVars.answerSpace, 'form');
+
+	MyAnswers.store = new MyAnswersStorage(null, siteVars.answerSpace, 'jstore');
 	MyAnswers.store.ready(function() {
 //		dumpStorage(MyAnswers.store);
 		loaded();

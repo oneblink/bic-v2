@@ -179,9 +179,9 @@ function onDeviceReady() {
 					}
 					$.bbq.pushState(hashState, 2);
 				} else if (viewId === 'keywordView') {
-					$.bbq.pushState({ k: currentKeyword }, 2);
+					$.bbq.pushState({ k: currentInteraction }, 2);
 				} else if (viewId === 'answerView') {
-					$.bbq.pushState({ a: currentKeyword }, 2);
+					$.bbq.pushState({ a: currentInteraction }, 2);
 				} else if (viewId === 'answerView2') {
 					$.bbq.pushState({ a2k: keyword, a2a: arg }, 2);
 				} else if (viewId === 'helpView') {

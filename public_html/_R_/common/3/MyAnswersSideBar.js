@@ -43,31 +43,36 @@
 				onCategoryClick = function(event) { showKeywordListView($(this).data('id'), $(this).data('masterCategory')); },
 				onKeywordClick = function(event) { gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory')); },
 				onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
-				hookInteraction = function() {
-					if (siteVars.config['i' + $item.data('id')].pertinent.type === 'hyperlink' && siteVars.config['i' + $item.data('id')].pertinent.hyperlink) {
-						$item.data('hyperlink', list[order[o]].hyperlink);
-						$item.bind('click', onHyperlinkClick);
-					} else {
-						$item.bind('click', onKeywordClick);
-					}
-				},
-				hookCategory = function() {
-					if (siteVars.map['c' + $item.data('id')].length === 1) {
-						$item.data('category', $item.data('id'));
-						$item.attr('data-id', siteVars.map['c' + $item.data('id')][0]);
-						hookInteraction();
-					} else if (siteVars.map['c' + $item.data('id')].length > 0) {
-						$item.bind('click', onCategoryClick);
-					}
-				},
-				hookMasterCategory = function() {
-					if (siteVars.map['m' + $item.data('id')].length === 1) {
-						$item.data('masterCategory', $item.data('id'));
-						$item.attr('data-id', siteVars.map['m' + $item.data('id')][0]);
-						hookCategory();
-					} else if (siteVars.map['m' + $item.data('id')].length > 0) {
-						$item.bind('click', onMasterCategoryClick);
-					}
+				hook = {
+						interactions: function($item) {
+							var id = $item.attr('data-id');
+							if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
+								$item.attr('data-hyperlink', list[order[o]].hyperlink);
+								$item.bind('click', onHyperlinkClick);
+							} else {
+								$item.bind('click', onKeywordClick);
+							}
+						},
+						categories: function($item) {
+							var id = $item.attr('data-id');
+							if (siteVars.map['c' + id].length === 1) {
+								$item.attr('data-category', id);
+								$item.attr('data-id', siteVars.map['c' + id][0]);
+								hook.interactions($item);
+							} else if (siteVars.map['c' + id].length > 0) {
+								$item.bind('click', onCategoryClick);
+							}
+						},
+						masterCategories: function($item) {
+							var id = $item.attr('data-id');
+							if (siteVars.map['m' + id].length === 1) {
+								$item.attr('data-masterCategory', id);
+								$item.attr('data-id', siteVars.map['m' + id][0]);
+								hook.categories($item);
+							} else if (siteVars.map['m' + id].length > 0) {
+								$item.bind('click', onMasterCategoryClick);
+							}
+						}
 				},
 				o, oLength,
 				name, $item, $label, $description,
@@ -127,13 +132,7 @@
 						}
 						$listBox.append($item);
 						$item.attr('data-id', order[o]);
-						if (level === 'interactions') {
-							hookInteraction();
-						} else if (level === 'categories') {
-							hookCategory();
-						} else if (level === 'masterCategories') {
-							hookMasterCategory();
-						}
+						hook[level]($item);
 					}
 				}
 				if ($listBox.children().size() > 0) {
