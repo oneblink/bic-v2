@@ -14,21 +14,23 @@ function lastPictureTaken () {}
 
 MyAnswers.browserDeferred = new $.Deferred();
 MyAnswers.mainDeferred = new $.Deferred();
+siteVars.mojos = siteVars.mojos || {};
 
 // *** BEGIN UTILS ***
 
 MyAnswers.log = function() {
-	if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
-	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
+	if (typeof window.console !== 'undefined') { window.console.log.apply(console, arguments); }
+	else if (typeof window.debug !== 'undefined') { window.debug.log.apply(debug, arguments); }
 };
 
 function concatenateObjects(a, b) {
+	var property;
 	for (property in b) {
 		if (b.hasOwnProperty(property)) {
 			a[property] = b[property];
 		}
 	}
-};
+}
 
 function isCameraPresent() {
 	MyAnswers.log("isCameraPresent: " + MyAnswers.cameraPresent);
@@ -1138,15 +1140,11 @@ function displayAnswerSpace() {
 	$('#content').removeClass('hidden');
 }
 
-function processMoJOs(keyword)
-{
-	return; // TODO: fix MoJO downloads
-	MyAnswers.log('processMoJOs(): keyword=' + keyword);
-	if (deviceVars.disableXSLT === true) { return; }
+function processMoJOs(keyword) {
 	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php',
-		requestData,
-		fetchedMoJOs = { },
-		m, mojoName, mojoHash,
+		deferredFetches = {},
+		i, iLength = siteVars.map.interactions.length,
+		interaction,
 		ajaxComplete = function(xhr, xhrStatus, xhrOptions) {
 			if (!isAJAXError(xhrStatus) && xhr.status === 200) {
 				var data = $.parseJSON(xhr.responseText);
@@ -1155,39 +1153,43 @@ function processMoJOs(keyword)
 				} else if (data.errorMessage) {
 					MyAnswers.log('GetMoJO error: ' + xhrOptions.mojoName + ' ' + data.errorMessage);
 				} else {
-					if (data.statusMessage !== 'NO UPDATES' && deviceVars.storageReady) {
-						MyAnswers.store.set('mojoMessage-' + xhrOptions.mojoName, xhr.responseText);
-					}
+//					siteVars.mojos[xhrOptions.mojoName].xml = xhr.responseText;
+					MyAnswers.store.set('mojoXML:' + xhrOptions.mojoName, xhr.responseText);
+					MyAnswers.store.set('mojoLastChecked:' + xhrOptions.mojoName, $.now());
+//					MyAnswers.store.set('mojoLastUpdated:' + xhrOptions.mojoName, xhr.responseText);
 				}
 			}
 		},
-		getCallback = function(message) {
-			if (typeof message  === 'string') {
-				message = $.parseJSON(message);
-			}
-			if ($.type(message) === 'object') {
-				mojoHash = message.mojoHash;
-			}
-			requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + mojoName + (typeof(mojoHash) === 'string' ? "&sha1=" + mojoHash : "");
-			ajaxQueueMoJO.add({
-				url: requestURL,
-				data: requestData,
-				dataType: 'json',
-				mojoName: mojoName,
-				complete: ajaxComplete,
-				timeout: computeTimeout(500 * 1024)
+		deferredFn = function(mojo) {
+			var deferred = new $.Deferred(function(dfrd) {
+				var requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + mojo;
+				ajaxQueueMoJO.add({
+					url: requestURL,
+					data: requestData,
+					dataType: 'json',
+					mojoName: mojo,
+					complete: ajaxComplete,
+					timeout: computeTimeout(500 * 1024)
+				});
 			});
-			fetchedMoJOs[mojoName] = true;
+			return deferred.promise();
 		};
-	for (m in siteConfig.mojoKeys) {
-		if (siteConfig.mojoKeys.hasOwnProperty(m)) {
-			mojoName = siteConfig.mojoKeys[m];
-			if (keyword !== undefined && keyword !== m) {
-				$.noop();
-			} else if (mojoName.substr(0,6) === 'stars:' || fetchedMoJOs[mojoName] === true) {
-				$.noop();
-			} else {
-				$.when(MyAnswers.store.get('mojoMessage-' + mojoName)).done(getCallback);
+	for (i = 0; i < iLength; i++) {
+		interaction = siteVars.config['i' + siteVars.map.interactions[i]].pertinent;
+		if ($.type(interaction) === 'object' && interaction.type === 'xslt') {
+			if (typeof interaction.xml === 'string' && interaction.xml.substring(0, 6) !== 'stars:') {
+				if (!siteVars.mojos[interaction.xml]) {
+					siteVars.mojos[interaction.xml] = {
+						maximumAge: interaction.maximumAge || 0,
+						minimumAge: interaction.minimumAge || 0
+					};
+				} else {
+					siteVars.mojos[interaction.xml].maximumAge = interaction.maximumAge ? Math.min(interaction.maximumAge, siteVars.mojos[interaction.xml].maximumAge) : siteVars.mojos[interaction.xml].maximumAge;
+					siteVars.mojos[interaction.xml].minimumAge = interaction.minimumAge ? Math.max(interaction.minimumAge, siteVars.mojos[interaction.xml].minimumAge) : siteVars.mojos[interaction.xml].minimumAge;
+				}
+				if (!deferredFetches[interaction.xml]) {
+					deferredFetches[interaction.xml] = deferredFn(interaction.xml);
+				}
 			}
 		}
 	}
@@ -1307,18 +1309,18 @@ if (typeof(webappCache) !== "undefined")
   addEvent(webappCache, "error", errorCache);
 }
  
-function dumpStorage(store) {
-	$.when(store.keys()).done(function(keys) {
+MyAnswers.dumpLocalStorage = function() {
+	$.when(MyAnswers.store.keys()).done(function(keys) {
 		var k, kLength = keys.length;
 		for (k = 0; k < kLength; k++) {
-			MyAnswers.log('dumpStorage(): found key: ' + keys[k]);
-			$.when(store.get(keys[k])).done(function(value) {
+			MyAnswers.log('dumpLocalStorage(): found key: ' + keys[k]);
+			$.when(MyAnswers.store.get(keys[k])).done(function(value) {
 				value = value.length > 20 ? value.substring(0, 20) + "..." : value;
-				MyAnswers.log('dumpStorage(): found value: ' + value);
+				MyAnswers.log('dumpLocalStorage(): found value: ' + value);
 			});
 		}
 	});
-}
+};
 
 function goBackToHome()
 {
@@ -2367,6 +2369,28 @@ function setupGoogleMaps()
 	$('body').trigger('taskComplete');
 }
 
+MyAnswers.updateLocalStorage = function() {
+	/*
+	 * version 0 = MoJOs stored in new format, old siteConfig removed
+	 */
+	var deferred = new $.Deferred(function(dfrd) {
+		$.when(MyAnswers.store.get('storageVersion')).done(function(value) {
+			if (!value) {
+				$.when(
+					MyAnswers.store.set('storageVersion', 0),
+					MyAnswers.store.remove('siteConfigMessage'),
+					MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
+				).done(function() {
+					dfrd.resolve();
+				});
+			} else {
+				dfrd.resolve();
+			}
+		});
+	});
+	return deferred.promise();
+};
+
 // *** BEGIN APPLICATION INIT ***
 
 function onBrowserReady() {
@@ -2533,22 +2557,13 @@ function init_main() {
 		$(window).trigger('scroll');
 	}
 
-	// TODO: only initialise these databases when necessary
-	MyAnswers.storeCache = new MyAnswersStorage(null, siteVars.answerSpace, 'cache');
-	MyAnswers.storeConfig = new MyAnswersStorage(null, siteVars.answerSpace, 'config');
-	MyAnswers.storeMoJO = new MyAnswersStorage(null, siteVars.answerSpace, 'mojo');
-	MyAnswers.storeForm = new MyAnswersStorage(null, siteVars.answerSpace, 'form');
 	MyAnswers.store = new MyAnswersStorage(null, siteVars.answerSpace, 'jstore');
-	$.when(
-		MyAnswers.storeCache.ready(),
-		MyAnswers.storeConfig.ready(),
-		MyAnswers.storeMoJO.ready(),
-		MyAnswers.storeForm.ready(),
-		MyAnswers.store.ready()
-	).done(function() {
-//		dumpStorage(MyAnswers.store);
-		loaded();
-		MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
+	$.when(MyAnswers.store.ready()).done(function() {
+//		MyAnswers.dumpLocalStorage();
+		$.when(MyAnswers.updateLocalStorage()).done(function() {
+			loaded();
+			MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
+		});
 	});
 
 	MyAnswers.activityIndicator = document.getElementById('activityIndicator');

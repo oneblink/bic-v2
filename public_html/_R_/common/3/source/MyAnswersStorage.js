@@ -261,10 +261,26 @@
 	window.MyAnswersStorage.prototype.log = function() {
 		if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
 		else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
-	}; 
+	};
 	window.MyAnswersStorage.prototype.available = [];
 	var available = window.MyAnswersStorage.prototype.available,
 		log = window.MyAnswersStorage.prototype.log;
+	window.MyAnswersStorage.prototype.removeKeysRegExp = function(regexp) {
+		var store = this,
+			deferred = new $.Deferred(function(dfrd) {
+			$.when(MyAnswers.store.keys()).done(function(keys) {
+				var k, kLength = keys.length,
+					removeDefers = [];
+				for (k = 0; k < kLength; k++) {
+					if (keys[k].search(regexp) !== -1) {
+						removeDefers.push(store.remove(keys[k]));
+					}
+				}
+				$.when(removeDefers).done(dfrd.resolve());
+			});
+		});
+		return deferred.promise();
+	};
 	// TODO: add detection for indexedDB
 	if (typeof window.openDatabase !== 'undefined') {
 		available.push('websqldatabase');
