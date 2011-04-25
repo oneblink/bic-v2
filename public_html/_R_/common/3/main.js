@@ -2506,6 +2506,7 @@ function loaded() {
 	try {
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
+/*
 		$.when(MyAnswers.store.get('siteConfigMessage')).done(function(message) {
 			if (typeof message === 'string') {
 				message = $.parseJSON(message);
@@ -2515,9 +2516,10 @@ function loaded() {
 				siteConfigHash = message.siteHash;
 			}
 //			getSiteConfig();
-			requestLoginStatus();
-			requestConfig({ _id: siteVars.id, _t: 'a' });
 		});
+*/
+		requestLoginStatus();
+		requestConfig({ _id: siteVars.id, _t: 'a' });
 		$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
 			if (typeof stars === 'string') {
 				stars = $.parseJSON(stars);
