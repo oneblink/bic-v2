@@ -41,11 +41,12 @@
 		
 		if (type === 'localstorage') {
 
-			this.get = function(key, callback) {
-				var value = localStorage.getItem(partition + ':' + section + ':' + key);
-				if (typeof callback === 'function') {
-					callback(key, value);
-				}
+			this.get = function(key) {
+				var deferred = $.Deferred(function(dfrd) {
+					dfrd.resolve(localStorage.getItem(partition + ':' + section + ':' + key));
+					// dfrd.reject(); not sure if this is needed
+				});
+				return deferred.promise();
 			};
 			
 			this.set = function(key, value, callback) {
@@ -89,11 +90,12 @@
 			
 		} else if (type === 'sessionstorage') {
 			
-			this.get = function(key, callback) {
-				var value = sessionStorage.getItem(partition + ':' + section + ':' + key);
-				if (typeof callback === 'function') {
-					callback(key, value);
-				}
+			this.get = function(key) {
+				var deferred = $.Deferred(function(dfrd) {
+					dfrd.resolve(sessionStorage.getItem(partition + ':' + section + ':' + key));
+					// dfrd.reject(); not sure if this is needed
+				});
+				return deferred.promise();
 			};
 			
 			this.set = function(key, value, callback) {
@@ -140,7 +142,6 @@
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (tx, error) {
 				log('MyAnswersStorage error:', arguments);
-				readyDeferred.reject();
 			};
 			
 			try {
@@ -154,26 +155,28 @@
 					'CREATE TABLE IF NOT EXISTS ' + section + ' (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)',
 					[],
 					readyDeferred.resolve,
-					errorHandler
+					readyDeferred.reject
 				);
 			}, errorHandler, successHandler);
 			
-			this.get = function(key, callback) {
-				db.readTransaction(function(tx) {
-					tx.executeSql(
-						'SELECT v FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
-							var value;
-							if (result.rows.length > 1) {
-								throw('MyAnswersStorage: non-unique key');
-							} else if (result.rows.length === 1) {
-								value = result.rows.item(0).v;
+			this.get = function(key) {
+				var deferred = $.Deferred(function(dfrd) {
+					db.readTransaction(function(tx) {
+						tx.executeSql(
+							'SELECT v FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
+								if (result.rows.length === 1) {
+									dfrd.resolve(result.rows.item(0).v);
+								} else {
+									dfrd.reject();
+									if (result.rows.length > 1) {
+										throw('MyAnswersStorage: non-unique key');
+									}
+								}
 							}
-							if (typeof callback === 'function') {
-								callback(key, value);
-							}
-						}
-					);
-				}, errorHandler, successHandler);
+						);
+					}, errorHandler, successHandler);
+				});
+				return deferred.promise();
 			};
 			
 			this.set = function(key, value, callback) {
@@ -193,13 +196,13 @@
 			};
 			
 			this.remove = function(key) {
-				$.Deferred(function(deferred) {
+				var deferred = $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
 						tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
 							if (result.rowsAffected === 1) {
-								deferred.resolve();
+								dfrd.resolve();
 							} else {
-								deferred.reject();
+								dfrd.reject();
 								throw('MyAnswersStorage: failed DELETE');
 							}
 						});
@@ -246,11 +249,12 @@
 			
 			this.memory = {};
 
-			this.get = function(key, callback) {
-				var value = this.memory[partition + ':' + section + ':' + key];
-				if (typeof callback === 'function') {
-					callback(key, value);
-				}
+			this.get = function(key) {
+				var deferred = $.Deferred(function(dfrd) {
+					dfrd.resolve(this.memory[partition + ':' + section + ':' + key]);
+					// dfrd.reject(); not sure if this is needed
+				});
+				return deferred.promise();
 			};
 			
 			this.set = function(key, value, callback) {

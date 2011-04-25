@@ -336,7 +336,7 @@ function isHome() {
 function generateMojoAnswer(keyword, args, element) {
 	return; // TODO: fix MoJO generation
 	MyAnswers.log('generateMojoAnswer(): keyword=' + keyword.name);
-	MyAnswers.store.get('mojoMessage-' + keyword.mojo, function(key, mojoMessage) {
+	$.when(MyAnswers.store.get('mojoMessage-' + keyword.mojo)).done(function(mojoMessage) {
 		var type,
 			xml,
 			xsl = keyword.xslt,
@@ -387,16 +387,12 @@ function generateMojoAnswer(keyword, args, element) {
 			}
 			xml = '<stars>' + xml + '</stars>';
 			performXSLT(xml, xsl, element);
-		}
-		else if ($.type(mojoMessage) === 'object')
-		{
+		} else if ($.type(mojoMessage) === 'object') {
 			$('body').trigger('taskBegun');			
 			xml = mojoMessage.mojo;
 			performXSLT(xml, xsl, element);
 			$('body').trigger('taskComplete');
-		}
-		else
-		{
+		} else {
 			html = '<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>';
 			insertHTML(element, html);
 		}
@@ -404,7 +400,8 @@ function generateMojoAnswer(keyword, args, element) {
 }
 
 function countPendingFormData(callback) {
-	MyAnswers.store.get('_pendingFormDataString', function(key, value) {
+	// TODO: change countPendingFormData to jQuery Deferred
+	$.when(MyAnswers.store.get('_pendingFormDataString')).done(function(value) {
 		var q1;
 		if (typeof value === 'string') {
 			q1 = value.split(':');
@@ -413,6 +410,8 @@ function countPendingFormData(callback) {
 		} else {
 			callback(0);
 		}
+	}).fail(function() {
+		callback(0);
 	});
 }
 
@@ -441,6 +440,18 @@ function headPendingFormData(callback) {
 			callback(['', '']);
 			return;
 		}
+		$.when(
+			MyAnswers.store.get('_pendingFormDataString'),
+			MyAnswers.store.get('_pendingFormDataArrayAsString'),
+			MyAnswers.store.get('_pendingFormMethod'),
+			MyAnswers.store.get('_pendingFormUUID')
+		).done(function() {
+			// TODO: fix headPendingFormData
+			MyAnswers.log('headPendingFormData():', arguments);
+		}).fail(function() {
+			MyAnswers.log('headPendingFormData(): error retrieving first pending form');
+		});
+/*
 		MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
 			MyAnswers.store.get('_pendingFormDataArrayAsString', function(key, dataArray) {
 				MyAnswers.store.get('_pendingFormMethod', function(key, method) {
@@ -455,16 +466,22 @@ function headPendingFormData(callback) {
 				});
 			});
 		});
+*/
 	});
 }
 
 function removeFormRetryData() {
-    MyAnswers.store.remove('_pendingFormDataString');  
-    MyAnswers.store.remove('_pendingFormDataArrayAsString');  
-    MyAnswers.store.remove('_pendingFormMethod');  
-    MyAnswers.store.remove('_pendingFormUUID');  
-    MyAnswers.log("removeFormRetryData: Clearing local storage"); 
-	setSubmitCachedFormButton();
+	$.when(
+	    MyAnswers.store.remove('_pendingFormDataString'),
+	    MyAnswers.store.remove('_pendingFormDataArrayAsString'),
+	    MyAnswers.store.remove('_pendingFormMethod'),
+	    MyAnswers.store.remove('_pendingFormUUID')
+	).done(function() {
+	    MyAnswers.log('removeFormRetryData(): pending form data purged'); 
+		setSubmitCachedFormButton();
+	}).fail(function() {
+	    MyAnswers.log('removeFormRetryData(): error purging pending form data'); 
+	});
 }
 
 function delHeadPendingFormData() {
@@ -476,6 +493,18 @@ function delHeadPendingFormData() {
 			removeFormRetryData();
 			return;
 		}
+		$.when(
+			MyAnswers.store.get('_pendingFormDataString'),
+			MyAnswers.store.get('_pendingFormDataArrayAsString'),
+			MyAnswers.store.get('_pendingFormMethod'),
+			MyAnswers.store.get('_pendingFormUUID')
+		).done(function() {
+			// TODO: fix delHeadPendingFormData
+			MyAnswers.log('delHeadPendingFormData():', arguments);
+		}).fail(function() {
+			MyAnswers.log('delHeadPendingFormData(): error retrieving first pending form');
+		});
+/*
 		MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
 			dataString = dataString.substring(dataString.indexOf(':') + 1);
 			MyAnswers.store.set('_pendingFormDataString', dataString);
@@ -486,12 +515,15 @@ function delHeadPendingFormData() {
 				});
 			});
 		});
+*/
 	});
 }
 
 function processCachedFormData() {
-	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
-		if (typeof dataString === 'string') {
+	$.when(
+		MyAnswers.store.get('_pendingFormDataString')
+	).done(function(value) {
+		if (typeof value === 'string') {
 			if (confirm("Submit pending form data \nfrom previous forms?\nNote: Subsequent forms will continue to pend\nuntil you empty the pending list.")) {
 				submitFormWithRetry();
 			} else {
@@ -1148,7 +1180,7 @@ function processMoJOs(keyword)
 				}
 			}
 		},
-		getCallback = function(key, message) {
+		getCallback = function(message) {
 			if (typeof message  === 'string') {
 				message = $.parseJSON(message);
 			}
@@ -1174,7 +1206,7 @@ function processMoJOs(keyword)
 			} else if (mojoName.substr(0,6) === 'stars:' || fetchedMoJOs[mojoName] === true) {
 				$.noop();
 			} else {
-				MyAnswers.store.get('mojoMessage-' + mojoName, getCallback);
+				$.when(MyAnswers.store.get('mojoMessage-' + mojoName)).done(getCallback);
 			}
 		}
 	}
@@ -1432,7 +1464,7 @@ function showAnswerView(interaction, argsString, reverse) {
 		generateMojoAnswer(config, args, answerBox);
 		completeFn();
 	} else if (reverse) {
-		MyAnswers.store.get('answer___' + interaction, function(key, html) {
+		$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
 			insertHTML(answerBox, html);
 			completeFn();
 		});
@@ -1467,7 +1499,7 @@ function showAnswerView(interaction, argsString, reverse) {
 				_device: deviceVars.device
 			},
 			fallbackToStorage = function() {
-				MyAnswers.store.get('answer___' + interaction, function(key, html) {
+				$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
 					if (typeof html === 'undefined') {
 						html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
 					}
@@ -1839,21 +1871,22 @@ function goBackToTopLevelAnswerView(event)
 }
 
 function queuePendingFormData(str, arrayAsString, method, uuid, callback) {
+	// TODO: change queuePendingFormData to jQuery Deferred
 	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
 		if (typeof dataString === 'string') {
 			dataString += ':' + str;
 			MyAnswers.store.set('_pendingFormDataString', dataString);
-			MyAnswers.store.get('_pendingFormDataArrayAsString', function(key, dataArray) {
-				dataArray += ':' + encodeURIComponent(arrayAsString);
-				MyAnswers.store.set('_pendingFormDataArrayAsString', dataArray);
+			$.when(MyAnswers.store.get('_pendingFormDataArrayAsString')).done(function(value) {
+				value += ':' + encodeURIComponent(arrayAsString);
+				MyAnswers.store.set('_pendingFormDataArrayAsString', value);
 			});
-			MyAnswers.store.get('_pendingFormMethod', function(key, dataMethod) {
-				dataMethod += ':' + encodeURIComponent(method);
-				MyAnswers.store.set('_pendingFormMethod', dataMethod);
+			$.when(MyAnswers.store.get('_pendingFormMethod')).done(function(value) {
+				value += ':' + encodeURIComponent(method);
+				MyAnswers.store.set('_pendingFormMethod', value);
 			});
-			MyAnswers.store.get('_pendingFormUUID', function(key, dataUUID) {
-				dataUUID += ':' + encodeURIComponent(uuid);
-				MyAnswers.store.set('_pendingFormUUID', dataUUID);
+			$.when(MyAnswers.store.get('_pendingFormUUID')).done(function(value) {
+				value += ':' + encodeURIComponent(uuid);
+				MyAnswers.store.set('_pendingFormUUID', value);
 			});
 		} else {
 			MyAnswers.store.set('_pendingFormDataString', str, function() {
@@ -1872,7 +1905,7 @@ function queuePendingFormData(str, arrayAsString, method, uuid, callback) {
 function submitFormWithRetry() {    
 	var str, arr, method, uuid,
 		localKeyword;
-	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+	$.when(MyAnswers.store.get('_pendingFormDataString')).done(function(dataString) {
 		if (typeof dataString === 'string') {
 			headPendingFormData(function(qx) {
 				str = qx[0];
@@ -2462,7 +2495,7 @@ function loaded() {
 	try {
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
-		MyAnswers.store.get('siteConfigMessage', function(key, message) {
+		$.when(MyAnswers.store.get('siteConfigMessage')).done(function(message) {
 			if (typeof message === 'string') {
 				message = $.parseJSON(message);
 			}
@@ -2474,7 +2507,7 @@ function loaded() {
 			requestLoginStatus();
 			requestConfig({ _id: siteVars.id, _t: 'a' });
 		});
-		MyAnswers.store.get('starsProfile', function(key, stars) {
+		$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
 			if (typeof stars === 'string') {
 				stars = $.parseJSON(stars);
 			}
@@ -2531,7 +2564,7 @@ function init_main() {
 		MyAnswers.storeMoJO.ready(),
 		MyAnswers.storeForm.ready(),
 		MyAnswers.store.ready()
-	).then(function() {
+	).done(function() {
 //		dumpStorage(MyAnswers.store);
 		loaded();
 		MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
@@ -2576,7 +2609,7 @@ if (!addEvent(window, "load", onBodyLoad)) {
 		MyAnswers.deviceDeferred.promise(),
 		MyAnswers.browserDeferred.promise(),
 		MyAnswers.mainDeferred.promise()
-	).then(function() {
+	).done(function() {
 		MyAnswers.log("all promises kept, initialising...");
 		try {
 			init_device();
