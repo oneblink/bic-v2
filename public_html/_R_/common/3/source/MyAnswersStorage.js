@@ -198,7 +198,7 @@
 			this.remove = function(key) {
 				var deferred = $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
-						tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
+						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
 							if (result.rowsAffected === 1) {
 								dfrd.resolve();
 							} else {

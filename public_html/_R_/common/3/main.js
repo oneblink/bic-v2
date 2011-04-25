@@ -435,6 +435,7 @@ function setSubmitCachedFormButton() {
 }
 
 function headPendingFormData(callback) {
+	// TODO: change headPendingFormData to jQuery Deferred
 	countPendingFormData(function(queueCount) {
 		if (queueCount === 0) {
 			callback(['', '']);
@@ -445,9 +446,9 @@ function headPendingFormData(callback) {
 			MyAnswers.store.get('_pendingFormDataArrayAsString'),
 			MyAnswers.store.get('_pendingFormMethod'),
 			MyAnswers.store.get('_pendingFormUUID')
-		).done(function() {
-			// TODO: fix headPendingFormData
-			MyAnswers.log('headPendingFormData():', arguments);
+		).done(function(q1, q2, q3, q4) {
+			MyAnswers.log('headPendingFormData():');
+			callback([q1, decodeURIComponent(q2), decodeURIComponent(q3), decodeURIComponent(q4)]);
 		}).fail(function() {
 			MyAnswers.log('headPendingFormData(): error retrieving first pending form');
 		});
@@ -1872,7 +1873,17 @@ function goBackToTopLevelAnswerView(event)
 
 function queuePendingFormData(str, arrayAsString, method, uuid, callback) {
 	// TODO: change queuePendingFormData to jQuery Deferred
-	MyAnswers.store.get('_pendingFormDataString', function(key, dataString) {
+	MyAnswers.store.set('_pendingFormDataString', str, function() {
+		MyAnswers.store.set('_pendingFormDataArrayAsString', encodeURIComponent(arrayAsString), function() {
+			MyAnswers.store.set('_pendingFormMethod', encodeURIComponent(method), function() {
+				MyAnswers.store.set('_pendingFormUUID', encodeURIComponent(uuid), function() {
+					callback();
+				});
+			});
+		});
+	});
+	return;
+	$.when(MyAnswers.store.get('_pendingFormDataString')).done(function(dataString) {
 		if (typeof dataString === 'string') {
 			dataString += ':' + str;
 			MyAnswers.store.set('_pendingFormDataString', dataString);
