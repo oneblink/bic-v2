@@ -5,7 +5,7 @@
  * valid storage types are: localstorage, sessionstorage, websqldatabase, indexeddb
  * 
  * This has been designed with seemless operation of asynchronous storage methods,
- * so all functions require a callback in order to pass results back to the caller.
+ * via the jQuery Deferred Promises mechanism in jQuery 1.5.
  * 
  * The mechanism-specific terms "database" and "table" have been replaced with
  * the more neutral "partition" and "section", respectively.
@@ -17,7 +17,7 @@
 	window.MyAnswersStorage = function(type, partition, section) {
 		var isReady = false,
 			readyDeferred = new $.Deferred(),
-			db, // for websqldatabase
+			db, // for websqldatabase, localstorage or sessionstorage
 			memory; // for memory
 		if (typeof partition !== 'string' || partition.length < 1) {
 			partition = 'default';
@@ -32,6 +32,10 @@
 			type = available[0];
 		}
 		
+		this.type = type;
+		this.partition = partition;
+		this.section = section;
+		
 		readyDeferred.done(function() {
 			log('MyAnswersStorage(): ' + type + ' -> ' + partition + ' : ' + section + ' ready');
 		});
@@ -39,100 +43,57 @@
 			return readyDeferred.promise();
 		};
 		
-		if (type === 'localstorage') {
+		if (type === 'localstorage' || type === 'sessionstorage') {
+
+			db = (type === 'localstorage') ? localStorage : sessionStorage;
 
 			this.get = function(key) {
-				var deferred = $.Deferred(function(dfrd) {
-					dfrd.resolve(localStorage.getItem(partition + ':' + section + ':' + key));
+				var deferred = new $.Deferred(function(dfrd) {
+					dfrd.resolve(db.getItem(partition + ':' + section + ':' + key));
 					// dfrd.reject(); not sure if this is needed
 				});
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value, callback) {
-				localStorage.setItem(partition + ':' + section + ':' + key, value);
-				if (typeof callback === 'function') {
-					callback();
-				}
+			this.set = function(key, value) {
+				var deferred = new $.Deferred(function(dfrd) {
+					db.setItem(partition + ':' + section + ':' + key, value);
+					dfrd.resolve();
+				});
+				return deferred.promise();
 			};
 			
 			this.remove = function(key) {
-				$.Deferred(function(deferred) {
-					localStorage.removeItem(partition + ':' + section + ':' + key);
-					deferred.resolve();
+				var deferred = new $.Deferred(function(dfrd) {
+					db.removeItem(partition + ':' + section + ':' + key);
+					dfrd.resolve();
 				});
 				return deferred.promise();
 			};
 
-			this.keys = function(callback) {
-				var found = [],
-					length = localStorage.length,
-					index, parts;
-				for (index = 0; index < length; index++) {
-					parts = localStorage.key(index).split(':');
-					if (parts[0] === partition && parts[1] === section) {
-						found.push(parts[2]);
+			this.keys = function() {
+				var deferred = new $.Deferred(function(dfrd) {
+					var found = [],
+						length = db.length,
+						index, parts;
+					for (index = 0; index < length; index++) {
+						parts = db.key(index).split(':');
+						if (parts[0] === partition && parts[1] === section) {
+							found.push(parts[2]);
+						}
 					}
-				}
-				if (typeof callback === 'function') {
-					callback(found);
-				}
-			};
-			
-			this.size = function(callback) {
-				var length = this.keys().length;
-				if (typeof callback === 'function') {
-					callback(length);
-				}
-			};
-			
-			readyDeferred.resolve();
-			
-		} else if (type === 'sessionstorage') {
-			
-			this.get = function(key) {
-				var deferred = $.Deferred(function(dfrd) {
-					dfrd.resolve(sessionStorage.getItem(partition + ':' + section + ':' + key));
-					// dfrd.reject(); not sure if this is needed
+					dfrd.resolve(found);
 				});
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value, callback) {
-				sessionStorage.setItem(partition + ':' + section + ':' + key, value);
-				if (typeof callback === 'function') {
-					callback();
-				}
-			};
-			
-			this.remove = function(key) {
-				$.Deferred(function(deferred) {
-					sessionStorage.removeItem(partition + ':' + section + ':' + key);
-					deferred.resolve();
+			this.size = function() {
+				var deferred = new $.Deferred(function(dfrd) {
+					$.when(this.keys()).done(function(keys) {
+						dfrd.resolve(keys.length);
+					});
 				});
 				return deferred.promise();
-			};
-
-			this.keys = function(callback) {
-				var found = [],
-					length = sessionStorage.length,
-					index, parts;
-				for (index = 0; index < length; index++) {
-					parts = sessionStorage.key(index).split(':');
-					if (parts[0] === partition && parts[1] === section) {
-						found.push(parts[2]);
-					}
-				}
-				if (typeof callback === 'function') {
-					callback(found);
-				}
-			};
-			
-			this.size = function(callback) {
-				var length = this.keys().length;
-				if (typeof callback === 'function') {
-					callback(length);
-				}
 			};
 			
 			readyDeferred.resolve();
@@ -160,14 +121,14 @@
 			}, errorHandler, successHandler);
 			
 			this.get = function(key) {
-				var deferred = $.Deferred(function(dfrd) {
+				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
 						tx.executeSql(
 							'SELECT v FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
 								if (result.rows.length === 1) {
 									dfrd.resolve(result.rows.item(0).v);
 								} else {
-									dfrd.reject();
+									dfrd.resolve(null);
 									if (result.rows.length > 1) {
 										throw('MyAnswersStorage: non-unique key');
 									}
@@ -179,45 +140,39 @@
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value, callback) {
-				db.transaction(function(tx) {
-					tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ]);
-					tx.executeSql(
-						'INSERT INTO ' + section + ' (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
-							if (result.rowsAffected !== 1) {
-								throw('MyAnswersStorage: failed INSERT');
+			this.set = function(key, value) {
+				var deferred = new $.Deferred(function(dfrd) {
+					db.transaction(function(tx) {
+						tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ]);
+						tx.executeSql(
+							'INSERT INTO ' + section + ' (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
+								if (result.rowsAffected !== 1) {
+									dfrd.reject();
+									throw('MyAnswersStorage: failed INSERT');
+								}
+								dfrd.resolve();
 							}
-							if (typeof callback === 'function') {
-								callback();
-							}
-						}
-					);
-				}, errorHandler, successHandler);
+						);
+					}, errorHandler, successHandler);
+				});
+				return deferred.promise();
 			};
 			
 			this.remove = function(key) {
-				var deferred = $.Deferred(function(dfrd) {
+				var deferred = new $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
 						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
-							if (result.rowsAffected === 1) {
-								dfrd.resolve();
-							} else {
-								dfrd.reject();
-								throw('MyAnswersStorage: failed DELETE');
-							}
+							dfrd.resolve();
 						});
 					}, errorHandler, successHandler);
 				});
 				return deferred.promise();
 			};
 
-			this.remove = function(key, callback) {
-			};
-
-			this.keys = function(callback) {
-				db.readTransaction(function(tx) {
-					tx.executeSql(
-						'SELECT k FROM ' + section, [], function(tx, result) {
+			this.keys = function() {
+				var deferred = new $.Deferred(function(dfrd) {
+					db.readTransaction(function(tx) {
+						tx.executeSql('SELECT k FROM ' + section, [], function(tx, result) {
 							var index, row,
 								length = result.rows.length,
 								found = [];
@@ -225,24 +180,24 @@
 								row = result.rows.item(index);
 								found.push(row.k);
 							}
-							if (typeof callback === 'function') {
-								callback(found);
-							}
-						}
-					);
-				}, errorHandler, successHandler);
+							dfrd.resolve(found);
+						});
+					}, errorHandler, successHandler);
+				});
+				return deferred.promise();
 			};
 			
-			this.size = function(callback) {
-				db.readTransaction(function(tx) {
-					tx.executeSql(
-						'SELECT k FROM ' + section, [], function(tx, result) {
-							if (typeof callback === 'function') {
-								callback(result.rows.length);
+			this.size = function() {
+				var deferred = new $.Deferred(function(dfrd) {
+					db.readTransaction(function(tx) {
+						tx.executeSql(
+							'SELECT k FROM ' + section, [], function(tx, result) {
+								dfrd.resolve(result.rows.length);
 							}
-						}
-					);
-				}, errorHandler, successHandler);
+						);
+					}, errorHandler, successHandler);
+				});
+				return deferred.promise();
 			};
 			
 		} else if (type === 'memory') {
@@ -250,49 +205,53 @@
 			this.memory = {};
 
 			this.get = function(key) {
-				var deferred = $.Deferred(function(dfrd) {
+				var deferred = new $.Deferred(function(dfrd) {
 					dfrd.resolve(this.memory[partition + ':' + section + ':' + key]);
 					// dfrd.reject(); not sure if this is needed
 				});
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value, callback) {
-				this.memory[partition + ':' + section + ':' + key] = value;
-				if (typeof callback === 'function') {
-					callback();
-				}
+			this.set = function(key, value) {
+				var deferred = new $.Deferred(function(dfrd) {
+					this.memory[partition + ':' + section + ':' + key] = value;
+					dfrd.resolve();
+				});
+				return deferred.promise();
 			};
 			
 			this.remove = function(key) {
-				$.Deferred(function(deferred) {
+				var deferred = new $.Deferred(function(dfrd) {
 					delete this.memory[partition + ':' + section + ':' + key];
-					deferred.resolve();
+					dfrd.resolve();
 				});
 				return deferred.promise();
 			};
 
-			this.keys = function(callback) {
-				var found = [],
-					key, parts;
-				for (key in this.memory) {
-					if (this.memory.hasOwnProperty(key)) {
-						parts = this.memory[key].split(':');
-						if (parts[0] === partition && parts[1] === section) {
-							found.push(parts[2]);
+			this.keys = function() {
+				var deferred = new $.Deferred(function(dfrd) {
+					var found = [],
+						key, parts;
+					for (key in this.memory) {
+						if (this.memory.hasOwnProperty(key)) {
+							parts = this.memory[key].split(':');
+							if (parts[0] === partition && parts[1] === section) {
+								found.push(parts[2]);
+							}
 						}
 					}
-				}
-				if (typeof callback === 'function') {
-					callback(found);
-				}
+					dfrd.resolve(found);
+				});
+				return deferred.promise();
 			};
 			
-			this.size = function(callback) {
-				var length = this.keys().length;
-				if (typeof callback === 'function') {
-					callback(length);
-				}
+			this.size = function() {
+				var deferred = new $.Deferred(function(dfrd) {
+					$.when(this.keys()).done(function(keys) {
+						dfrd.resolve(keys.length);
+					});
+				});
+				return deferred.promise();
 			};
 			
 			readyDeferred.resolve();
