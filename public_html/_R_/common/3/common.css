@@ -240,6 +240,7 @@ ul.box > li {
 	margin: 0;
 	text-align: left;
 	overflow: hidden;
+	cursor: pointer;
 }
 
 ul.box > li > .label, ul.box > li > .description {
@@ -417,6 +418,7 @@ ul.box > li > .description {
 	top: 0;
 	left: 0;
 	background-color: transparent;
+	z-index: 10;
 }
 
 .signaturePad {

@@ -1877,6 +1877,7 @@ function queuePendingFormData(str, arrayAsString, method, uuid, callback) {
 		MyAnswers.store.set('_pendingFormDataArrayAsString', encodeURIComponent(arrayAsString), function() {
 			MyAnswers.store.set('_pendingFormMethod', encodeURIComponent(method), function() {
 				MyAnswers.store.set('_pendingFormUUID', encodeURIComponent(uuid), function() {
+					setSubmitCachedFormButton();
 					callback();
 				});
 			});
