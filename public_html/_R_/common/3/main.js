@@ -19,18 +19,9 @@ siteVars.mojos = siteVars.mojos || {};
 // *** BEGIN UTILS ***
 
 MyAnswers.log = function() {
-	if (typeof window.console !== 'undefined') { window.console.log.apply(console, arguments); }
-	else if (typeof window.debug !== 'undefined') { window.debug.log.apply(debug, arguments); }
+	if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
+	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 };
-
-function concatenateObjects(a, b) {
-	var property;
-	for (property in b) {
-		if (b.hasOwnProperty(property)) {
-			a[property] = b[property];
-		}
-	}
-}
 
 function isCameraPresent() {
 	MyAnswers.log("isCameraPresent: " + MyAnswers.cameraPresent);
@@ -161,12 +152,11 @@ function isAJAXError(status)
 	}
 }
 
-function populateDataTags(element, data) {
+function populateDataTags($element, data) {
 	var d;
-	if ($.type(element) !== 'object') { return; }
 	for (d in data) {
 		if (data.hasOwnProperty(d)) {
-			element.setAttribute('data-' + d, data[d]);
+			$element.attr('data-' + d, data[d]);
 		}
 	}
 }
@@ -336,69 +326,66 @@ function isHome() {
 
 // perform all steps necessary to populate element with MoJO result
 function generateMojoAnswer(keyword, args, element) {
-	return; // TODO: fix MoJO generation
 	MyAnswers.log('generateMojoAnswer(): keyword=' + keyword.name);
-	$.when(MyAnswers.store.get('mojoMessage-' + keyword.mojo)).done(function(mojoMessage) {
-		var type,
-			xml,
-			xsl = keyword.xslt,
-			placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g),
-			p, pLength = placeholders.length,
-			value,
-			variable, condition,
-			d, s, star;
-		if ($.type(mojoMessage) === 'string') {
-			mojoMessage = $.parseJSON(mojoMessage);
-		}
-		for (p = 0; p < pLength; p++) {
-			value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
-			xsl = xsl.replace(placeholders[p], value);
-		}
-		while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
-			condition = '';
-			type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
-			variable = type[1];
-			type = type[2];
-			if ($.type(starsProfile[type]) === 'object') {
-				for (star in starsProfile[type]) {
-					if (starsProfile[type].hasOwnProperty(star)) {
-						condition += ' or ' + variable + '=\'' + star + '\'';
+	var type,
+		xml,
+		xsl = keyword.xsl,
+		placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g),
+		p, pLength = placeholders ? placeholders.length : 0,
+		value,
+		variable, condition,
+		d, s, star;
+	if (keyword.xml.substr(0,6) === 'stars:') { // use starred items
+		type = keyword.xml.split(':')[1];
+		for (s in starsProfile[type]) {
+			if (starsProfile[type].hasOwnProperty(s)) {
+				xml += '<' + type + ' id="' + s + '">';
+				for (d in starsProfile[type][s]) {
+					if (starsProfile[type][s].hasOwnProperty(d)) {
+						xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
 					}
 				}
-				condition = condition.substr(4);
+				xml += '</' + type + '>';
 			}
-			if (condition.length > 0) {
-				xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
-			} else {
-				xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
-			}
-			MyAnswers.log('generateMojoAnswer(): condition=' + condition);
 		}
-		if (keyword.mojo.substr(0,6) === 'stars:') { // use starred items
-			type = keyword.mojo.split(':')[1];
-			for (s in starsProfile[type]) {
-				if (starsProfile[type].hasOwnProperty(s)) {
-					xml += '<' + type + ' id="' + s + '">';
-					for (d in starsProfile[type][s]) {
-						if (starsProfile[type][s].hasOwnProperty(d)) {
-							xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
+		xml = '<stars>' + xml + '</stars>';
+		performXSLT(xml, xsl, element);
+	} else {
+		$.when(MyAnswers.store.get('mojoXML:' + keyword.xml)).done(function(xml) {
+			for (p = 0; p < pLength; p++) {
+				value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
+				xsl = xsl.replace(placeholders[p], value);
+			}
+			while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
+				condition = '';
+				type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+				variable = type[1];
+				type = type[2];
+				if ($.type(starsProfile[type]) === 'object') {
+					for (star in starsProfile[type]) {
+						if (starsProfile[type].hasOwnProperty(star)) {
+							condition += ' or ' + variable + '=\'' + star + '\'';
 						}
 					}
-					xml += '</' + type + '>';
+					condition = condition.substr(4);
 				}
+				if (condition.length > 0) {
+					xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+				} else {
+					xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+				}
+				MyAnswers.log('generateMojoAnswer(): condition=' + condition);
 			}
-			xml = '<stars>' + xml + '</stars>';
-			performXSLT(xml, xsl, element);
-		} else if ($.type(mojoMessage) === 'object') {
-			$('body').trigger('taskBegun');			
-			xml = mojoMessage.mojo;
-			performXSLT(xml, xsl, element);
-			$('body').trigger('taskComplete');
-		} else {
-			html = '<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>';
-			insertHTML(element, html);
-		}
-	});
+			if (typeof xml === 'string') {
+				$('body').trigger('taskBegun');			
+				performXSLT(xml, xsl, element);
+				$('body').trigger('taskComplete');
+			} else {
+				html = '<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>';
+				insertHTML(element, html);
+			}
+		});
+	}
 }
 
 function countPendingFormData(callback) {
@@ -657,37 +644,35 @@ function onLinkClick(event)
 		if ($.isEmptyObject(args)) {
 			gotoNextScreen(first.value);
 		} else {
-			showSecondLevelAnswerView(first.value, $.param(args));
+			showAnswerView(first.value, $.param(args));
 		}
 		return false;
 	}
 	return true;
 }
 
-function onTransitionComplete(event, view)
-{
-	var $view = $('#' + view),
-		$inputs = $view.find('input, textarea, select');
-	if (typeof onScroll === 'function') {
-		$inputs.unbind('blur', onScroll);
-		$inputs.bind('blur', onScroll);
-	}
-	$view.find('.blink-starrable').each(function(index, element) {
-		var div = document.createElement('div');
-		var data = $(element).data();
-		populateDataTags(div, data);
-		addEvent(div, 'click', onStarClick);
-		if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object')
-		{
-			div.setAttribute('class', 'blink-starrable blink-star-off');
+function onTransitionComplete(event, view) {
+	MyAnswers.dispatch.add(function() {
+		var $view = $('#' + view),
+			$inputs = $view.find('input, textarea, select');
+		if (typeof onScroll === 'function') {
+			$inputs.unbind('blur', onScroll);
+			$inputs.bind('blur', onScroll);
 		}
-		else
-		{
-			div.setAttribute('class', 'blink-starrable blink-star-on');
-		}
-		$(element).replaceWith(div);
+		$view.find('.blink-starrable').each(function(index, element) {
+			var $div = $('<div />'),
+				data = $(element).data();
+			populateDataTags($div, data);
+			$div.bind('click', onStarClick);
+			if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object') {
+				$div.addClass('blink-starrable blink-star-off');
+			} else {
+				$div.addClass('blink-starrable blink-star-on');
+			}
+			$(element).replaceWith($div);
+		});
+		$view.find('a').bind('click', onLinkClick);
 	});
-	$view.find('a').bind('click', onLinkClick);
 }
 
 function onSiteBootComplete(event) {
@@ -696,7 +681,7 @@ function onSiteBootComplete(event) {
 		config = siteVars.config['a' + siteVars.id].pertinent;
 	delete siteVars.queryParameters.keyword;
 	if (typeof(keyword) === 'string' && ! $.isEmptyObject(siteVars.queryParameters)) {
-		showSecondLevelAnswerView(keyword, $.param(siteVars.queryParameters));
+		showAnswerView(keyword, $.param(siteVars.queryParameters));
 	} else if (typeof(keyword) === 'string') {
 		gotoNextScreen(keyword);
 	} else if (typeof(siteVars.queryParameters.category) === 'string') {
@@ -1140,55 +1125,54 @@ function displayAnswerSpace() {
 	$('#content').removeClass('hidden');
 }
 
-function processMoJOs(keyword) {
-	var requestURL = siteVars.serverAppPath + '/util/GetMoJO.php',
-		deferredFetches = {},
-		i, iLength = siteVars.map.interactions.length,
-		interaction,
-		ajaxComplete = function(xhr, xhrStatus, xhrOptions) {
-			if (!isAJAXError(xhrStatus) && xhr.status === 200) {
-				var data = $.parseJSON(xhr.responseText);
-				if (data === null) {
-					MyAnswers.log('GetMoJO error: null data');
-				} else if (data.errorMessage) {
-					MyAnswers.log('GetMoJO error: ' + xhrOptions.mojoName + ' ' + data.errorMessage);
-				} else {
-//					siteVars.mojos[xhrOptions.mojoName].xml = xhr.responseText;
-					MyAnswers.store.set('mojoXML:' + xhrOptions.mojoName, xhr.responseText);
-					MyAnswers.store.set('mojoLastChecked:' + xhrOptions.mojoName, $.now());
-//					MyAnswers.store.set('mojoLastUpdated:' + xhrOptions.mojoName, xhr.responseText);
-				}
-			}
-		},
+function processMoJOs(interaction) {
+	var deferredFetches = {},
+		interactions = interaction ? [ interaction ] : siteVars.map.interactions,
+		i, iLength = interactions.length,
+		config,
 		deferredFn = function(mojo) {
 			var deferred = new $.Deferred(function(dfrd) {
-				var requestData = 'answerSpace=' + siteVars.answerSpace + '&key=' + mojo;
-				ajaxQueueMoJO.add({
-					url: requestURL,
-					data: requestData,
-					dataType: 'json',
-					mojoName: mojo,
-					complete: ajaxComplete,
-					timeout: computeTimeout(500 * 1024)
+				$.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
+					var requestData = {
+							_id: siteVars.id,
+							_m: mojo
+						};
+					value = parseInt(value);
+					if (typeof value === 'number' && !isNaN(value)) {
+						requestData._lc = value;
+					}
+					ajaxQueueMoJO.add({
+						url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+						data: requestData,
+						dataType: 'xml',
+						complete: function(jqxhr, status) {
+							if (jqxhr.status === 200) {
+								MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
+								MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
+//								MyAnswers.store.set('mojoLastUpdated:' + mojo, jqxhr.responseText);
+							}
+						},
+						timeout: computeTimeout(500 * 1024)
+					});
 				});
 			});
 			return deferred.promise();
 		};
 	for (i = 0; i < iLength; i++) {
-		interaction = siteVars.config['i' + siteVars.map.interactions[i]].pertinent;
-		if ($.type(interaction) === 'object' && interaction.type === 'xslt') {
-			if (typeof interaction.xml === 'string' && interaction.xml.substring(0, 6) !== 'stars:') {
-				if (!siteVars.mojos[interaction.xml]) {
-					siteVars.mojos[interaction.xml] = {
-						maximumAge: interaction.maximumAge || 0,
-						minimumAge: interaction.minimumAge || 0
+		config = siteVars.config['i' + interactions[i]].pertinent;
+		if ($.type(config) === 'object' && config.type === 'xslt') {
+			if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
+				if (!siteVars.mojos[config.xml]) {
+					siteVars.mojos[config.xml] = {
+						maximumAge: config.maximumAge || 0,
+						minimumAge: config.minimumAge || 0
 					};
 				} else {
-					siteVars.mojos[interaction.xml].maximumAge = interaction.maximumAge ? Math.min(interaction.maximumAge, siteVars.mojos[interaction.xml].maximumAge) : siteVars.mojos[interaction.xml].maximumAge;
-					siteVars.mojos[interaction.xml].minimumAge = interaction.minimumAge ? Math.max(interaction.minimumAge, siteVars.mojos[interaction.xml].minimumAge) : siteVars.mojos[interaction.xml].minimumAge;
+					siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
+					siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
 				}
-				if (!deferredFetches[interaction.xml]) {
-					deferredFetches[interaction.xml] = deferredFn(interaction.xml);
+				if (!deferredFetches[config.xml]) {
+					deferredFetches[config.xml] = deferredFn(config.xml);
 				}
 			}
 		}
@@ -1381,11 +1365,13 @@ function createParamsAndArgs(keywordID) {
 }
 
 function setupForms($view) {
-	var interactionConfig = siteVars.config['i' + currentInteraction].pertinent;
+	var $form = $view.find('form'),
+		interactionConfig = siteVars.config['i' + currentInteraction].pertinent;
+	if ($form.size() === 0) { return; }
 	MyAnswers.dispatch.add(function() {
 		if (!isCameraPresent()) {
 			MyAnswers.dispatch.add(function() {
-				$view.find('form input[onclick*="selectCamera"]').each(function(index, element) {
+				$form.find('input[onclick*="selectCamera"]').each(function(index, element) {
 					$(element).attr('disabled', 'disabled');
 				});
 			});
@@ -1393,7 +1379,7 @@ function setupForms($view) {
 	});
 	MyAnswers.dispatch.add(function() {
 		if (interactionConfig.type === 'form') {
-			BlinkForms.setupForm($view.find('form').first());
+			BlinkForms.setupForm($form.first());
 		}		
 	});
 }
@@ -1493,7 +1479,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			requestData._f = deviceVars.features;
 		}
 		if (!$.isEmptyObject(args)) {
-			concatenateObjects(requestData, args);
+			$.extend(requestData, args);
 		}
 		ajaxQueue.add({
 			type: 'GET',
