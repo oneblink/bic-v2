@@ -401,10 +401,13 @@ ul.box > li > .description {
 }
 
 #MyAnswersSideBar > ul {
+	margin: 0;
+	padding: 0;
 	list-style: none;
 }
 
 #MyAnswersSideBar > ul > li {
+	margin: 0;
 	padding: 1em .8em;
 	font-weight: bold;
 	cursor: pointer;
