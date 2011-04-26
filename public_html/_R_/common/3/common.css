@@ -88,9 +88,15 @@ a[href], a[keyword] {
 }
 
 .bForm-label, .bForm-value { font-size: smaller; }
-.bForm-input { font-size: medium; width: 60%; }
 .bForm-input .radiooption, .bForm-input .checkoption { display: table-row; }
 .bForm-input label, .bForm-input input[type=radio], .bForm-input input[type=checkbox] { display: table-cell; }
+
+.bForm-tooltip {
+	max-width: 24px;
+}
+.bForm-input {
+	min-width: 60%;
+}
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;

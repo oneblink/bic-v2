@@ -230,36 +230,37 @@ DOMDispatch.prototype.resume = function(caller) {
 
 //take 2 plain XML strings, then transform the first using the second (XSL)
 //insert the result into element
-function performXSLT(xmlString, xslString, element)
-{
-	MyAnswers.log('performXSLT(): target=' + $(element).attr('id'));
-	var html, xml, xsl;
-	if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { return false; }
-	xml = $.parseXML(xmlString);
-	xsl = $.parseXML(xslString);
-	/*
-	 * if (deviceVars.hasWebWorkers === true) {
-	 * MyAnswers.log('performXSLT(): enlisting Web Worker to perform
-	 * XSLT'); var message = { }; message.fn = 'processXSLT'; message.xml =
-	 * xmlString; message.xsl = xslString; message.target = target;
-	 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
-	 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
-	 */
-	if (window.ActiveXObject !== undefined) {
-		MyAnswers.log('performXSLT(): using Internet Explorer method');
-		html = xml.transformNode(xsl);
-	} else if (window.XSLTProcessor !== undefined) {
-		MyAnswers.log('performXSLT(): performing XSLT via XSLTProcessor()');
-		var xsltProcessor = new XSLTProcessor();
-		xsltProcessor.importStylesheet(xsl);
-		html = xsltProcessor.transformToFragment(xml, document);
-	} else if (xsltProcess !== undefined) {
-		MyAnswers.log('performXSLT(): performing XSLT via AJAXSLT library');
-		html = xsltProcess(xml, xsl);
-	} else {
-		html = '<p>Your browser does not support MoJO keywords.</p>'; 
-	}
-	insertHTML(element, html);
+function performXSLT(xmlString, xslString) {
+	var deferred = new $.Deferred(function(dfrd) {
+		var html, xml, xsl;
+		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { dfrd.reject('XSLT failed due to poorly formed XML or XSL.'); return; }
+		xml = $.parseXML(xmlString);
+		xsl = $.parseXML(xslString);
+		/*
+		 * if (deviceVars.hasWebWorkers === true) {
+		 * MyAnswers.log('performXSLT(): enlisting Web Worker to perform
+		 * XSLT'); var message = { }; message.fn = 'processXSLT'; message.xml =
+		 * xmlString; message.xsl = xslString; message.target = target;
+		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
+		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
+		 */
+		if (window.ActiveXObject !== undefined) {
+			MyAnswers.log('performXSLT(): using Internet Explorer method');
+			html = xml.transformNode(xsl);
+		} else if (window.XSLTProcessor !== undefined) {
+			MyAnswers.log('performXSLT(): performing XSLT via XSLTProcessor()');
+			var xsltProcessor = new XSLTProcessor();
+			xsltProcessor.importStylesheet(xsl);
+			html = xsltProcessor.transformToFragment(xml, document);
+		} else if (xsltProcess !== undefined) {
+			MyAnswers.log('performXSLT(): performing XSLT via AJAXSLT library');
+			html = xsltProcess(xml, xsl);
+		} else {
+			html = '<p>Your browser does not support MoJO keywords.</p>'; 
+		}
+		dfrd.resolve(html);
+	});
+	return deferred.promise();
 }
 
 // *** END OF UTILS ***
@@ -325,67 +326,78 @@ function isHome() {
 }
 
 // perform all steps necessary to populate element with MoJO result
-function generateMojoAnswer(keyword, args, element) {
+function generateMojoAnswer(keyword, args) {
 	MyAnswers.log('generateMojoAnswer(): keyword=' + keyword.name);
-	var type,
-		xml,
-		xsl = keyword.xsl,
-		placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g),
-		p, pLength = placeholders ? placeholders.length : 0,
-		value,
-		variable, condition,
-		d, s, star;
-	if (keyword.xml.substr(0,6) === 'stars:') { // use starred items
-		type = keyword.xml.split(':')[1];
-		for (s in starsProfile[type]) {
-			if (starsProfile[type].hasOwnProperty(s)) {
-				xml += '<' + type + ' id="' + s + '">';
-				for (d in starsProfile[type][s]) {
-					if (starsProfile[type][s].hasOwnProperty(d)) {
-						xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
-					}
-				}
-				xml += '</' + type + '>';
-			}
-		}
-		xml = '<stars>' + xml + '</stars>';
-		performXSLT(xml, xsl, element);
-	} else {
-		$.when(MyAnswers.store.get('mojoXML:' + keyword.xml)).done(function(xml) {
-			for (p = 0; p < pLength; p++) {
-				value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
-				xsl = xsl.replace(placeholders[p], value);
-			}
-			while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
-				condition = '';
-				type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
-				variable = type[1];
-				type = type[2];
-				if ($.type(starsProfile[type]) === 'object') {
-					for (star in starsProfile[type]) {
-						if (starsProfile[type].hasOwnProperty(star)) {
-							condition += ' or ' + variable + '=\'' + star + '\'';
+	var deferred = new $.Deferred(function(dfrd) {
+		var type,
+			xml,
+			xsl = keyword.xsl,
+			placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g),
+			p, pLength = placeholders ? placeholders.length : 0,
+			value,
+			variable, condition,
+			d, s, star;
+		if (keyword.xml.substr(0,6) === 'stars:') { // use starred items
+			type = keyword.xml.split(':')[1];
+			for (s in starsProfile[type]) {
+				if (starsProfile[type].hasOwnProperty(s)) {
+					xml += '<' + type + ' id="' + s + '">';
+					for (d in starsProfile[type][s]) {
+						if (starsProfile[type][s].hasOwnProperty(d)) {
+							xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
 						}
 					}
-					condition = condition.substr(4);
+					xml += '</' + type + '>';
 				}
-				if (condition.length > 0) {
-					xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+			}
+			xml = '<stars>' + xml + '</stars>';
+			$.when(performXSLT(xml, xsl)).done(function(html) {
+				dfrd.resolve(html);
+			}).fail(function(html) {
+				dfrd.resolve(html);
+			});
+		} else {
+			$.when(MyAnswers.store.get('mojoXML:' + keyword.xml)).done(function(xml) {
+				for (p = 0; p < pLength; p++) {
+					value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
+					xsl = xsl.replace(placeholders[p], value);
+				}
+				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
+					condition = '';
+					type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+					variable = type[1];
+					type = type[2];
+					if ($.type(starsProfile[type]) === 'object') {
+						for (star in starsProfile[type]) {
+							if (starsProfile[type].hasOwnProperty(star)) {
+								condition += ' or ' + variable + '=\'' + star + '\'';
+							}
+						}
+						condition = condition.substr(4);
+					}
+					if (condition.length > 0) {
+						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+					} else {
+						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+					}
+					MyAnswers.log('generateMojoAnswer(): condition=' + condition);
+				}
+				if (typeof xml === 'string') {
+					$('body').trigger('taskBegun');			
+					$.when(performXSLT(xml, xsl)).done(function(html) {
+						dfrd.resolve(html);
+						$('body').trigger('taskComplete');
+					}).fail(function(html) {
+						dfrd.resolve(html);
+						$('body').trigger('taskComplete');
+					});
 				} else {
-					xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+					dfrd.resolve('<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>');
 				}
-				MyAnswers.log('generateMojoAnswer(): condition=' + condition);
-			}
-			if (typeof xml === 'string') {
-				$('body').trigger('taskBegun');			
-				performXSLT(xml, xsl, element);
-				$('body').trigger('taskComplete');
-			} else {
-				html = '<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>';
-				insertHTML(element, html);
-			}
-		});
-	}
+			});
+		}
+	});
+	return deferred.promise();
 }
 
 function countPendingFormData(callback) {
@@ -1148,8 +1160,10 @@ function processMoJOs(interaction) {
 						complete: function(jqxhr, status) {
 							if (jqxhr.status === 200) {
 								MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
+//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+							}
+							if (jqxhr.status === 200 || jqxhr.status === 304) {
 								MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
-//								MyAnswers.store.set('mojoLastUpdated:' + mojo, jqxhr.responseText);
 							}
 						},
 						timeout: computeTimeout(500 * 1024)
@@ -1429,8 +1443,10 @@ function showAnswerView(interaction, argsString, reverse) {
 		insertHTML(answerBox, config.message);
 		completeFn();
 	} else if (config.type === 'xslt' && deviceVars.disableXSLT !== true) {
-		generateMojoAnswer(config, args, answerBox);
-		completeFn();
+		$.when(generateMojoAnswer(config, args)).done(function(html) {
+			insertHTML(answerBox, html);
+			completeFn();
+		});
 	} else if (reverse) {
 		$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
 			insertHTML(answerBox, html);
