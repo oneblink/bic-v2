@@ -805,38 +805,32 @@ function goBackToMasterCategoriesView()
 
 // run after any change to current*
 function updateCurrentConfig() {
-	// TODO: using non-standard __proto__, need to have a fallback for IE<9 and Opera
 	// see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
 	// TODO: need to fold orientation-specific config into this somewhere
 	MyAnswers.log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
-	var lastPrototype;
-	currentConfig = siteVars.config['a' + siteVars.id].pertinent;
+	currentConfig = {};
+	$.extend(currentConfig, siteVars.config['a' + siteVars.id].pertinent);
 	if (typeof currentMasterCategory !== 'undefined' && currentMasterCategory !== null) {
-		lastPrototype = currentConfig;
-		currentConfig = siteVars.config['m' + currentMasterCategory].pertinent;
-		currentConfig.__proto__ = lastPrototype;
+		$.extend(currentConfig, siteVars.config['m' + currentMasterCategory].pertinent);
 	}
 	if (typeof currentCategory !== 'undefined' && currentCategory !== null) {
-		lastPrototype = currentConfig;
-		currentConfig = siteVars.config['c' + currentCategory].pertinent;
-		currentConfig.__proto__ = lastPrototype;
+		$.extend(currentConfig, siteVars.config['c' + currentCategory].pertinent);
 	}
 	if (typeof currentInteraction !== 'undefined' && currentInteraction !== null) {
-		lastPrototype = currentConfig;
-		currentConfig = siteVars.config['i' + currentInteraction].pertinent;
-		currentConfig.__proto__ = lastPrototype;
+		$.extend(currentConfig, siteVars.config['i' + currentInteraction].pertinent);
 	}
 	// perform inherited changes
 	MyAnswers.dispatch.add(function() {
 		var $image = $('#bannerBox > img'); 
-		if (typeof currentConfig.logoBanner === 'string') {
-			$image.first().attr('src', '/images/' + siteVars.id + '/' + currentConfig.logoBanner);
+		if (typeof currentConfig.logoBanner === 'string' && currentConfig.logoBanner !== $image.attr('src')) {
+			$image.attr('src', '/images/' + siteVars.id + '/' + currentConfig.logoBanner);
 			$image.removeClass('hidden');
 		} else {
+			$image.removeAttr('src');
 			$image.addClass('hidden');
 		}
 	});
-	MyAnswers.dispatch.add(function() {
+/*	MyAnswers.dispatch.add(function() {
 		$('style[data-setting="styleSheet"]').text(currentConfig.styleSheet);
 	});
 	MyAnswers.dispatch.add(function() {
@@ -865,7 +859,7 @@ function updateCurrentConfig() {
 		$('style[data-setting="masterCategoriesStyle"]').text('#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }');
 		$('style[data-setting="categoriesStyle"]').text('#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }');
 		$('style[data-setting="interactionsStyle"]').text('#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }');
-	});
+	}); */
 }
 
 function populateItemListing(level) {
