@@ -68,6 +68,10 @@ a, [onclick] {
 	cursor: pointer;
 }
 
+ul, ol {
+	-webkit-padding-start: 0px;
+}
+
 a[href], a[keyword] {
 	text-decoration: underline;
 }
@@ -90,7 +94,6 @@ a[href], a[keyword] {
 .bForm-label, .bForm-value { font-size: smaller; }
 .bForm-input .radiooption, .bForm-input .checkoption { display: table-row; }
 .bForm-input label, .bForm-input input[type=radio], .bForm-input input[type=checkbox] { display: table-cell; }
-.bForm-input { min-width: 60%; }
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;
