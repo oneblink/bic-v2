@@ -1379,10 +1379,10 @@ function createParamsAndArgs(keywordID) {
 }
 
 function setupForms($view) {
-	var $form = $view.find('form'),
-		interactionConfig = siteVars.config['i' + currentInteraction].pertinent;
-	if ($form.size() < 1) { return; }
 	MyAnswers.dispatch.add(function() {
+		var $form = $view.find('form'),
+			interactionConfig = siteVars.config['i' + currentInteraction].pertinent;
+		if ($form.size() < 1) { return; }
 		if (!isCameraPresent()) {
 			MyAnswers.dispatch.add(function() {
 				$form.find('input[onclick*="selectCamera"]').each(function(index, element) {
@@ -1390,8 +1390,6 @@ function setupForms($view) {
 				});
 			});
 		}
-	});
-	MyAnswers.dispatch.add(function() {
 		if (interactionConfig.type === 'form') {
 			BlinkForms.setupForm($form.first());
 		}		
