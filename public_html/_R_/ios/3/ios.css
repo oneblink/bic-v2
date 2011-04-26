@@ -7,13 +7,17 @@ body, nav {
 }
 
 td {
-	padding: 4px;
+	padding: 2px;
 }
 
 textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
 	padding: 4px;
 	border: 1px solid #AAAAAA;
 	-webkit-border-radius: 4px;
+}
+
+button, [type=button], [type=submit], [type=reset] {
+	background-color: #FFF;
 }
 
 .bForm-results {
