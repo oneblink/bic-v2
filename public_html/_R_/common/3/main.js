@@ -1381,7 +1381,7 @@ function createParamsAndArgs(keywordID) {
 function setupForms($view) {
 	var $form = $view.find('form'),
 		interactionConfig = siteVars.config['i' + currentInteraction].pertinent;
-	if ($form.size() === 0) { return; }
+	if ($form.size() < 1) { return; }
 	MyAnswers.dispatch.add(function() {
 		if (!isCameraPresent()) {
 			MyAnswers.dispatch.add(function() {
