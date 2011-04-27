@@ -821,9 +821,10 @@ function updateCurrentConfig() {
 	}
 	// perform inherited changes
 	MyAnswers.dispatch.add(function() {
-		var $image = $('#bannerBox > img'); 
-		if (typeof currentConfig.logoBanner === 'string' && currentConfig.logoBanner !== $image.attr('src')) {
-			$image.attr('src', '/images/' + siteVars.id + '/' + currentConfig.logoBanner);
+		var $image = $('#bannerBox > img'),
+			imageSrc = '/images/' + siteVars.id + '/' + currentConfig.logoBanner; 
+		if (typeof currentConfig.logoBanner === 'string' && imageSrc !== $image.attr('src')) {
+			$image.attr('src', imageSrc);
 			$image.removeClass('hidden');
 		} else {
 			$image.removeAttr('src');
