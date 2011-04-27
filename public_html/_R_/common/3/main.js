@@ -831,7 +831,7 @@ function updateCurrentConfig() {
 			$image.addClass('hidden');
 		}
 	});
-/*	MyAnswers.dispatch.add(function() {
+	MyAnswers.dispatch.add(function() {
 		$('style[data-setting="styleSheet"]').text(currentConfig.styleSheet);
 	});
 	MyAnswers.dispatch.add(function() {
@@ -860,7 +860,7 @@ function updateCurrentConfig() {
 		$('style[data-setting="masterCategoriesStyle"]').text('#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }');
 		$('style[data-setting="categoriesStyle"]').text('#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }');
 		$('style[data-setting="interactionsStyle"]').text('#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }');
-	}); */
+	});
 }
 
 function populateItemListing(level) {
