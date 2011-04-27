@@ -180,6 +180,15 @@ function processBlinkAnswerMessage(message) {
 			});
 		}
 	}
+	if (typeof message.mojoTarget === 'string') {
+		if (typeof message.mojoXML === 'string') {
+			MyAnswers.log('blinkAnswerMessage: populating MoJO: ' + message.mojoTarget);
+			
+		} else if (typeof message.mojoDelete !== 'undefined') {
+			MyAnswers.log('blinkAnswerMessage: deleting MoJO: ' + message.mojoTarget);
+			
+		}
+	}
 }
 
 var DOMDispatch = function() {
