@@ -148,7 +148,7 @@ button, [type=button], [type=submit], [type=reset] {
 	top: 0px;
 }
 
-.box {
+.box, ul.box {
 	margin: 10px;
 }
 

@@ -234,7 +234,9 @@ img.v4col { width: 25%; }
 
 ul.box {
 	position: relative;
-	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	list-style: none;
 	background: none;
 }
 
