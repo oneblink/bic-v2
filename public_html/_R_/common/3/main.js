@@ -853,8 +853,10 @@ function updateCurrentConfig() {
 		$('style[data-setting="inputPromptStyle"]').text('#argsBox { ' + currentConfig.inputPromptStyle + ' }');
 	});
 	MyAnswers.dispatch.add(function() {
-		$('style[data-setting="oddRowStyle"]').text('ul.box > li:nth-child(odd) { ' + currentConfig.oddRowStyle + ' }');
-		$('style[data-setting="evenRowStyle"]').text('ul.box > li:nth-child(even) { ' + currentConfig.evenRowStyle + ' }');
+		var style = '';
+		style += 'ul.box > li:nth-child(even), tr.even { ' + currentConfig.evenRowStyle + ' }\n';
+		style += 'ul.box > li:nth-child(odd), tr.odd { ' + currentConfig.oddRowStyle + ' }\n';
+		$('style[data-setting="rowStyle"]').text(style);
 	});
 	MyAnswers.dispatch.add(function() {
 		$('#content > header').attr('style', currentConfig.headerStyle);
@@ -1458,7 +1460,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			completeFn();
 		});
 	} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
-		var requestUrl = '//' + siteVars.serverDomain + '/admin2/bf_formview.php?name=' + config.blinkFormObjectName + '&_form=' + config.blinkFormAction,
+		var requestUrl = siteVars.serverAppPath + '/xhr/GetForm.php?name=' + config.blinkFormObjectName + '&_form=' + config.blinkFormAction,
 			fallbackToStorage = function() {
 				html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
 				insertHTML(answerBox, html);
