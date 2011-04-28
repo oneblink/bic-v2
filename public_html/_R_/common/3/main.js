@@ -183,10 +183,10 @@ function processBlinkAnswerMessage(message) {
 	if (typeof message.mojoTarget === 'string') {
 		if (typeof message.mojoXML === 'string') {
 			MyAnswers.log('blinkAnswerMessage: populating MoJO: ' + message.mojoTarget);
-			
+			MyAnswers.store.set('mojoXML:' + message.mojoTarget, message.mojoXML);
 		} else if (typeof message.mojoDelete !== 'undefined') {
 			MyAnswers.log('blinkAnswerMessage: deleting MoJO: ' + message.mojoTarget);
-			
+			MyAnswers.store.remove('mojoXML:' + message.mojoTarget);
 		}
 	}
 }
