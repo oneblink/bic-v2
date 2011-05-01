@@ -1365,7 +1365,7 @@ function createParamsAndArgs(keywordID) {
 		returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(config.pertinent.name),
 		args = '',
 		argElements = $('#argsBox').find('input, textarea, select');
-	if (typeof config === 'undefined' || !config.pertinent.interactionInputPrompt) { return returnValue; }	
+	if (typeof config === 'undefined' || !config.pertinent.inputPrompt) { return returnValue; }	
 	args = '';
 	argElements.each(function(index, element) {
 		if (this.type && (this.type.toLowerCase() === "radio" || this.type.toLowerCase() === "checkbox") && !this.checked) {
@@ -1439,10 +1439,12 @@ function showAnswerView(interaction, argsString, reverse) {
 	updateCurrentConfig();
 	processMoJOs(interaction);
 	config = config.pertinent;
+	args = {};
 	if (typeof argsString === 'string' && argsString.length > 0) {
-		args = deserialize(decodeURIComponent(argsString));
-	} else {
-		args = deserialize(createParamsAndArgs(interaction), args);
+		$.extend(args, deserialize(decodeURIComponent(argsString)));
+	}
+	if (config.inputPrompt) {
+		$.extend(args, deserialize(createParamsAndArgs(interaction)));
 		delete args.answerSpace;
 		delete args.interaction;
 	}
@@ -1466,6 +1468,9 @@ function showAnswerView(interaction, argsString, reverse) {
 				insertHTML(answerBox, html);
 				completeFn();
 			};
+		if (args.length > 0) {
+			requestUrl += '&' + $.param(args);
+		}
 		ajaxQueue.add({
 			type: 'POST',
 			url: requestUrl,
@@ -1474,10 +1479,10 @@ function showAnswerView(interaction, argsString, reverse) {
 				else {
 					html = xhr.responseText;
 					insertHTML(answerBox, html);
-					MyAnswers.dispatch.add(function() {
-						var $form = $answerBox.find('form').first();
-						$form.bind('submit', submitForm);
-					});
+//					MyAnswers.dispatch.add(function() {
+//						var $form = $answerBox.find('form').first();
+//						$form.bind('submit', submitForm);
+//					});
 					completeFn();
 				}
 			},
@@ -1557,7 +1562,7 @@ function gotoNextScreen(keyword, category, masterCategory) {
 		currentCategory = category;
 	}
 	currentInteraction = keyword;
-	if (config.pertinent.interactionInputPrompt) {
+	if (config.pertinent.inputPrompt) {
 		showKeywordView(keyword);
 	} else {
 		showAnswerView(keyword);
@@ -1570,14 +1575,14 @@ function showSecondLevelAnswerView(keyword, arg0, reverse) {
 }
 
 function showKeywordView(keyword) {
-	addBackHistory("goBackToKeywordView(\"" + keywordID + "\");");
+	addBackHistory("goBackToKeywordView(\"" + keyword + "\");");
 	MyAnswersDevice.hideView();
 	var config = siteVars.config['i' + keyword].pertinent,
 		argsBox = $('#argsBox')[0],
 		descriptionBox = $('#descriptionBox')[0];
 	currentInteraction = keyword;
 	updateCurrentConfig();
-	insertHTML(argsBox, config.interactionInputPrompt);
+	insertHTML(argsBox, config.inputPrompt);
 	if (config.description) {
 		insertHTML(descriptionBox, config.description);
 		$(descriptionBox).removeClass('hidden');
@@ -2056,6 +2061,13 @@ function submitAction(keyword, action) {
 			{
 				html = xhr.responseText;
 			}
+
+			MyAnswers.log('GetAnswer: Ben put blinkAnswerMessage code here!');
+			var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
+			if (blinkAnswerMessage !== null) {
+				processBlinkAnswerMessage(blinkAnswerMessage[1]);
+			}
+
 			MyAnswersDevice.hideView();
 			if (currentBox.attr('id').indexOf('answerBox') !== -1)
 			{
