@@ -1468,7 +1468,7 @@ function showAnswerView(interaction, argsString, reverse) {
 				insertHTML(answerBox, html);
 				completeFn();
 			};
-		if (args.length > 0) {
+		if (!$.isEmptyObject(args)) {
 			requestUrl += '&' + $.param(args);
 		}
 		ajaxQueue.add({
