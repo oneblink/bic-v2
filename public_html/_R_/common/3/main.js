@@ -163,7 +163,6 @@ function populateDataTags($element, data) {
 
 function processBlinkAnswerMessage(message) {
 	message = $.parseJSON(message);
-	MyAnswers.log(message);
 	if (typeof message.loginStatus === 'string' && typeof message.loginKeyword === 'string' && typeof message.logoutKeyword === 'string') {
 		MyAnswers.log('blinkAnswerMessage: loginStatus detected');
 		if (message.loginStatus === 'LOGGED IN') {
@@ -191,51 +190,45 @@ function processBlinkAnswerMessage(message) {
 	}
 }
 
-var DOMDispatch = function() {
-	this._queue = []; // array to be treated as a FIFO
-	this._timeout = null; // use to allow only 1 timeout simultaneously
-	this._interval = 25; // time between dispatching tasks
-	this._isPaused = false;
-	this._intervalFn = function() {
-		if (this._isPaused) { return; }
-		this._timeout = setTimeout(function() {
-			$(window.document).trigger('DOMDispatch-nextItem');
-		}, this._interval);
-	};
-	this._pop = function(event) {
-		var dispatch = event.data.dispatch;
-		clearTimeout(dispatch._timeout);
-		dispatch._timeout = null;
-		var item = dispatch._queue.shift();
-		if (typeof(item) === 'function') {
-			item();
-		} else {
-			MyAnswers.log('DOMDispatch:' + item);
+(function(window, undefined) {
+	BlinkDispatch = function(interval) {
+		var queue = [],
+			timeout = null,
+			dispatch = this; // to facilitate self-references
+		this.interval = interval;
+		this.isPaused = false;
+		function processQueue() {
+			if (dispatch.isPaused || timeout !== null || queue.length === 0) { return; }
+			var item = queue.shift();
+			if (typeof item === 'function') {
+				item();
+			} else {
+				MyAnswers.log('BlinkDispatch:' + item);
+			}
+			timeout = setTimeout(function() {
+				timeout = null;
+				processQueue();
+			}, dispatch.interval);
 		}
-		if (dispatch._queue.length > 0) {
-			dispatch._intervalFn();
-		}
+		this._push = function(item) {
+			queue.push(item);
+			processQueue();
+		};
+		this.pause = function() {
+			clearTimeout(timeout);
+			timeout = null;
+			this.isPaused = true;
+		};
+		this.resume = function() {
+			this.isPaused = false;
+			processQueue();
+		};
+		return this;
 	};
-	$(window.document).bind('DOMDispatch-nextItem', { dispatch: this }, this._pop);
-	return this;
-};
-DOMDispatch.prototype.add = function(item) {
-	this._queue.push(item);
-	if (this._timeout === null) {
-		this._intervalFn();
-	}
-};
-DOMDispatch.prototype.pause = function(caller) {
-	clearTimeout(this._timeout);
-	this._timeout = null;
-	this._isPaused = true;
-};
-DOMDispatch.prototype.resume = function(caller) {
-	this._isPaused = false;
-	if (this._queue.length > 0) {
-		this._intervalFn();
-	}
-};
+	BlinkDispatch.prototype.add = function(item) {
+		this._push(item);
+	};
+}(this));
 
 //take 2 plain XML strings, then transform the first using the second (XSL)
 //insert the result into element
@@ -2565,7 +2558,7 @@ function init_main() {
 	maxTransactionTimeout = 180 * 1000;
 	ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
 	ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
-	MyAnswers.dispatch = new DOMDispatch();
+	MyAnswers.dispatch = new BlinkDispatch(47);
 
 	MyAnswers.runningTasks = 0; // track the number of tasks in progress
 	

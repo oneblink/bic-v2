@@ -268,7 +268,7 @@
 	window.MyAnswersStorage.prototype.removeKeysRegExp = function(regexp) {
 		var store = this,
 			deferred = new $.Deferred(function(dfrd) {
-			$.when(MyAnswers.store.keys()).done(function(keys) {
+			$.when(store.keys()).done(function(keys) {
 				var k, kLength = keys.length,
 					removeDefers = [];
 				for (k = 0; k < kLength; k++) {

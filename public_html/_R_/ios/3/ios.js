@@ -56,14 +56,15 @@ function onDeviceReady() {
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating');
-				setTimeout(function() {
-					$view.addClass('slid' + endPosition);
-				}, 0);
-				setTimeout(function() {
+				$view.bind('webkitTransitionEnd', function(event) {
+					$view.unbind('webkitTransitionEnd');
 					$view.hide();
 					$view.removeClass('animating slid' + endPosition);
 					MyAnswers.dispatch.resume('hideView');
-				}, 350);
+				});
+				setTimeout(function() {
+					$view.addClass('slid' + endPosition);
+				}, 0);
 			});
 		};
 		MyAnswersDevice.showView = function($view, reverseTransition) {
@@ -76,17 +77,18 @@ function onDeviceReady() {
 				$view.hide();
 				$view.addClass('slid' + startPosition);
 				$view.show();
-				setTimeout(function() {
-					$view.addClass('animating');
-					$view.removeClass('slid' + startPosition);
-				}, 0);
-				setTimeout(function() {
+				$view.bind('webkitTransitionEnd', function(event) {
+					$view.unbind('webkitTransitionEnd');
 					$view.removeClass('animating');
 					$('body').trigger('transitionComplete', [ $view.attr('id') ]);
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
 					$('#activeContent > footer').removeClass('hidden');
-				}, 350);
+				});
+				setTimeout(function() {
+					$view.addClass('animating');
+					$view.removeClass('slid' + startPosition);
+				}, 0);
 			});
 		};
 		return MyAnswersDevice;
@@ -102,7 +104,7 @@ function onDeviceReady() {
 function updatePartCSS(element, property, value, valueFormat) {
 	var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
 	$(element).css(property, formattedValue);
-	}
+}
 
 function onScroll() {
 	var //headerBottom = $('.header').height(),
