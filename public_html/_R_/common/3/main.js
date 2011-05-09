@@ -823,47 +823,37 @@ function updateCurrentConfig() {
 	}
 	// perform inherited changes
 	MyAnswers.dispatch.add(function() {
-		var $image = $('#bannerBox > img'),
+		var $banner = $('#bannerBox'),
+			$image = $banner.find('img'),
 			imageSrc = '/images/' + siteVars.id + '/' + currentConfig.logoBanner; 
-		if (typeof currentConfig.logoBanner === 'string' && imageSrc !== $image.attr('src')) {
-			$image.attr('src', imageSrc);
-			$image.removeClass('hidden');
+		if (typeof currentConfig.logoBanner === 'string') {
+			if (imageSrc !== $image.attr('src')) {
+				$image.attr('src', imageSrc);
+			}
+			$banner.removeClass('hidden');
 		} else {
 			$image.removeAttr('src');
-			$image.addClass('hidden');
+			$banner.addClass('hidden');
 		}
 	});
 	MyAnswers.dispatch.add(function() {
-		$('style[data-setting="styleSheet"]').text(currentConfig.styleSheet);
-	});
-	MyAnswers.dispatch.add(function() {
-		$('style[data-setting="interfaceStyle"]').text('body, #content, #activeContent { ' + currentConfig.interfaceStyle + ' }');
-	});
-	MyAnswers.dispatch.add(function() {
-		$('style[data-setting="backgroundStyle"]').text('.box { ' + currentConfig.backgroundStyle + ' }');
-	});
-	MyAnswers.dispatch.add(function() {
-		$('style[data-setting="inputPromptStyle"]').text('#argsBox { ' + currentConfig.inputPromptStyle + ' }');
+		var $footer = $('#activeContent > footer');
+		$footer.text(currentConfig.footer);
 	});
 	MyAnswers.dispatch.add(function() {
 		var style = '';
-		style += 'ul.box > li:nth-child(even), tr.even { ' + currentConfig.evenRowStyle + ' }\n';
-		style += 'ul.box > li:nth-child(odd), tr.odd { ' + currentConfig.oddRowStyle + ' }\n';
-		$('style[data-setting="rowStyle"]').text(style);
-	});
-	MyAnswers.dispatch.add(function() {
-		$('#content > header').attr('style', currentConfig.headerStyle);
-	});
-	MyAnswers.dispatch.add(function() {
-		var $footer = $('#activeContent > footer');
-		$footer.attr('style', currentConfig.footerStyle);
-		$footer.text(currentConfig.footer);
-		$('style[data-setting="evenRowStyle"]').text('ul.box > li:nth-child(even) { ' + currentConfig.evenRowStyle + ' }');
-	});
-	MyAnswers.dispatch.add(function() {
-		$('style[data-setting="masterCategoriesStyle"]').text('#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }');
-		$('style[data-setting="categoriesStyle"]').text('#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }');
-		$('style[data-setting="interactionsStyle"]').text('#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }');
+		style += currentConfig.styleSheet ? currentConfig.styleSheet : '';
+		style += currentConfig.interfaceStyle ? 'body, #content, #activeContent { ' + currentConfig.interfaceStyle + ' }\n' : '';
+		style += currentConfig.backgroundStyle ? '.box { ' + currentConfig.backgroundStyle + ' }\n' : '';
+		style += currentConfig.inputPromptStyle ? '#argsBox { ' + currentConfig.inputPromptStyle + ' }\n' : '';
+		style += currentConfig.evenRowStyle ? 'ul.box > li:nth-child(even), tr.even { ' + currentConfig.evenRowStyle + ' }\n' : '';
+		style += currentConfig.oddRowStyle ? 'ul.box > li:nth-child(odd), tr.odd { ' + currentConfig.oddRowStyle + ' }\n' : '';
+		style += currentConfig.headerStyle ? '#content > header { ' + currentConfig.headerStyle + ' }\n' : '';
+		style += currentConfig.footerStyle ? '#activeContent > footer { ' + currentConfig.footerStyle + ' }\n' : '';
+		style += currentConfig.masterCategoriesStyle ? '#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }\n' : '';
+		style += currentConfig.categoriesStyle ? '#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }\n' : '';
+		style += currentConfig.interactionsStyle ? '#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }\n' : '';
+		style += $('style[data-setting="styleSheet"]').text(style);
 	});
 }
 
