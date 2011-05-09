@@ -1398,25 +1398,27 @@ function showAnswerView(interaction, argsString, reverse) {
 			MyAnswersDevice.showView($('#answerView'), reverse);
 			MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView']); }); 
 			setupForms($answerBox);
-			setMainLabel(interaction.name);
+			setMainLabel(config.displayName || config.name);
 			MyAnswers.dispatch.add(function() { $('body').trigger('taskComplete'); });
 		};
-	config = siteVars.config['i' + interaction];
-	if ($.type(config) !== 'object') {
-		interaction = decodeURIComponent(interaction);
+	if ($.type(siteVars.config['i' + interaction]) !== 'object') {
+		interaction = decodeURIComponent(interaction).toUpperCase();
 		for (i = 0; i < iLength; i++) {
-			config = siteVars.config['i' + siteVars.map.interactions[i]];
-			if ($.type(config) === 'object') {
-				if (interaction.toUpperCase() === config.pertinent.name.toUpperCase()) {
+			if ($.type(siteVars.config['i' + interaction]) === 'object') {
+				if (interaction === siteVars.config['i' + interaction].pertinent.name.toUpperCase()) {
 					interaction = siteVars.map.interactions[i];
 					break;
 				}
 			}
 		}
 	}
-	if ($.type(config) !== 'object') { return; }
+	config = siteVars.config['i' + interaction];
+	if ($.type(config) !== 'object') {
+		alert('The requested Interaction could not be found.');
+		return;
+	}
 	MyAnswersDevice.hideView(reverse);
-	$('body').trigger('taskBegun');			
+	$('body').trigger('taskBegun');
 	addBackHistory("showAnswerView(\"" + interaction + "\", \"" + (argsString || '') + "\", true);");
 	currentInteraction = interaction;
 	updateCurrentConfig();
