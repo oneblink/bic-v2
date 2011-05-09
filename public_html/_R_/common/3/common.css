@@ -43,7 +43,7 @@ textarea { height: 5em; min-height: 5em; }
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
 td > input[type=text], td > input[type=email], td > textarea {
-	width: 95%;
+	width: 100%;
 }
 
 [type=file] {
@@ -83,8 +83,6 @@ a[href], a[keyword] {
 
 .bForm-add, .bForm-edit, .bForm-delete, .bForm-results, .bForm-view {
 	overflow: hidden;
-	max-width: 100%;
-	min-width: 100%;
 	width: 100%;
 	text-align: left;
 	border-spacing: 0;
@@ -94,6 +92,7 @@ a[href], a[keyword] {
 .bForm-label, .bForm-value { font-size: smaller; }
 .bForm-input .radiooption, .bForm-input .checkoption { display: table-row; }
 .bForm-input label, .bForm-input input[type=radio], .bForm-input input[type=checkbox] { display: table-cell; }
+.bForm-input { padding-right: 30px; }
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;

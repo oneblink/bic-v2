@@ -1379,12 +1379,12 @@ function setupForms($view) {
 					$(element).attr('disabled', 'disabled');
 				});
 			});
-		}/*
+		}
 		if (interactionConfig.type === 'form') {
-			halfWidth = Math.floor(($form.first().width() - 40) / 2);
-			$form.find('colgroup').last().attr('width', '40%');
+/*			halfWidth = Math.floor(($form.first().width() - 40) / 2);
+			$form.find('colgroup').last().attr('width', '40%'); */
 			BlinkForms.setupForm($form.first());
-		}	*/	
+		}	
 	});
 }
 
