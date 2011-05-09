@@ -1099,7 +1099,7 @@ function displayAnswerSpace() {
 		if (currentConfig.defaultScreen === 'login') {
 			showLoginView();
 		} else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
-			gotoNextScreen(siteVars.map.interactions[currentConfig.defaultInteraction]);
+			gotoNextScreen(currentConfig.defaultInteraction);
 		} else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
 			showKeywordListView(currentConfig.defaultCategory);
 		} else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
