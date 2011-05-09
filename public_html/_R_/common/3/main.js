@@ -68,7 +68,9 @@ function emptyDOMelement(element)
 
 function insertHTML(element, html) {
 	if ($.type(element) === 'object') {
+		MyAnswers.dispatch.add($.noop);
 		MyAnswers.dispatch.add(function() { $(element).html(html); });
+		MyAnswers.dispatch.add($.noop);
 	}
 }
 
@@ -339,65 +341,65 @@ function generateMojoAnswer(keyword, args) {
 			value,
 			variable, condition,
 			d, s, star;
-		if (keyword.xml.substr(0,6) === 'stars:') { // use starred items
-			type = keyword.xml.split(':')[1];
-			for (s in starsProfile[type]) {
-				if (starsProfile[type].hasOwnProperty(s)) {
-					xml += '<' + type + ' id="' + s + '">';
-					for (d in starsProfile[type][s]) {
-						if (starsProfile[type][s].hasOwnProperty(d)) {
-							xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
-						}
-					}
-					xml += '</' + type + '>';
-				}
-			}
-			xml = '<stars>' + xml + '</stars>';
-			$.when(performXSLT(xml, xsl)).done(function(html) {
-				dfrd.resolve(html);
-			}).fail(function(html) {
-				dfrd.resolve(html);
-			});
-		} else {
-			$.when(MyAnswers.store.get('mojoXML:' + keyword.xml)).done(function(xml) {
-				for (p = 0; p < pLength; p++) {
-					value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
-					xsl = xsl.replace(placeholders[p], value);
-				}
-				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
-					condition = '';
-					type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
-					variable = type[1];
-					type = type[2];
-					if ($.type(starsProfile[type]) === 'object') {
-						for (star in starsProfile[type]) {
-							if (starsProfile[type].hasOwnProperty(star)) {
-								condition += ' or ' + variable + '=\'' + star + '\'';
+		MyAnswers.dispatch.add($.noop);
+		MyAnswers.dispatch.add(function() {
+			if (keyword.xml.substr(0,6) === 'stars:') { // use starred items
+				type = keyword.xml.split(':')[1];
+				for (s in starsProfile[type]) {
+					if (starsProfile[type].hasOwnProperty(s)) {
+						xml += '<' + type + ' id="' + s + '">';
+						for (d in starsProfile[type][s]) {
+							if (starsProfile[type][s].hasOwnProperty(d)) {
+								xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
 							}
 						}
-						condition = condition.substr(4);
+						xml += '</' + type + '>';
 					}
-					if (condition.length > 0) {
-						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+				}
+				xml = '<stars>' + xml + '</stars>';
+				$.when(performXSLT(xml, xsl)).done(function(html) {
+					dfrd.resolve(html);
+				}).fail(function(html) {
+					dfrd.resolve(html);
+				});
+			} else {
+				$.when(MyAnswers.store.get('mojoXML:' + keyword.xml)).done(function(xml) {
+					for (p = 0; p < pLength; p++) {
+						value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
+						xsl = xsl.replace(placeholders[p], value);
+					}
+					while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
+						condition = '';
+						type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+						variable = type[1];
+						type = type[2];
+						if ($.type(starsProfile[type]) === 'object') {
+							for (star in starsProfile[type]) {
+								if (starsProfile[type].hasOwnProperty(star)) {
+									condition += ' or ' + variable + '=\'' + star + '\'';
+								}
+							}
+							condition = condition.substr(4);
+						}
+						if (condition.length > 0) {
+							xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+						} else {
+							xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+						}
+						MyAnswers.log('generateMojoAnswer(): condition=' + condition);
+					}
+					if (typeof xml === 'string') {
+						$.when(performXSLT(xml, xsl)).done(function(html) {
+							dfrd.resolve(html);
+						}).fail(function(html) {
+							dfrd.resolve(html);
+						});
 					} else {
-						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+						dfrd.resolve('<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>');
 					}
-					MyAnswers.log('generateMojoAnswer(): condition=' + condition);
-				}
-				if (typeof xml === 'string') {
-					$('body').trigger('taskBegun');			
-					$.when(performXSLT(xml, xsl)).done(function(html) {
-						dfrd.resolve(html);
-						$('body').trigger('taskComplete');
-					}).fail(function(html) {
-						dfrd.resolve(html);
-						$('body').trigger('taskComplete');
-					});
-				} else {
-					dfrd.resolve('<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>');
-				}
-			});
-		}
+				});
+			}
+		});
 	});
 	return deferred.promise();
 }
@@ -1377,19 +1379,19 @@ function setupForms($view) {
 					$(element).attr('disabled', 'disabled');
 				});
 			});
-		}
+		}/*
 		if (interactionConfig.type === 'form') {
 			halfWidth = Math.floor(($form.first().width() - 40) / 2);
-			$form.find('colgroup').last().attr('width', halfWidth + 'px');
+			$form.find('colgroup').last().attr('width', '40%');
 			BlinkForms.setupForm($form.first());
-		}		
+		}	*/	
 	});
 }
 
 function showAnswerView(interaction, argsString, reverse) {
 	MyAnswers.log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
 	var html, args,
-		config, i, iLength = siteVars.map.interactions.length,
+		config, id, i, iLength = siteVars.map.interactions.length,
 		$answerBox = $('#answerBox'),
 		answerBox = $answerBox[0],
 		completeFn = function() {
@@ -1402,8 +1404,9 @@ function showAnswerView(interaction, argsString, reverse) {
 	if ($.type(siteVars.config['i' + interaction]) !== 'object') {
 		interaction = decodeURIComponent(interaction).toUpperCase();
 		for (i = 0; i < iLength; i++) {
-			if ($.type(siteVars.config['i' + interaction]) === 'object') {
-				if (interaction === siteVars.config['i' + interaction].pertinent.name.toUpperCase()) {
+			id = 'i' + siteVars.map.interactions[i];
+			if ($.type(siteVars.config[id]) === 'object') {
+				if (interaction === siteVars.config[id].pertinent.name.toUpperCase()) {
 					interaction = siteVars.map.interactions[i];
 					break;
 				}
