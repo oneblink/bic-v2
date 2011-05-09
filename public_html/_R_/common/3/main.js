@@ -866,35 +866,35 @@ function populateItemListing(level) {
 		onKeywordClick = function(event) { gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory')); },
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hook = {
-				interactions: function($item) {
-					var id = $item.attr('data-id');
-					if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
-						$item.attr('data-hyperlink', list[order[o]].hyperlink);
-						$item.bind('click', onHyperlinkClick);
-					} else {
-						$item.bind('click', onKeywordClick);
-					}
-				},
-				categories: function($item) {
-					var id = $item.attr('data-id');
-					if (siteVars.map['c' + id].length === 1) {
-						$item.attr('data-category', id);
-						$item.attr('data-id', siteVars.map['c' + id][0]);
-						hook.interactions($item);
-					} else if (siteVars.map['c' + id].length > 0) {
-						$item.bind('click', onCategoryClick);
-					}
-				},
-				masterCategories: function($item) {
-					var id = $item.attr('data-id');
-					if (siteVars.map['m' + id].length === 1) {
-						$item.attr('data-masterCategory', id);
-						$item.attr('data-id', siteVars.map['m' + id][0]);
-						hook.categories($item);
-					} else if (siteVars.map['m' + id].length > 0) {
-						$item.bind('click', onMasterCategoryClick);
-					}
+			interactions: function($item) {
+				var id = $item.attr('data-id');
+				if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
+					$item.attr('data-hyperlink', list[order[o]].hyperlink);
+					$item.bind('click', onHyperlinkClick);
+				} else {
+					$item.bind('click', onKeywordClick);
 				}
+			},
+			categories: function($item) {
+				var id = $item.attr('data-id');
+				if (siteVars.map['c' + id].length === 1) {
+					$item.attr('data-category', id);
+					$item.attr('data-id', siteVars.map['c' + id][0]);
+					hook.interactions($item);
+				} else if (siteVars.map['c' + id].length > 0) {
+					$item.bind('click', onCategoryClick);
+				}
+			},
+			masterCategories: function($item) {
+				var id = $item.attr('data-id');
+				if (siteVars.map['m' + id].length === 1) {
+					$item.attr('data-masterCategory', id);
+					$item.attr('data-id', siteVars.map['m' + id][0]);
+					hook.categories($item);
+				} else if (siteVars.map['m' + id].length > 0) {
+					$item.bind('click', onMasterCategoryClick);
+				}
+			}
 		},
 		o, oLength,
 		category, columns, $images,
@@ -1075,24 +1075,12 @@ function restoreSessionProfile(token)
 
 
 function displayAnswerSpace() {
-	/*
-	if (siteVars.config[id].pertinent.defaultScreen === 'login') {
-		$.noop(); // TODO: fix behaviour for default to login
-	} else if (siteVars.config[id].pertinent.defaultScreen === 'interaction') {
-		$.noop(); // TODO: fix behaviour for default to interaction
-	} else if (siteVars.config[id].pertinent.defaultScreen === 'category') {
-		$.noop(); // TODO: fix behaviour for default to category
-	} else if (siteVars.config[id].pertinent.defaultScreen === 'master category') {
-		$.noop(); // TODO: fix behaviour for default to master category
-	} else {
-		$.noop(); // TODO: is there anything we need to do for default to home?
-	}
-	*/
 	var startUp = $('#startUp'),
 		$masterCategoriesView = $('#masterCategoriesView'),
 		$categoriesView = $('#categoriesView'),
 		$keywordListView = $('#keywordListView');
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
+		currentConfig = siteVars.config['a' + siteVars.id].pertinent;
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
 			case 'interactions only':
 				$masterCategoriesView.remove();
@@ -1108,14 +1096,24 @@ function displayAnswerSpace() {
 				break;
 		}
 		$('#answerSpacesListView').remove();
-		if (answerSpaceOneKeyword) {
-			showKeywordView(0);
-		} else if (hasMasterCategories) {
-			showMasterCategoriesView();
-		} else if (hasCategories) {
-			showCategoriesView();
-		} else {
-			showKeywordListView();
+		if (currentConfig.defaultScreen === 'login') {
+			showLoginView();
+		} else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
+			gotoNextScreen(siteVars.map.interactions[currentConfig.defaultInteraction]);
+		} else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
+			showKeywordListView(currentConfig.defaultCategory);
+		} else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
+			showCategoriesView(currentConfig.defaultMasterCategory);
+		} else { // default "home"
+			if (hasMasterCategories) {
+				showMasterCategoriesView();
+			} else if (hasCategories) {
+				showCategoriesView();
+			} else if (answerSpaceOneKeyword) {
+				gotoNextScreen(siteVars.map.interactions[0]);
+			} else {
+				showKeywordListView();
+			}
 		}
 		var token = siteVars.queryParameters._t;
 		delete siteVars.queryParameters._t;
