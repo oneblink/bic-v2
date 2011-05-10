@@ -68,9 +68,9 @@ function emptyDOMelement(element)
 
 function insertHTML(element, html) {
 	if ($.type(element) === 'object') {
-		MyAnswers.dispatch.add($.noop);
+//		MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
 		MyAnswers.dispatch.add(function() { $(element).html(html); });
-		MyAnswers.dispatch.add($.noop);
+//		MyAnswers.dispatch.add($.noop);
 	}
 }
 
