@@ -1533,7 +1533,10 @@ function showAnswerView(interaction, argsString, reverse) {
 			url: answerUrl,
 			data: requestData,
 			complete: function(xhr, textstatus) { // readystate === 4
-				if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
+				if (textstatus === 'timeout') {
+					insertHTML(answerBox, 'Error: the server has taken too long to respond.');
+					completeFn();
+				} else if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
 				else {
 					MyAnswers.log('GetAnswer: storing server response');
 					html = xhr.responseText;
@@ -1546,7 +1549,7 @@ function showAnswerView(interaction, argsString, reverse) {
 					completeFn();
 				}
 			},
-			timeout: 30 * 1000 // 30 seconds
+			timeout: 60 * 1000 // 60 seconds
 		});
 	}
 }
@@ -2479,7 +2482,7 @@ function onBrowserReady() {
 		 * $('body').trigger('taskBegun'); break; case 'workComplete':
 		 * $('body').trigger('taskComplete'); break; } }; }
 		 */
-		$(document).ajaxSend(function(event, xhr, options) {
+		$(document).ajaxSend(function(event, jqxhr, options) {
 			var url = decodeURI(options.url);
 			/*
 			 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
@@ -2488,12 +2491,17 @@ function onBrowserReady() {
 			 */
 			if (url.length > 100) {
 				url = url.substring(0, 100) + '...';
-			} 
+			}
+//			jqxhr.setRequestHeader('X-Blink-Properties', siteVars.answerSpace);
+			jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
+				'requests': ++siteVars.requestsCounter
+			}));
 			MyAnswers.log('AJAX start: ' + url);
+			MyAnswers.log(jqxhr, options);
 		});
-		$(document).ajaxSuccess(function(event, xhr, options) {
-			var status = typeof(xhr) === 'undefined' ? null : xhr.status,
-				readyState = typeof(xhr) === 'undefined' ? 4 : xhr.readyState,
+		$(document).ajaxSuccess(function(event, jqxhr, options) {
+			var status = typeof jqxhr === 'undefined' ? null : jqxhr.status,
+				readyState = typeof jqxhr === 'undefined' ? 4 : jqxhr.readyState,
 				url = decodeURI(options.url);
 			if (url.length > 100) {
 				url = url.substring(0, 100) + '...';
@@ -2572,6 +2580,7 @@ function init_main() {
 	var $body = $('body');
 	MyAnswers.log("init_main(): ");
 	siteVars.id = $body.data('id');
+	siteVars.requestsCounter = 0;
 
 	PictureSourceType.PHOTO_LIBRARY = 0;
 	PictureSourceType.CAMERA = 1;
