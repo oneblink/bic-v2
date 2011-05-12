@@ -7,7 +7,7 @@ var MyAnswers = MyAnswers || {},
 	starsProfile,
 	backStack,
 	lowestTransferRateConst, maxTransactionTimeout,
-	ajaxQueue, ajaxQueueMoJO;
+	ajaxQueue;
 
 function PictureSourceType() {}
 function lastPictureTaken () {}
@@ -15,6 +15,7 @@ function lastPictureTaken () {}
 MyAnswers.browserDeferred = new $.Deferred();
 MyAnswers.mainDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
+siteVars.forms = siteVars.forms || {};
 
 // *** BEGIN UTILS ***
 
@@ -1142,7 +1143,7 @@ function processMoJOs(interaction) {
 					if (typeof value === 'number' && !isNaN(value)) {
 						requestData._lc = value;
 					}
-					ajaxQueueMoJO.add({
+					ajaxQueue.add({
 						url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
 						data: requestData,
 						dataType: 'xml',
@@ -1177,6 +1178,60 @@ function processMoJOs(interaction) {
 				if (!deferredFetches[config.xml]) {
 					deferredFetches[config.xml] = deferredFn(config.xml);
 				}
+			}
+		}
+	}
+}
+
+function processForms(interaction) {
+	var deferredFetches = {},
+		interactions = interaction ? [ interaction ] : siteVars.map.interactions,
+		i, iLength = interactions.length,
+		config,
+		deferredFn = function(form) {
+			var deferred = new $.Deferred(function(dfrd) {
+				$.when(MyAnswers.store.get('formLastChecked:' + form)).done(function(value) {
+					var requestData = {
+							_id: siteVars.id,
+							_f: form
+						};
+					value = parseInt(value);
+					if (typeof value === 'number' && !isNaN(value)) {
+						requestData._lc = value;
+					}
+					ajaxQueue.add({
+						url: siteVars.serverAppPath + '/xhr/GetForm.php',
+						data: requestData,
+						dataType: 'xml',
+						complete: function(jqxhr, status) {
+							if (jqxhr.status === 200) {
+								MyAnswers.store.set('formXML:' + form, jqxhr.responseText);
+//								MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+							}
+							if (jqxhr.status === 200 || jqxhr.status === 304) {
+								MyAnswers.store.set('formLastChecked:' + form, $.now());
+							}
+						},
+						timeout: computeTimeout(500 * 1024)
+					});
+				});
+			});
+			return deferred.promise();
+		};
+	for (i = 0; i < iLength; i++) {
+		config = siteVars.config['i' + interactions[i]].pertinent;
+		if ($.type(config) === 'object' && config.type === 'form' && typeof config.blinkFormObjectName === 'string') {
+			if (!siteVars.forms[config.blinkFormObjectName]) {
+				siteVars.forms[config.blinkFormObjectName] = {
+					maximumAge: config.maximumAge || 0,
+					minimumAge: config.minimumAge || 0
+				};
+			} else {
+				siteVars.forms[config.blinkFormObjectName].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.forms[config.blinkFormObjectName].maximumAge) : siteVars.forms[config.blinkFormObjectName].maximumAge;
+				siteVars.forms[config.blinkFormObjectName].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.forms[config.blinkFormObjectName].minimumAge) : siteVars.forms[config.blinkFormObjectName].minimumAge;
+			}
+			if (!deferredFetches[config.blinkFormObjectName]) {
+				deferredFetches[config.blinkFormObjectName] = deferredFn(config.blinkFormObjectName);
 			}
 		}
 	}
@@ -1223,6 +1278,7 @@ function processConfig() {
 				}
 				displayAnswerSpace();
 				processMoJOs();
+				processForms();
 		}
 	} else {
 		MyAnswers.log('requestConfig(): unable to retrieve answerSpace config');
@@ -1369,10 +1425,10 @@ function createParamsAndArgs(keywordID) {
 
 function setupForms($view) {
 	MyAnswers.dispatch.add(function() {
-		var $form = $view.find('form'),
+		var $form = $view.find('form').first(),
 			interactionConfig = siteVars.config['i' + currentInteraction].pertinent,
 			halfWidth;
-		if ($form.size() < 1) { return; }
+		if ($form.length !== 1) { return; }
 		if (!isCameraPresent()) {
 			MyAnswers.dispatch.add(function() {
 				$form.find('input[onclick*="selectCamera"]').each(function(index, element) {
@@ -1380,10 +1436,9 @@ function setupForms($view) {
 				});
 			});
 		}
-		if (interactionConfig.type === 'form') {
-/*			halfWidth = Math.floor(($form.first().width() - 40) / 2);
-			$form.find('colgroup').last().attr('width', '40%'); */
-			BlinkForms.setupForm($form.first());
+		if ($form.data('objectName').length > 0) {
+			BlinkForms.renderForm($form);
+//			BlinkForms.setupForm($form);
 		}	
 	});
 }
@@ -1448,32 +1503,10 @@ function showAnswerView(interaction, argsString, reverse) {
 			completeFn();
 		});
 	} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
-		var requestUrl = siteVars.serverAppPath + '/xhr/GetForm.php?name=' + config.blinkFormObjectName + '&_form=' + config.blinkFormAction,
-			fallbackToStorage = function() {
-				html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
-				insertHTML(answerBox, html);
-				completeFn();
-			};
-		if (!$.isEmptyObject(args)) {
-			requestUrl += '&' + $.param(args);
-		}
-		ajaxQueue.add({
-			type: 'POST',
-			url: requestUrl,
-			complete: function(xhr, textstatus) { // readystate === 4
-				if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
-				else {
-					html = xhr.responseText;
-					insertHTML(answerBox, html);
-//					MyAnswers.dispatch.add(function() {
-//						var $form = $answerBox.find('form').first();
-//						$form.bind('submit', submitForm);
-//					});
-					completeFn();
-				}
-			},
-			timeout: 30 * 1000 // 30 seconds
-		});
+		html = '<p><em>insert form here</em></p>';
+		html += '<form data-objectName="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />';
+		insertHTML(answerBox, html);
+		completeFn();
 	} else {
 		var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
 			requestData = {
@@ -2550,7 +2583,6 @@ function init_main() {
 	lowestTransferRateConst = 1000 / (4800 / 8);
 	maxTransactionTimeout = 180 * 1000;
 	ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
-	ajaxQueueMoJO = $.manageAjax.create('mojoAjaxQueue', { queue: true });
 	MyAnswers.dispatch = new BlinkDispatch(47);
 
 	MyAnswers.runningTasks = 0; // track the number of tasks in progress
