@@ -94,6 +94,14 @@ a[href], a[keyword] {
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
 .bForm-input > input[type=button] { display: inline-block; }
 .bForm-input { padding-right: 30px; }
+.bForm-tooltip {
+	font-size: larger;
+	font-weight: bolder;
+	color: #FFF;
+	text-outline: 1px 1px #000;
+	text-shadow: 0 0 .5em #000;
+	cursor: help;
+}
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;
