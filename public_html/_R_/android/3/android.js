@@ -41,7 +41,7 @@ function init_device()
 	deviceVars.scrollProperty = '-webkit-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
 	if (deviceVars.engineVersion >= 529 || typeof(window.onhashchange) === 'object') {
-		MyAnswers.hasHashChange = true;
+		deviceVars.hasHashChange = true;
 		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
 	}
 
@@ -54,6 +54,12 @@ function init_device()
 
 //	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 //	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
+	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
+	MyAnswers.log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
+	if (typeof onScroll === 'function') {
+		$(window).bind('scroll', onScroll);
+		$(window).trigger('scroll');
+	}
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */

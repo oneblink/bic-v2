@@ -24,9 +24,33 @@ MyAnswers.log = function() {
 	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 };
 
+function hasCSSFixedPosition() {
+	var $body = $('body'),
+		$div = $('<div id="fixed" />'),
+		height = $body[0].style.height, 
+		scroll = $body.scrollTop(),
+		hasSupport;
+	if (!$div[0].getBoundingClientRect) {
+		return false;
+	}
+	$div.css({ position: 'fixed', top: '100px' }).html('test');
+	$body.append($div);
+	$body.css('height', '3000px');
+	$body.scrollTop(50);
+	$body.css('height', height);
+	hasSupport = $div[0].getBoundingClientRect().top === 100;
+	$div.remove();
+	$body.scrollTop(scroll);
+	return hasSupport; 
+}
+
 function isCameraPresent() {
 	MyAnswers.log("isCameraPresent: " + MyAnswers.cameraPresent);
 	return MyAnswers.cameraPresent;
+}
+
+function triggerScroll(event) {
+	$(window).trigger('scroll');
 }
 
 function addEvent(obj, evType, fn) { 
@@ -672,10 +696,8 @@ function onTransitionComplete(event, view) {
 	MyAnswers.dispatch.add(function() {
 		var $view = $('#' + view),
 			$inputs = $view.find('input, textarea, select');
-		if (typeof onScroll === 'function') {
-			$inputs.unbind('blur', onScroll);
-			$inputs.bind('blur', onScroll);
-		}
+		$inputs.unbind('blur', triggerScroll);
+		$inputs.bind('blur', triggerScroll);
 		$view.find('.blink-starrable').each(function(index, element) {
 			var $div = $('<div />'),
 				data = $(element).data();
@@ -1367,7 +1389,7 @@ MyAnswers.dumpLocalStorage = function() {
 
 function goBackToHome()
 {
-	if (MyAnswers.hasHashChange) {
+	if (deviceVars.hasHashChange) {
 		MyAnswers.log('onHashChange de-registration: ', removeEvent(window, 'hashchange', onHashChange));
 	}
 	backStack = [];
@@ -1378,7 +1400,7 @@ function goBackToHome()
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
 //	getSiteConfig();
-	if (MyAnswers.hasHashChange) {
+	if (deviceVars.hasHashChange) {
 		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
 	}
 }
@@ -1387,14 +1409,14 @@ function goBack(event) {
 	if (event) {
 		event.preventDefault();
 	}
-	if (MyAnswers.hasHashChange) {
+	if (deviceVars.hasHashChange) {
 		MyAnswers.log('onHashChange de-registration: ', removeEvent(window, 'hashchange', onHashChange));
 	}
 	backStack.pop();
 	if (backStack.length >= 1) { eval(backStack[backStack.length-1]); }
 	else { goBackToHome(); }
 	stopTrackingLocation();
-	if (MyAnswers.hasHashChange) {
+	if (deviceVars.hasHashChange) {
 		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
 	}
 }
@@ -2497,7 +2519,6 @@ function onBrowserReady() {
 				'requests': ++siteVars.requestsCounter
 			}));
 			MyAnswers.log('AJAX start: ' + url);
-			MyAnswers.log(jqxhr, options);
 		});
 		$(document).ajaxSuccess(function(event, jqxhr, options) {
 			var status = typeof jqxhr === 'undefined' ? null : jqxhr.status,
@@ -2600,11 +2621,7 @@ function init_main() {
 	RegExp.quote = function(str) { return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1"); };
 
 	addEvent(document, 'orientationChanged', updateOrientation);
-	if (typeof onScroll === 'function') {
-		$(window).bind('scroll', onScroll);
-		$(window).trigger('scroll');
-	}
-
+	
 	MyAnswers.store = new MyAnswersStorage(null, siteVars.answerSpace, 'jstore');
 	$.when(MyAnswers.store.ready()).done(function() {
 //		MyAnswers.dumpLocalStorage();

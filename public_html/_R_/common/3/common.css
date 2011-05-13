@@ -90,8 +90,9 @@ a[href], a[keyword] {
 }
 
 .bForm-label, .bForm-value { font-size: smaller; }
-.bForm-input .radiooption, .bForm-input .checkoption { display: table-row; }
-.bForm-input label, .bForm-input input[type=radio], .bForm-input input[type=checkbox] { display: table-cell; }
+.bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
+.bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
+.bForm-input > input[type=button] { display: inline-block; }
 .bForm-input { padding-right: 30px; }
 
 #loginBox input[type=text], #loginBox input[type=password] {

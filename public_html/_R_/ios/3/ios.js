@@ -14,6 +14,12 @@ function init_device()
 	// caching frequently-accessed selectors
 	navBar = $('.navBar');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
+	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
+	MyAnswers.log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
+	if (typeof onScroll === 'function') {
+		$(window).bind('scroll', onScroll);
+		$(window).trigger('scroll');
+	}
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
