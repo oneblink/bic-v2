@@ -64,16 +64,13 @@ form [type=reset] {
 
 hr { margin: 15px 0px; }
 
-a, [onclick] {
+a {
 	cursor: pointer;
+	text-decoration: underline;
 }
 
 ul, ol {
 	-webkit-padding-start: 0px;
-}
-
-a[href], a[keyword] {
-	text-decoration: underline;
 }
 
 #content, #stackLayout {

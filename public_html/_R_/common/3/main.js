@@ -24,6 +24,48 @@ MyAnswers.log = function() {
 	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 };
 
+(function($, undefined) {
+	// duck-punching to make attr() return a map
+	var _oldAttr = $.fn.attr;
+	$.fn.attr = function() {
+		var a, aLength, attributes,	map;
+		if (this[0] && arguments.length === 0) {
+			map = {};
+			attributes = this[0].attributes;
+			aLength = attributes.length;
+			for (a = 0; a < aLength; a++) {
+				map[attributes[a].name.toLowerCase()] = attributes[a].value;
+			}
+			return map;
+		} else {
+			return _oldAttr.apply(this, arguments);
+		}
+	}
+	
+	// return just the element's HTML tag (no attributes or innerHTML)
+	$.fn.tag = function() {
+		var tag;
+		if (this[0]) {
+			tag = this[0].tagName || this[0].nodeName;
+			return tag.toLowerCase();
+		}
+	}
+	
+	// return a simple HTML tag string not containing the innerHTML
+	$.fn.tagHTML = function() {
+		var $this = $(this),
+			html;
+		if (this[0]) {
+			html = '<' + $this.tag();
+			$.each($this.attr(), function(key, value) {
+				html += ' ' + key + '="' + value + '"';
+			});
+			html += ' />';
+			return html;
+		}
+	}
+}(jQuery));
+
 function hasCSSFixedPosition() {
 	var $body = $('body'),
 		$div = $('<div id="fixed" />'),
@@ -257,41 +299,6 @@ function processBlinkAnswerMessage(message) {
 	};
 }(this));
 
-//take 2 plain XML strings, then transform the first using the second (XSL)
-//insert the result into element
-function performXSLT(xmlString, xslString) {
-	var deferred = new $.Deferred(function(dfrd) {
-		var html, xml, xsl;
-		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { dfrd.reject('XSLT failed due to poorly formed XML or XSL.'); return; }
-		xml = $.parseXML(xmlString);
-		xsl = $.parseXML(xslString);
-		/*
-		 * if (deviceVars.hasWebWorkers === true) {
-		 * MyAnswers.log('performXSLT(): enlisting Web Worker to perform
-		 * XSLT'); var message = { }; message.fn = 'processXSLT'; message.xml =
-		 * xmlString; message.xsl = xslString; message.target = target;
-		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
-		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
-		 */
-		if (window.ActiveXObject !== undefined) {
-			MyAnswers.log('performXSLT(): using Internet Explorer method');
-			html = xml.transformNode(xsl);
-		} else if (window.XSLTProcessor !== undefined) {
-			MyAnswers.log('performXSLT(): performing XSLT via XSLTProcessor()');
-			var xsltProcessor = new XSLTProcessor();
-			xsltProcessor.importStylesheet(xsl);
-			html = xsltProcessor.transformToFragment(xml, document);
-		} else if (xsltProcess !== undefined) {
-			MyAnswers.log('performXSLT(): performing XSLT via AJAXSLT library');
-			html = xsltProcess(xml, xsl);
-		} else {
-			html = '<p>Your browser does not support MoJO keywords.</p>'; 
-		}
-		dfrd.resolve(html);
-	});
-	return deferred.promise();
-}
-
 // *** END OF UTILS ***
 
 // *** BEGIN PHONEGAP UTILS ***
@@ -345,6 +352,68 @@ function selectLibrary(nameStr) {
 // *** END PHONEGAP UTILS ***
 
 // *** BEGIN BLINK UTILS ***
+
+/**
+ * @param level "interactions" or "categories" or "masterCategories"
+ * @returns numeric identifier, or boolean false if not found
+ */
+function resolveItemName(name, level) {
+	var prefix, list, l, lLength, id;
+	level = (typeof level === 'string' && level) || 'interactions';
+	prefix = level.substring(0, 1);
+	if (typeof name === 'number' && !isNaN(name) && $.type(siteVars.config[prefix + name]) === 'object') {
+		return name;
+	}
+	if (typeof name !== 'string') { return false; }
+	name = name.toLowerCase();
+	list = siteVars.map[level];
+	lLength = list.length;
+	for (l = 0; l < lLength; l++) {
+		id = prefix + list[l];
+		if ($.type(siteVars.config[id]) === 'object' && name === siteVars.config[id].pertinent.name.toLowerCase()) {
+			return list[l];
+		}
+	}
+	if ($.type(siteVars.config[prefix + name]) === 'object') {
+		return name;
+	}
+	return false;
+}
+
+//take 2 plain XML strings, then transform the first using the second (XSL)
+//insert the result into element
+function performXSLT(xmlString, xslString) {
+	var deferred = new $.Deferred(function(dfrd) {
+		var html, xml, xsl;
+		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { dfrd.reject('XSLT failed due to poorly formed XML or XSL.'); return; }
+		xml = $.parseXML(xmlString);
+		xsl = $.parseXML(xslString);
+		/*
+		 * if (deviceVars.hasWebWorkers === true) {
+		 * MyAnswers.log('performXSLT(): enlisting Web Worker to perform
+		 * XSLT'); var message = { }; message.fn = 'processXSLT'; message.xml =
+		 * xmlString; message.xsl = xslString; message.target = target;
+		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
+		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
+		 */
+		if (window.ActiveXObject !== undefined) {
+			MyAnswers.log('performXSLT(): using Internet Explorer method');
+			html = xml.transformNode(xsl);
+		} else if (window.XSLTProcessor !== undefined) {
+			MyAnswers.log('performXSLT(): performing XSLT via XSLTProcessor()');
+			var xsltProcessor = new XSLTProcessor();
+			xsltProcessor.importStylesheet(xsl);
+			html = xsltProcessor.transformToFragment(xml, document);
+		} else if (xsltProcess !== undefined) {
+			MyAnswers.log('performXSLT(): performing XSLT via AJAXSLT library');
+			html = xsltProcess(xml, xsl);
+		} else {
+			html = '<p>Your browser does not support MoJO keywords.</p>'; 
+		}
+		dfrd.resolve(html);
+	});
+	return deferred.promise();
+}
 
 //test to see if the user it viewing the highest level screen
 function isHome() {
@@ -666,28 +735,51 @@ function onAnswerDownloaded(event, view)
 	});
 }
 
-function onLinkClick(event)
-{
-	MyAnswers.log('onLinkClick(): ', this);
+function onLinkClick(event) {
+	MyAnswers.log('onLinkClick(): ' + $(this).tagHTML());
 	var element = this,
-		attributes = element.attributes,
-		a, aLength = attributes.length,
-		first = null,
-		args = { };
-	for (a = 0; a < aLength; a++) {
-		if (first === null) {
-			first = attributes[a];
-		} else if (attributes[a].name.substr(0, 1) === '_') {
-			args['args[' + attributes[a].name.substr(1) + ']'] = attributes[a].value;
+		a, attributes = $(element).attr(),
+		args = { },
+		id;
+	if (typeof attributes.href === 'undefined') {
+		if (typeof attributes.back !== 'undefined') {
+			goBack();
+			return false;
+		} else if (typeof attributes.home !== 'undefined') {
+			goBackToHome();
+			return false;
+		} else if (typeof attributes.login !== 'undefined') {
+			showLoginView();
+			return false;
+		} else if (attributes.interaction || attributes.keyword) {
+			for (a in attributes) {
+				if (attributes.hasOwnProperty(a)) {
+					if (a.substr(0, 1) === '_') {
+						args['args[' + a.substr(1) + ']'] = attributes[a];
+					} else {
+						args[a] = attributes[a];
+					}
+				}
+			}
+			delete args.interaction;
+			delete args.keyword;
+			if ($.isEmptyObject(args)) {
+				gotoNextScreen(attributes.interaction || attributes.keyword);
+			} else {
+				showAnswerView(attributes.interaction || attributes.keyword, $.param(args));
+			}
+			return false;
+		} else if (typeof attributes.category !== 'undefined') {
+			if (id = resolveItemName(attributes.category, 'categories')) {
+				showKeywordListView(id);
+			}
+			return false;
+		} else if (typeof attributes.mastercategory !== 'undefined') {
+			if (id = resolveItemName(attributes.mastercategory, 'masterCategories')) {
+				showCategoriesView(id);
+			}
+			return false;
 		}
-	}
-	if (first.name === 'keyword') {
-		if ($.isEmptyObject(args)) {
-			gotoNextScreen(first.value);
-		} else {
-			showAnswerView(first.value, $.param(args));
-		}
-		return false;
 	}
 	return true;
 }
@@ -710,7 +802,6 @@ function onTransitionComplete(event, view) {
 			}
 			$(element).replaceWith($div);
 		});
-		$view.find('a').bind('click', onLinkClick);
 	});
 }
 
@@ -1314,9 +1405,6 @@ function requestConfig(requestData) {
 	} else {
 		MyAnswers.log('requestConfig(): ' + requestData._t + '[' + requestData._id + ']');
 	}
-	if ($.type(deviceVars.features) === 'array' && deviceVars.features.length > 0) {
-		requestData._f = deviceVars.features;
-	}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
 		data: requestData,
@@ -1423,7 +1511,7 @@ function goBack(event) {
 
 function createParamsAndArgs(keywordID) {
 	var config = siteVars.config['i' + keywordID],
-		returnValue = "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(config.pertinent.name),
+		returnValue = "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(config.pertinent.name),
 		args = '',
 		argElements = $('#argsBox').find('input, textarea, select');
 	if (typeof config === 'undefined' || !config.pertinent.inputPrompt) { return returnValue; }	
@@ -1478,30 +1566,18 @@ function showAnswerView(interaction, argsString, reverse) {
 			setMainLabel(config.displayName || config.name);
 			MyAnswers.dispatch.add(function() { $('body').trigger('taskComplete'); });
 		};
-	if ($.type(siteVars.config['i' + interaction]) !== 'object') {
-		interaction = decodeURIComponent(interaction).toUpperCase();
-		for (i = 0; i < iLength; i++) {
-			id = 'i' + siteVars.map.interactions[i];
-			if ($.type(siteVars.config[id]) === 'object') {
-				if (interaction === siteVars.config[id].pertinent.name.toUpperCase()) {
-					interaction = siteVars.map.interactions[i];
-					break;
-				}
-			}
-		}
-	}
-	config = siteVars.config['i' + interaction];
-	if ($.type(config) !== 'object') {
+	interaction = resolveItemName(interaction);
+	if (interaction === false) {
 		alert('The requested Interaction could not be found.');
 		return;
 	}
+	config = siteVars.config['i' + interaction].pertinent;
 	MyAnswersDevice.hideView(reverse);
 	$('body').trigger('taskBegun');
-	addBackHistory("showAnswerView(\"" + interaction + "\", \"" + (argsString || '') + "\", true);");
+	addBackHistory("showAnswerView(" + interaction + ", \"" + (argsString || '') + "\", true);");
 	currentInteraction = interaction;
 	updateCurrentConfig();
 	processMoJOs(interaction);
-	config = config.pertinent;
 	args = {};
 	if (typeof argsString === 'string' && argsString.length > 0) {
 		$.extend(args, deserialize(decodeURIComponent(argsString)));
@@ -1531,8 +1607,8 @@ function showAnswerView(interaction, argsString, reverse) {
 	} else {
 		var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
 			requestData = {
-				_i: interaction,
-				_device: deviceVars.device
+				asn: siteVars.answerSpace,
+				iact: config.name
 			},
 			fallbackToStorage = function() {
 				$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
@@ -1543,9 +1619,6 @@ function showAnswerView(interaction, argsString, reverse) {
 					completeFn();
 				});
 			};
-		if ($.type(deviceVars.features) === 'array' && deviceVars.features.length > 0) {
-			requestData._f = deviceVars.features;
-		}
 		if (!$.isEmptyObject(args)) {
 			$.extend(requestData, args);
 		}
@@ -1580,24 +1653,13 @@ function getAnswer(event) { showAnswerView(currentInteraction); }
 function gotoNextScreen(keyword, category, masterCategory) {
 	var config,
 		i, iLength = siteVars.map.interactions.length;
-	MyAnswers.log("gotoNextScreen(" + keyword + ")");
-	config = siteVars.config['i' + keyword];
-	if ($.type(config) !== 'object') {
-		keyword = decodeURIComponent(keyword);
-		for (i = 0; i < iLength; i++) {
-			config = siteVars.config['i' + siteVars.map.interactions[i]];
-			if ($.type(config) === 'object') {
-				if (keyword.toUpperCase() === config.pertinent.name.toUpperCase()) {
-					keyword = siteVars.map.interactions[i];
-					break;
-				}
-			}
-		}
-	}
-	if ($.type(config) !== 'object') {
-//		alert('Unable to locate keyword. It may be missing or protected.');
+	MyAnswers.log("gotoNextScreen(): " + keyword);
+	keyword = resolveItemName(keyword);
+	if (keyword === false) {
+		alert('The requested Interaction could not be found.');
 		return;
 	}
+	config = siteVars.config['i' + keyword];
 	if (hasMasterCategories && masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
@@ -1954,10 +2016,10 @@ function submitFormWithRetry() {
 					currentBox = $('.view:visible > .box').first(),
 					requestData;
 				if (arr[0] === '..') {
-					answerUrl += "answerSpace=" + siteVars.answerSpace + "&keyword=" + encodeURIComponent(arr[1]) + '&_device=' + deviceVars.device + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+					answerUrl += "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(arr[1]) + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 					localKeyword = arr[1];
 				} else {
-					answerUrl += "answerSpace=" + arr[1] + "&keyword=" + encodeURIComponent(arr[2]) + '&_device=' + deviceVars.device;
+					answerUrl += "asn=" + arr[1] + "&iact=" + encodeURIComponent(arr[2]);
 					localKeyword = arr[2];
 				}
 				if (method === 'get') {
@@ -2080,11 +2142,11 @@ function submitAction(keyword, action) {
 	}
 	if (method === 'get') {
 		method = 'GET';
-		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device;
+		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword;
 		requestData = '&' + formData + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 	} else {
 		method = 'POST';
-		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?answerSpace=' + siteVars.answerSpace + "&keyword=" + keyword + '&_device=' + deviceVars.device + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
+		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 		requestData = formData;
 	}
 	$('body').trigger('taskBegun');
@@ -2478,7 +2540,7 @@ function onBrowserReady() {
 			// TODO: get hasLogin working directly off new config field
 			siteVars.hasLogin = true;
 		}
-	
+		
 		// 
 		// The following variables are initialised here so the JS can be tested
 		// within Safari
@@ -2504,7 +2566,12 @@ function onBrowserReady() {
 		 * $('body').trigger('taskComplete'); break; } }; }
 		 */
 		$(document).ajaxSend(function(event, jqxhr, options) {
-			var url = decodeURI(options.url);
+			var url = decodeURI(options.url),
+				config = {
+					answerSpaceId: siteVars.id,
+					answerSpace: siteVars.answerSpace,
+					conditions: deviceVars.features
+				};
 			/*
 			 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
 			 * phpName; MyAnswers.log(string + ' ' + e.position + ' ' +
@@ -2513,7 +2580,7 @@ function onBrowserReady() {
 			if (url.length > 100) {
 				url = url.substring(0, 100) + '...';
 			}
-//			jqxhr.setRequestHeader('X-Blink-Properties', siteVars.answerSpace);
+			jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
 			jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
 				'requests': ++siteVars.requestsCounter
 			}));
@@ -2638,6 +2705,7 @@ function init_main() {
 	$body.bind('taskBegun', onTaskBegun);
 	$body.bind('taskComplete', onTaskComplete);
 	$body.bind('siteBootComplete', onSiteBootComplete);
+	$('a').live('click', onLinkClick);
 }
 
 function onBodyLoad() {
