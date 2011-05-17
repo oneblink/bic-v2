@@ -1525,8 +1525,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			completeFn();
 		});
 	} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
-		html = '<p><em>insert form here</em></p>';
-		html += '<form data-objectName="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />';
+		html = '<form data-object-name="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />';
 		insertHTML(answerBox, html);
 		completeFn();
 	} else {
