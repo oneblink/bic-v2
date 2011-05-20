@@ -20,8 +20,8 @@ siteVars.forms = siteVars.forms || {};
 // *** BEGIN UTILS ***
 
 MyAnswers.log = function() {
-	if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
-	else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
+	if (typeof console !== 'undefined') {console.log.apply(console, arguments);}
+	else if (typeof debug !== 'undefined') {debug.log.apply(debug, arguments);}
 };
 
 (function($, undefined) {
@@ -75,7 +75,7 @@ function hasCSSFixedPosition() {
 	if (!$div[0].getBoundingClientRect) {
 		return false;
 	}
-	$div.css({ position: 'fixed', top: '100px' }).html('test');
+	$div.css({position: 'fixed', top: '100px'}).html('test');
 	$body.append($div);
 	$body.css('height', '3000px');
 	$body.scrollTop(50);
@@ -136,14 +136,14 @@ function emptyDOMelement(element)
 function insertHTML(element, html) {
 	if ($.type(element) === 'object') {
 //		MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
-		MyAnswers.dispatch.add(function() { $(element).html(html); });
+		MyAnswers.dispatch.add(function() {$(element).html(html);});
 //		MyAnswers.dispatch.add($.noop);
 	}
 }
 
 function insertText(element, text) {
 	if ($.type(element) === 'object' && typeof text === 'string') {
-		MyAnswers.dispatch.add(function() { $(element).text(text); });
+		MyAnswers.dispatch.add(function() {$(element).text(text);});
 	}
 }
 
@@ -165,7 +165,7 @@ function createDOMelement(tag, attr, text) {
 
 function changeDOMclass(element, options) { 
 	// options is { add: 'class(es)', remove: 'class(es)', toggle: 'class(es)' }
-	if ($.type(options) !== 'object') { return; }
+	if ($.type(options) !== 'object') {return;}
 	MyAnswers.dispatch.add(function() {
 		if (typeof(options.add) === 'string') {
 			$(element).addClass(options.add);
@@ -267,7 +267,7 @@ function processBlinkAnswerMessage(message) {
 		this.interval = interval;
 		this.isPaused = false;
 		function processQueue() {
-			if (dispatch.isPaused || timeout !== null || queue.length === 0) { return; }
+			if (dispatch.isPaused || timeout !== null || queue.length === 0) {return;}
 			var item = queue.shift();
 			if (typeof item === 'function') {
 				item();
@@ -329,7 +329,7 @@ function getPicture_Success(imageData) {
 function getPicture(sourceType) {
 	// TODO: feed quality and imageScale values from configuration
 //  var options = { quality: siteConfig.imageQuality, imageScale: siteConfig.imageScale };
-	var options = { quality: 60, imageScale: 40 };
+	var options = {quality: 60, imageScale: 40};
 	if (sourceType !== undefined) {
 		options.sourceType = sourceType;
 	}
@@ -364,7 +364,7 @@ function resolveItemName(name, level) {
 	if (typeof name === 'number' && !isNaN(name) && $.type(siteVars.config[prefix + name]) === 'object') {
 		return name;
 	}
-	if (typeof name !== 'string') { return false; }
+	if (typeof name !== 'string') {return false;}
 	name = name.toLowerCase();
 	list = siteVars.map[level];
 	lLength = list.length;
@@ -385,7 +385,7 @@ function resolveItemName(name, level) {
 function performXSLT(xmlString, xslString) {
 	var deferred = new $.Deferred(function(dfrd) {
 		var html, xml, xsl;
-		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') { dfrd.reject('XSLT failed due to poorly formed XML or XSL.'); return; }
+		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') {dfrd.reject('XSLT failed due to poorly formed XML or XSL.');return;}
 		xml = $.parseXML(xmlString);
 		xsl = $.parseXML(xslString);
 		/*
@@ -640,8 +640,8 @@ function errorCache()
 function onTaskBegun(event)
 {
 	MyAnswers.runningTasks++;
-	if ($('#startUp').size() > 0) { return true; }
-	if (typeof(MyAnswers.activityIndicatorTimer) === 'number') { return true; }
+	if ($('#startUp').size() > 0) {return true;}
+	if (typeof(MyAnswers.activityIndicatorTimer) === 'number') {return true;}
 	MyAnswers.activityIndicatorTimer = setTimeout(function() {
 		clearTimeout(MyAnswers.activityIndicatorTimer);
 		MyAnswers.activityIndicatorTimer = null;
@@ -712,7 +712,7 @@ function onAnswerDownloaded(event, view)
 	var onGoogleJSLoaded = function(data, textstatus) {
 		if ($('div.googlemap').size() > 0) { // check for items requiring Google Maps
 			if ($.type(google.maps) !== 'object') {
-				google.load('maps', '3', { other_params : 'sensor=true', 'callback' : setupGoogleMaps });
+				google.load('maps', '3', {other_params : 'sensor=true', 'callback' : setupGoogleMaps});
 			} else {
 				setupGoogleMaps();
 			}
@@ -821,12 +821,12 @@ function onSiteBootComplete(event) {
 	} else if (typeof config.icon === 'string' && typeof google !== 'undefined' && typeof google.bookmarkbubble !== 'undefined') {
 		setTimeout(function() {
 			var bookmarkBubble = new google.bookmarkbubble.Bubble();
-			bookmarkBubble.hasHashParameter = function() { return false; };
+			bookmarkBubble.hasHashParameter = function() {return false;};
 			bookmarkBubble.setHashParameter = $.noop;
-			bookmarkBubble.getViewportHeight = function() {	return window.innerHeight; };
-			bookmarkBubble.getViewportScrollY = function() { return window.pageYOffset;	};
-			bookmarkBubble.registerScrollHandler = function(handler) { addEvent(window, 'scroll', handler); };
-			bookmarkBubble.deregisterScrollHandler = function(handler) { window.removeEventListener('scroll', handler, false); };
+			bookmarkBubble.getViewportHeight = function() {return window.innerHeight;};
+			bookmarkBubble.getViewportScrollY = function() {return window.pageYOffset;};
+			bookmarkBubble.registerScrollHandler = function(handler) {addEvent(window, 'scroll', handler);};
+			bookmarkBubble.deregisterScrollHandler = function(handler) {window.removeEventListener('scroll', handler, false);};
 			bookmarkBubble.showIfAllowed();
 		}, 1000);
 	}
@@ -848,7 +848,7 @@ if (!addEvent(document, "deviceready", onDeviceReady)) {
 function addBackHistory(item)
 {
 	MyAnswers.log("addBackHistory(): " + item);
-	if ($.inArray(item, backStack) === -1) { backStack.push(item); }
+	if ($.inArray(item, backStack) === -1) {backStack.push(item);}
 }
 
 function updateNavigationButtons() {
@@ -895,7 +895,7 @@ function updateNavigationButtons() {
 		}
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
 		setSubmitCachedFormButton();
-		MyAnswers.dispatch.add(function() { $(window).trigger('scroll'); });
+		MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
 		if (typeof MyAnswersSideBar !== 'undefined') {
 			MyAnswersSideBar.update();
 		}
@@ -977,10 +977,10 @@ function populateItemListing(level) {
 	MyAnswers.log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
 		name, $item, $label, $description,
-		onMasterCategoryClick = function(event) { showCategoriesView($(this).data('id')); },
-		onCategoryClick = function(event) { showKeywordListView($(this).data('id'), $(this).data('masterCategory')); },
-		onKeywordClick = function(event) { gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory')); },
-		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
+		onMasterCategoryClick = function(event) {showCategoriesView($(this).data('id'));},
+		onCategoryClick = function(event) {showKeywordListView($(this).data('id'), $(this).data('masterCategory'));},
+		onKeywordClick = function(event) {gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory'));},
+		onHyperlinkClick = function(event) {window.location.assign($(this).data('hyperlink'));},
 		hook = {
 			interactions: function($item) {
 				var id = $item.attr('data-id');
@@ -1173,7 +1173,7 @@ function restoreSessionProfile(token)
 			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
 			{
 				MyAnswers.log('restoreSessionProfile success: no error messages, data: ' + data);
-				if (data.sessionProfile === null) { return; }
+				if (data.sessionProfile === null) {return;}
 				MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
 				starsProfile = data.sessionProfile.stars;
 			}
@@ -1233,8 +1233,8 @@ function displayAnswerSpace() {
 		}
 		var token = siteVars.queryParameters._t;
 		delete siteVars.queryParameters._t;
-		if (typeof(token) === 'string') { restoreSessionProfile(token); }
-		else { $('body').trigger('siteBootComplete'); }
+		if (typeof(token) === 'string') {restoreSessionProfile(token);}
+		else {$('body').trigger('siteBootComplete');}
 	}
 	startUp.remove();
 	$('#content').removeClass('hidden');
@@ -1296,9 +1296,10 @@ function processMoJOs(interaction) {
 	}
 }
 
-function processForms(interaction) {
+function processForms() {
 	var deferredFetches = {},
-		interactions = interaction ? [ interaction ] : siteVars.map.interactions,
+		xmlserializer = new XMLSerializer(),
+		interactions = siteVars.map.interactions,
 		i, iLength = interactions.length,
 		config,
 		deferredFn = function(form) {
@@ -1317,8 +1318,19 @@ function processForms(interaction) {
 						data: requestData,
 						dataType: 'xml',
 						complete: function(jqxhr, status) {
+							var $data;
 							if (jqxhr.status === 200) {
-								MyAnswers.store.set('formXML:' + form, jqxhr.responseText);
+								$data = $(jqxhr.responseXML);
+								$data.find('formObject').each(function(index, element) {
+									var $formObject = $(element),
+										id = $formObject.attr('id');
+									MyAnswers.log('processForms(): formXML:' + id);
+									$formObject.children().each(function(index, action) {
+										var $action = $(action),
+											html = xmlserializer.serializeToString($action.children()[0]);
+										MyAnswers.store.set('formXML:' + id + ':' + $action.tag(), html);
+									});
+								});
 //								MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
 							}
 							if (jqxhr.status === 200 || jqxhr.status === 304) {
@@ -1359,7 +1371,7 @@ function processConfig() {
 				hasMasterCategories = siteVars.map.masterCategories.length > 0;
 				if (hasMasterCategories && typeof currentMasterCategory === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for master category data');
-					requestConfig({ _t: 'm', _id: siteVars.map.masterCategories });
+					requestConfig({_t: 'm', _id: siteVars.map.masterCategories});
 					break;
 				}
 			case 'categories':
@@ -1375,9 +1387,9 @@ function processConfig() {
 								items = items.concat(siteVars.map['m' + v]);
 							}
 						});
-						requestConfig({  _t: 'c', _id: items });
+						requestConfig({_t: 'c', _id: items});
 					} else {
-						requestConfig({  _t: 'c', _id: siteVars.map.categories });
+						requestConfig({_t: 'c', _id: siteVars.map.categories});
 					}
 					break;
 				}
@@ -1386,7 +1398,7 @@ function processConfig() {
 				answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
 				if (hasInteractions && typeof currentInteraction === 'undefined') {
 					MyAnswers.log('processConfig(): stop while waiting for interaction data');
-					requestConfig({ _t: 'i', _id: siteVars.map.interactions });
+					requestConfig({_t: 'i', _id: siteVars.map.interactions});
 					break;
 				}
 				displayAnswerSpace();
@@ -1482,9 +1494,9 @@ function goBackToHome()
 	}
 	backStack = [];
 	hashStack = [];
-	if (hasMasterCategories) { goBackToMasterCategoriesView(); }
-	else if (hasCategories) { goBackToCategoriesView(); }
-	else { goBackToKeywordListView(); }
+	if (hasMasterCategories) {goBackToMasterCategoriesView();}
+	else if (hasCategories) {goBackToCategoriesView();}
+	else {goBackToKeywordListView();}
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
 //	getSiteConfig();
@@ -1501,8 +1513,8 @@ function goBack(event) {
 		MyAnswers.log('onHashChange de-registration: ', removeEvent(window, 'hashchange', onHashChange));
 	}
 	backStack.pop();
-	if (backStack.length >= 1) { eval(backStack[backStack.length-1]); }
-	else { goBackToHome(); }
+	if (backStack.length >= 1) {eval(backStack[backStack.length-1]);}
+	else {goBackToHome();}
 	stopTrackingLocation();
 	if (deviceVars.hasHashChange) {
 		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
@@ -1514,7 +1526,7 @@ function createParamsAndArgs(keywordID) {
 		returnValue = "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(config.pertinent.name),
 		args = '',
 		argElements = $('#argsBox').find('input, textarea, select');
-	if (typeof config === 'undefined' || !config.pertinent.inputPrompt) { return returnValue; }	
+	if (typeof config === 'undefined' || !config.pertinent.inputPrompt) {return returnValue;}	
 	args = '';
 	argElements.each(function(index, element) {
 		if (this.type && (this.type.toLowerCase() === "radio" || this.type.toLowerCase() === "checkbox") && !this.checked) {
@@ -1538,7 +1550,7 @@ function setupForms($view) {
 		var $form = $view.find('form').first(),
 			interactionConfig = siteVars.config['i' + currentInteraction].pertinent,
 			halfWidth;
-		if ($form.length !== 1) { return; }
+		if ($form.length !== 1) {return;}
 		if (!isCameraPresent()) {
 			MyAnswers.dispatch.add(function() {
 				$form.find('input[onclick*="selectCamera"]').each(function(index, element) {
@@ -1561,10 +1573,10 @@ function showAnswerView(interaction, argsString, reverse) {
 		answerBox = $answerBox[0],
 		completeFn = function() {
 			MyAnswersDevice.showView($('#answerView'), reverse);
-			MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView']); }); 
+			MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerView']);}); 
 			setupForms($answerBox);
 			setMainLabel(config.displayName || config.name);
-			MyAnswers.dispatch.add(function() { $('body').trigger('taskComplete'); });
+			MyAnswers.dispatch.add(function() {$('body').trigger('taskComplete');});
 		};
 	interaction = resolveItemName(interaction);
 	if (interaction === false) {
@@ -1630,7 +1642,7 @@ function showAnswerView(interaction, argsString, reverse) {
 				if (textstatus === 'timeout') {
 					insertHTML(answerBox, 'Error: the server has taken too long to respond.');
 					completeFn();
-				} else if (isAJAXError(textstatus) || xhr.status !== 200) { fallbackToStorage(); }
+				} else if (isAJAXError(textstatus) || xhr.status !== 200) {fallbackToStorage();}
 				else {
 					MyAnswers.log('GetAnswer: storing server response');
 					html = xhr.responseText;
@@ -1648,7 +1660,7 @@ function showAnswerView(interaction, argsString, reverse) {
 	}
 }
 
-function getAnswer(event) { showAnswerView(currentInteraction); }
+function getAnswer(event) {showAnswerView(currentInteraction);}
 
 function gotoNextScreen(keyword, category, masterCategory) {
 	var config,
@@ -1848,7 +1860,7 @@ function updateLoginButtons() {
 	var loginStatus = document.getElementById('loginStatus'),
 		loginButton = document.getElementById('loginButton'),
 		logoutButton = document.getElementById('logoutButton');
-	if (!siteVars.hasLogin) { return; }
+	if (!siteVars.hasLogin) {return;}
 	if (MyAnswers.isLoggedIn) {
 		if (typeof MyAnswers.loginAccount === 'string' && MyAnswers.loginAccount.length > 0) {
 			MyAnswers.dispatch.add(function() {
@@ -1858,15 +1870,15 @@ function updateLoginButtons() {
 				$loginStatus.append('<p class="loginAccount">' + MyAnswers.loginAccount + '</p>');
 				$loginStatus.click(submitLogout);
 			});
-			changeDOMclass(loginStatus, { remove: 'hidden' });
+			changeDOMclass(loginStatus, {remove: 'hidden'});
 		} else {
-			changeDOMclass(logoutButton, { remove: 'hidden' });
+			changeDOMclass(logoutButton, {remove: 'hidden'});
 		}
-		changeDOMclass(loginButton, { add: 'hidden' });
+		changeDOMclass(loginButton, {add: 'hidden'});
 	} else {
-		changeDOMclass(loginStatus, { add: 'hidden' });
-		changeDOMclass(logoutButton, { add: 'hidden' });
-		changeDOMclass(loginButton, { remove: 'hidden' });
+		changeDOMclass(loginStatus, {add: 'hidden'});
+		changeDOMclass(logoutButton, {add: 'hidden'});
+		changeDOMclass(loginButton, {remove: 'hidden'});
 	}
 	if (currentCategory !== undefined) {
 		populateItemListing('interactions');
@@ -1874,12 +1886,12 @@ function updateLoginButtons() {
 }
 
 function requestLoginStatus() {
-	if (!siteVars.hasLogin) { return; }
+	if (!siteVars.hasLogin) {return;}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		dataType: 'json',
 		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) { return; }
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) {return;}
 			var data = $.parseJSON(xhr.responseText);
 			if (data) {
 				if (data.status === 'LOGGED IN') {
@@ -1939,7 +1951,7 @@ function submitLogout(event)
 			type: 'GET',
 			cache: "false",
 			url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-			data: { '_a': 'logout' },
+			data: {'_a': 'logout'},
 			complete: function(xhr, textstatus) {
 				if (xhr.status === 200) {
 					var data = $.parseJSON(xhr.responseText);
@@ -2047,22 +2059,22 @@ function submitFormWithRetry() {
 						MyAnswersDevice.hideView();
 						if (currentBox.attr('id').indexOf('answerBox') !== -1) {
 							insertHTML(currentBox[0], html);
-							currentBox.show('slide', { direction: 'right'}, 300);
+							currentBox.show('slide', {direction: 'right'}, 300);
 							MyAnswersDevice.showView(currentBox.closest('.view'));
 							if (currentBox.attr('id') === 'answerBox') {
-								MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox']); });
+								MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerBox']);});
 							} else if (currentBox.attr('id') === 'answerBox2') {
-								MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox2']); });
+								MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerBox2']);});
 							} else {
 								// potentially unnecessary to have this here
-								MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]); });
+								MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]);});
 							}
 						} else {
 							var answerBox2 = document.getElementById('answerBox2');
 							addBackHistory("");
 							insertHTML(answerBox2, html);
 							MyAnswersDevice.showView($('#answerView2'));
-							MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
+							MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerView2']);});
 						}
 						$('body').trigger('taskComplete');
 					},
@@ -2180,16 +2192,16 @@ function submitAction(keyword, action) {
 				MyAnswersDevice.showView(currentBox.closest('.view'));
 				if (currentBox.attr('id') === 'answerBox')
 				{
-					MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox']); });
+					MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerBox']);});
 				}
 				else if (currentBox.attr('id') === 'answerBox2')
 				{
-					MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerBox2']); });
+					MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerBox2']);});
 				}
 				else
 				{
 					// potentially unnecessary to have this here
-					MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]); });
+					MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', [currentBox.parent().attr('id')]);});
 				}
 			}
 			else
@@ -2198,7 +2210,7 @@ function submitAction(keyword, action) {
 				addBackHistory("");
 				insertHTML(answerBox2, html);
 				MyAnswersDevice.showView($('#answerView2'));
-				MyAnswers.dispatch.add(function() { $('body').trigger('answerDownloaded', ['answerView2']); });
+				MyAnswers.dispatch.add(function() {$('body').trigger('answerDownloaded', ['answerView2']);});
 			}
 		},
 		timeout: computeTimeout(requestUrl.length + requestData.length)
@@ -2228,7 +2240,7 @@ function startTrackingLocation() {
 					MyAnswers.log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
 					$('body').trigger('locationUpdated');
 				}
-			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
+			}, null, {enableHighAccuracy : true, maximumAge : 600000});
 		}
 		else if (typeof(google) !== 'undefined' && typeof(google.gears) !== 'undefined')
 		{
@@ -2240,7 +2252,7 @@ function startTrackingLocation() {
 					MyAnswers.log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
 					$('body').trigger('locationUpdated');
 				}
-			}, null, { enableHighAccuracy : true, maximumAge : 600000 });
+			}, null, {enableHighAccuracy : true, maximumAge : 600000});
 		}
 	}
 }
@@ -2282,7 +2294,7 @@ function setupGoogleMapsBasic(element, data, map)
 	 */
 	if (typeof(data.kml) === 'string')
 	{
-		var kml = new google.maps.KmlLayer(data.kml, { map: map, preserveViewport: true });
+		var kml = new google.maps.KmlLayer(data.kml, {map: map, preserveViewport: true});
 	}
 	else if (typeof(data.marker) === 'string')
 	{
@@ -2616,17 +2628,17 @@ function loaded() {
 	if (typeof webappCache  !== 'undefined') {
 		switch(webappCache.status) {
 			case 0:
-				MyAnswers.log("Cache status: Uncached"); break;
+				MyAnswers.log("Cache status: Uncached");break;
 			case 1:
-				MyAnswers.log("Cache status: Idle"); break;
+				MyAnswers.log("Cache status: Idle");break;
 			case 2:
-				MyAnswers.log("Cache status: Checking"); break;
+				MyAnswers.log("Cache status: Checking");break;
 			case 3:
-				MyAnswers.log("Cache status: Downloading"); break;
+				MyAnswers.log("Cache status: Downloading");break;
 			case 4:
-				MyAnswers.log("Cache status: Updateready"); break;
+				MyAnswers.log("Cache status: Updateready");break;
 			case 5:
-				MyAnswers.log("Cache status: Obsolete"); break;
+				MyAnswers.log("Cache status: Obsolete");break;
 		}
 	}
 
@@ -2646,7 +2658,7 @@ function loaded() {
 		});
 */
 		requestLoginStatus();
-		requestConfig({ _id: siteVars.id, _t: 'a' });
+		requestConfig({_id: siteVars.id, _t: 'a'});
 		$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
 			if (typeof stars === 'string') {
 				stars = $.parseJSON(stars);
@@ -2678,13 +2690,13 @@ function init_main() {
 	
 	lowestTransferRateConst = 1000 / (4800 / 8);
 	maxTransactionTimeout = 180 * 1000;
-	ajaxQueue = $.manageAjax.create('globalAjaxQueue', { queue: true });
+	ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
 	MyAnswers.dispatch = new BlinkDispatch(47);
 
 	MyAnswers.runningTasks = 0; // track the number of tasks in progress
 	
 	// to facilitate building regex replacements
-	RegExp.quote = function(str) { return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1"); };
+	RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");};
 
 	addEvent(document, 'orientationChanged', updateOrientation);
 	
