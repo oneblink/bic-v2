@@ -722,9 +722,7 @@ function onAnswerDownloaded(event, view)
 		$('body').trigger('taskBegun');
 		if ($('#' + view).find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 			if ($.type(window.google) !== 'object' || $.type(google.load) !== 'function') {
-				// TODO: pass real Google API key through somehow
-//				$.getScript('http://www.google.com/jsapi?key=' + siteConfig.googleAPIkey, onGoogleJSLoaded);
-				$.getScript('http://www.google.com/jsapi', onGoogleJSLoaded);
+				$.getScript('http://www.google.com/jsapi?key=' + siteVars.googleAPIkey, onGoogleJSLoaded);
 			} else {
 				onGoogleJSLoaded();
 			}
@@ -879,7 +877,7 @@ function updateNavigationButtons() {
 		} else {
 			$helpButton.addClass('hidden');
 		}
-		if (isHome()) {
+		if (backStack.length <= 1) {
 			$navButtons.addClass('hidden');
 			countPendingFormData(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {

@@ -210,10 +210,12 @@ function parseXMLElements(xmlString)
 	{
 		var domParser = new DOMParser();
 		xml = domParser.parseFromString(xmlString, 'application/xml');
+		MyAnswers.log('string parsed to XML using W3C DOMParser()', xml);
 	}
 	else if (typeof(xmlParse) === 'function')
 	{
 		xml = xmlParse(xmlString);
+		MyAnswers.log('string parsed to XML using AJAXSLT library', xml);
 	}
 	else
 	{
@@ -222,14 +224,15 @@ function parseXMLElements(xmlString)
 		xhr.open('GET', url, false);
 		xhr.send(null);
 		xml = xhr.responseXML;
+		MyAnswers.log('string parsed to XML using fake AJAX query', xml);
 	}
 	return xml;
 }
 
-function processBlinkAnswerMessage(message)
-{
+function processBlinkAnswerMessage(message) {
+	var i, iLength;
+	MyAnswers.log('processBlinkAnswerMessage(): ' + message.substr(0, 10));
 	message = $.parseJSON(message);
-	MyAnswers.log(message);
 	if (typeof(message.loginStatus) == 'string' && typeof(message.loginKeyword) == 'string' && typeof(message.logoutKeyword) == 'string') {
 		MyAnswers.log('blinkAnswerMessage: loginStatus detected');
 		if (message.loginStatus == "LOGGED IN") {
@@ -245,6 +248,25 @@ function processBlinkAnswerMessage(message)
 				gotoNextScreen(message.loginKeyword);
 			});
 		}
+	}
+	if (message.startype) {
+		starsProfile[message.startype] = starsProfile[message.startype] || {};
+		if (message.clearstars) {
+			delete starsProfile[message.startype];
+}
+		if ($.type(message.staroff) === 'array') {
+			iLength = message.staroff.length;
+			for (i = 0; i < iLength; i++) {
+				delete starsProfile[message.startype][message.staroff[i]];
+			}
+		}
+		if ($.type(message.staron) === 'array') {
+			iLength = message.staroff.length;
+			for (i = 0; i < iLength; i++) {
+				starsProfile[message.startype][message.staroff[i]] = starsProfile[message.startype][message.staroff[i]] || {};
+			}
+		}
+		setAnswerSpaceItem('starsProfile', starsProfile);
 	}
 }
 
@@ -1254,8 +1276,7 @@ function populateMasterCategories()
 function displayAnswerSpace()
 {
 	var startUp = $('#startUp');
-	if (startUp.size() > 0 && typeof(siteConfig) !== 'undefined')
-	{
+	if (startUp.size() > 0 && typeof(siteConfig) !== 'undefined') {
 		if (answerSpaceOneKeyword)
 		{
 			showKeywordView(0);
@@ -1267,6 +1288,7 @@ function displayAnswerSpace()
 		}
 		else if (hasVisualCategories)
 		{
+			populateVisualCategories(currentMasterCategory);
 			showCategoriesView();
 		}
 		else if (hasCategories)
@@ -1278,10 +1300,12 @@ function displayAnswerSpace()
 		{
 			showKeywordListView();
 		}
+		if (typeof siteVars.queryParameters !== 'undefined') {
 		var token = siteVars.queryParameters._t;
 		delete siteVars.queryParameters._t;
 		if (typeof(token) === 'string') { restoreSessionProfile(token); }
 		else { $('body').trigger('siteBootComplete'); }
+	}
 	}
 	startUp.remove();
 	$('#content').removeClass('hidden');
@@ -1441,6 +1465,7 @@ function getSiteConfig()
 					case 'NOT LOGGED IN':
 						alert('This answerSpace requires users to log in.');
 						displayAnswerSpace();
+						showLoginView();
 						break;
 					case 'NO MATCHING ANSWERSPACE':
 					case 'ANSWERSPACE UNSPECIFIED':
@@ -1652,9 +1677,12 @@ function showAnswerView(keyword, argsString, reverse)
 				else {
 					MyAnswers.log('GetAnswer: storing server response');
 					html = xhr.responseText;
-					var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
-					if (blinkAnswerMessage !== null) {
-						processBlinkAnswerMessage(blinkAnswerMessage[1]);
+				var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g),
+					b, bLength;
+				if ($.type(blinkAnswerMessage) === 'array') {
+					bLength = blinkAnswerMessage.length;
+					for (b = 0; b < bLength; b++) {
+						processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
 					}
 					setAnswerSpaceItem("answer___" + keywordID, html);
 				}
