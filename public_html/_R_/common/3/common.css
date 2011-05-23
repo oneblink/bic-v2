@@ -91,7 +91,7 @@ ul, ol {
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
 .bForm-input > input[type=button] { display: inline-block; }
 .bForm-input { padding-right: 30px; }
-.bForm-tooltip {
+.bForm-tooltip > span {
 	font-size: larger;
 	font-weight: bolder;
 	color: #FFF;

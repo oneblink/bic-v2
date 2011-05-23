@@ -1318,7 +1318,7 @@ function processForms() {
 						complete: function(jqxhr, status) {
 							var $data;
 							if (jqxhr.status === 200) {
-								$data = $(jqxhr.responseXML);
+								$data = $(jqxhr.responseXML || $.parseXML(jqxhr.responseText));
 								$data.find('formObject').each(function(index, element) {
 									var $formObject = $(element),
 										id = $formObject.attr('id');
@@ -1326,7 +1326,15 @@ function processForms() {
 									$formObject.children().each(function(index, action) {
 										var $action = $(action),
 											html = xmlserializer.serializeToString($action.children()[0]);
-										MyAnswers.store.set('formXML:' + id + ':' + $action.tag(), html);
+										if ($action.tag() === 'parsererror') {
+											MyAnswers.log('processForms(): failed to parse formXML:' + id, action);
+											return;
+										}
+										$.when(MyAnswers.store.set('formXML:' + id + ':' + $action.tag(), html)).done(function() {
+											MyAnswers.log('processForms(): stored formXML:' + id + ':' + $action.tag());
+										}).fail(function() {
+											MyAnswers.log('processForms(): failed formXML:' + id + ':' + $action.tag());
+										});
 									});
 								});
 //								MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());

@@ -1,10 +1,11 @@
 CACHE MANIFEST 
-# svn revision 1021
+# svn revision 1666
 
 CACHE:
 /_R_/common/3/common.css
 /_R_/common/3/common.min.js
-/_R_/common/3/jquery-1.5.2.min.js
+/_c/jquery/jquery-1.6.1.min.js
+/_c/css/blink2011reset.css
 /_R_/common/3/BlinkForms2.js
 /_R_/common/3/MyAnswersSideBar.js
 /_R_/common/3/main.js
