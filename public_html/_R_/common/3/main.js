@@ -896,7 +896,7 @@ function updateNavigationButtons() {
 		} else {
 			$helpButton.addClass('hidden');
 		}
-		if (backStack.length <= 1) {
+		if (backStack.length <= 0) {
 			$navButtons.addClass('hidden');
 			countPendingFormData(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
@@ -1564,8 +1564,7 @@ function setupForms($view) {
 			});
 		}
 		if ($form.data('objectName').length > 0) {
-			BlinkForms.renderForm($form);
-//			BlinkForms.setupForm($form);
+			BlinkForms.initialiseForm($form);
 		}	
 	});
 }

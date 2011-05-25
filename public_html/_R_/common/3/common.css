@@ -100,6 +100,11 @@ ul, ol {
 	cursor: help;
 }
 
+.bForm-subForm {
+	border-top: #000 solid .2em;
+	border-bottom: #000 solid .2em;
+}
+
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;
 }
