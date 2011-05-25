@@ -1,4 +1,4 @@
-var activityIndicatorTop, navBar, hashStack;
+var activityIndicatorTop, $navBar, hashStack;
 MyAnswers.deviceDeferred = new $.Deferred();
 
 function onHashChange(event) {
@@ -49,14 +49,15 @@ function init_device()
 //	deviceVars.disableXSLT = true;
 
 	// caching frequently-accessed selectors
-	navBar = $('.navBar');
+	$navBar = $('#navBoxHeader');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
 
-//	document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
-//	iscroll = new iScroll('activeContent', { bounce: true, hScrollbar: false, fadeScrollbar: false, checkDOMChanges: false });
+	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
 	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
 	MyAnswers.log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
-	if (typeof onScroll === 'function') {
+	if (deviceVars.hasCSSFixedPosition) {
+		$('#activityIndicator').css('top', activityIndicatorTop);
+	} else if (typeof onScroll === 'function') {
 		$(window).bind('scroll', onScroll);
 		$(window).trigger('scroll');
 	}
@@ -221,14 +222,8 @@ function onScroll() {
 	var //headerBottom = $('header').height(),
 		scrollTop = $(window).scrollTop(),
 		offset;
-/*	if (scrollTop > headerBottom) {
-		offset = scrollTop - headerBottom;
-		updatePartCSS(navBar, deviceVars.scrollProperty, offset, deviceVars.scrollValue);
-	} else {
-		updatePartCSS(navBar, deviceVars.scrollProperty, '0', deviceVars.scrollValue);
-	}
-*/
-	updatePartCSS(navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+	updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+	updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 

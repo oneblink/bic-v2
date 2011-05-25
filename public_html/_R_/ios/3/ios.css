@@ -86,16 +86,20 @@ button, [type=button], [type=submit], [type=reset] {
 	border-bottom-right-radius: 8px;
 }
 
-.navBar {
-	position: relative;
+#navBoxHeader, .navBar {
 	width: 100%;
+	height: 41px;
+}
+
+#navBoxHeader {
+	position: fixed;
+	top: 0;
 	color: #73777F;
 	font-size: large;
 	font-weight: bolder;
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFF), to(#AAAAB8));
 	text-shadow: 1px 1px 1px #DEDEE4;
 	text-align: center;
-	height: 41px;
 }
 
 .navButtonsHolder {

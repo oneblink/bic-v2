@@ -40,7 +40,7 @@ MyAnswers.log = function() {
 		} else {
 			return _oldAttr.apply(this, arguments);
 		}
-	}
+	};
 	
 	// return just the element's HTML tag (no attributes or innerHTML)
 	$.fn.tag = function() {
@@ -49,7 +49,7 @@ MyAnswers.log = function() {
 			tag = this[0].tagName || this[0].nodeName;
 			return tag.toLowerCase();
 		}
-	}
+	};
 	
 	// return a simple HTML tag string not containing the innerHTML
 	$.fn.tagHTML = function() {
@@ -63,7 +63,7 @@ MyAnswers.log = function() {
 			html += ' />';
 			return html;
 		}
-	}
+	};
 }(jQuery));
 
 function hasCSSFixedPosition() {
@@ -256,6 +256,25 @@ function processBlinkAnswerMessage(message) {
 			MyAnswers.log('blinkAnswerMessage: deleting MoJO: ' + message.mojoTarget);
 			MyAnswers.store.remove('mojoXML:' + message.mojoTarget);
 		}
+	}
+	if (message.startype) {
+		starsProfile[message.startype] = starsProfile[message.startype] || {};
+		if (message.clearstars) {
+			delete starsProfile[message.startype];
+		}
+		if ($.type(message.staroff) === 'array') {
+			iLength = message.staroff.length;
+			for (i = 0; i < iLength; i++) {
+				delete starsProfile[message.startype][message.staroff[i]];
+			}
+		}
+		if ($.type(message.staron) === 'array') {
+			iLength = message.staroff.length;
+			for (i = 0; i < iLength; i++) {
+				starsProfile[message.startype][message.staroff[i]] = starsProfile[message.startype][message.staroff[i]] || {};
+			}
+		}
+//		setAnswerSpaceItem('starsProfile', starsProfile); // TODO: correct storage of starsProfile
 	}
 }
 
@@ -851,7 +870,7 @@ function addBackHistory(item)
 
 function updateNavigationButtons() {
 	MyAnswers.dispatch.add(function() {
-		var $navBoxHeader = $('#navBoxHeader'),
+		var $navBars = $('.navBar'),
 			$navButtons = $("#homeButton, #backButton"),
 			$helpButton = $('#helpButton'),
 			helpContents;
@@ -881,15 +900,15 @@ function updateNavigationButtons() {
 			$navButtons.addClass('hidden');
 			countPendingFormData(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
-					$navBoxHeader.removeClass('hidden');
+					$navBars.removeClass('hidden');
 				} else {
-					$navBoxHeader.addClass('hidden');
+					$navBars.addClass('hidden');
 				}
 			});
 		} else {
 			$navButtons.removeClass('hidden');
 			$navButtons.removeAttr('disabled');
-			$navBoxHeader.removeClass('hidden');
+			$navBars.removeClass('hidden');
 		}
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
 		setSubmitCachedFormButton();
@@ -1146,8 +1165,7 @@ function goBackToCategoriesView() {
 	MyAnswersDevice.showView($('#categoriesView'), true);
 }
 
-function restoreSessionProfile(token)
-{
+function restoreSessionProfile(token) {
 	MyAnswers.log('restoreSessionProfile():');
 	var requestUrl = siteVars.serverAppPath + '/util/GetSession.php';
 	var requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
@@ -1368,48 +1386,41 @@ function processForms() {
 	}
 }
 
-function processConfig() {
-	var items, firstItem;
+function processConfig(display) {
+	var items = [], firstItem;
 	MyAnswers.log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
 			case 'master categories':
 				hasMasterCategories = siteVars.map.masterCategories.length > 0;
 				if (hasMasterCategories && typeof currentMasterCategory === 'undefined') {
-					MyAnswers.log('processConfig(): stop while waiting for master category data');
-					requestConfig({_t: 'm', _id: siteVars.map.masterCategories});
-					break;
+					items = items.concat($.map(siteVars.map.masterCategories, function(element, index) {
+						return 'm' + element;
+					}));
 				}
 			case 'categories':
 				// TODO: investigate whether this behaviour needs to be more like interactions and/or master categories
 				hasCategories = siteVars.map.categories.length > 0;
 				if (hasCategories && typeof currentCategory === 'undefined') {
-					MyAnswers.log('processConfig(): stop while waiting for category data');
-					if (hasMasterCategories) {
-						$.each(siteVars.map.masterCategories, function(i, v) {
-							if (typeof items === 'undefined') {
-								items = siteVars.map['m' + v];
-							} else {
-								items = items.concat(siteVars.map['m' + v]);
-							}
-						});
-						requestConfig({_t: 'c', _id: items});
-					} else {
-						requestConfig({_t: 'c', _id: siteVars.map.categories});
-					}
-					break;
+					items = items.concat($.map(siteVars.map.categories, function(element, index) {
+						return 'c' + element;
+					}));
 				}
 			case 'interactions only':
 				hasInteractions = siteVars.map.interactions.length > 0;
 				answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
 				if (hasInteractions && typeof currentInteraction === 'undefined') {
-					MyAnswers.log('processConfig(): stop while waiting for interaction data');
-					requestConfig({_t: 'i', _id: siteVars.map.interactions});
-					break;
+					items = items.concat($.map(siteVars.map.interactions, function(element, index) {
+						return 'i' + element;
+					}));
 				}
-				displayAnswerSpace();
-				processMoJOs();
-				processForms();
+		}
+		if (display === true) {
+			displayAnswerSpace();
+			processMoJOs();
+			processForms();
+		} else {
+			requestConfig(items);
 		}
 	} else {
 		MyAnswers.log('requestConfig(): unable to retrieve answerSpace config');
@@ -1418,57 +1429,45 @@ function processConfig() {
 
 function requestConfig(requestData) {
 	var now = $.now();
-	if ($.type(requestData._id) === 'array') {
-		MyAnswers.log('requestConfig(): ' + requestData._t + '[' + requestData._id.join(',') + ']');
+	if ($.type(requestData) === 'array' && requestData.length > 0) {
+		MyAnswers.log('requestConfig(): [' + requestData.join(',') + ']');
 	} else {
-		MyAnswers.log('requestConfig(): ' + requestData._t + '[' + requestData._id + ']');
+		MyAnswers.log('requestConfig(): ' + requestData);
+		requestData = null;
 	}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
-		data: requestData,
+		type: 'POST',
+		data: requestData ? {items: requestData} : null,
 		dataType: 'json',
-		complete: function(xhr, xhrStatus) {
+		complete: function(jqxhr, textStatus) {
 			var data,
 				items,
 				type,
 				id, ids, i, iLength;
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
+			if (isAJAXError(textStatus) || jqxhr.status !== 200) {
 				$.noop();
 			} else {
 				if (typeof siteVars.config === 'undefined') {
 					siteVars.config = {};
 				}
-				if ($.type(requestData._id) === 'array') {
-					ids = requestData._id;
-				} else {
-					ids = [ requestData._id ];
-				}
+				ids = ($.type(requestData) === 'array') ? requestData : [ 'a' + siteVars.id ];
 				iLength = ids.length;
-				data = $.parseJSON(xhr.responseText);
+				data = $.parseJSON(jqxhr.responseText);
 				for (i = 0; i < iLength; i++) {
-					id = requestData._t + ids[i];
-					if (typeof data[id] !== 'undefined') {
-						siteVars.config[id] = data[id];
-						deviceVars.features = data.deviceFeatures;
-						switch (requestData._t) {
-							case 'a':
-								siteVars.map = data.map;
-								break;
-							case 'm':
-								currentMasterCategory = null;
-								break;
-							case 'c':
-								currentCategory = null;
-								break;
-							case 'i':
-								currentInteraction = null;
-								break;
-						}
+					if (typeof data[ids[i]] !== 'undefined') {
+						siteVars.config[ids[i]] = data[ids[i]];
 					}
+				}
+				deviceVars.features = data.deviceFeatures;
+				if ($.type(data.map) === 'object') {
+					siteVars.map = data.map;
+					processConfig();
+				} else {
+					processConfig(true);
 				}
 				// TODO: store these in client-side storage somewhere
 			}
-			processConfig();
 		},
 		timeout: computeTimeout(40 * 1024)
 	});
@@ -1652,9 +1651,13 @@ function showAnswerView(interaction, argsString, reverse) {
 				else {
 					MyAnswers.log('GetAnswer: storing server response');
 					html = xhr.responseText;
-					var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
-					if (blinkAnswerMessage !== null) {
-						processBlinkAnswerMessage(blinkAnswerMessage[1]);
+					var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g),
+						b, bLength;
+					if ($.type(blinkAnswerMessage) === 'array') {
+						bLength = blinkAnswerMessage.length;
+						for (b = 0; b < bLength; b++) {
+							processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
+						}
 					}
 					MyAnswers.store.set('answer___' + interaction, html);
 					insertHTML(answerBox, html);
@@ -2186,9 +2189,13 @@ function submitAction(keyword, action) {
 			}
 
 			MyAnswers.log('GetAnswer: Ben put blinkAnswerMessage code here!');
-			var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:(.*) -->/);
-			if (blinkAnswerMessage !== null) {
-				processBlinkAnswerMessage(blinkAnswerMessage[1]);
+			var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g),
+				b, bLength;
+			if ($.type(blinkAnswerMessage) === 'array') {
+				bLength = blinkAnswerMessage.length;
+				for (b = 0; b < bLength; b++) {
+					processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
+				}
 			}
 
 			MyAnswersDevice.hideView();
@@ -2664,7 +2671,7 @@ function loaded() {
 		});
 */
 		requestLoginStatus();
-		requestConfig({_id: siteVars.id, _t: 'a'});
+		requestConfig();
 		$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
 			if (typeof stars === 'string') {
 				stars = $.parseJSON(stars);

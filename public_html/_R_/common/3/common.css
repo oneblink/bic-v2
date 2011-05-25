@@ -189,7 +189,7 @@ img.v4col { width: 25%; }
 	text-align: center;
 }
 
-#activityIndicator, .navBar {
+#activityIndicator, #navBoxHeader {
 	z-index: 5;
 }
 
@@ -425,7 +425,7 @@ ul.box > li > .description {
 /* signature pad styles */
 
 #signaturePad {
-	position: absolute;
+	position: fixed;
 	margin: 0;
 	padding: 0;
 	top: 0;
