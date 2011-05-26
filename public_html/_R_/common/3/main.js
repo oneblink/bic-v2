@@ -783,7 +783,7 @@ function onLinkClick(event) {
 			if ($.isEmptyObject(args)) {
 				gotoNextScreen(attributes.interaction || attributes.keyword);
 			} else {
-				showAnswerView(attributes.interaction || attributes.keyword, $.param(args));
+				showAnswerView(attributes.interaction || attributes.keyword, args);
 			}
 			return false;
 		} else if (typeof attributes.category !== 'undefined') {
@@ -1340,7 +1340,6 @@ function processForms() {
 								$data.find('formObject').each(function(index, element) {
 									var $formObject = $(element),
 										id = $formObject.attr('id');
-									MyAnswers.log('processForms(): formXML:' + id);
 									$formObject.children().each(function(index, action) {
 										var $action = $(action),
 											html = xmlserializer.serializeToString($action.children()[0]);
@@ -1348,12 +1347,11 @@ function processForms() {
 											MyAnswers.log('processForms(): failed to parse formXML:' + id, action);
 											return;
 										}
-										$.when(MyAnswers.store.set('formXML:' + id + ':' + $action.tag(), html)).done(function() {
-											MyAnswers.log('processForms(): stored formXML:' + id + ':' + $action.tag());
-										}).fail(function() {
+										$.when(MyAnswers.store.set('formXML:' + id + ':' + $action.tag(), html)).fail(function() {
 											MyAnswers.log('processForms(): failed formXML:' + id + ':' + $action.tag());
 										});
 									});
+									MyAnswers.log('processForms(): formXML:' + id);
 								});
 //								MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
 							}
@@ -1594,9 +1592,13 @@ function showAnswerView(interaction, argsString, reverse) {
 	currentInteraction = interaction;
 	updateCurrentConfig();
 	processMoJOs(interaction);
-	args = {};
 	if (typeof argsString === 'string' && argsString.length > 0) {
+		args = {};
 		$.extend(args, deserialize(decodeURIComponent(argsString)));
+	} else if ($.type(argsString) === 'object') {
+		args = argsString;
+	} else {
+		args = {};
 	}
 	if (config.inputPrompt) {
 		$.extend(args, deserialize(createParamsAndArgs(interaction)));
@@ -1617,7 +1619,8 @@ function showAnswerView(interaction, argsString, reverse) {
 			completeFn();
 		});
 	} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
-		html = '<form data-object-name="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />';
+		html = $('<form data-object-name="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />');
+		html.data(args);
 		insertHTML(answerBox, html);
 		completeFn();
 	} else {
