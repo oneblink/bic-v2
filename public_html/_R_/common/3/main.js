@@ -248,13 +248,13 @@ function processBlinkAnswerMessage(message) {
 			});
 		}
 	}
-	if (typeof message.mojoTarget === 'string') {
-		if (typeof message.mojoXML === 'string') {
-			MyAnswers.log('blinkAnswerMessage: populating MoJO: ' + message.mojoTarget);
-			MyAnswers.store.set('mojoXML:' + message.mojoTarget, message.mojoXML);
-		} else if (typeof message.mojoDelete !== 'undefined') {
-			MyAnswers.log('blinkAnswerMessage: deleting MoJO: ' + message.mojoTarget);
-			MyAnswers.store.remove('mojoXML:' + message.mojoTarget);
+	if (typeof message.mojotarget === 'string') {
+		if (typeof message.mojoxml === 'string') {
+			MyAnswers.log('blinkAnswerMessage: populating MoJO: ' + message.mojotarget);
+			MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
+		} else if (typeof message.mojodelete !== 'undefined') {
+			MyAnswers.log('blinkAnswerMessage: deleting MoJO: ' + message.mojotarget);
+			MyAnswers.store.remove('mojoXML:' + message.mojotarget);
 		}
 	}
 	if (message.startype) {
