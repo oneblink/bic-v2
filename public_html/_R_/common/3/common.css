@@ -28,6 +28,24 @@ form img {
 	max-height: 10em;
 }
 
+form table {
+	overflow: hidden;
+	width: 100%;
+	text-align: left;
+	border-spacing: 0;
+	table-layout: fixed;
+}
+
+form table table {
+	width: 95%;
+	margin: .2em;
+	outline: .2em solid #AAA;
+}
+
+form td {
+	padding: 0;
+}
+
 select {
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -78,14 +96,6 @@ ul, ol {
 	z-index: 1;
 }
 
-.bForm-add, .bForm-edit, .bForm-delete, .bForm-results, .bForm-view {
-	overflow: hidden;
-	width: 100%;
-	text-align: left;
-	border-spacing: 0;
-	table-layout: fixed;
-}
-
 .bForm-label, .bForm-value { font-size: smaller; }
 .bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
@@ -98,11 +108,6 @@ ul, ol {
 	text-outline: 1px 1px #000;
 	text-shadow: 0 0 .5em #000;
 	cursor: help;
-}
-
-.bForm-subForm {
-	border-top: #000 solid .2em;
-	border-bottom: #000 solid .2em;
 }
 
 #loginBox input[type=text], #loginBox input[type=password] {

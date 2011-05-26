@@ -6,10 +6,6 @@ body, nav {
 	background-color: #E3E4EA;
 }
 
-td {
-	padding: 2px;
-}
-
 textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
 	padding: 4px;
 	border: 1px solid #AAAAAA;
