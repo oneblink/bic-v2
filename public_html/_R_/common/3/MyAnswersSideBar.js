@@ -19,6 +19,7 @@
 			if (!this.isEnoughRoom()) { return; }
 			MyAnswers.dispatch.add(function() {
 				$sideBar.removeClass('hidden');
+				// TODO: use padding-left instead to avoid have a fixed width
 				$stack.css({
 					'width': $stack.width() - width,
 					'margin-left': width
