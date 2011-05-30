@@ -5,11 +5,15 @@ CACHE:
 
 NETWORK:
 *
-/_R_/common/3/util/GetLogin.php
-/_R_/common/3/util/GetAnswer.php
-/_R_/common/3/util/GetMoJO.php
-/_R_/common/3/util/GetSiteConfig.php
 /_R_/common/3/util/GetSession.php
+/_R_/common/3/xhr/GetAnswer.php
+/_R_/common/3/xhr/GetConfig.php
+/_R_/common/3/xhr/GetForm.php
+/_R_/common/3/xhr/GetFormList.php
+/_R_/common/3/xhr/GetFormRecord.php
+/_R_/common/3/xhr/GetLogin.php
+/_R_/common/3/xhr/GetMoJO.php
+/_R_/common/3/xhr/SaveFormRecord.php
 http://i.ytimg.com/
 http://maps.google.com/
 /images/

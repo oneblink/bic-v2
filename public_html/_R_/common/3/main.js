@@ -1415,7 +1415,7 @@ function processConfig(display) {
 					}));
 				}
 		}
-		if (display === true) {
+		if (display === true && siteVars.config && siteVars.map) {
 			displayAnswerSpace();
 			processMoJOs();
 			processForms();
@@ -1446,7 +1446,7 @@ function requestConfig(requestData) {
 				type,
 				id, ids, i, iLength;
 			if (isAJAXError(textStatus) || jqxhr.status !== 200) {
-				$.noop();
+				processConfig(true);
 			} else {
 				if (typeof siteVars.config === 'undefined') {
 					siteVars.config = {};
@@ -1458,10 +1458,12 @@ function requestConfig(requestData) {
 					if (typeof data[ids[i]] !== 'undefined') {
 						siteVars.config[ids[i]] = data[ids[i]];
 					}
+					MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
 				}
 				deviceVars.features = data.deviceFeatures;
 				if ($.type(data.map) === 'object') {
 					siteVars.map = data.map;
+					MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
 					processConfig();
 				} else {
 					processConfig(true);
@@ -2662,20 +2664,26 @@ function loaded() {
 	try {
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
-/*
-		$.when(MyAnswers.store.get('siteConfigMessage')).done(function(message) {
-			if (typeof message === 'string') {
-				message = $.parseJSON(message);
+		$.when(MyAnswers.siteStore.get('config')).then(function(data) {
+			if (typeof data === 'string') {
+				data = $.parseJSON(data);
 			}
-			if ($.type(message) === 'object') {
-				siteConfig = message.siteConfig;
-				siteConfigHash = message.siteHash;
+			if ($.type(data) === 'object') {
+				siteVars.config = data;
 			}
-//			getSiteConfig();
+		}).always(function() {
+			$.when(MyAnswers.siteStore.get('map')).then(function(data) {
+				if (typeof data === 'string') {
+					data = $.parseJSON(data);
+				}
+				if ($.type(data) === 'object') {
+					siteVars.map = data;
+				}
+			}).always(function() {
+				requestLoginStatus();
+				requestConfig();
+			});
 		});
-*/
-		requestLoginStatus();
-		requestConfig();
 		$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
 			if (typeof stars === 'string') {
 				stars = $.parseJSON(stars);
@@ -2718,7 +2726,11 @@ function init_main() {
 	addEvent(document, 'orientationChanged', updateOrientation);
 	
 	MyAnswers.store = new MyAnswersStorage(null, siteVars.answerSpace, 'jstore');
-	$.when(MyAnswers.store.ready()).done(function() {
+	MyAnswers.siteStore = new MyAnswersStorage(null, siteVars.answerSpace, 'site');
+	$.when(
+		MyAnswers.store.ready(),
+		MyAnswers.siteStore.ready()
+	).done(function() {
 //		MyAnswers.dumpLocalStorage();
 		$.when(MyAnswers.updateLocalStorage()).done(function() {
 			loaded();
