@@ -913,9 +913,9 @@ function updateNavigationButtons() {
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
 		setSubmitCachedFormButton();
 		MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
-		if (typeof MyAnswersSideBar !== 'undefined') {
+/*		if (typeof MyAnswersSideBar !== 'undefined') {
 			MyAnswersSideBar.update();
-		}
+		} */
 	});
 }
 
