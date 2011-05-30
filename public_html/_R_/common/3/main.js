@@ -1342,7 +1342,9 @@ function processForms() {
 										id = $formObject.attr('id');
 									$formObject.children().each(function(index, action) {
 										var $action = $(action),
-											html = xmlserializer.serializeToString($action.children()[0]);
+											$children = $action.children(),
+											html = xmlserializer.serializeToString($children[0]);
+										html += $children[1] ? xmlserializer.serializeToString($children[1]) : '';
 										if ($action.tag() === 'parsererror') {
 											MyAnswers.log('processForms(): failed to parse formXML:' + id, action);
 											return;
