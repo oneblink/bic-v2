@@ -1690,7 +1690,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			completeFn();
 		});
 	} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
-		html = $('<form data-object-name="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" data-pending-form="' + args.pendingForm + '" />');
+		html = $('<form data-object-name="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />');
 		html.data(args);
 		insertHTML(answerBox, html);
 		completeFn();
@@ -2109,22 +2109,6 @@ function clearPendingForm(interaction, form, uuid) {
 		deferred.reject();
 	}).always(function() {
 		setSubmitCachedFormButton();
-	});
-	return deferred.promise();
-}
-
-/**
- * Serialize data found immediately within a table element.
- * @param {jQuerySelector} $table element to start
- * @param {Object} data JavaScript object to populate with key=value pairs
- * @returns {jQueryPromise} resulting XML tuple
- */
-function getPendingForm(form, uuid) {
-	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.get('form:' + uuid)).then(function(xml) {
-		deferred.resolve(xml);
-	}).fail(function() {
-		deferred.reject();
 	});
 	return deferred.promise();
 }
