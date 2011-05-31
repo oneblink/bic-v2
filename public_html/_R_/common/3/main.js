@@ -535,6 +535,30 @@ function countPendingFormData(callback) {
 
 function setSubmitCachedFormButton() {
 	$.when(countPendingForms()).then(function(queueCount) {
+		var $table = $('#pendingBox > table'),
+			$tbody = $table.children('tbody'),
+			$hiddenTr = $tbody.children('tr.hidden'),
+			$tr;
+		$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
+			MyAnswers.dispatch.add(function() {
+				var k, kLength = keys.length,
+					key, $cells;
+				$tbody.children('tr:not(.hidden)').remove();
+				for (k = 0; k < kLength; k++) {
+					key = keys[k].split(':');
+					$tr = $hiddenTr.clone();
+					$tr.data('interaction', key[0]);
+					$cells = $tr.children('td');
+					$cells.eq(0).text(key[1]);
+					$cells.eq(1).text(key[2]);
+					$tr.removeClass('hidden');
+					$tr.appendTo($tbody);
+				}
+				if (kLength === 0) {
+					$tbody.append('<tr><td colspan="3">No pending forms submissions.</td></tr>');
+				}
+			});
+		});
 		var button = document.getElementById('pendingButton');
 		MyAnswers.dispatch.add(function() {
 			if (queueCount !== 0) {
@@ -681,10 +705,7 @@ function onPendingClick(event) {
 		form = $cells.eq(0).text(),
 		uuid = $cells.eq(1).text();
 	if (action === 'cancel') {
-		$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid)).always(function() {
-			setSubmitCachedFormButton();
-			showPendingView();
-		});
+		clearPendingForm(interaction, form, uuid);
 	} else if (action === 'resume') {
 		showAnswerView(interaction, { pendingForm: interaction + ':' + form + ':' + uuid });
 	}
@@ -1570,31 +1591,7 @@ function goBack(event) {
 }
 
 function showPendingView() {
-	var $table = $('#pendingBox'),
-		$tbody = $table.children('tbody'),
-		$hiddenTr = $tbody.children('tr.hidden'),
-		$tr;
 	MyAnswersDevice.hideView();
-	$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
-		MyAnswers.dispatch.add(function() {
-			var k, kLength = keys.length,
-				key, $cells;
-			$tbody.children('tr:not(.hidden)').remove();
-			for (k = 0; k < kLength; k++) {
-				key = keys[k].split(':');
-				$tr = $hiddenTr.clone();
-				$tr.data('interaction', key[0]);
-				$cells = $tr.children('td');
-				$cells.eq(0).text(key[1]);
-				$cells.eq(1).text(key[2]);
-				$tr.removeClass('hidden');
-				$tr.appendTo($tbody);
-			}
-			if (kLength === 0) {
-				$tbody.append('<tr><td colspan="3">No pending forms submissions.</td></tr>');
-			}
-		});
-	});
 	MyAnswersDevice.showView($('#pendingView'));
 }
 
@@ -2104,9 +2101,9 @@ function pushPendingForm(interaction, form, uuid, data) {
  * @param {Object} data JavaScript object to populate with key=value pairs
  * @returns {jQueryPromise}
  */
-function clearPendingForm(form, uuid) {
+function clearPendingForm(interaction, form, uuid) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.remove(form + ':' + uuid)).then(function() {
+	$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid)).then(function() {
 		deferred.resolve();
 	}).fail(function() {
 		deferred.reject();
