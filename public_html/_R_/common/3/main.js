@@ -1376,7 +1376,6 @@ function processMoJOs(interaction) {
 
 function processForms() {
 	var deferredFetches = {},
-		xmlserializer = new XMLSerializer(),
 		interactions = siteVars.map.interactions,
 		i, iLength = interactions.length,
 		config,
@@ -1401,7 +1400,8 @@ function processForms() {
 								$data = $(jqxhr.responseXML || $.parseXML(jqxhr.responseText));
 								$data.find('formObject').each(function(index, element) {
 									var $formObject = $(element),
-										id = $formObject.attr('id');
+										id = $formObject.attr('id'),
+										xmlserializer = new XMLSerializer();
 									$formObject.children().each(function(index, action) {
 										var $action = $(action),
 											$children = $action.children(),
