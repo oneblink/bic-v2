@@ -106,13 +106,17 @@ function onDeviceReady() {
 			window.scrollTo(0, 1);
 		};
 		MyAnswersDevice.hideView = function(reverseTransition) {
+			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
 				var entranceDirection = (reverseTransition ? 'left' : 'right'),
 					endPosition = (reverseTransition ? 'right' : 'left'),
 					startPosition = (reverseTransition ? 'left' : 'right'),
 					$view = $('.view:visible'),
 					$navBoxHeader = $('#navBoxHeader');
-				if ($view.size() < 1) { return; }
+				if ($view.size() < 1) {
+					deferred.resolve();
+					return deferred.promise();
+				}
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating old');
@@ -125,6 +129,7 @@ function onDeviceReady() {
 						$view.hide();
 						$view.removeClass('animating old ' + animateClass);
 						MyAnswers.dispatch.resume('hideView');
+						deferred.resolve();
 					}, 300);
 				} else {
 					var slideDirection = reverseTransition ? 'right' : 'left';
@@ -132,12 +137,15 @@ function onDeviceReady() {
 						$view.hide('slide', { direction: slideDirection }, 300, function() {
 							$view.removeClass('animating old');
 							MyAnswers.dispatch.resume('hideView');
+							deferred.resolve();
 						});
 					}, 0);
 				}
 			});
+			return deferred.promise();
 		};
 		MyAnswersDevice.showView = function($view, reverseTransition) {
+			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
 				var entranceDirection = (reverseTransition ? 'left' : 'right'),
 					endPosition = (reverseTransition ? 'right' : 'left'),
@@ -157,9 +165,9 @@ function onDeviceReady() {
 					setTimeout(function() {
 						$view.removeClass('animating new');
 						$(window).trigger('scroll');
-						$('body').trigger('transitionComplete', [ viewId ]);
 						MyAnswers.dispatch.resume('showView');
 						updateNavigationButtons();
+						deferred.resolve();
 					}, 300);
 				} else {
 					var slideDirection = (reverseTransition ? 'left' : 'right');
@@ -167,9 +175,9 @@ function onDeviceReady() {
 						$view.addClass('animating new');
 						$view.show('slide', { direction: slideDirection }, 300, function() {
 							$view.removeClass('animating new');
-							$('body').trigger('transitionComplete', [ viewId ]);
 							MyAnswers.dispatch.resume('showView');
 							updateNavigationButtons();
+							deferred.resolve();
 						});
 					}, 0);
 				}
@@ -202,6 +210,7 @@ function onDeviceReady() {
 					$.bbq.pushState({ l: 'A' }, 2);
 				}
 			});
+			return deferred.promise();
 		};
 		return MyAnswersDevice;
 	};

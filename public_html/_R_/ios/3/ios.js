@@ -53,13 +53,17 @@ function onDeviceReady() {
 			window.scrollTo(0, 1);
 		};
 		MyAnswersDevice.hideView = function(reverseTransition) {
+			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
 				var entranceDirection = (reverseTransition ? 'left' : 'right'),
 					endPosition = (reverseTransition ? 'right' : 'left'),
 					startPosition = (reverseTransition ? 'left' : 'right'),
 					$view = $('.view:visible'),
 					$navBoxHeader = $('#navBoxHeader');
-				if ($view.size() < 1) { return; }
+				if ($view.size() < 1) {
+					deferred.resolve();
+					return deferred.promise();
+				}
 				$('#activeContent > footer').addClass('hidden');
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
@@ -69,13 +73,16 @@ function onDeviceReady() {
 					$view.hide();
 					$view.removeClass('animating slid' + endPosition);
 					MyAnswers.dispatch.resume('hideView');
+					deferred.resolve();
 				});
 				setTimeout(function() {
 					$view.addClass('slid' + endPosition);
 				}, 0);
 			});
+			return deferred.promise();
 		};
 		MyAnswersDevice.showView = function($view, reverseTransition) {
+			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
 				var entranceDirection = (reverseTransition ? 'left' : 'right'),
 					endPosition = (reverseTransition ? 'right' : 'left'),
@@ -88,16 +95,17 @@ function onDeviceReady() {
 				$view.bind('webkitTransitionEnd', function(event) {
 					$view.unbind('webkitTransitionEnd');
 					$view.removeClass('animating');
-					$('body').trigger('transitionComplete', [ $view.attr('id') ]);
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
 					$('#activeContent > footer').removeClass('hidden');
+					deferred.resolve();
 				});
 				setTimeout(function() {
 					$view.addClass('animating');
 					$view.removeClass('slid' + startPosition);
 				}, 0);
 			});
+			return deferred.promise();
 		};
 		return MyAnswersDevice;
 	};
