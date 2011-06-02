@@ -28,6 +28,11 @@ form img {
 	max-height: 10em;
 }
 
+form img[name] {
+	display: block;
+	margin: .5em auto;
+}
+
 form table {
 	overflow: hidden;
 	width: 100%;
