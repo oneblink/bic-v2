@@ -5,6 +5,7 @@ CACHE:
 /_R_/common/3/common.css
 /_R_/common/3/common.min.js
 /_c_/jquery/jquery-1.6.1.min.js
+/_c_/modernizr/modernizr-2.0.min.js
 /_c_/css/blink2010reset.css
 /_c_/css/blink2011reset.css
 /_R_/common/3/BlinkForms2.js
