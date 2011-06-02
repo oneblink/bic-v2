@@ -1218,9 +1218,9 @@ function showCategoriesView(masterCategory) {
 	if (hasMasterCategories && masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
-	updateCurrentConfig();
 	addBackHistory("goBackToCategoriesView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
+		updateCurrentConfig();
 		setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
 		populateItemListing('categories');
 		MyAnswersDevice.showView($('#categoriesView'));
@@ -1230,10 +1230,10 @@ function showCategoriesView(masterCategory) {
 function goBackToCategoriesView() {
 	currentInteraction = null;
 	currentCategory = null;
-	updateCurrentConfig();
 	MyAnswers.log('goBackToCategoriesView()');
 	addBackHistory("goBackToCategoriesView();");
 	$.when(MyAnswersDevice.hideView(true)).always(function() {
+		updateCurrentConfig();
 		setMainLabel(currentMasterCategory ? siteVars.config['m' + currentMasterCategory].pertinent.name : 'Categories');
 		MyAnswersDevice.showView($('#categoriesView'), true);
 	});
@@ -1800,26 +1800,24 @@ function goBackToKeywordView(keyword) {
 }
 
 function showKeywordListView(category, masterCategory) {
-	var mainLabel,
-		config;
+	var mainLabel;
 	currentInteraction = null;
 	currentCategory = category;
 	if (hasMasterCategories && masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
-	updateCurrentConfig();
 	MyAnswers.log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
-	if (hasCategories) {
-		config = siteVars.config['c' + category].pertinent;
-		if (typeof prepareHistorySideBar === 'function') {
-			prepareHistorySideBar();
-		}
-		mainLabel = config.displayName || config.name;
-	} else {
-		mainLabel = 'Interactions';
-	}
 	addBackHistory("goBackToKeywordListView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
+		updateCurrentConfig();
+		if (hasCategories) {
+			if (typeof prepareHistorySideBar === 'function') {
+				prepareHistorySideBar();
+			}
+			mainLabel = currentConfig.displayName || currentConfig.name;
+		} else {
+			mainLabel = 'Interactions';
+		}
 		populateItemListing('interactions');
 		MyAnswersDevice.showView($('#keywordListView'));
 		setMainLabel(mainLabel);
@@ -1849,8 +1847,8 @@ function goBackToKeywordListView(event) {
 	} else {
 		mainLabel = 'Interactions';
 	}
-	updateCurrentConfig();
 	$.when(MyAnswersDevice.hideView(true)).always(function() {
+		updateCurrentConfig();
 		MyAnswersDevice.showView($('#keywordListView'), true);
 		setMainLabel(mainLabel);
 	});
