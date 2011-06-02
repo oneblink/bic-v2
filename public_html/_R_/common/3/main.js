@@ -2659,7 +2659,6 @@ function onBrowserReady() {
 	try {
 		var uriParts = parse_url(window.location),
 			splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
-		$('html').removeAttr('class');
 		siteVars.serverAppBranch =  splitUrl[1];
 		siteVars.serverAppVersion =  splitUrl[3];
 		siteVars.serverDomain = uriParts.host;
