@@ -101,8 +101,8 @@
 		} else if (type === 'websqldatabase') {
 			
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
-			var errorHandler = function (tx, error) {
-				log('MyAnswersStorage error:', arguments);
+			var errorHandler = function (error) {
+				log('MyAnswersStorage error:' + error.code + ' ' + error.message);
 			};
 
 			if (webSqlDbs[partition]) {
@@ -112,9 +112,11 @@
 					db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
 					webSqlDbs[partition] = db;
 				} catch(error) {
-					throw 'MyAnswersStorage: ' + error.message;
+					throw 'MyAnswersStorage: ' + error;
 				}
 			}
+
+			db.readTransaction = db.readTransaction || db.transaction;
 			
 			db.transaction(function(tx) {
 				tx.executeSql(
