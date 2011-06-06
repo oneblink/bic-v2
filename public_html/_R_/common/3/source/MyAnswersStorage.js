@@ -14,9 +14,9 @@
 // TODO: re-implement using jQuery promises
 
 (function(window, $, undefined) {
+	var webSqlDbs = {}; // store open handles to databases (websqldatabase)
 	window.MyAnswersStorage = function(type, partition, section) {
-		var isReady = false,
-			readyDeferred = new $.Deferred(),
+		var readyDeferred = new $.Deferred(),
 			db, // for websqldatabase, localstorage or sessionstorage
 			memory; // for memory
 		if (typeof partition !== 'string' || partition.length < 1) {
@@ -104,16 +104,21 @@
 			var errorHandler = function (tx, error) {
 				log('MyAnswersStorage error:', arguments);
 			};
-			
-			try {
-				db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
-			} catch(error) {
-				throw 'MyAnswersStorage: ' + error;
+
+			if (webSqlDbs[partition]) {
+				db = webSqlDbs[partition];
+			} else {
+				try {
+					db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
+					webSqlDbs[partition] = db;
+				} catch(error) {
+					throw 'MyAnswersStorage: ' + error.message;
+				}
 			}
 			
 			db.transaction(function(tx) {
 				tx.executeSql(
-					'CREATE TABLE IF NOT EXISTS ' + section + ' (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)',
+					'CREATE TABLE IF NOT EXISTS `' + section + '` (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)',
 					[],
 					readyDeferred.resolve,
 					readyDeferred.reject
@@ -124,7 +129,7 @@
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
 						tx.executeSql(
-							'SELECT v FROM ' + section + ' WHERE k = ?', [ key ], function(tx, result) {
+							'SELECT v FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
 								if (result.rows.length === 1) {
 									dfrd.resolve(result.rows.item(0).v);
 								} else {
@@ -143,7 +148,7 @@
 			this.set = function(key, value) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
-						tx.executeSql('DELETE FROM ' + section + ' WHERE k = ?', [ key ]);
+						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ]);
 						tx.executeSql(
 							'INSERT INTO ' + section + ' (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
 								if (result.rowsAffected !== 1) {
@@ -172,7 +177,7 @@
 			this.keys = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
-						tx.executeSql('SELECT k FROM ' + section, [], function(tx, result) {
+						tx.executeSql('SELECT k FROM `' + section + '`', [], function(tx, result) {
 							var index, row,
 								length = result.rows.length,
 								found = [];
@@ -258,14 +263,14 @@
 		}
 		return this;
 	};
-	window.MyAnswersStorage.prototype.log = function() {
+	MyAnswersStorage.prototype.log = function() {
 		if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
 		else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
 	};
-	window.MyAnswersStorage.prototype.available = [];
+	MyAnswersStorage.prototype.available = [];
 	var available = window.MyAnswersStorage.prototype.available,
 		log = window.MyAnswersStorage.prototype.log;
-	window.MyAnswersStorage.prototype.removeKeysRegExp = function(regexp) {
+	MyAnswersStorage.prototype.removeKeysRegExp = function(regexp) {
 		var store = this,
 			deferred = new $.Deferred(function(dfrd) {
 			$.when(store.keys()).done(function(keys) {
