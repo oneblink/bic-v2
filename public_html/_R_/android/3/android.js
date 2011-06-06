@@ -1,31 +1,5 @@
-var activityIndicatorTop, $navBar, hashStack;
+var activityIndicatorTop, $navBar;
 MyAnswers.deviceDeferred = new $.Deferred();
-
-function onHashChange(event) {
-	var hashState = $.bbq.getState(),
-		hashString = JSON.stringify(hashState);
-	if (location.hash.length > 1 && hashStack.indexOf(hashString) === -1) {
-		hashStack.push(hashString);
-	} else if (hashStack.length === 0 || location.hash.length <= 1) {
-		goBackToHome();
-	} else if (hashStack[hashStack.length - 2] === hashString) {
-		hashStack.pop();
-		goBack();
-	}
-}
-
-/*
- using jQuery BBQ, courtesy of Ben Alman
- storing state in the hash
- m = current master category
- c = current category
- k = current keyword
- a = current answer
- a2k = keyword for second level answer
- a2a = argument for second level answer
- l = Activate | New | Login
- h = Help
-*/
 
 // ** device-specific initialisation of variables and flags **
 
@@ -40,12 +14,7 @@ function init_device()
 	deviceVars.engineVersion = deviceVars.engineVersion !== null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.scrollProperty = '-webkit-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
-	if (deviceVars.engineVersion >= 529 || typeof(window.onhashchange) === 'object') {
-		deviceVars.hasHashChange = true;
-		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
-	}
 
-	hashStack = [];
 //	deviceVars.disableXSLT = true;
 
 	// caching frequently-accessed selectors
@@ -180,34 +149,6 @@ function onDeviceReady() {
 							deferred.resolve();
 						});
 					}, 0);
-				}
-				if (isHome()) {
-					$.bbq.removeState();
-				} else if (viewId === 'categoriesView') {
-					$.bbq.pushState({ m: currentMasterCategory }, 2);
-				} else if (viewId === 'keywordListView') {
-					var hashState = {};
-					if (hasCategories) {
-						hashState.c = currentCategory;
-					}
-					if (hasMasterCategories) {
-						hashState.m = currentMasterCategory;
-					}
-					$.bbq.pushState(hashState, 2);
-				} else if (viewId === 'keywordView') {
-					$.bbq.pushState({ k: currentInteraction }, 2);
-				} else if (viewId === 'answerView') {
-					$.bbq.pushState({ a: currentInteraction }, 2);
-				} else if (viewId === 'answerView2') {
-					$.bbq.pushState({ a2k: keyword, a2a: arg }, 2);
-				} else if (viewId === 'helpView') {
-					$.bbq.pushState({ h: 'H' });
-				} else if (viewId === 'loginView') {
-					$.bbq.pushState({ l: 'L' }, 2);
-				} else if (viewId === 'newLoginView') {
-					$.bbq.pushState({ l: 'N' }, 2);
-				} else if (viewId === 'activateLoginView') {
-					$.bbq.pushState({ l: 'A' }, 2);
 				}
 			});
 			return deferred.promise();

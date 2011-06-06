@@ -66,6 +66,40 @@ MyAnswers.log = function() {
 	};
 }(jQuery));
 
+(function(window, undefined) {
+	var History = window.History;
+	if (!History.enabled) {return false;}
+
+	// History.pushState({m: masterCategory, c: null}, null, '/' + siteVars.answerSpace + '/?_m=' + masterCategory);
+/*
+	// duck-punching pushState so that skips adjacent duplicates
+	var _pushState = History.pushState;
+	History.pushState = function(data, title, url, queue) {
+		var state = History.getState();
+		if (JSON.stringify(state.data) !== JSON.stringify(data)) {
+			MyAnswers.log('History.pushState(): caller=' + History.pushState.caller.name, state, arguments);
+			_pushState(data, title, url, queue);
+		}
+	};
+*/
+	History.Adapter.bind(window, 'statechange', function(event) {
+		var state = History.getState();
+		MyAnswers.log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+//		alert('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+		if ($.type(currentConfig) !== 'object' || $.isEmptyObject(currentConfig)) {
+			$.noop(); // do we need to do something if we have fired this early?
+		} else if (hasMasterCategories && state.data.m) {
+			showCategoriesView(state.data.m);
+		} else if (hasCategories && state.data.c) {
+			showKeywordListView(state.data.c);
+		} else if (hasInteractions && state.data.i) {
+			gotoNextScreen(state.data.i);
+		} else {
+			goBackToHome();
+		}
+	});
+})(this);
+
 function hasCSSFixedPosition() {
 	var $body = $('body'),
 		$div = $('<div id="fixed" />'),
@@ -708,7 +742,7 @@ function onPendingClick(event) {
 	if (action === 'cancel') {
 		clearPendingForm(interaction, form, uuid);
 	} else if (action === 'resume') {
-		showAnswerView(interaction, { pendingForm: interaction + ':' + form + ':' + uuid });
+		showAnswerView(interaction, {pendingForm: interaction + ':' + form + ':' + uuid});
 	}
 }
 
@@ -904,7 +938,7 @@ function updateNavigationButtons() {
 		} else {
 			$helpButton.addClass('hidden');
 		}
-		if (backStack.length <= 0) {
+		if (isHome()) {
 			$navButtons.addClass('hidden');
 			$.when(countPendingForms()).then(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
@@ -913,13 +947,6 @@ function updateNavigationButtons() {
 					$navBars.addClass('hidden');
 				}
 			});
-/*			countPendingFormData(function(queueCount) {
-				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
-					$navBars.removeClass('hidden');
-				} else {
-					$navBars.addClass('hidden');
-				}
-			}); */
 		} else {
 			$navButtons.removeClass('hidden');
 			$navButtons.removeAttr('disabled');
@@ -989,21 +1016,19 @@ function initialiseAnswerFeatures($view) {
 	return deferred.promise();
 }
 
-function showMasterCategoriesView()
+function showMasterCategoriesView(reverse)
 {
 	MyAnswers.log('showMasterCategoriesView()');
-	addBackHistory("goBackToMasterCategoriesView();");
-	$.when(MyAnswersDevice.hideView()).always(function() {
+	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
 		populateItemListing('masterCategories');
 		setMainLabel('Master Categories');
-		MyAnswersDevice.showView($('#masterCategoriesView'));
+		MyAnswersDevice.showView($('#masterCategoriesView'), reverse);
 	});
 }
 
 function goBackToMasterCategoriesView()
 {
 	MyAnswers.log('goBackToMasterCategoriesView()');
-	addBackHistory("goBackToMasterCategoriesView();");
 	$.when(MyAnswersDevice.hideView(true)).always(function() {
 		setMainLabel('Master Categories');
 		MyAnswersDevice.showView($('#masterCategoriesView'), true);
@@ -1066,10 +1091,17 @@ function populateItemListing(level) {
 	MyAnswers.log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
 		name, $item, $label, $description,
-		onMasterCategoryClick = function(event) {showCategoriesView($(this).data('id'));},
-		onCategoryClick = function(event) {showKeywordListView($(this).data('id'), $(this).data('masterCategory'));},
-		onKeywordClick = function(event) {gotoNextScreen($(this).data('id'), $(this).data('category'), $(this).data('masterCategory'));},
-		onHyperlinkClick = function(event) {window.location.assign($(this).data('hyperlink'));},
+		onMasterCategoryClick = function(event) {
+			History.pushState({m: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
+		},
+		onCategoryClick = function(event) {
+			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
+		},
+		onKeywordClick = function(event) {
+			var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
+			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
+		},
+		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hook = {
 			interactions: function($item) {
 				var id = $item.attr('data-id');
@@ -1218,7 +1250,6 @@ function showCategoriesView(masterCategory) {
 	if (hasMasterCategories && masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
-	addBackHistory("goBackToCategoriesView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		updateCurrentConfig();
 		setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
@@ -1231,7 +1262,6 @@ function goBackToCategoriesView() {
 	currentInteraction = null;
 	currentCategory = null;
 	MyAnswers.log('goBackToCategoriesView()');
-	addBackHistory("goBackToCategoriesView();");
 	$.when(MyAnswersDevice.hideView(true)).always(function() {
 		updateCurrentConfig();
 		setMainLabel(currentMasterCategory ? siteVars.config['m' + currentMasterCategory].pertinent.name : 'Categories');
@@ -1568,38 +1598,13 @@ MyAnswers.dumpLocalStorage = function() {
 	});
 };
 
-function goBackToHome()
-{
-	if (deviceVars.hasHashChange) {
-		MyAnswers.log('onHashChange de-registration: ', removeEvent(window, 'hashchange', onHashChange));
-	}
-	backStack = [];
-	hashStack = [];
+function goBackToHome() {
 	if (hasMasterCategories) {goBackToMasterCategoriesView();}
 	else if (hasCategories) {goBackToCategoriesView();}
 	else {goBackToKeywordListView();}
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
 //	getSiteConfig();
-	if (deviceVars.hasHashChange) {
-		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
-	}
-}
-
-function goBack(event) {
-	if (event) {
-		event.preventDefault();
-	}
-	if (deviceVars.hasHashChange) {
-		MyAnswers.log('onHashChange de-registration: ', removeEvent(window, 'hashchange', onHashChange));
-	}
-	backStack.pop();
-	if (backStack.length >= 1) {eval(backStack[backStack.length-1]);}
-	else {goBackToHome();}
-	stopTrackingLocation();
-	if (deviceVars.hasHashChange) {
-		MyAnswers.log('onHashChange registration: ', addEvent(window, 'hashchange', onHashChange));
-	}
 }
 
 function showPendingView() {
@@ -1654,7 +1659,6 @@ function showAnswerView(interaction, argsString, reverse) {
 	config = siteVars.config['i' + interaction].pertinent;
 	$('body').trigger('taskBegun');
 	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
-		addBackHistory("showAnswerView(" + interaction + ", \"" + (argsString || '') + "\", true);");
 		currentInteraction = interaction;
 		updateCurrentConfig();
 		processMoJOs(interaction);
@@ -1770,7 +1774,6 @@ function showSecondLevelAnswerView(keyword, arg0, reverse) {
 }
 
 function showKeywordView(keyword) {
-	addBackHistory("goBackToKeywordView(\"" + keyword + "\");");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		var config = siteVars.config['i' + keyword].pertinent,
 			argsBox = $('#argsBox')[0],
@@ -1807,7 +1810,6 @@ function showKeywordListView(category, masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
 	MyAnswers.log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
-	addBackHistory("goBackToKeywordListView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		updateCurrentConfig();
 		if (hasCategories) {
@@ -1858,7 +1860,6 @@ function showHelpView(event)
 {
 	var helpContents,
 		helpBox = document.getElementById('helpBox');
-	addBackHistory("showHelpView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		switch($('.view:visible').first().attr('id'))
 		{
@@ -1879,7 +1880,6 @@ function showHelpView(event)
 
 function showNewLoginView(isActivating)
 {
-	addBackHistory("showNewLoginView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		var loginUrl = siteVars.serverAppPath + '/util/CreateLogin.php',
 			requestData = 'activating=' + isActivating;
@@ -1907,7 +1907,6 @@ function showNewLoginView(isActivating)
 
 function showActivateLoginView(event)
 {
-	addBackHistory("showActivateLoginView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		var loginUrl = siteVars.serverAppPath + '/util/ActivateLogin.php';
 		ajaxQueue.add({
@@ -1933,7 +1932,6 @@ function showActivateLoginView(event)
 
 function showLoginView(event)
 {
-	addBackHistory("showLoginView();");
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		MyAnswersDevice.showView($('#loginView'));
 		setMainLabel('Login');
@@ -2070,8 +2068,6 @@ function goBackToTopLevelAnswerView(event)
 
 /**
  * Add a form submission to the queue.
- * @param {jQuerySelector} $table element to start
- * @param {Object} data JavaScript object to populate with key=value pairs
  * @returns {jQueryPromise} number of stored forms
  */
 function countPendingForms() {
@@ -2084,8 +2080,10 @@ function countPendingForms() {
 
 /**
  * Add a form submission to the queue.
- * @param {jQuerySelector} $table element to start
- * @param {Object} data JavaScript object to populate with key=value pairs
+ * @param {String} interaction ID
+ * @param {String} form name of the form object
+ * @param {String} uuid UUID
+ * @param {Object} data key=>value pairs to be JSON-encoded
  * @returns {jQueryPromise}
  */
 function pushPendingForm(interaction, form, uuid, data) {
@@ -2100,8 +2098,9 @@ function pushPendingForm(interaction, form, uuid, data) {
 
 /**
  * Remove a form submission from the queue.
- * @param {jQuerySelector} $table element to start
- * @param {Object} data JavaScript object to populate with key=value pairs
+ * @param {String} interaction ID
+ * @param {String} form name of the form object
+ * @param {String} uuid UUID
  * @returns {jQueryPromise}
  */
 function clearPendingForm(interaction, form, uuid) {
@@ -2198,7 +2197,7 @@ function submitFormWithRetry() {
 								});
 							} else {
 								var answerBox2 = document.getElementById('answerBox2');
-								addBackHistory("");
+//								addBackHistory("");
 								insertHTML(answerBox2, html);
 								$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
 									MyAnswersDevice.showView($('#answerView2'));
@@ -2328,7 +2327,6 @@ function submitAction(keyword, action) {
 				else
 				{
 					var answerBox2 = document.getElementById('answerBox2');
-					addBackHistory("");
 					insertHTML(answerBox2, html);
 					$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
 						MyAnswersDevice.showView($('#answerView2'));
@@ -2765,6 +2763,7 @@ function loaded() {
 	}
 
 	try {
+		History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 		$.when(MyAnswers.siteStore.get('config')).then(function(data) {
@@ -2814,7 +2813,7 @@ function init_main() {
   lastPictureTaken.image = new Hashtable();
   lastPictureTaken.currentName = null;
 
-	jQuery.fx.interval = 25; // default is 13, increasing this to be kinder on devices
+	jQuery.fx.interval = 27; // default is 13, increasing this to be kinder on devices
 	
 	lowestTransferRateConst = 1000 / (4800 / 8);
 	maxTransactionTimeout = 180 * 1000;
@@ -2829,17 +2828,17 @@ function init_main() {
 	addEvent(document, 'orientationChanged', updateOrientation);
 	
 	MyAnswers.store = new MyAnswersStorage(null, siteVars.answerSpace, 'jstore');
-	MyAnswers.siteStore = new MyAnswersStorage(null, siteVars.answerSpace, 'site');
-	MyAnswers.pendingStore = new MyAnswersStorage(null, siteVars.answerSpace, 'pending');
-	$.when(
-		MyAnswers.store.ready(),
-		MyAnswers.siteStore.ready(),
-		MyAnswers.pendingStore.ready()
-	).done(function() {
-//		MyAnswers.dumpLocalStorage();
-		$.when(MyAnswers.updateLocalStorage()).done(function() {
-			loaded();
-			MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
+	$.when(MyAnswers.store.ready()).then(function() {
+		MyAnswers.siteStore = new MyAnswersStorage(null, siteVars.answerSpace, 'site');
+		$.when(MyAnswers.siteStore.ready()).then(function() {
+			MyAnswers.pendingStore = new MyAnswersStorage(null, siteVars.answerSpace, 'pending');
+			$.when(MyAnswers.pendingStore.ready()).then(function() {
+		//		MyAnswers.dumpLocalStorage();
+				$.when(MyAnswers.updateLocalStorage()).done(function() {
+					loaded();
+					MyAnswers.log('loaded(): returned after call by MyAnswersStorage');
+				});
+			});
 		});
 	});
 
@@ -2854,7 +2853,7 @@ function init_main() {
 }
 
 function onBodyLoad() {
-  if (navigator.userAgent.search("Safari") > 0) {
+  if (navigator.userAgent.indexOf("BlinkGap") === -1) {
     MyAnswers.log("onBodyLoad: direct call to onBrowserReady()");
     onBrowserReady();
   } else {
