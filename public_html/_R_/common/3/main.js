@@ -95,7 +95,15 @@ MyAnswers.log = function() {
 		} else if (hasInteractions && state.data.i) {
 			gotoNextScreen(state.data.i);
 		} else {
-			goBackToHome();
+			if (hasMasterCategories) {
+				showMasterCategoriesView();
+			} else if (hasCategories) {
+				showCategoriesView();
+			} else if (answerSpaceOneKeyword) {
+				gotoNextScreen(siteVars.map.interactions[0]);
+			} else {
+				showKeywordListView();
+			}
 		}
 	});
 })(this);
@@ -1599,12 +1607,10 @@ MyAnswers.dumpLocalStorage = function() {
 };
 
 function goBackToHome() {
-	if (hasMasterCategories) {goBackToMasterCategoriesView();}
-	else if (hasCategories) {goBackToCategoriesView();}
-	else {goBackToKeywordListView();}
+	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
-//	getSiteConfig();
+	//	getSiteConfig();
 }
 
 function showPendingView() {
