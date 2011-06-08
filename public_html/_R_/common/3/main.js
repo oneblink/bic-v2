@@ -2769,8 +2769,9 @@ function loaded() {
 	}
 
 	try {
-		// TODO: don't mess with state if not necessary
-		History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
+			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+		}
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 		$.when(MyAnswers.siteStore.get('config')).then(function(data) {
