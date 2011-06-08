@@ -109,10 +109,6 @@ form .bForm-input > span {
 	display: inline-block;
 }
 
-form td input, form td select, form td textarea {
-	margin: 0;
-}
-
 .bForm-subFormLabel {
 	display: inline-block;
 	font-weight: bolder;
