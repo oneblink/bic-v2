@@ -8,6 +8,7 @@ CACHE:
 /_c_/jquery/jquery-1.6.1.min.js
 /_c_/modernizr/modernizr-2.0.min.js
 /_c_/historyjs/history-1.7.0.min.js
+/_c_/signaturepad/jquery.signaturepad-2.0.4.min.js
 /_c_/css/blink2010reset.css
 /_c_/css/blink2011reset.css
 /_R_/common/3/BlinkForms2.js
