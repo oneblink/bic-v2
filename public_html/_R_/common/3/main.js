@@ -2769,6 +2769,7 @@ function loaded() {
 	}
 
 	try {
+		// TODO: don't mess with state if not necessary
 		History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);

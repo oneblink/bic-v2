@@ -59,7 +59,7 @@ textarea { height: 5em; min-height: 5em; }
 
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
-td > input[type=text], td > input[type=email], td > textarea {
+form td input[type=text], form td input[type=email], form td textarea {
 	width: 100%;
 }
 
@@ -103,6 +103,14 @@ ul, ol {
 form table table {
 	margin-top: 2px;
 	border-top: 2px solid #AAA;
+}
+
+form .bForm-input > span {
+	display: inline-block;
+}
+
+form td input, form td select, form td textarea {
+	margin: 0;
 }
 
 .bForm-subFormLabel {
