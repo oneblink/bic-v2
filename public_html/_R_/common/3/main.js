@@ -1100,14 +1100,14 @@ function populateItemListing(level) {
 	var arrangement, display, order, list, $visualBox, $listBox, type,
 		name, $item, $label, $description,
 		onMasterCategoryClick = function(event) {
-			History.pushState({m: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
+			History.pushState({m: $(this).data('id')}); // , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id')
 		},
 		onCategoryClick = function(event) {
-			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
+			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('id')}); // , null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id')
 		},
 		onKeywordClick = function(event) {
 			var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
-			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
+			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}); // , null, '/' + siteVars.answerSpace + '/' + interaction + '/'
 		},
 		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hook = {
@@ -1607,7 +1607,7 @@ MyAnswers.dumpLocalStorage = function() {
 };
 
 function goBackToHome() {
-	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+	History.replaceState(null); // , null, '/' + siteVars.answerSpace + '/'
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
 	//	getSiteConfig();
