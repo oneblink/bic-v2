@@ -1443,11 +1443,12 @@ function processForms() {
 					ajaxQueue.add({
 						url: siteVars.serverAppPath + '/xhr/GetForm.php',
 						data: requestData,
-						dataType: 'xml',
+//						dataType: 'xml',
 						complete: function(jqxhr, status) {
 							var $data;
-							if (jqxhr.status === 200) {
-								$data = $(jqxhr.responseXML || $.parseXML(jqxhr.responseText));
+							if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
+								jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
+								$data = $($.parseXML(jqxhr.responseText));
 								$data.find('formObject').each(function(index, element) {
 									var $formObject = $(element),
 										id = $formObject.attr('id'),
