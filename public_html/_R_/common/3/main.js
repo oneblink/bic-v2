@@ -2771,7 +2771,7 @@ function loaded() {
 
 	try {
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
-			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+			History.replaceState(null); // , null, '/' + siteVars.answerSpace + '/'
 		}
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
