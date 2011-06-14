@@ -85,8 +85,7 @@ MyAnswers.log = function() {
 	$(window).bind('statechange', function(event) {
 		var state = History.getState();
 		// TODO: work out a way to detect Back-navigation so reverse transitions can be used
-		MyAnswers.log('History.stateChange: ' + $.param(state.data) + ' ' + state.url, state, event);
-//		alert('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+		MyAnswers.log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
 		if ($.type(currentConfig) !== 'object' || $.isEmptyObject(currentConfig)) {
 			$.noop(); // do we need to do something if we have fired this early?
 		} else if (siteVars.hasLogin && state.data.login) {
@@ -863,10 +862,12 @@ function onLinkClick(event) {
 			}
 		} else if (typeof attributes.category !== 'undefined') {
 			if (id = resolveItemName(attributes.category, 'categories')) {
+				requestUri = '/' + siteVars.answerSpace + '/?_c=' + id;
 				History.pushState({ m: currentMasterCategory, c: id });
 			}
 		} else if (typeof attributes.mastercategory !== 'undefined') {
 			if (id = resolveItemName(attributes.mastercategory, 'masterCategories')) {
+				requestUri = '/' + siteVars.answerSpace + '/?_m=' + id;
 				History.pushState({ m: id });
 			}
 		}
@@ -1323,7 +1324,8 @@ function displayAnswerSpace() {
 	var startUp = $('#startUp'),
 		$masterCategoriesView = $('#masterCategoriesView'),
 		$categoriesView = $('#categoriesView'),
-		$keywordListView = $('#keywordListView');
+		$keywordListView = $('#keywordListView'),
+		requestUri;
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
 		currentConfig = siteVars.config['a' + siteVars.id].pertinent;
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
@@ -1342,13 +1344,16 @@ function displayAnswerSpace() {
 		}
 		$('#answerSpacesListView').remove();
 		if (currentConfig.defaultScreen === 'login') {
-			showLoginView();
+			History.pushState({ login: true });
 		} else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
-			gotoNextScreen(currentConfig.defaultInteraction);
+			requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
+			History.pushState({ i: currentConfig.defaultInteraction }, null, requestUri);
 		} else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
-			showKeywordListView(currentConfig.defaultCategory);
+			requestUri = '/' + siteVars.answerSpace + '/?_c=' + currentConfig.defaultCategory;
+			History.pushState({ c: currentConfig.defaultCategory }, null, requestUri);
 		} else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
-			showCategoriesView(currentConfig.defaultMasterCategory);
+			requestUri = '/' + siteVars.answerSpace + '/?_m=' + currentConfig.defaultMasterCategory;
+			History.pushState({ m: currentConfig.defaultMasterCategory }, null, requestUri);
 		} else { // default "home"
 			if (hasMasterCategories) {
 				showMasterCategoriesView();
@@ -2026,7 +2031,6 @@ function submitLogin()
 				}
 				updateLoginButtons();
 //				getSiteConfig();
-				goBack();
 			} else {
 				alert('Unable to login: ' + xhr.responseText);
 			}
