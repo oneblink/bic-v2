@@ -82,18 +82,25 @@ MyAnswers.log = function() {
 		}
 	};
 */
-	History.Adapter.bind(window, 'statechange', function(event) {
+	$(window).bind('statechange', function(event) {
 		var state = History.getState();
-		MyAnswers.log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+		// TODO: work out a way to detect Back-navigation so reverse transitions can be used
+		MyAnswers.log('History.stateChange: ' + $.param(state.data) + ' ' + state.url, state, event);
 //		alert('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
 		if ($.type(currentConfig) !== 'object' || $.isEmptyObject(currentConfig)) {
 			$.noop(); // do we need to do something if we have fired this early?
-		} else if (hasMasterCategories && state.data.m) {
-			showCategoriesView(state.data.m);
+		} else if (siteVars.hasLogin && state.data.login) {
+			showLoginView();
+		} else if (hasInteractions && state.data.i) {
+			if ($.isEmptyObject(state.data.arguments)) {
+				gotoNextScreen(state.data.i);
+			} else {
+				showAnswerView(state.data.i, state.data.arguments);
+			}
 		} else if (hasCategories && state.data.c) {
 			showKeywordListView(state.data.c);
-		} else if (hasInteractions && state.data.i) {
-			gotoNextScreen(state.data.i);
+		} else if (hasMasterCategories && state.data.m) {
+			showCategoriesView(state.data.m);
 		} else {
 			if (hasMasterCategories) {
 				showMasterCategoriesView();
@@ -105,6 +112,8 @@ MyAnswers.log = function() {
 				showKeywordListView();
 			}
 		}
+		event.preventDefault();
+		return false;
 	});
 })(this);
 
@@ -828,46 +837,40 @@ function onLinkClick(event) {
 	var element = this,
 		a, attributes = $(element).attr(),
 		args = { },
-		id;
-	if (typeof attributes.href === 'undefined') {
+		id, requestUri;
+	if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
 		if (typeof attributes.back !== 'undefined') {
-			goBack();
-			return false;
+			History.back();
 		} else if (typeof attributes.home !== 'undefined') {
-			goBackToHome();
-			return false;
+			History.pushState(null, null, '/' + siteVars.answerSpace + '/');
 		} else if (typeof attributes.login !== 'undefined') {
-			showLoginView();
-			return false;
+			History.pushState({ login: true });
 		} else if (attributes.interaction || attributes.keyword) {
-			for (a in attributes) {
-				if (attributes.hasOwnProperty(a)) {
-					if (a.substr(0, 1) === '_') {
-						args['args[' + a.substr(1) + ']'] = attributes[a];
-					} else {
-						args[a] = attributes[a];
+			if (id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions')) {
+				for (a in attributes) {
+					if (attributes.hasOwnProperty(a)) {
+						if (a.substr(0, 1) === '_') {
+							args['args[' + a.substr(1) + ']'] = attributes[a];
+						} else if (a.substr(0, 5) !== 'data-') {
+							args[a] = attributes[a];
+						}
 					}
 				}
+				delete args.interaction;
+				delete args.keyword;
+				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
+				History.pushState({ m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
 			}
-			delete args.interaction;
-			delete args.keyword;
-			if ($.isEmptyObject(args)) {
-				gotoNextScreen(attributes.interaction || attributes.keyword);
-			} else {
-				showAnswerView(attributes.interaction || attributes.keyword, args);
-			}
-			return false;
 		} else if (typeof attributes.category !== 'undefined') {
 			if (id = resolveItemName(attributes.category, 'categories')) {
-				showKeywordListView(id);
+				History.pushState({ m: currentMasterCategory, c: id });
 			}
-			return false;
 		} else if (typeof attributes.mastercategory !== 'undefined') {
 			if (id = resolveItemName(attributes.mastercategory, 'masterCategories')) {
-				showCategoriesView(id);
+				History.pushState({ m: id });
 			}
-			return false;
 		}
+		return false;
 	}
 	return true;
 }
@@ -910,12 +913,6 @@ function updateOrientation()
 if (!addEvent(document, "deviceready", onDeviceReady)) {
   alert("Unable to add deviceready handler");
   throw("Unable to add deviceready handler");
-}
-
-function addBackHistory(item)
-{
-	MyAnswers.log("addBackHistory(): " + item);
-	if ($.inArray(item, backStack) === -1) {backStack.push(item);}
 }
 
 function updateNavigationButtons() {
@@ -1079,7 +1076,8 @@ function updateCurrentConfig() {
 		$footer.text(currentConfig.footer);
 	});
 	MyAnswers.dispatch.add(function() {
-		var style = '';
+		var style = '',
+			$style = $('style[data-setting="styleSheet"]');
 		style += currentConfig.styleSheet || '';
 		style += currentConfig.interfaceStyle ? 'body, #content, #activeContent { ' + currentConfig.interfaceStyle + ' }\n' : '';
 		style += currentConfig.backgroundStyle ? '.box { ' + currentConfig.backgroundStyle + ' }\n' : '';
@@ -1091,25 +1089,28 @@ function updateCurrentConfig() {
 		style += currentConfig.masterCategoriesStyle ? '#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }\n' : '';
 		style += currentConfig.categoriesStyle ? '#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }\n' : '';
 		style += currentConfig.interactionsStyle ? '#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }\n' : '';
-		style += $('style[data-setting="styleSheet"]').text(style);
+		if (style !== $style.text()) {
+			$style.text(style);
+		}
 	});
 }
+
+function onMasterCategoryClick(event) {
+	History.pushState({m: $(this).data('id')} , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
+}
+function onCategoryClick(event) {
+	History.pushState({m: $(this).data('masterCategory'), c: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
+}
+function onKeywordClick(event) {
+	var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
+	History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
+}
+function onHyperlinkClick(event) { window.location.assign($(this).data('hyperlink')); }
 
 function populateItemListing(level) {
 	MyAnswers.log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
 		name, $item, $label, $description,
-		onMasterCategoryClick = function(event) {
-			History.pushState({m: $(this).data('id')}); // , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id')
-		},
-		onCategoryClick = function(event) {
-			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('id')}); // , null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id')
-		},
-		onKeywordClick = function(event) {
-			var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
-			History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}); // , null, '/' + siteVars.answerSpace + '/' + interaction + '/'
-		},
-		onHyperlinkClick = function(event) { window.location.assign($(this).data('hyperlink')); },
 		hook = {
 			interactions: function($item) {
 				var id = $item.attr('data-id');
@@ -1133,7 +1134,7 @@ function populateItemListing(level) {
 			masterCategories: function($item) {
 				var id = $item.attr('data-id');
 				if (siteVars.map['m' + id].length === 1) {
-					$item.attr('data-masterCategory', id);
+					$item.attr('data-master-category', id);
 					$item.attr('data-id', siteVars.map['m' + id][0]);
 					hook.categories($item);
 				} else if (siteVars.map['m' + id].length > 0) {
@@ -1380,7 +1381,7 @@ function processMoJOs(interaction) {
 							_id: siteVars.id,
 							_m: mojo
 						};
-					value = parseInt(value);
+					value = parseInt(value, 10);
 					if (typeof value === 'number' && !isNaN(value)) {
 						requestData._lc = value;
 					}
@@ -1436,7 +1437,7 @@ function processForms() {
 							_id: siteVars.id,
 							_f: form
 						};
-					value = parseInt(value);
+					value = parseInt(value, 10);
 					if (typeof value === 'number' && !isNaN(value)) {
 						requestData._lc = value;
 					}
@@ -1596,19 +1597,20 @@ if (typeof(webappCache) !== "undefined")
  
 MyAnswers.dumpLocalStorage = function() {
 	$.when(MyAnswers.store.keys()).done(function(keys) {
-		var k, kLength = keys.length;
-		for (k = 0; k < kLength; k++) {
-			MyAnswers.log('dumpLocalStorage(): found key: ' + keys[k]);
-			$.when(MyAnswers.store.get(keys[k])).done(function(value) {
+		var k, kLength = keys.length,
+			getFn = function(value) {
 				value = value.length > 20 ? value.substring(0, 20) + "..." : value;
 				MyAnswers.log('dumpLocalStorage(): found value: ' + value);
-			});
+			};
+		for (k = 0; k < kLength; k++) {
+			MyAnswers.log('dumpLocalStorage(): found key: ' + keys[k]);
+			$.when(MyAnswers.store.get(keys[k])).done(getFn);
 		}
 	});
 };
 
 function goBackToHome() {
-	History.replaceState(null); // , null, '/' + siteVars.answerSpace + '/'
+	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
 	//	getSiteConfig();
@@ -1718,7 +1720,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			if (!$.isEmptyObject(args)) {
 				$.extend(requestData, args);
 			}
-			ajaxQueue.add({
+			$.ajax({
 				type: 'GET',
 				url: answerUrl,
 				data: requestData,
@@ -2182,7 +2184,7 @@ function submitFormWithRetry() {
 				}
 	
 				$('body').trigger('taskBegun');
-				ajaxQueue.add({
+				$.ajax({
 					type: method,
 					cache: 'false',
 					url: answerUrl,
@@ -2204,7 +2206,6 @@ function submitFormWithRetry() {
 								});
 							} else {
 								var answerBox2 = document.getElementById('answerBox2');
-//								addBackHistory("");
 								insertHTML(answerBox2, html);
 								$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
 									MyAnswersDevice.showView($('#answerView2'));
@@ -2297,7 +2298,7 @@ function submitAction(keyword, action) {
 		requestData = formData;
 	}
 	$('body').trigger('taskBegun');
-	ajaxQueue.add({
+	$.ajax({
 		type: method,
 		cache: 'false',
 		url: requestUrl,
@@ -2771,7 +2772,7 @@ function loaded() {
 
 	try {
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
-			History.replaceState(null); // , null, '/' + siteVars.answerSpace + '/'
+			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 		}
 		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
@@ -2857,7 +2858,7 @@ function init_main() {
 	$body.bind('taskBegun', onTaskBegun);
 	$body.bind('taskComplete', onTaskComplete);
 	$body.bind('siteBootComplete', onSiteBootComplete);
-	$('a').live('click', onLinkClick);
+	$('body').delegate('a', 'click', onLinkClick);
 	$('#pendingBox').delegate('button', 'click', onPendingClick);
 }
 
@@ -2866,7 +2867,8 @@ function onBodyLoad() {
     MyAnswers.log("onBodyLoad: direct call to onBrowserReady()");
     onBrowserReady();
   } else {
-		var bodyLoadedCheck = setInterval(function() {
+		var bodyLoadedCheck;
+		bodyLoadedCheck = setInterval(function() {
 			if (MyAnswers.bodyLoaded) {
 				clearInterval(bodyLoadedCheck);
 				onBrowserReady();
