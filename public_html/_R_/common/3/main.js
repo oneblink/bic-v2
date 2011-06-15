@@ -1431,78 +1431,51 @@ function processMoJOs(interaction) {
 }
 
 function processForms() {
-	var deferredFetches = {},
-		interactions = siteVars.map.interactions,
-		i, iLength = interactions.length,
-		config,
-		deferredFn = function(form) {
-			var deferred = new $.Deferred(function(dfrd) {
-				$.when(MyAnswers.store.get('formLastChecked:' + form)).done(function(value) {
-					var requestData = {
-							_id: siteVars.id,
-							_f: form
-						};
-					value = parseInt(value, 10);
-					if (typeof value === 'number' && !isNaN(value)) {
-						requestData._lc = value;
-					}
-					ajaxQueue.add({
-						url: siteVars.serverAppPath + '/xhr/GetForm.php',
-						data: requestData,
-//						dataType: 'xml',
-						complete: function(jqxhr, status) {
-							var $data;
-							if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
-								jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
-								$data = $($.parseXML(jqxhr.responseText));
-								$data.find('formObject').each(function(index, element) {
-									var $formObject = $(element),
-										id = $formObject.attr('id'),
-										xmlserializer = new XMLSerializer();
-									$formObject.children().each(function(index, action) {
-										var $action = $(action),
-											$children = $action.children(),
-											html = xmlserializer.serializeToString($children[0]);
-										html += $children[1] ? xmlserializer.serializeToString($children[1]) : '';
-										if ($action.tag() === 'parsererror') {
-											MyAnswers.log('processForms(): failed to parse formXML:' + id, action);
-											return;
-										}
-										$.when(MyAnswers.store.set('formXML:' + id + ':' + $action.tag(), html)).fail(function() {
-											MyAnswers.log('processForms(): failed formXML:' + id + ':' + $action.tag());
-										});
-									});
-									MyAnswers.log('processForms(): formXML:' + id);
-								});
-//								MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-							}
-							if (jqxhr.status === 200 || jqxhr.status === 304) {
-								MyAnswers.store.set('formLastChecked:' + form, $.now());
-							}
-						},
-						timeout: computeTimeout(500 * 1024)
-					});
+	var validActions = [ 'add', 'delete', 'edit', 'find', 'list', 'search', 'view' ],
+		xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
+		id,
+		formActionFn = function(index, element) {
+			var $action = $(element),
+				action = $action.tag(),
+				storeKey = 'formXML:' + id + ':' + action,
+				$children = $action.children(),
+				html;
+			if (validActions.indexOf($action.tag()) !== -1) {
+				html = xmlserializer.serializeToString($children[0]);
+				html += $children[1] ? xmlserializer.serializeToString($children[1]) : '';
+				if ($action.tag() === 'parsererror') {
+					MyAnswers.log('processForms()->formActionFn(): failed to parse XML: ' + storeKey);
+					return;
+				}
+				$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
+					MyAnswers.log('processForms()->formActionFn(): failed storing ' + storeKey);
 				});
-			});
-			return deferred.promise();
+			}
+		},
+		formObjectFn = function(index, element) {
+			var $formObject = $(element);
+			id = $formObject.attr('id');
+			$formObject.children().each(formActionFn);
+			MyAnswers.log('processForms()->formObjectFn(): formXML:' + id);
 		};
-	for (i = 0; i < iLength; i++) {
-		config = siteVars.config['i' + interactions[i]].pertinent;
-		if ($.type(config) === 'object' && config.type === 'form' && typeof config.blinkFormObjectName === 'string') {
-			if (!siteVars.forms[config.blinkFormObjectName]) {
-				siteVars.forms[config.blinkFormObjectName] = {
-					maximumAge: config.maximumAge || 0,
-					minimumAge: config.minimumAge || 0
-				};
-			} else {
-				siteVars.forms[config.blinkFormObjectName].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.forms[config.blinkFormObjectName].maximumAge) : siteVars.forms[config.blinkFormObjectName].maximumAge;
-				siteVars.forms[config.blinkFormObjectName].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.forms[config.blinkFormObjectName].minimumAge) : siteVars.forms[config.blinkFormObjectName].minimumAge;
+	ajaxQueue.add({
+		url: siteVars.serverAppPath + '/xhr/GetForm.php',
+//	dataType: 'xml',
+		complete: function(jqxhr, status) {
+			var $data;
+			if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
+				jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
+				$data = $($.parseXML(jqxhr.responseText));
+//				MyAnswers.log($data);
+				$data.find('formObject').each(formObjectFn);
+//			MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
 			}
-			if (!deferredFetches[config.blinkFormObjectName]) {
-				deferredFetches[config.blinkFormObjectName] = deferredFn(config.blinkFormObjectName);
+			if (jqxhr.status === 200 || jqxhr.status === 304) {
+				MyAnswers.store.set('formLastChecked:' + id, $.now());
 			}
-		}
-	}
+		},
+		timeout: computeTimeout(500 * 1024)
+	});
 }
 
 function processConfig(display) {
