@@ -149,6 +149,8 @@
 				throw 'MyAnswersStorage: ' + error;
 			}
 			
+			db.readTransaction = db.readTransaction || db.transaction;
+			
 			db.transaction(function(tx) {
 				tx.executeSql(
 					'CREATE TABLE IF NOT EXISTS ' + section + ' (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)',
