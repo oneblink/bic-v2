@@ -1015,9 +1015,11 @@ function initialiseAnswerFeatures($view) {
 			}
 		}
 	});
-	$.when.apply($, promises).always(function() {
-		$('body').trigger('taskComplete');
-		deferred.resolve();
+	MyAnswers.dispatch.add(function() {
+		$.when.apply($, promises).always(function() {
+			$('body').trigger('taskComplete');
+			deferred.resolve();
+		});
 	});
 	return deferred.promise();
 }
@@ -2283,16 +2285,11 @@ function submitAction(keyword, action) {
 		complete: function(xhr, textstatus) { // readystate === 4
 			$('body').trigger('taskComplete');
 			var html;
-			if (isAJAXError(textstatus) || xhr.status !== 200)
-			{
+			if (isAJAXError(textstatus) || xhr.status !== 200) {
 				html = 'Unable to contact server.';
-			}
-			else
-			{
+			} else {
 				html = xhr.responseText;
 			}
-
-			MyAnswers.log('GetAnswer: Ben put blinkAnswerMessage code here!');
 			var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g),
 				b, bLength;
 			if ($.type(blinkAnswerMessage) === 'array') {
