@@ -109,6 +109,10 @@ form .bForm-input > span {
 	display: inline-block;
 }
 
+form col.bForm-tooltip { width: 24px; }
+form col.bForm-label { width: 35%; }
+form col.bForm-input { width: 65%; }
+
 .bForm-subFormLabel {
 	display: inline-block;
 	font-weight: bolder;
