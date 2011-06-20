@@ -15,7 +15,8 @@
 (function(window, $, undefined) {
 	var webSqlDbs = {}; // store open handles to databases (websqldatabase)
 	BlinkStorage = function(type, partition, section) {
-		var readyDeferred = new $.Deferred(),
+		var self = this,
+			readyDeferred = new $.Deferred(),
 			db, // for websqldatabase, localstorage or sessionstorage
 			memory; // for memory
 		if (typeof partition !== 'string' || partition.length < 1) {
@@ -31,14 +32,14 @@
 			type = available[0];
 		}
 		
-		this.type = type;
-		this.partition = partition;
-		this.section = section;
+		self.type = type;
+		self.partition = partition;
+		self.section = section;
 		
 		readyDeferred.done(function() {
 			log('BlinkStorage(): ' + type + ' -> ' + partition + ' : ' + section + ' ready');
 		});
-		this.ready = function() {
+		self.ready = function() {
 			return readyDeferred.promise();
 		};
 		
@@ -46,7 +47,7 @@
 
 			db = (type === 'localstorage') ? localStorage : sessionStorage;
 
-			this.get = function(key) {
+			self.get = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
 					dfrd.resolve(db.getItem(partition + ':' + section + ':' + key));
 					// dfrd.reject(); not sure if this is needed
@@ -54,7 +55,7 @@
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value) {
+			self.set = function(key, value) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.setItem(partition + ':' + section + ':' + key, value);
 					dfrd.resolve();
@@ -62,7 +63,7 @@
 				return deferred.promise();
 			};
 			
-			this.remove = function(key) {
+			self.remove = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.removeItem(partition + ':' + section + ':' + key);
 					dfrd.resolve();
@@ -70,7 +71,7 @@
 				return deferred.promise();
 			};
 
-			this.keys = function() {
+			self.keys = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					var found = [],
 						length = db.length,
@@ -86,9 +87,9 @@
 				return deferred.promise();
 			};
 			
-			this.size = function() {
+			self.size = function() {
 				var deferred = new $.Deferred(function(dfrd) {
-					$.when(this.keys()).done(function(keys) {
+					$.when(self.keys()).done(function(keys) {
 						dfrd.resolve(keys.length);
 					});
 				});
@@ -126,7 +127,7 @@
 				);
 			}, errorHandler, successHandler);
 			
-			this.get = function(key) {
+			self.get = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
 						tx.executeSql(
@@ -146,7 +147,7 @@
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value) {
+			self.set = function(key, value) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
 						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ]);
@@ -164,7 +165,7 @@
 				return deferred.promise();
 			};
 			
-			this.remove = function(key) {
+			self.remove = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
 						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
@@ -175,7 +176,7 @@
 				return deferred.promise();
 			};
 
-			this.keys = function() {
+			self.keys = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
 						tx.executeSql('SELECT k FROM `' + section + '`', [], function(tx, result) {
@@ -193,7 +194,7 @@
 				return deferred.promise();
 			};
 			
-			this.size = function() {
+			self.size = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
 						tx.executeSql(
@@ -208,39 +209,39 @@
 			
 		} else if (type === 'memory') {
 			
-			this.memory = {};
+			memory = {};
 
-			this.get = function(key) {
+			self.get = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
-					dfrd.resolve(this.memory[partition + ':' + section + ':' + key]);
+					dfrd.resolve(memory[partition + ':' + section + ':' + key]);
 					// dfrd.reject(); not sure if this is needed
 				});
 				return deferred.promise();
 			};
 			
-			this.set = function(key, value) {
+			self.set = function(key, value) {
 				var deferred = new $.Deferred(function(dfrd) {
-					this.memory[partition + ':' + section + ':' + key] = value;
+					memory[partition + ':' + section + ':' + key] = value;
 					dfrd.resolve();
 				});
 				return deferred.promise();
 			};
 			
-			this.remove = function(key) {
+			self.remove = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
-					delete this.memory[partition + ':' + section + ':' + key];
+					delete memory[partition + ':' + section + ':' + key];
 					dfrd.resolve();
 				});
 				return deferred.promise();
 			};
 
-			this.keys = function() {
+			self.keys = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					var found = [],
 						key, parts;
-					for (key in this.memory) {
-						if (this.memory.hasOwnProperty(key)) {
-							parts = this.memory[key].split(':');
+					for (key in memory) {
+						if (memory.hasOwnProperty(key)) {
+							parts = memory[key].split(':');
 							if (parts[0] === partition && parts[1] === section) {
 								found.push(parts[2]);
 							}
@@ -251,9 +252,9 @@
 				return deferred.promise();
 			};
 			
-			this.size = function() {
+			self.size = function() {
 				var deferred = new $.Deferred(function(dfrd) {
-					$.when(this.keys()).done(function(keys) {
+					$.when(self.keys()).done(function(keys) {
 						dfrd.resolve(keys.length);
 					});
 				});
@@ -294,4 +295,4 @@
 	}
 	available.push('memory');
 	log('BlinkStorage(): available=[' + available.join(',') + ']');
-}(this, this.jQuery));
+}(this, jQuery));
