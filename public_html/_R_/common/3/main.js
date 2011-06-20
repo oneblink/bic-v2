@@ -1395,14 +1395,11 @@ function processForms() {
 			var $action = $(element),
 				action = $action.tag(),
 				storeKey = 'formXML:' + id + ':' + action,
-				$children = $action.children(),
-				html;
+				$children = $action.children(), c, cLength = $children.length,
+				html = '';
 			if (validActions.indexOf($action.tag()) !== -1) {
-				html = xmlserializer.serializeToString($children[0]);
-				html += $children[1] ? xmlserializer.serializeToString($children[1]) : '';
-				if ($action.tag() === 'parsererror') {
-					log('processForms()->formActionFn(): failed to parse XML: ' + storeKey);
-					return;
+				for (c = 0; c < cLength; c++) {
+					html += xmlserializer.serializeToString($children[c]);
 				}
 				$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
 					log('processForms()->formActionFn(): failed storing ' + storeKey);
