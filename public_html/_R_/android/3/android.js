@@ -5,7 +5,7 @@ MyAnswers.deviceDeferred = new $.Deferred();
 
 function init_device()
 {
-	MyAnswers.log('init_device()');
+	log('init_device()');
 	deviceVars.majorVersion = navigator.userAgent.match(/Android (\d+)./);
 	deviceVars.majorVersion = deviceVars.majorVersion !== null ? deviceVars.majorVersion[1] : 1;
 	deviceVars.minorVersion = navigator.userAgent.match(/Android \d+\.(\d+)/);
@@ -23,7 +23,7 @@ function init_device()
 
 	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
 	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
-	MyAnswers.log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
+	log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
 	if (deviceVars.hasCSSFixedPosition) {
 		$('#activityIndicator').css('top', activityIndicatorTop);
 	} else if (typeof onScroll === 'function') {
@@ -35,23 +35,23 @@ function init_device()
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 function onDeviceReady() {
 	try {
-		MyAnswers.log("Device Ready");
-		//MyAnswers.log("URL to Load: " + window.Settings.LoadURL);
-		MyAnswers.log("Device: " + window.device.platform);
-		//MyAnswers.log("Camera Present: " + window.device.camerapresent);
-		//MyAnswers.log("Multitasking: " + window.device.multitasking);
+		log("Device Ready");
+		//log("URL to Load: " + window.Settings.LoadURL);
+		log("Device: " + window.device.platform);
+		//log("Camera Present: " + window.device.camerapresent);
+		//log("Multitasking: " + window.device.multitasking);
 		//MyAnswers.cameraPresent = window.device.camerapresent;
 		//MyAnswers.loadURL = window.Settings.LoadURL;
 		siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
 		MyAnswers.domain = "//" + siteVars.serverDomain + "/";
-		MyAnswers.log("Domain: " + MyAnswers.domain);
+		log("Domain: " + MyAnswers.domain);
 		//MyAnswers.multiTasking = window.device.multitasking;
 		//siteVars.serverAppVersion = window.Settings.codeVersion;
 		siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
 		//siteVars.answerSpace = window.Settings.answerSpace;
-		MyAnswers.log("siteVars.answerSpace: " + siteVars.answerSpace);
+		log("siteVars.answerSpace: " + siteVars.answerSpace);
 		siteVars.serverDevicePath = MyAnswers.loadURL + 'android/' + siteVars.serverAppVersion + '/';
-		MyAnswers.log("MyAnswers.loadURL: " + MyAnswers.loadURL);
+		log("MyAnswers.loadURL: " + MyAnswers.loadURL);
 		deviceVars.deviceFileName = '/android.js';
 		//if (window.device.platform.search(/iphone/i) != -1) {
 		//  siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
@@ -60,11 +60,11 @@ function onDeviceReady() {
 		//  siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
 		//  deviceVars.deviceFileName = '/ipad.js';
 		//}
-		MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
-		MyAnswers.log("AppPath: " + siteVars.serverAppPath);
+		log("AppDevicePath: " + siteVars.serverDevicePath);
+		log("AppPath: " + siteVars.serverAppPath);
   } catch(e) {
-		MyAnswers.log("onDeviceReady exception: ");
-		MyAnswers.log(e);
+		log("onDeviceReady exception: ");
+		log(e);
 	}
 }
 

@@ -3,7 +3,7 @@ MyAnswers.deviceDeferred = new $.Deferred();
 
 function init_device()
 {
-	MyAnswers.log('init_device()');
+	log('init_device()');
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion !== null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
@@ -15,7 +15,7 @@ function init_device()
 	$navBar = $('#navBoxHeader');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
 	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
-	MyAnswers.log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
+	log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
 	if (deviceVars.hasCSSFixedPosition) {
 		$('#activityIndicator').css('top', activityIndicatorTop);
 	} else if (typeof onScroll === 'function') {
@@ -26,24 +26,24 @@ function init_device()
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 function onDeviceReady() {
-  MyAnswers.log("Device Ready");
-  MyAnswers.log("URL to Load: " + window.Settings.LoadURL);
-  MyAnswers.log("Device: " + window.device.platform);
-  MyAnswers.log("Camera Present: " + window.device.camerapresent);
-  MyAnswers.log("Multitasking: " + window.device.multitasking);
+  log("Device Ready");
+  log("URL to Load: " + window.Settings.LoadURL);
+  log("Device: " + window.device.platform);
+  log("Camera Present: " + window.device.camerapresent);
+  log("Multitasking: " + window.device.multitasking);
   MyAnswers.cameraPresent = window.device.camerapresent;
   MyAnswers.loadURL = window.Settings.LoadURL;
 	siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
   MyAnswers.domain = "//" + siteVars.serverDomain + "/";
-  MyAnswers.log("Domain: " + MyAnswers.domain);
+  log("Domain: " + MyAnswers.domain);
   MyAnswers.multiTasking = window.device.multitasking;
   siteVars.serverAppVersion = window.Settings.codeVersion;
   siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
   siteVars.answerSpace = window.Settings.answerSpace;
   siteVars.serverDevicePath = MyAnswers.loadURL + 'ios/' + siteVars.serverAppVersion + '/';
   deviceVars.deviceFileName = '/ios.js';
-  MyAnswers.log("AppDevicePath: " + siteVars.serverDevicePath);
-  MyAnswers.log("AppPath: " + siteVars.serverAppPath);
+  log("AppDevicePath: " + siteVars.serverDevicePath);
+  log("AppPath: " + siteVars.serverAppPath);
 }
 
 (function(window, undefined) {

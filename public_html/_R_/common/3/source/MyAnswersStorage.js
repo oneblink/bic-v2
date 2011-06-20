@@ -1,6 +1,6 @@
 /*
  * custom library to abstract access to available local storage mechanisms
- * requires: jQuery 1.5+
+ * requires: jQuery 1.5+, utilities.js
  * 
  * valid storage types are: localstorage, sessionstorage, websqldatabase, indexeddb
  * 
@@ -11,11 +11,10 @@
  * the more neutral "partition" and "section", respectively.
  */
 
-// TODO: re-implement using jQuery promises
 
 (function(window, $, undefined) {
 	var webSqlDbs = {}; // store open handles to databases (websqldatabase)
-	window.MyAnswersStorage = function(type, partition, section) {
+	BlinkStorage = function(type, partition, section) {
 		var readyDeferred = new $.Deferred(),
 			db, // for websqldatabase, localstorage or sessionstorage
 			memory; // for memory
@@ -37,7 +36,7 @@
 		this.section = section;
 		
 		readyDeferred.done(function() {
-			log('MyAnswersStorage(): ' + type + ' -> ' + partition + ' : ' + section + ' ready');
+			log('BlinkStorage(): ' + type + ' -> ' + partition + ' : ' + section + ' ready');
 		});
 		this.ready = function() {
 			return readyDeferred.promise();
@@ -102,7 +101,7 @@
 			
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (error) {
-				log('MyAnswersStorage error:' + error.code + ' ' + error.message);
+				log('BlinkStorage error:' + error.code + ' ' + error.message);
 			};
 
 			if (webSqlDbs[partition]) {
@@ -112,7 +111,7 @@
 					db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
 					webSqlDbs[partition] = db;
 				} catch(error) {
-					throw 'MyAnswersStorage: ' + error;
+					throw 'BlinkStorage: ' + error;
 				}
 			}
 
@@ -137,7 +136,7 @@
 								} else {
 									dfrd.resolve(null);
 									if (result.rows.length > 1) {
-										throw('MyAnswersStorage: non-unique key');
+										throw('BlinkStorage: non-unique key');
 									}
 								}
 							}
@@ -155,7 +154,7 @@
 							'INSERT INTO ' + section + ' (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
 								if (result.rowsAffected !== 1) {
 									dfrd.reject();
-									throw('MyAnswersStorage: failed INSERT');
+									throw('BlinkStorage: failed INSERT');
 								}
 								dfrd.resolve();
 							}
@@ -265,14 +264,9 @@
 		}
 		return this;
 	};
-	MyAnswersStorage.prototype.log = function() {
-		if (typeof console !== 'undefined') { console.log.apply(console, arguments); }
-		else if (typeof debug !== 'undefined') { debug.log.apply(debug, arguments); }
-	};
-	MyAnswersStorage.prototype.available = [];
-	var available = window.MyAnswersStorage.prototype.available,
-		log = window.MyAnswersStorage.prototype.log;
-	MyAnswersStorage.prototype.removeKeysRegExp = function(regexp) {
+	BlinkStorage.prototype.available = [];
+	var available = BlinkStorage.prototype.available;
+	BlinkStorage.prototype.removeKeysRegExp = function(regexp) {
 		var store = this,
 			deferred = new $.Deferred(function(dfrd) {
 			$.when(store.keys()).done(function(keys) {
@@ -299,5 +293,5 @@
 		available.push('sessionstorage');
 	}
 	available.push('memory');
-	log('MyAnswersStorage(): available=[' + available.join(',') + ']');
+	log('BlinkStorage(): available=[' + available.join(',') + ']');
 }(this, this.jQuery));
