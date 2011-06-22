@@ -6,7 +6,7 @@ MyAnswers.deviceDeferred = new $.Deferred();
 function init_device()
 {
 	log('init_device()');
-	deviceVars.scrollProperty = '-webkit-transform';
+	deviceVars.scrollProperty = '-moz-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
 
 //	deviceVars.disableXSLT = true;
