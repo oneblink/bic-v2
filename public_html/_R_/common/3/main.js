@@ -2270,7 +2270,7 @@ function submitAction(keyword, action) {
 				}
 			});
 		},
-		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
+		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(requestUrl.length + requestData.length))
 	});
 	return false;
 }
