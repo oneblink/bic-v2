@@ -19,7 +19,7 @@ function log() {
 function computeTimeout(messageLength) {
   var lowestTransferRateConst = 1000 / (4800 / 8);
 		// maxTransactionTimeout = 180 * 1000;
-  return (messageLength * lowestTransferRateConst) + 15000;
+  return Math.floor((messageLength * lowestTransferRateConst) + 15000);
 }
 
 /*

@@ -7,6 +7,9 @@ var MyAnswers = MyAnswers || {},
 	starsProfile,
 	ajaxQueue;
 
+currentConfig.downloadTimeout = 30;
+currentConfig.uploadTimeout = 45;
+
 function PictureSourceType() {}
 function lastPictureTaken () {}
 
@@ -79,7 +82,7 @@ siteVars.forms = siteVars.forms || {};
 		var state = History.getState();
 		// TODO: work out a way to detect Back-navigation so reverse transitions can be used
 		log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
-		if ($.type(currentConfig) !== 'object' || $.isEmptyObject(currentConfig)) {
+		if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
 			$.noop(); // do we need to do something if we have fired this early?
 		} else if (siteVars.hasLogin && state.data.login) {
 			showLoginView();
@@ -1240,14 +1243,14 @@ function restoreSessionProfile(token) {
 		complete: function(xhr, xhrStatus) {
 			if (isAJAXError(xhrStatus) || xhr.status !== 200)
 			{
-				alert('Connection error, please try again later.');
+				alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
 				return;
 			}
 			var data = $.parseJSON(xhr.responseText);
 			if (data === null)
 			{
 				log('restoreSessionProfile error: null data');
-				alert('Connection error, please try again later.');
+				alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
 				return;
 			}
 			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
@@ -1265,7 +1268,7 @@ function restoreSessionProfile(token) {
 				$('body').trigger('siteBootComplete');
 			}, 100);
 		},
-		timeout: computeTimeout(10 * 1024)
+		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(10 * 1024))
 	});
 }
 
@@ -1353,7 +1356,7 @@ function processMoJOs(interaction) {
 								MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
 							}
 						},
-						timeout: computeTimeout(500 * 1024)
+						timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
 					});
 				});
 			});
@@ -1421,7 +1424,7 @@ function processForms() {
 				MyAnswers.store.set('formLastChecked:' + id, $.now());
 			}
 		},
-		timeout: computeTimeout(500 * 1024)
+		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
 	});
 }
 
@@ -1651,7 +1654,7 @@ function showAnswerView(interaction, argsString, reverse) {
 				data: requestData,
 				complete: function(xhr, textstatus) { // readystate === 4
 					if (textstatus === 'timeout') {
-						insertHTML(answerBox, 'Error: the server has taken too long to respond.');
+						insertHTML(answerBox, 'Error: the server has taken too long to respond.  (' + textstatus + ' ' + xhr.status + ')');
 						completeFn();
 					} else if (isAJAXError(textstatus) || xhr.status !== 200) {fallbackToStorage();}
 					else {
@@ -1670,7 +1673,7 @@ function showAnswerView(interaction, argsString, reverse) {
 						completeFn();
 					}
 				},
-				timeout: 60 * 1000 // 60 seconds
+				timeout: Math.max(currentConfig.downloadTimeout * 1000, 60 * 1000)
 			});
 		}
 	});
@@ -1826,7 +1829,7 @@ function showNewLoginView(isActivating)
 				var newLoginBox = document.getElementById('newLoginBox');
 				if (isAJAXError(textstatus) && xhr.status !== 200)
 				{
-					insertText(newLoginBox, 'Unable to contact server.');
+					insertText(newLoginBox, 'Unable to contact server. (' + textstatus + ' ' + xhr.status + ')');
 				}
 				else
 				{
@@ -1834,7 +1837,8 @@ function showNewLoginView(isActivating)
 				}
 				setMainLabel('New Login');
 				MyAnswersDevice.showView($('#newLoginView'));
-			}
+			},
+			timeout: currentConfig.downloadTimeout * 1000
 		});
 	});
 }
@@ -1851,7 +1855,7 @@ function showActivateLoginView(event)
 				var activateLoginBox = document.getElementById('activateLoginBox');
 				if (isAJAXError(textstatus) && xhr.status !== 200)
 				{
-					insertText(activateLoginBox, 'Unable to contact server.');
+					insertText(activateLoginBox, 'Unable to contact server.  (' + textstatus + ' ' + xhr.status + ')');
 				}
 				else
 				{
@@ -1859,7 +1863,8 @@ function showActivateLoginView(event)
 				}
 				setMainLabel('Activate Login');
 				MyAnswersDevice.showView($('#activateLoginView'));
-			}
+			},
+			timeout: currentConfig.downloadTimeout * 1000
 		});
 	});
 }
@@ -1922,7 +1927,7 @@ function requestLoginStatus() {
 			}
 			updateLoginButtons();
 		},
-		timeout: computeTimeout(500)
+		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
 	});
 }
 
@@ -1953,9 +1958,10 @@ function submitLogin()
 				updateLoginButtons();
 //				getSiteConfig();
 			} else {
-				alert('Unable to login: ' + xhr.responseText);
+				alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
 			}
-		}
+		},
+		timeout: currentConfig.downloadTimeout * 1000
   });
 }
 
@@ -1987,7 +1993,8 @@ function submitLogout(event)
 //					getSiteConfig();
 					goBackToHome();
 				}
-			}
+			},
+			timeout: currentConfig.downloadTimeout * 1000
 		});
     }
     return false;
@@ -2118,7 +2125,7 @@ function submitFormWithRetry() {
 					complete: function(xhr, textstatus) { // readystate === 4
 						var html;
 						if (isAJAXError(textstatus) || xhr.status !== 200) {
-							html = 'Unable to contact server. Your submission has been stored for future attempts.';
+							html = 'Unable to contact server. Your submission has been stored for future attempts.  (' + textstatus + ' ' + xhr.status + ')';
 						} else {
 							delHeadPendingFormData();
 							html = xhr.responseText;
@@ -2140,7 +2147,7 @@ function submitFormWithRetry() {
 							$('body').trigger('taskComplete');
 						});
 					},
-					timeout: computeTimeout(answerUrl.length + requestData.length)
+					timeout: Math.max(currentConfig.uploadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
 				});
 			});
 		} else {
@@ -2263,7 +2270,7 @@ function submitAction(keyword, action) {
 				}
 			});
 		},
-		timeout: computeTimeout(requestUrl.length + requestData.length)
+		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
 	});
 	return false;
 }
@@ -2656,11 +2663,6 @@ function onBrowserReady() {
 			} 
 			log('AJAX complete: ' + url + ' ' + readyState + ' ' + status);
 		});
-/*
- * $(document).ajaxError(function(event, xhr, options, error) {
- * log('AJAX error: ' + options.url + ' ' + xhr + ' ' + options + ' ' +
- * error); });
- */
 		MyAnswers.browserDeferred.resolve();
   } catch(e) {
 		log("onBrowserReady: Exception");
@@ -2695,7 +2697,6 @@ function loaded() {
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
 			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 		}
-		backStack = [];
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 		$.when(MyAnswers.siteStore.get('config')).then(function(data) {
 			if (typeof data === 'string') {
