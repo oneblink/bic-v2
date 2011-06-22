@@ -14,7 +14,13 @@ function log() {
 	} else if (type === 'object') {
 		fn(arguments[0]);
 	}
-};
+}
+
+function computeTimeout(messageLength) {
+  var lowestTransferRateConst = 1000 / (4800 / 8);
+		// maxTransactionTimeout = 180 * 1000;
+  return (messageLength * lowestTransferRateConst) + 15000;
+}
 
 /*
  * Math.uuid.js, minimalistic uuid generator. Original script from Robert

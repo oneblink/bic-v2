@@ -5,8 +5,6 @@ var MyAnswers = MyAnswers || {},
 	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
 	currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
 	starsProfile,
-	backStack,
-	lowestTransferRateConst, maxTransactionTimeout,
 	ajaxQueue;
 
 function PictureSourceType() {}
@@ -162,11 +160,6 @@ function removeEvent(obj, evType, fn) {
 	} else {
 		return false; 
 	} 
-}
-
-function computeTimeout(messageLength) {
-  var t = (messageLength * lowestTransferRateConst) + 15000;
-  return ((t < maxTransactionTimeout) ? t : maxTransactionTimeout);
 }
 
 function emptyDOMelement(element)
@@ -2753,8 +2746,6 @@ function init_main() {
 
 	jQuery.fx.interval = 27; // default is 13, increasing this to be kinder on devices
 	
-	lowestTransferRateConst = 1000 / (4800 / 8);
-	maxTransactionTimeout = 180 * 1000;
 	ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
 	MyAnswers.dispatch = new BlinkDispatch(47);
 
