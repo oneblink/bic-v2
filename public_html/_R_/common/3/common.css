@@ -118,6 +118,11 @@ form col.bForm-input { width: 65%; }
 	font-weight: bolder;
 	margin: .5em;
 }
+
+.bForm-error {
+	color: #A00;
+}
+
 .bForm-label, .bForm-value { font-size: smaller; }
 .bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
