@@ -84,6 +84,8 @@ siteVars.forms = siteVars.forms || {};
 		log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
 		if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
 			$.noop(); // do we need to do something if we have fired this early?
+		} else if (state.data.storage) {
+			showPendingView();
 		} else if (siteVars.hasLogin && state.data.login) {
 			showLoginView();
 		} else if (hasInteractions && state.data.i) {
@@ -544,14 +546,22 @@ function setSubmitCachedFormButton() {
 		$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
 			MyAnswers.dispatch.add(function() {
 				var k, kLength = keys.length,
-					key, $cells;
+					key, $cells,
+					interaction, name;
 				$tbody.children('tr:not(.hidden)').remove();
 				for (k = 0; k < kLength; k++) {
 					key = keys[k].split(':');
+					interaction = siteVars.config['i' + key[0]];
+					if ($.type(interaction) === 'object') {
+						name = interaction.pertinent.displayName || interaction.pertinent.name;
+					} else {
+						name = '<span class="bForm-error">unavailable</span>';
+					}
 					$tr = $hiddenTr.clone();
 					$tr.data('interaction', key[0]);
+					$tr.data('form', key[1]);
 					$cells = $tr.children('td');
-					$cells.eq(0).text(key[1]);
+					$cells.eq(0).text(name);
 					$cells.eq(1).text(key[2]);
 					$tr.removeClass('hidden');
 					$tr.appendTo($tbody);
@@ -704,7 +714,7 @@ function onPendingClick(event) {
 		$tr = $button.closest('tr'),
 		$cells = $tr.children('td'),
 		interaction = $tr.data('interaction'),
-		form = $cells.eq(0).text(),
+		form = $tr.data('form'),
 		uuid = $cells.eq(1).text();
 	if (action === 'cancel') {
 		clearPendingForm(interaction, form, uuid);
@@ -1542,6 +1552,10 @@ function goBackToHome() {
 	stopTrackingLocation();
 	$('body').trigger('taskComplete');
 	//	getSiteConfig();
+}
+
+function gotoStorageView() {
+	History.pushState({ storage: true });
 }
 
 function showPendingView() {
