@@ -1555,7 +1555,7 @@ function goBackToHome() {
 }
 
 function gotoStorageView() {
-	History.pushState({ storage: true });
+	History.pushState({ storage: true }, null, '/' + siteVars.answerSpace + '/?_storage=true');
 }
 
 function showPendingView() {

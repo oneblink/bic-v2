@@ -101,8 +101,8 @@ ul, ol {
 }
 
 form table table {
-	margin-top: 2px;
-	border-top: 2px solid #AAA;
+	margin-bottom: 2px;
+	border-bottom: 2px solid #AAA;
 }
 
 form .bForm-input > span {
