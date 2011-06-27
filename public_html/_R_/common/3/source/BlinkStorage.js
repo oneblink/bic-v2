@@ -102,7 +102,8 @@
 			
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (error) {
-				log('BlinkStorage error:' + error.code + ' ' + error.message);
+				log('BlinkStorage error: ' + error.code + ' ' + error.message);
+				alert('storage-error: ' + error.code + '\n' + error.message);
 			};
 
 			if (webSqlDbs[partition]) {
@@ -113,8 +114,8 @@
 					webSqlDbs[partition] = db;
 				} catch(error) {
 					readyDeferred.reject();
-					return this;
 					throw 'BlinkStorage: ' + error;
+					return this;
 				}
 			}
 
