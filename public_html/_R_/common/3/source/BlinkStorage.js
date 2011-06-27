@@ -112,6 +112,8 @@
 					db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
 					webSqlDbs[partition] = db;
 				} catch(error) {
+					readyDeferred.reject();
+					return this;
 					throw 'BlinkStorage: ' + error;
 				}
 			}
