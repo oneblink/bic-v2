@@ -9,6 +9,7 @@ var MyAnswers = MyAnswers || {},
 
 currentConfig.downloadTimeout = 30;
 currentConfig.uploadTimeout = 45;
+deviceVars.isOnline = true;
 
 function PictureSourceType() {}
 function lastPictureTaken () {}
@@ -113,6 +114,37 @@ siteVars.forms = siteVars.forms || {};
 		return false;
 	});
 })(this);
+
+(function(window, undefined) {
+	var deviceVars = window.deviceVars,
+		siteVars = window.siteVars,
+		navigator = window.navigator,
+		$window = $(window);
+
+	function networkReachableFn(reachability) {
+		var state = reachability.code || reachability;
+		deviceVars.isOnline = state > 0;
+		deviceVars.isOnlineCell = state === 1;
+		deviceVars.isOnlineWiFi = state === 2;
+		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
+		alert('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
+	}
+
+	function onNetworkChange() {
+		var host;
+		if (navigator.userAgent.indexOf("BlinkGap") !== -1 && typeof navigator.network !== 'undefined') {
+			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
+			navigator.network.isReachable(host, networkReachableFn);
+		} else {
+			deviceVars.isOnline = navigator.onLine === true;
+			log('onNetworkChange(): online=' + deviceVars.isOnline);
+		}
+	}
+
+	$window.bind('online', onNetworkChange);
+	$window.bind('offline', onNetworkChange);
+	$window.trigger('online');
+}(this));
 
 function hasCSSFixedPosition() {
 	var $body = $('body'),
