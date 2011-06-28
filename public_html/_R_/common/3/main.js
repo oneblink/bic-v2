@@ -2604,13 +2604,19 @@ MyAnswers.updateLocalStorage = function() {
 // *** BEGIN APPLICATION INIT ***
 
 function onBrowserReady() {
-	log("onBrowserReady: " + window.location);
+	log("onBrowserReady: " + window.location.href);
 	try {
-		var uriParts = parse_url(window.location),
+		var uriParts = parse_url(window.location.href),
 			splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
 		siteVars.serverAppBranch =  splitUrl[1];
 		siteVars.serverAppVersion =  splitUrl[3];
 		siteVars.serverDomain = uriParts.host;
+
+		if ($.type(uriParts.port) === 'string' &&
+			((uriParts.scheme === 'https' && uriParts.port !== "443") ||
+				(uriParts.scheme === 'http' && uriParts.port !== "80"))) {
+			siteVars.serverDomain += ':' + uriParts.port;
+		}
 		siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
 		siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 		siteVars.queryParameters = getURLParameters();
