@@ -108,11 +108,18 @@
 				}
 			};
 
+			var estimatedSize;
+			if (navigator.userAgent.indexOf("BlinkGap") !== -1) {
+				estimatedSize = 40 * 1024 * 1024;
+			} else {
+				estimatedSize = 3 * 1024 * 1024;
+			}
+
 			if (webSqlDbs[partition]) {
 				db = webSqlDbs[partition];
 			} else {
 				try {
-					db = openDatabase(partition, '1.0', partition, 3 * 1024 * 1024); // estimatedSize=3MB
+					db = openDatabase(partition, '1.0', partition, estimatedSize);
 					webSqlDbs[partition] = db;
 				} catch(error) {
 					readyDeferred.reject();
