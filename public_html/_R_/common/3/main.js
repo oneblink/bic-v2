@@ -837,34 +837,6 @@ function onLinkClick(event) {
 	return true;
 }
 
-function onSiteBootComplete(event) {
-	log('onSiteBootComplete():');
-	var keyword = siteVars.queryParameters.keyword,
-		config = siteVars.config['a' + siteVars.id].pertinent;
-	delete siteVars.queryParameters.keyword;
-	if (typeof(keyword) === 'string' && ! $.isEmptyObject(siteVars.queryParameters)) {
-		showAnswerView(keyword, $.param(siteVars.queryParameters));
-	} else if (typeof(keyword) === 'string') {
-		gotoNextScreen(keyword);
-	} else if (typeof(siteVars.queryParameters.category) === 'string') {
-		showKeywordListView(siteVars.queryParameters.category);
-	} else if (typeof(siteVars.queryParameters.master_category) === 'string') {
-		showCategoriesView(siteVars.queryParameters.master_category);
-	} else if (typeof config.icon === 'string' && typeof google !== 'undefined' && typeof google.bookmarkbubble !== 'undefined') {
-		setTimeout(function() {
-			var bookmarkBubble = new google.bookmarkbubble.Bubble();
-			bookmarkBubble.hasHashParameter = function() {return false;};
-			bookmarkBubble.setHashParameter = $.noop;
-			bookmarkBubble.getViewportHeight = function() {return window.innerHeight;};
-			bookmarkBubble.getViewportScrollY = function() {return window.pageYOffset;};
-			bookmarkBubble.registerScrollHandler = function(handler) {addEvent(window, 'scroll', handler);};
-			bookmarkBubble.deregisterScrollHandler = function(handler) {window.removeEventListener('scroll', handler, false);};
-			bookmarkBubble.showIfAllowed();
-		}, 1000);
-	}
-	delete siteVars.queryParameters;
-}
-
 function updateOrientation()
 {
 	log("orientationChanged: " + Orientation.currentOrientation);
@@ -1244,8 +1216,13 @@ function goBackToCategoriesView() {
 
 function restoreSessionProfile(token) {
 	log('restoreSessionProfile():');
-	var requestUrl = siteVars.serverAppPath + '/util/GetSession.php';
-	var requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
+	var requestData, requestUrl = siteVars.serverAppPath + '/util/GetSession.php',
+		deferred = new $.Deferred();
+	if ($.type(token) !== 'string' || token.length === 0) {
+		deferred.reject();
+		return deferred.promise();
+	}
+	requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
 	ajaxQueue.add({
 		url: requestUrl,
 		data: requestData,
@@ -1254,41 +1231,49 @@ function restoreSessionProfile(token) {
 			if (isAJAXError(xhrStatus) || xhr.status !== 200)
 			{
 				alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
-				return;
+				deferred.reject();
+				return deferred.promise();
 			}
 			var data = $.parseJSON(xhr.responseText);
 			if (data === null)
 			{
 				log('restoreSessionProfile error: null data');
 				alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
-				return;
+				deferred.reject();
+				return deferred.promise();
 			}
 			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
 			{
 				log('restoreSessionProfile success: no error messages, data: ' + data);
-				if (data.sessionProfile === null) {return;}
+				if (data.sessionProfile === null) {
+					deferred.reject();
+					return deferred.promise();
+				}
 				MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
 				starsProfile = data.sessionProfile.stars;
 			}
 			if (typeof(data.errorMessage) === 'string')
 			{
 				log('restoreSessionProfile error: ' + data.errorMessage);
+				deferred.reject();
 			}
 			setTimeout(function() {
-				$('body').trigger('siteBootComplete');
+				deferred.resolve();
 			}, 100);
 		},
 		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(10 * 1024))
 	});
+	return deferred.promise();
 }
-
 
 function displayAnswerSpace() {
 	var startUp = $('#startUp'),
 		$masterCategoriesView = $('#masterCategoriesView'),
 		$categoriesView = $('#categoriesView'),
 		$keywordListView = $('#keywordListView'),
-		requestUri;
+		requestUri,
+		token = siteVars.queryParameters._t;
+	delete siteVars.queryParameters._t;
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
 		currentConfig = siteVars.config['a' + siteVars.id].pertinent;
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
@@ -1328,10 +1313,26 @@ function displayAnswerSpace() {
 				showKeywordListView();
 			}
 		}
-		var token = siteVars.queryParameters._t;
-		delete siteVars.queryParameters._t;
-		if (typeof(token) === 'string') {restoreSessionProfile(token);}
-		else {$('body').trigger('siteBootComplete');}
+		$.when(restoreSessionProfile(token))
+			.always(function() {
+				var interaction = resolveItemName(siteVars.queryParameters.keyword),
+					config = siteVars.config['a' + siteVars.id].pertinent;
+				delete siteVars.queryParameters.keyword;
+				if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
+					requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
+					History.pushState({ i: interaction, 'arguments': siteVars.queryParameters }, null, requestUri);
+				} else if (interaction) {
+					requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
+					History.pushState({ i: interaction }, null, requestUri);
+				} else if (typeof(siteVars.queryParameters._c) === 'string') {
+					requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
+					History.pushState({ m: siteVars.queryParameters._c }, null, requestUri);
+				} else if (typeof(siteVars.queryParameters._m) === 'string') {
+					requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
+					History.pushState({ m: siteVars.queryParameters._m }, null, requestUri);
+				}
+				delete siteVars.queryParameters;
+			});
 	}
 	startUp.remove();
 	$('#content').removeClass('hidden');
@@ -2603,13 +2604,19 @@ MyAnswers.updateLocalStorage = function() {
 // *** BEGIN APPLICATION INIT ***
 
 function onBrowserReady() {
-	log("onBrowserReady: " + window.location);
+	log("onBrowserReady: " + window.location.href);
 	try {
-		var uriParts = parse_url(window.location),
+		var uriParts = parse_url(window.location.href),
 			splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
 		siteVars.serverAppBranch =  splitUrl[1];
 		siteVars.serverAppVersion =  splitUrl[3];
 		siteVars.serverDomain = uriParts.host;
+
+		if ($.type(uriParts.port) === 'string' &&
+			((uriParts.scheme === 'https' && uriParts.port !== "443") ||
+				(uriParts.scheme === 'http' && uriParts.port !== "80"))) {
+			siteVars.serverDomain += ':' + uriParts.port;
+		}
 		siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
 		siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 		siteVars.queryParameters = getURLParameters();
@@ -2618,6 +2625,9 @@ function onBrowserReady() {
 		delete siteVars.queryParameters.answerSpace;
 		MyAnswers.domain = '//' + siteVars.serverDomain + "/";
 
+		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
+			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+		}
 		if (document.getElementById('loginButton') !== null) {
 			// TODO: get hasLogin working directly off new config field
 			siteVars.hasLogin = true;
@@ -2708,9 +2718,6 @@ function loaded() {
 	}
 
 	try {
-		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
-			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
-		}
 		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 		$.when(MyAnswers.siteStore.get('config')).then(function(data) {
 			if (typeof data === 'string') {
@@ -2791,7 +2798,6 @@ function init_main() {
 
 	$body.bind('taskBegun', onTaskBegun);
 	$body.bind('taskComplete', onTaskComplete);
-	$body.bind('siteBootComplete', onSiteBootComplete);
 	$('body').delegate('a', 'click', onLinkClick);
 	$('#pendingBox').delegate('button', 'click', onPendingClick);
 }

@@ -102,17 +102,29 @@
 			
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (error) {
-				log('BlinkStorage error:' + error.code + ' ' + error.message);
+				log('BlinkStorage error: ' + error.code + ' ' + error.message);
+				if (error.code === 3 || error.code === 4 || error.code === 7) {
+					alert('storage-error: ' + error.code + '\n' + error.message);
+				}
 			};
+
+			var estimatedSize;
+			if (navigator.userAgent.indexOf("BlinkGap") !== -1) {
+				estimatedSize = 40 * 1024 * 1024;
+			} else {
+				estimatedSize = 3 * 1024 * 1024;
+			}
 
 			if (webSqlDbs[partition]) {
 				db = webSqlDbs[partition];
 			} else {
 				try {
-					db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
+					db = openDatabase(partition, '1.0', partition, estimatedSize);
 					webSqlDbs[partition] = db;
 				} catch(error) {
+					readyDeferred.reject();
 					throw 'BlinkStorage: ' + error;
+					return this;
 				}
 			}
 
