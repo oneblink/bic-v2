@@ -103,14 +103,16 @@
 			var successHandler = typeof $ === 'function' ? $.noop : function () { };
 			var errorHandler = function (error) {
 				log('BlinkStorage error: ' + error.code + ' ' + error.message);
-				alert('storage-error: ' + error.code + '\n' + error.message);
+				if (error.code === 3 || error.code === 4 || error.code === 7) {
+					alert('storage-error: ' + error.code + '\n' + error.message);
+				}
 			};
 
 			if (webSqlDbs[partition]) {
 				db = webSqlDbs[partition];
 			} else {
 				try {
-					db = openDatabase(partition, '1.0', partition, parseInt(32e3, 16));
+					db = openDatabase(partition, '1.0', partition, 3 * 1024 * 1024); // estimatedSize=3MB
 					webSqlDbs[partition] = db;
 				} catch(error) {
 					readyDeferred.reject();
