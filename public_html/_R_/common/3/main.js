@@ -121,24 +121,23 @@ siteVars.forms = siteVars.forms || {};
 		navigator = window.navigator,
 		$window = $(window);
 
-	function networkReachableFn(reachability) {
-		var state = reachability.code || reachability;
+	function networkReachableFn(state) {
+		var state = state.code || state;
 		deviceVars.isOnline = state > 0;
 		deviceVars.isOnlineCell = state === 1;
 		deviceVars.isOnlineWiFi = state === 2;
 		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
-		alert('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
 	}
 
 	function onNetworkChange() {
 		var host;
-		if (navigator.userAgent.indexOf("BlinkGap") !== -1 && typeof navigator.network !== 'undefined') {
-			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
-			navigator.network.isReachable(host, networkReachableFn);
-		} else {
+//		if (window.PhoneGap && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
+//			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
+//			navigator.network.isReachable(host, networkReachableFn);
+//		} else {
 			deviceVars.isOnline = navigator.onLine === true;
 			log('onNetworkChange(): online=' + deviceVars.isOnline);
-		}
+//		}
 	}
 
 	$window.bind('online', onNetworkChange);
