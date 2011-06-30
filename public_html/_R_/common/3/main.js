@@ -131,7 +131,7 @@ siteVars.forms = siteVars.forms || {};
 
 	function onNetworkChange() {
 		var host;
-//		if (window.PhoneGap && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
+//		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
 //			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
 //			navigator.network.isReachable(host, networkReachableFn);
 //		} else {
@@ -1075,7 +1075,6 @@ function onKeywordClick(event) {
 function onHyperlinkClick(event) { window.location.assign($(this).data('hyperlink')); }
 
 function populateItemListing(level) {
-	log('populateItemListing(): ' + level);
 	var arrangement, display, order, list, $visualBox, $listBox, type,
 		name, $item, $label, $description,
 		hook = {
@@ -1141,7 +1140,7 @@ function populateItemListing(level) {
 			$listBox = $('#keywordList');
 			break;
 	}
-	log('populateItemListing(): '+ arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
+	log('populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
 	switch (arrangement) {
 		case "list":
 			columns = 1;
@@ -2834,7 +2833,7 @@ function init_main() {
 }
 
 function onBodyLoad() {
-  if (navigator.userAgent.indexOf("BlinkGap") === -1) {
+  if (!window.device) {
     log("onBodyLoad: direct call to onBrowserReady()");
     onBrowserReady();
   } else {
