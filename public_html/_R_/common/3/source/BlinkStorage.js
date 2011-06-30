@@ -100,20 +100,16 @@
 
 		} else if (type === 'websqldatabase') {
 			
-			var successHandler = typeof $ === 'function' ? $.noop : function () { };
-			var errorHandler = function (error) {
+			var successHandler = typeof $ === 'function' ? $.noop : function () { },
+				estimatedSize = (window.device ? 40 : 3) * 1024 * 1024;
+			
+			function errorHandler(error) {
 				log('BlinkStorage error: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
+				return false;
 			};
-
-			var estimatedSize;
-			if (navigator.userAgent.indexOf("BlinkGap") !== -1) {
-				estimatedSize = 40 * 1024 * 1024;
-			} else {
-				estimatedSize = 3 * 1024 * 1024;
-			}
 
 			if (webSqlDbs[partition]) {
 				db = webSqlDbs[partition];

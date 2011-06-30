@@ -33,7 +33,7 @@ function onDeviceReady() {
 		log("Device: " + window.device.platform);
 		//log("Camera Present: " + window.device.camerapresent);
 		//log("Multitasking: " + window.device.multitasking);
-		//MyAnswers.cameraPresent = window.device.camerapresent;
+		MyAnswers.cameraPresent = true; // TODO: find an Android device that lacks a camera
 		//MyAnswers.loadURL = window.Settings.LoadURL;
 		siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
 		MyAnswers.domain = "//" + siteVars.serverDomain + "/";

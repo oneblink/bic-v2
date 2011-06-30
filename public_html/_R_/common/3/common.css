@@ -100,6 +100,12 @@ ul, ol {
 	z-index: 1;
 }
 
+/* *** BlinkForms2 *** */
+
+form caption.bForm-input {
+	display: none; /* we are currently hiding form metadata in a caption <element> */
+}
+
 form table table {
 	margin-bottom: 2px;
 	border-bottom: 2px solid #AAA;
@@ -136,6 +142,8 @@ form col.bForm-input { width: 65%; }
 	text-shadow: 0 0 .5em #000;
 	cursor: help;
 }
+
+/* *** END BlinkForms2 *** */
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;
