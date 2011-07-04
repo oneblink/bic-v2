@@ -166,8 +166,10 @@ function hasCSSFixedPosition() {
 }
 
 function isCameraPresent() {
-	log("isCameraPresent: " + MyAnswers.cameraPresent);
-	return MyAnswers.cameraPresent;
+	if (typeof window.device === 'undefined') {
+		return false;
+	}
+	return window.device.camerapresent;
 }
 
 function triggerScroll(event) {
@@ -875,9 +877,13 @@ function updateOrientation()
 
 // *** END EVENT HANDLERS ***
 
-if (!addEvent(document, "deviceready", onDeviceReady)) {
-  alert("Unable to add deviceready handler");
-  throw("Unable to add deviceready handler");
+if (window.device && window.device.ready) {
+	onDeviceReady();
+} else {
+	if (!addEvent(document, "deviceready", onDeviceReady)) {
+		alert("Unable to add deviceready handler");
+		throw("Unable to add deviceready handler");
+	}
 }
 
 function updateNavigationButtons() {
