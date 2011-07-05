@@ -55,11 +55,17 @@ textarea, select, input, label, button {
 	font-size: medium;
 }
 
-textarea { height: 5em; min-height: 5em; }
+textarea {
+	width: 100%;
+	height: 5em;
+	min-height: 5em;
+}
+textarea[rows] { height: auto; }
+textarea[cols] { width: auto; }
 
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
-form td input[type=text], form td input[type=email], form td textarea {
+form td input[type=text], form td input[type=email] {
 	width: 100%;
 }
 
