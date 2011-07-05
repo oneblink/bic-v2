@@ -258,15 +258,15 @@ function changeDOMclass(element, options) {
 //convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
 function deserialize(argsString) {
 	var args = argsString.split('&'),
-		a, aLength = args.length,
-		result = { },
-		terms;
-	for (a = 0; a < aLength; a++) {
-		terms = args[a].split('=');
-		if (terms[0].length > 0) {
-			result[decodeURIComponent(terms[0])] = decodeURIComponent(terms[1]);
+		result = { };
+	$.each(args, function(index, string) {
+		var equalIndex, name, value;
+		if (string.length !== 0 && (equalIndex = string.indexOf('=')) !== -1) {
+			name = string.substring(0, equalIndex);
+			value = string.substring(equalIndex + 1);
+			result[decodeURIComponent(name)] = decodeURIComponent(value);
 		}
-	}
+	});
 	return result;
 }
 
@@ -1652,7 +1652,7 @@ function showAnswerView(interaction, argsString, reverse) {
 		processMoJOs(interaction);
 		if (typeof argsString === 'string' && argsString.length > 0) {
 			args = {};
-			$.extend(args, deserialize(decodeURIComponent(argsString)));
+			$.extend(args, deserialize(argsString));
 		} else if ($.type(argsString) === 'object') {
 			args = argsString;
 		} else {
