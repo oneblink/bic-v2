@@ -20,7 +20,9 @@ function init_device()
 		$('#activityIndicator').css('top', activityIndicatorTop);
 	} else if (typeof onScroll === 'function') {
 		$(window).bind('scroll', onScroll);
-		$(window).trigger('scroll');
+		MyAnswers.dispatch.add(function() {
+			$(window).trigger('scroll');
+		});
 	}
 }
 
@@ -123,12 +125,14 @@ function updatePartCSS(element, property, value, valueFormat) {
 }
 
 function onScroll() {
-	var //headerBottom = $('.header').height(),
-		scrollTop = $(window).scrollTop(),
-		offset;
-	updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-	updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	MyAnswers.dispatch.add(function() {
+		var //headerBottom = $('.header').height(),
+			scrollTop = $(window).scrollTop(),
+			offset;
+		updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+		updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+		updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	});
 }
 
 function setupParts()

@@ -2871,8 +2871,8 @@ if (!addEvent(window, "load", onBodyLoad)) {
 	).done(function() {
 		log("all promises kept, initialising...");
 		try {
-			init_device();
 			init_main();
+			init_device();
 		} catch(e) {
 			log("onBrowserReady: Exception");
 			log(e);
