@@ -4,7 +4,7 @@ var MyAnswers = MyAnswers || {},
 	locationTracker, latitude, longitude, webappCache,
 	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
 	currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
-	starsProfile,
+	starsProfile = {},
 	ajaxQueue;
 
 currentConfig.downloadTimeout = 30;
@@ -258,15 +258,15 @@ function changeDOMclass(element, options) {
 //convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
 function deserialize(argsString) {
 	var args = argsString.split('&'),
-		a, aLength = args.length,
-		result = { },
-		terms;
-	for (a = 0; a < aLength; a++) {
-		terms = args[a].split('=');
-		if (terms[0].length > 0) {
-			result[decodeURIComponent(terms[0])] = decodeURIComponent(terms[1]);
+		result = { };
+	$.each(args, function(index, string) {
+		var equalIndex, name, value;
+		if (string.length !== 0 && (equalIndex = string.indexOf('=')) !== -1) {
+			name = string.substring(0, equalIndex);
+			value = string.substring(equalIndex + 1);
+			result[decodeURIComponent(name)] = decodeURIComponent(value);
 		}
-	}
+	});
 	return result;
 }
 
@@ -953,7 +953,7 @@ function initialiseAnswerFeatures($view) {
 					}
 				}
 			};
-		$('body').trigger('taskBegun');
+		MyAnswers.$body.trigger('taskBegun');
 		$inputs.unbind('blur', triggerScroll);
 		$inputs.bind('blur', triggerScroll);
 		$view.find('.blink-starrable').each(function(index, element) {
@@ -987,7 +987,7 @@ function initialiseAnswerFeatures($view) {
 	});
 	MyAnswers.dispatch.add(function() {
 		$.when.apply($, promises).always(function() {
-			$('body').trigger('taskComplete');
+			MyAnswers.$body.trigger('taskComplete');
 			deferred.resolve();
 		});
 	});
@@ -1087,7 +1087,7 @@ function populateItemListing(level) {
 			interactions: function($item) {
 				var id = $item.attr('data-id');
 				if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
-					$item.attr('data-hyperlink', list[order[o]].hyperlink);
+					$item.attr('data-hyperlink', siteVars.config['i' + id].pertinent.hyperlink);
 					$item.bind('click', onHyperlinkClick);
 				} else {
 					$item.bind('click', onKeywordClick);
@@ -1435,19 +1435,21 @@ function processForms() {
 		xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
 		id,
 		formActionFn = function(index, element) {
-			var $action = $(element),
-				action = $action.tag(),
-				storeKey = 'formXML:' + id + ':' + action,
-				$children = $action.children(), c, cLength = $children.length,
-				html = '';
-			if (validActions.indexOf($action.tag()) !== -1) {
-				for (c = 0; c < cLength; c++) {
-					html += xmlserializer.serializeToString($children[c]);
+			MyAnswers.dispatch.add(function() {
+				var $action = $(element),
+					action = $action.tag(),
+					storeKey = 'formXML:' + id + ':' + action,
+					$children = $action.children(), c, cLength = $children.length,
+					html = '';
+				if (validActions.indexOf($action.tag()) !== -1) {
+					for (c = 0; c < cLength; c++) {
+						html += xmlserializer.serializeToString($children[c]);
+					}
+					$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
+						log('processForms()->formActionFn(): failed storing ' + storeKey);
+					});
 				}
-				$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
-					log('processForms()->formActionFn(): failed storing ' + storeKey);
-				});
-			}
+			});
 		},
 		formObjectFn = function(index, element) {
 			var $formObject = $(element);
@@ -1457,7 +1459,7 @@ function processForms() {
 		};
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetForm.php',
-//	dataType: 'xml',
+		dataType: 'xml',
 		complete: function(jqxhr, status) {
 			var $data;
 			if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
@@ -1518,10 +1520,7 @@ function processConfig(display) {
 
 function requestConfig(requestData) {
 	var now = $.now();
-	if ($.type(requestData) === 'array' && requestData.length > 0) {
-		log('requestConfig(): [' + requestData.join(',') + ']');
-	} else {
-		log('requestConfig(): ' + requestData);
+	if ($.type(requestData) !== 'array' || requestData.length === 0) {
 		requestData = null;
 	}
 	ajaxQueue.add({
@@ -1587,7 +1586,7 @@ MyAnswers.dumpLocalStorage = function() {
 function goBackToHome() {
 	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 	stopTrackingLocation();
-	$('body').trigger('taskComplete');
+	MyAnswers.$body.trigger('taskComplete');
 	//	getSiteConfig();
 }
 
@@ -1636,7 +1635,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			$.when(initialiseAnswerFeatures($answerView)).always(function() {
 				setMainLabel(config.displayName || config.name);
 				MyAnswersDevice.showView($answerView, reverse);
-				MyAnswers.dispatch.add(function() {$('body').trigger('taskComplete');});
+				MyAnswers.dispatch.add(function() {MyAnswers.$body.trigger('taskComplete');});
 			});
 		};
 	interaction = resolveItemName(interaction);
@@ -1645,14 +1644,14 @@ function showAnswerView(interaction, argsString, reverse) {
 		return;
 	}
 	config = siteVars.config['i' + interaction].pertinent;
-	$('body').trigger('taskBegun');
+	MyAnswers.$body.trigger('taskBegun');
 	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
 		currentInteraction = interaction;
 		updateCurrentConfig();
 		processMoJOs(interaction);
 		if (typeof argsString === 'string' && argsString.length > 0) {
 			args = {};
-			$.extend(args, deserialize(decodeURIComponent(argsString)));
+			$.extend(args, deserialize(argsString));
 		} else if ($.type(argsString) === 'object') {
 			args = argsString;
 		} else {
@@ -1958,12 +1957,16 @@ function updateLoginButtons() {
 }
 
 function requestLoginStatus() {
+	var deferred = new $.Deferred();
 	if (!siteVars.hasLogin) {return;}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		dataType: 'json',
 		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) {return;}
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
+				deferred.reject();
+				return;
+			}
 			var data = $.parseJSON(xhr.responseText);
 			if (data) {
 				if (data.status === 'LOGGED IN') {
@@ -1977,9 +1980,11 @@ function requestLoginStatus() {
 				}
 			}
 			updateLoginButtons();
+			deferred.resolve();
 		},
 		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
 	});
+	return deferred.promise();
 }
 
 function submitLogin()
@@ -2167,7 +2172,7 @@ function submitFormWithRetry() {
 					requestData = str;
 				}
 	
-				$('body').trigger('taskBegun');
+				MyAnswers.$body.trigger('taskBegun');
 				$.ajax({
 					type: method,
 					cache: 'false',
@@ -2195,7 +2200,7 @@ function submitFormWithRetry() {
 									MyAnswersDevice.showView($('#answerView2'));
 								});
 							}
-							$('body').trigger('taskComplete');
+							MyAnswers.$body.trigger('taskComplete');
 						});
 					},
 					timeout: Math.max(currentConfig.uploadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
@@ -2281,14 +2286,14 @@ function submitAction(keyword, action) {
 		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
 		requestData = formData;
 	}
-	$('body').trigger('taskBegun');
+	MyAnswers.$body.trigger('taskBegun');
 	$.ajax({
 		type: method,
 		cache: 'false',
 		url: requestUrl,
 		data: requestData,
 		complete: function(xhr, textstatus) { // readystate === 4
-			$('body').trigger('taskComplete');
+			MyAnswers.$body.trigger('taskComplete');
 			var html;
 			if (isAJAXError(textstatus) || xhr.status !== 200) {
 				html = 'Unable to contact server.';
@@ -2346,7 +2351,7 @@ function startTrackingLocation() {
 					latitude = position.coords.latitude;
 					longitude = position.coords.longitude;
 					log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
-					$('body').trigger('locationUpdated');
+					MyAnswers.$body.trigger('locationUpdated');
 				}
 			}, null, {enableHighAccuracy : true, maximumAge : 600000});
 		}
@@ -2358,7 +2363,7 @@ function startTrackingLocation() {
 					latitude = position.latitude;
 					longitude = position.longitude;
 					log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
-					$('body').trigger('locationUpdated');
+					MyAnswers.$body.trigger('locationUpdated');
 				}
 			}, null, {enableHighAccuracy : true, maximumAge : 600000});
 		}
@@ -2384,7 +2389,7 @@ function stopTrackingLocation()
 function setupGoogleMapsBasic(element, data, map)
 {
 	log('Google Maps Basic: initialising ' + $.type(data));
-	$('body').trigger('taskBegun');
+	MyAnswers.$body.trigger('taskBegun');
 	var location = new google.maps.LatLng(data.latitude, data.longitude);
 	var options = {
 		zoom: parseInt(data.zoom, 10),
@@ -2421,7 +2426,7 @@ function setupGoogleMapsBasic(element, data, map)
 			});
 		}
 	}
-	$('body').trigger('taskComplete');
+	MyAnswers.$body.trigger('taskComplete');
 }
 
 function setupGoogleMapsDirections(element, data, map)
@@ -2543,7 +2548,7 @@ function setupGoogleMapsDirections(element, data, map)
 		}
 	}
 	log('Google Maps Directions: both origin and destination provided, ' + origin + ', ' + destination);
-	$('body').trigger('taskBegun');
+	MyAnswers.$body.trigger('taskBegun');
 	var directionsOptions = {
 		origin: origin,
 		destination: destination,
@@ -2570,12 +2575,12 @@ function setupGoogleMapsDirections(element, data, map)
 			insertText($(element).next('.googledirections')[0], 'Unable to provide directions: ' + status);
 		}
 	});
-	$('body').trigger('taskComplete');
+	MyAnswers.$body.trigger('taskComplete');
 }
 
 function setupGoogleMaps()
 {
-	$('body').trigger('taskBegun');
+	MyAnswers.$body.trigger('taskBegun');
 	$('div.googlemap').each(function(index, element) {
 		var googleMap = new google.maps.Map(element);
 		var data = $(element).data();
@@ -2602,7 +2607,7 @@ function setupGoogleMaps()
 			{
 				currentMarker.setPosition(new google.maps.LatLng(latitude, longitude));
 			}
-			$('body').bind('locationUpdated', function() {
+			MyAnswers.$body.bind('locationUpdated', function() {
 				currentMarker.setPosition(new google.maps.LatLng(latitude, longitude));
 			});
 			var currentInfo = new google.maps.InfoWindow();
@@ -2612,7 +2617,7 @@ function setupGoogleMaps()
 			});
 		}
 	});
-	$('body').trigger('taskComplete');
+	MyAnswers.$body.trigger('taskComplete');
 }
 
 MyAnswers.updateLocalStorage = function() {
@@ -2661,6 +2666,9 @@ function onBrowserReady() {
 		delete siteVars.queryParameters.answerSpace;
 		MyAnswers.domain = '//' + siteVars.serverDomain + "/";
 
+		MyAnswers.$body = $('body');
+		MyAnswers.$document = $(window.document);
+
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
 			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
 		}
@@ -2690,10 +2698,10 @@ function onBrowserReady() {
 		 * processing XSLT'); var target =
 		 * document.getElementById(event.data.target); insertHTML(target,
 		 * event.data.html); break; case 'workBegun':
-		 * $('body').trigger('taskBegun'); break; case 'workComplete':
-		 * $('body').trigger('taskComplete'); break; } }; }
+		 * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
+		 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
 		 */
-		$(document).ajaxSend(function(event, jqxhr, options) {
+		MyAnswers.$document.ajaxSend(function(event, jqxhr, options) {
 			var url = decodeURI(options.url),
 				config = {
 					answerSpaceId: siteVars.id,
@@ -2714,7 +2722,7 @@ function onBrowserReady() {
 			}));
 			log('AJAX start: ' + url);
 		});
-		$(document).ajaxSuccess(function(event, jqxhr, options) {
+		MyAnswers.$document.ajaxSuccess(function(event, jqxhr, options) {
 			var status = typeof jqxhr === 'undefined' ? null : jqxhr.status,
 				readyState = typeof jqxhr === 'undefined' ? 4 : jqxhr.readyState,
 				url = decodeURI(options.url);
@@ -2734,136 +2742,108 @@ function onBrowserReady() {
 // Function: loaded()
 // Called by Window's load event when the web application is ready to start
 //
-function loaded() {
-	log('loaded():');
-	if (typeof webappCache  !== 'undefined') {
-		switch(webappCache.status) {
-			case 0:
-				log("Cache status: Uncached");break;
-			case 1:
-				log("Cache status: Idle");break;
-			case 2:
-				log("Cache status: Checking");break;
-			case 3:
-				log("Cache status: Downloading");break;
-			case 4:
-				log("Cache status: Updateready");break;
-			case 5:
-				log("Cache status: Obsolete");break;
-		}
-	}
 
-	try {
-		MyAnswers.store.set('answerSpace', siteVars.answerSpace);
-		$.when(MyAnswers.siteStore.get('config')).then(function(data) {
-			if (typeof data === 'string') {
-				data = $.parseJSON(data);
-			}
-			if ($.type(data) === 'object') {
-				siteVars.config = data;
-			}
-		}).always(function() {
-			$.when(MyAnswers.siteStore.get('map')).then(function(data) {
-				if (typeof data === 'string') {
-					data = $.parseJSON(data);
-				}
-				if ($.type(data) === 'object') {
-					siteVars.map = data;
-				}
-			}).always(function() {
-				requestLoginStatus();
-				requestConfig();
-			});
-		});
-		$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
-			if (typeof stars === 'string') {
-				stars = $.parseJSON(stars);
-			}
-			if ($.type(stars) === 'object') {
-				starsProfile = stars;
-			} else {
-				starsProfile = { };
-			}
-		});
-	} catch(e) {
-		log("Exception loaded: ");
-		log(e);
-	}
-}
 
-function init_main() {
-	var $body = $('body');
-	log("init_main(): ");
-	siteVars.id = $body.data('id');
-	siteVars.requestsCounter = 0;
-
-	PictureSourceType.PHOTO_LIBRARY = 0;
-	PictureSourceType.CAMERA = 1;
-  lastPictureTaken.image = new Hashtable();
-  lastPictureTaken.currentName = null;
-
-	jQuery.fx.interval = 27; // default is 13, increasing this to be kinder on devices
-	
-	ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
-	MyAnswers.dispatch = new BlinkDispatch(47);
-
-	MyAnswers.runningTasks = 0; // track the number of tasks in progress
-	
-	// to facilitate building regex replacements
-	RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");};
-
-	addEvent(document, 'orientationChanged', updateOrientation);
-	
-	MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
-	$.when(MyAnswers.store.ready()).then(function() {
-		MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
-		$.when(MyAnswers.siteStore.ready()).then(function() {
-			MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
-			$.when(MyAnswers.pendingStore.ready()).then(function() {
-		//		MyAnswers.dumpLocalStorage();
-				$.when(MyAnswers.updateLocalStorage()).done(function() {
-					loaded();
-					log('loaded(): returned after call by BlinkStorage');
-				});
-			});
-		});
-	});
-
-	MyAnswers.activityIndicator = document.getElementById('activityIndicator');
-	MyAnswers.activityIndicatorTimer = null;
-
-	$body.bind('taskBegun', onTaskBegun);
-	$body.bind('taskComplete', onTaskComplete);
-	$('body').delegate('a', 'click', onLinkClick);
-	$('#pendingBox').delegate('button', 'click', onPendingClick);
-}
-
+/* called by Modernizr.load in index.php when scripts are loaded */
 function onBodyLoad() {
   if (!window.device) {
     log("onBodyLoad: direct call to onBrowserReady()");
     onBrowserReady();
   } else {
-		var bodyLoadedCheck;
-		bodyLoadedCheck = setInterval(function() {
-			if (MyAnswers.bodyLoaded) {
-				clearInterval(bodyLoadedCheck);
-				onBrowserReady();
-			} else {
-				log("Waiting for onload event...");
-			}
-		}, 1000);
-    setTimeout(function() {
-      MyAnswers.bodyLoaded = true;
-      log("onBodyLoad: set bodyLoaded => true");
-    }, 2000);
+    setTimeout(onBrowserReady, 2000);
   }
-}
-if (!addEvent(window, "load", onBodyLoad)) {
-  alert("Unable to add load handler");
-  throw("Unable to add load handler");
 }
 
 (function(window, undefined) {
+	var document = window.document,
+		siteVars = window.siteVars,
+		MyAnswers = window.MyAnswers,
+		starsProfile = window.starsProfile,
+		$ = window.jQuery;
+
+	function loaded() {
+		log('loaded():');
+		try {
+			MyAnswers.store.set('answerSpace', siteVars.answerSpace);
+			$.when(MyAnswers.siteStore.get('config')).then(function(data) {
+				if (typeof data === 'string') {
+					data = $.parseJSON(data);
+				}
+				if ($.type(data) === 'object') {
+					siteVars.config = data;
+				}
+			}).always(function() {
+				$.when(MyAnswers.siteStore.get('map')).then(function(data) {
+					if (typeof data === 'string') {
+						data = $.parseJSON(data);
+					}
+					if ($.type(data) === 'object') {
+						siteVars.map = data;
+					}
+				}).always(function() {
+					$.when(requestLoginStatus()).always(requestConfig);
+				});
+			});
+			$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
+				if (typeof stars === 'string') {
+					stars = $.parseJSON(stars);
+				}
+				if ($.type(stars) === 'object') {
+					starsProfile = stars;
+				}
+			});
+		} catch(e) {
+			log("loaded(): exception:");
+			log(e);
+		}
+	}
+
+	function init_main() {
+		log("init_main(): ");
+		siteVars.id = MyAnswers.$body.data('id');
+		siteVars.requestsCounter = 0;
+
+		PictureSourceType.PHOTO_LIBRARY = 0;
+		PictureSourceType.CAMERA = 1;
+		lastPictureTaken.image = new Hashtable();
+		lastPictureTaken.currentName = null;
+
+		$.fx.interval = 27; // default is 13, increasing this to be kinder on devices
+
+		ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
+		MyAnswers.dispatch = new BlinkDispatch(47);
+
+		MyAnswers.runningTasks = 0; // track the number of tasks in progress
+
+		// to facilitate building regex replacements
+		RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");};
+
+		addEvent(document, 'orientationChanged', updateOrientation);
+
+		MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
+		$.when(MyAnswers.store.ready()).then(function() {
+			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
+			$.when(MyAnswers.siteStore.ready()).then(function() {
+				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
+				$.when(MyAnswers.pendingStore.ready()).then(function() {
+			//		MyAnswers.dumpLocalStorage();
+					$.when(MyAnswers.updateLocalStorage()).done(function() {
+						loaded();
+						log('loaded(): returned after call by BlinkStorage');
+					});
+				});
+			});
+		});
+
+		MyAnswers.activityIndicator = document.getElementById('activityIndicator');
+		MyAnswers.activityIndicatorTimer = null;
+
+		MyAnswers.$body.bind('taskBegun', onTaskBegun);
+		MyAnswers.$body.bind('taskComplete', onTaskComplete);
+		MyAnswers.$body.delegate('a', 'click', onLinkClick);
+		$('#pendingBox').delegate('button', 'click', onPendingClick);
+	}
+
 	$.when(
 		MyAnswers.deviceDeferred.promise(),
 		MyAnswers.browserDeferred.promise(),
@@ -2871,13 +2851,13 @@ if (!addEvent(window, "load", onBodyLoad)) {
 	).done(function() {
 		log("all promises kept, initialising...");
 		try {
-			init_device();
 			init_main();
+			init_device();
 		} catch(e) {
-			log("onBrowserReady: Exception");
+			log('exception in init_?():');
 			log(e);
 		}
-		log("User-Agent: " + navigator.userAgent);
+		log("User-Agent: " + window.navigator.userAgent);
 	}).fail(function() {
 		log('init failed, not all promises kept');
 	});
