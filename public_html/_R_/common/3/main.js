@@ -1435,19 +1435,21 @@ function processForms() {
 		xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
 		id,
 		formActionFn = function(index, element) {
-			var $action = $(element),
-				action = $action.tag(),
-				storeKey = 'formXML:' + id + ':' + action,
-				$children = $action.children(), c, cLength = $children.length,
-				html = '';
-			if (validActions.indexOf($action.tag()) !== -1) {
-				for (c = 0; c < cLength; c++) {
-					html += xmlserializer.serializeToString($children[c]);
+			MyAnswers.dispatch.add(function() {
+				var $action = $(element),
+					action = $action.tag(),
+					storeKey = 'formXML:' + id + ':' + action,
+					$children = $action.children(), c, cLength = $children.length,
+					html = '';
+				if (validActions.indexOf($action.tag()) !== -1) {
+					for (c = 0; c < cLength; c++) {
+						html += xmlserializer.serializeToString($children[c]);
+					}
+					$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
+						log('processForms()->formActionFn(): failed storing ' + storeKey);
+					});
 				}
-				$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
-					log('processForms()->formActionFn(): failed storing ' + storeKey);
-				});
-			}
+			});
 		},
 		formObjectFn = function(index, element) {
 			var $formObject = $(element);
@@ -1457,7 +1459,7 @@ function processForms() {
 		};
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetForm.php',
-//	dataType: 'xml',
+		dataType: 'xml',
 		complete: function(jqxhr, status) {
 			var $data;
 			if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
@@ -1518,10 +1520,7 @@ function processConfig(display) {
 
 function requestConfig(requestData) {
 	var now = $.now();
-	if ($.type(requestData) === 'array' && requestData.length > 0) {
-		log('requestConfig(): [' + requestData.join(',') + ']');
-	} else {
-		log('requestConfig(): ' + requestData);
+	if ($.type(requestData) !== 'array' || requestData.length === 0) {
 		requestData = null;
 	}
 	ajaxQueue.add({
@@ -1958,12 +1957,16 @@ function updateLoginButtons() {
 }
 
 function requestLoginStatus() {
+	var deferred = new $.Deferred();
 	if (!siteVars.hasLogin) {return;}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		dataType: 'json',
 		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) {return;}
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
+				deferred.reject();
+				return;
+			}
 			var data = $.parseJSON(xhr.responseText);
 			if (data) {
 				if (data.status === 'LOGGED IN') {
@@ -1977,9 +1980,11 @@ function requestLoginStatus() {
 				}
 			}
 			updateLoginButtons();
+			deferred.resolve();
 		},
 		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
 	});
+	return deferred.promise();
 }
 
 function submitLogin()
@@ -2776,8 +2781,7 @@ function onBodyLoad() {
 						siteVars.map = data;
 					}
 				}).always(function() {
-					requestLoginStatus();
-					requestConfig();
+					$.when(requestLoginStatus()).always(requestConfig);
 				});
 			});
 			$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
