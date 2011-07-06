@@ -1435,7 +1435,6 @@ function processForms() {
 		xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
 		id,
 		formActionFn = function(index, element) {
-			MyAnswers.dispatch.add(function() {
 				var $action = $(element),
 					action = $action.tag(),
 					storeKey = 'formXML:' + id + ':' + action,
@@ -1449,7 +1448,6 @@ function processForms() {
 						log('processForms()->formActionFn(): failed storing ' + storeKey);
 					});
 				}
-			});
 		},
 		formObjectFn = function(index, element) {
 			var $formObject = $(element);
