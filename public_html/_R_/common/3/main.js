@@ -2414,9 +2414,9 @@ function setupGoogleMapsBasic(element, data, map)
 			map: map,
 			icon: data.marker
 		});
-		if (typeof(data['marker-title']) === 'string')
+		if (typeof(data['markerTitle']) === 'string')
 		{
-			marker.setTitle(data['marker-title']);
+			marker.setTitle(data['markerTitle']);
 			var markerInfo = new google.maps.InfoWindow();
 			google.maps.event.addListener(marker, 'click', function() {
 				markerInfo.setContent(marker.getTitle());
@@ -2431,21 +2431,21 @@ function setupGoogleMapsDirections(element, data, map)
 {
 	log('Google Maps Directions: initialising ' + $.type(data));
 	var origin, destination, language, region, geocoder;
-	if (typeof(data['origin-address']) === 'string')
+	if (typeof(data['originAddress']) === 'string')
 	{
-		origin = data['origin-address'];
+		origin = data['originAddress'];
 	}
-	else if (typeof(data['origin-latitude']) !== 'undefined')
+	else if (typeof(data['originLatitude']) !== 'undefined')
 	{
-		origin = new google.maps.LatLng(data['origin-latitude'], data['origin-longitude']);
+		origin = new google.maps.LatLng(data['originLatitude'], data['originLongitude']);
 	}
-	if (typeof(data['destination-address']) === 'string')
+	if (typeof(data['destinationAddress']) === 'string')
 	{
-		destination = data['destination-address'];
+		destination = data['destinationAddress'];
 	}
-	else if (typeof(data['destination-latitude']) !== 'undefined')
+	else if (typeof(data['destinationLatitude']) !== 'undefined')
 	{
-		destination = new google.maps.LatLng(data['destination-latitude'], data['destination-longitude']);
+		destination = new google.maps.LatLng(data['destinationLatitude'], data['destinationLongitude']);
 	}
 	if (typeof(data.language) === 'string')
 	{
@@ -2462,8 +2462,8 @@ function setupGoogleMapsDirections(element, data, map)
 		{
 			insertText($(element).next('.googledirections')[0], 'Attempting to use your most recent location as the origin.');
 			setTimeout(function() {
-				data['origin-latitude'] = latitude;
-				data['origin-longitude'] = longitude;
+				data['originLatitude'] = latitude;
+				data['originLongitude'] = longitude;
 				setupGoogleMapsDirections(element, data, map);
 			}, 5000);
 			return;
@@ -2507,8 +2507,8 @@ function setupGoogleMapsDirections(element, data, map)
 		{
 			insertText($(element).next('.googledirections')[0], 'Attempting to use your most recent location as the destination.');
 			setTimeout(function() {
-				data['destination-latitude'] = latitude;
-				data['destination-longitude'] = longitude;
+				data['destinationLatitude'] = latitude;
+				data['destinationLongitude'] = longitude;
 				setupGoogleMapsDirections(element, data, map);
 			}, 5000);
 			return;
@@ -2586,7 +2586,7 @@ function setupGoogleMaps()
 		{
 			startTrackingLocation();
 		}
-		if ($(element).data('map-action') === 'directions')
+		if ($(element).data('mapAction') === 'directions')
 		{
 			setupGoogleMapsDirections(element, data, googleMap);
 		}
