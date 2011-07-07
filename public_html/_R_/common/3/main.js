@@ -1655,7 +1655,7 @@ function showAnswerView(interaction, argsString, reverse) {
 		} else {
 			args = {};
 		}
-		if (config.inputPrompt) {
+		if (config.inputPrompt && !argsString) {
 			$.extend(args, deserialize(createParamsAndArgs(interaction)));
 			delete args.answerSpace;
 			delete args.interaction;
@@ -2395,14 +2395,6 @@ function setupGoogleMapsBasic(element, data, map)
 		mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
 	};
 	map.setOptions(options);
-	/*
-	 * google.maps.event.addListener(map, 'tilesloaded',
-	 * stopInProgressAnimation); google.maps.event.addListener(map,
-	 * 'zoom_changed', startInProgressAnimation);
-	 * google.maps.event.addListener(map, 'maptypeid_changed',
-	 * startInProgressAnimation); google.maps.event.addListener(map,
-	 * 'projection_changed', startInProgressAnimation);
-	 */
 	if (typeof(data.kml) === 'string')
 	{
 		var kml = new google.maps.KmlLayer(data.kml, {map: map, preserveViewport: true});
