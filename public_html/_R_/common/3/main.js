@@ -1998,7 +1998,7 @@ function pushPendingForm(interaction, form, uuid, data) {
 		deferred.resolve();
 	}).fail(function() {
 		deferred.reject();
-	});
+	}).always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -2015,9 +2015,7 @@ function clearPendingForm(interaction, form, uuid) {
 		deferred.resolve();
 	}).fail(function() {
 		deferred.reject();
-	}).always(function() {
-		setSubmitCachedFormButton();
-	});
+	}).always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -2035,7 +2033,7 @@ function pushPendingFormV1(interaction, uuid, data) {
 		deferred.resolve(data);
 	}).fail(function() {
 		deferred.reject();
-	});
+	}).always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -2048,13 +2046,11 @@ function pushPendingFormV1(interaction, uuid, data) {
  */
 function clearPendingFormV1(interaction, uuid) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.remove(interaction + ':' + uuid)).then(function() {
+	$.when(MyAnswers.pendingV1Store.remove(interaction + ':' + uuid)).then(function() {
 		deferred.resolve();
 	}).fail(function() {
 		deferred.reject();
-	}).always(function() {
-		setSubmitCachedFormButton();
-	});
+	}).always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
