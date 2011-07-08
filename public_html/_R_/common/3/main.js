@@ -350,7 +350,7 @@ function processBlinkAnswerMessage(message) {
 				starsProfile[message.startype][message.staroff[i]] = starsProfile[message.startype][message.staroff[i]] || {};
 			}
 		}
-//		setAnswerSpaceItem('starsProfile', starsProfile); // TODO: correct storage of starsProfile
+		MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
 	}
 }
 
@@ -571,48 +571,84 @@ function countPendingFormData(callback) {
 }
 
 function setSubmitCachedFormButton() {
-	$.when(countPendingForms()).then(function(queueCount) {
-		var $table = $('#pendingBox > table'),
+	var $button = $('#pendingButton'),
+		$box = $('#pendingBox'),
+		$noMessage = $box.children('.bForm-noPending'),
+		count = 0,
+		promises = [];
+	$box.children('table').each(function(index, element) {
+		var $table = $(element),
+			version = $table.data('blinkFormVersion'),
 			$tbody = $table.children('tbody'),
 			$hiddenTr = $tbody.children('tr.hidden'),
-			$tr;
-		$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
-			MyAnswers.dispatch.add(function() {
-				var k, kLength = keys.length,
-					key, $cells,
-					interaction, name;
-				$tbody.children('tr:not(.hidden)').remove();
-				for (k = 0; k < kLength; k++) {
-					key = keys[k].split(':');
-					interaction = siteVars.config['i' + key[0]];
-					if ($.type(interaction) === 'object') {
-						name = interaction.pertinent.displayName || interaction.pertinent.name;
+			$tr,
+			deferred = new $.Deferred();
+		promises.push(deferred.promise());
+		if (version === 2) {
+			$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
+				MyAnswers.dispatch.add(function() {
+					var k, kLength = keys.length,
+						key, $cells,
+						interaction, name;
+					if (kLength === 0) {
+						$table.addClass('hidden');
 					} else {
-						name = '<span class="bForm-error">unavailable</span>';
+						$tbody.children('tr:not(.hidden)').remove();
+						for (k = 0; k < kLength; k++) {
+							key = keys[k].split(':');
+							interaction = siteVars.config['i' + key[0]];
+							if ($.type(interaction) === 'object') {
+								name = interaction.pertinent.displayName || interaction.pertinent.name;
+							} else {
+								name = '<span class="bForm-error">unavailable</span>';
+							}
+							$tr = $hiddenTr.clone();
+							$tr.data('interaction', key[0]);
+							$tr.data('form', key[1]);
+							$cells = $tr.children('td');
+							$cells.eq(0).text(name);
+							$cells.eq(1).text(key[2]);
+							$tr.removeClass('hidden');
+							$tr.appendTo($tbody);
+							count++;
+						}
+						$table.removeClass('hidden');
 					}
-					$tr = $hiddenTr.clone();
-					$tr.data('interaction', key[0]);
-					$tr.data('form', key[1]);
-					$cells = $tr.children('td');
-					$cells.eq(0).text(name);
-					$cells.eq(1).text(key[2]);
-					$tr.removeClass('hidden');
-					$tr.appendTo($tbody);
-				}
-				if (kLength === 0) {
-					$tbody.append('<tr><td colspan="3">No pending forms submissions.</td></tr>');
-				}
+					deferred.resolve();
+				});
 			});
-		});
-		var button = document.getElementById('pendingButton');
+		} else if (version === 1) {
+			$.when(MyAnswers.pendingV1Store.keys()).then(function(keys) {
+				MyAnswers.dispatch.add(function() {
+					var k, kLength = keys.length,
+						key, $cells,
+						interaction, name;
+					if (kLength === 0) {
+						$table.addClass('hidden');
+					} else {
+						$tbody.children('tr:not(.hidden)').remove();
+						for (k = 0; k < kLength; k++) {
+							key = keys[k].split(':');
+							count++;
+						}
+						$table.removeClass('hidden');
+					}
+					deferred.resolve();
+				});
+			});
+		}
+	});
+	$.when.apply($, promises).then(function() {
 		MyAnswers.dispatch.add(function() {
-			if (queueCount !== 0) {
-				log("CachedFormButton: Cached items");
-				insertText(button, queueCount + ' Pending');
-				$(button).removeClass('hidden');
+			var string = count + ' Pending';
+			log("setSubmitCachedFormButton(): " + string);
+			if (count !== 0) {
+				insertText($button[0], string);
+				$noMessage.addClass('hidden');
+				$button.removeClass('hidden');
 			} else {
-				log("setSubmitCachedFormButton: NO Cached items");
-				$(button).addClass('hidden');
+				$noMessage.removeClass('hidden');
+				$button.addClass('hidden');
 			}
 		});
 		if (typeof setupParts === 'function') {
@@ -637,88 +673,6 @@ function setSubmitCachedFormButton() {
 	}); */
 }
 
-function headPendingFormData(callback) {
-	// TODO: change headPendingFormData to jQuery Deferred
-	countPendingFormData(function(queueCount) {
-		if (queueCount === 0) {
-			callback(['', '']);
-			return;
-		}
-		$.when(
-			MyAnswers.store.get('_pendingFormDataString'),
-			MyAnswers.store.get('_pendingFormDataArrayAsString'),
-			MyAnswers.store.get('_pendingFormMethod'),
-			MyAnswers.store.get('_pendingFormUUID')
-		).done(function(q1, q2, q3, q4) {
-			log('headPendingFormData():');
-			callback([q1, decodeURIComponent(q2), decodeURIComponent(q3), decodeURIComponent(q4)]);
-		}).fail(function() {
-			log('headPendingFormData(): error retrieving first pending form');
-		});
-	});
-}
-
-function removeFormRetryData() {
-	$.when(
-	    MyAnswers.store.remove('_pendingFormDataString'),
-	    MyAnswers.store.remove('_pendingFormDataArrayAsString'),
-	    MyAnswers.store.remove('_pendingFormMethod'),
-	    MyAnswers.store.remove('_pendingFormUUID')
-	).done(function() {
-	    log('removeFormRetryData(): pending form data purged');
-		setSubmitCachedFormButton();
-	}).fail(function() {
-	    log('removeFormRetryData(): error purging pending form data');
-	});
-}
-
-function delHeadPendingFormData() {
-	function delHeadFormStore(store, key) {
-		var deferred = new $.Deferred(function(dfrd) {
-			$.when(store.get(key)).done(function(value) {
-				value = value.substring(value.indexOf(':') + 1);
-				$.when(store.set(key, value)).done(dfrd.resolve);
-			});
-		});
-		return deferred.promise();
-	}
-	countPendingFormData(function(queueCount) {
-		if (queueCount === 0) {
-			log("delHeadPendingFormData: count 0, returning");
-			return;
-		} else if (queueCount === 1) {
-			removeFormRetryData();
-			return;
-		}
-		$.when(
-			delHeadFormStore(MyAnswers.store, '_pendingFormDataString'),
-			delHeadFormStore(MyAnswers.store, '_pendingFormDataArrayAsString'),
-			delHeadFormStore(MyAnswers.store, '_pendingFormMethod'),
-			delHeadFormStore(MyAnswers.store, '_pendingFormUUID')
-		).done(function(string, array, method, uuid) {
-			log('delHeadPendingFormData(): head of form queue deleted');
-		}).fail(function() {
-			log('delHeadPendingFormData(): error retrieving first pending form');
-		});
-	});
-}
-
-function processCachedFormData() {
-	$.when(
-		MyAnswers.store.get('_pendingFormDataString')
-	).done(function(value) {
-		if (typeof value === 'string') {
-			if (confirm("Submit pending form data \nfrom previous forms?\nNote: Subsequent forms will continue to pend\nuntil you empty the pending list.")) {
-				submitFormWithRetry();
-			} else {
-				if (confirm("Delete pending form data\nfrom previous forms?")) {
-					removeFormRetryData();
-				}
-			}
-		}
-	});
-}
-
 // *** END BLINK UTILS ***
 
 // *** BEGIN EVENT HANDLERS ***
@@ -739,52 +693,6 @@ function errorCache()
 {
   log("errorCache: " + webappCache.status);
   log("You're either offline or something has gone horribly wrong.");
-}
-
-function onPendingClick(event) {
-	var $button = $(event.target),
-		action = $button.data('action'),
-		$tr = $button.closest('tr'),
-		$cells = $tr.children('td'),
-		interaction = $tr.data('interaction'),
-		form = $tr.data('form'),
-		uuid = $cells.eq(1).text();
-	if (action === 'cancel') {
-		clearPendingForm(interaction, form, uuid);
-	} else if (action === 'resume') {
-		showAnswerView(interaction, {pendingForm: interaction + ':' + form + ':' + uuid});
-	}
-}
-
-function onTaskBegun(event)
-{
-	MyAnswers.runningTasks++;
-	if ($('#startUp').size() > 0) {return true;}
-	if (typeof(MyAnswers.activityIndicatorTimer) === 'number') {return true;}
-	MyAnswers.activityIndicatorTimer = setTimeout(function() {
-		clearTimeout(MyAnswers.activityIndicatorTimer);
-		MyAnswers.activityIndicatorTimer = null;
-		$(MyAnswers.activityIndicator).removeClass('hidden');
-	}, 1000);
-	return true;
-}
-
-function onTaskComplete(event)
-{
-	if (MyAnswers.runningTasks > 0)
-	{
-		MyAnswers.runningTasks--;
-	}
-	if (MyAnswers.runningTasks <= 0)
-	{
-		if (MyAnswers.activityIndicatorTimer !== null)
-		{
-			clearTimeout(MyAnswers.activityIndicatorTimer);
-		}
-		MyAnswers.activityIndicatorTimer = null;
-		$(MyAnswers.activityIndicator).addClass('hidden');
-	}
-	return true;
 }
 
 function onStarClick(event)
@@ -837,7 +745,7 @@ function onLinkClick(event) {
 		} else if (typeof attributes.home !== 'undefined') {
 			History.pushState(null, null, '/' + siteVars.answerSpace + '/');
 		} else if (typeof attributes.login !== 'undefined') {
-			History.pushState({ login: true });
+			History.pushState({login: true});
 		} else if (attributes.interaction || attributes.keyword) {
 			if (id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions')) {
 				for (a in attributes) {
@@ -852,17 +760,17 @@ function onLinkClick(event) {
 				delete args.interaction;
 				delete args.keyword;
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
-				History.pushState({ m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
+				History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
 			}
 		} else if (typeof attributes.category !== 'undefined') {
 			if (id = resolveItemName(attributes.category, 'categories')) {
 				requestUri = '/' + siteVars.answerSpace + '/?_c=' + id;
-				History.pushState({ m: currentMasterCategory, c: id });
+				History.pushState({m: currentMasterCategory, c: id});
 			}
 		} else if (typeof attributes.mastercategory !== 'undefined') {
 			if (id = resolveItemName(attributes.mastercategory, 'masterCategories')) {
 				requestUri = '/' + siteVars.answerSpace + '/?_m=' + id;
-				History.pushState({ m: id });
+				History.pushState({m: id});
 			}
 		}
 		return false;
@@ -929,7 +837,6 @@ function updateNavigationButtons() {
 			$navBars.removeClass('hidden');
 		}
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
-		setSubmitCachedFormButton();
 		MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
 /*		if (typeof MyAnswersSideBar !== 'undefined') {
 			MyAnswersSideBar.update();
@@ -1078,7 +985,7 @@ function onKeywordClick(event) {
 	var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
 	History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
 }
-function onHyperlinkClick(event) { window.location.assign($(this).data('hyperlink')); }
+function onHyperlinkClick(event) {window.location.assign($(this).data('hyperlink'));}
 
 function populateItemListing(level) {
 	var arrangement, display, order, list, $visualBox, $listBox, type,
@@ -1328,16 +1235,16 @@ function displayAnswerSpace() {
 		}
 		$('#answerSpacesListView').remove();
 		if (currentConfig.defaultScreen === 'login') {
-			History.pushState({ login: true });
+			History.pushState({login: true});
 		} else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
 			requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
-			History.pushState({ i: currentConfig.defaultInteraction }, null, requestUri);
+			History.pushState({i: currentConfig.defaultInteraction}, null, requestUri);
 		} else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
 			requestUri = '/' + siteVars.answerSpace + '/?_c=' + currentConfig.defaultCategory;
-			History.pushState({ c: currentConfig.defaultCategory }, null, requestUri);
+			History.pushState({c: currentConfig.defaultCategory}, null, requestUri);
 		} else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
 			requestUri = '/' + siteVars.answerSpace + '/?_m=' + currentConfig.defaultMasterCategory;
-			History.pushState({ m: currentConfig.defaultMasterCategory }, null, requestUri);
+			History.pushState({m: currentConfig.defaultMasterCategory}, null, requestUri);
 		} else { // default "home"
 			if (hasMasterCategories) {
 				showMasterCategoriesView();
@@ -1356,16 +1263,16 @@ function displayAnswerSpace() {
 				delete siteVars.queryParameters.keyword;
 				if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
 					requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
-					History.pushState({ i: interaction, 'arguments': siteVars.queryParameters }, null, requestUri);
+					History.pushState({i: interaction, 'arguments': siteVars.queryParameters}, null, requestUri);
 				} else if (interaction) {
 					requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
-					History.pushState({ i: interaction }, null, requestUri);
+					History.pushState({i: interaction}, null, requestUri);
 				} else if (typeof(siteVars.queryParameters._c) === 'string') {
 					requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
-					History.pushState({ m: siteVars.queryParameters._c }, null, requestUri);
+					History.pushState({m: siteVars.queryParameters._c}, null, requestUri);
 				} else if (typeof(siteVars.queryParameters._m) === 'string') {
 					requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
-					History.pushState({ m: siteVars.queryParameters._m }, null, requestUri);
+					History.pushState({m: siteVars.queryParameters._m}, null, requestUri);
 				}
 				delete siteVars.queryParameters;
 			});
@@ -1589,7 +1496,7 @@ function goBackToHome() {
 }
 
 function gotoStorageView() {
-	History.pushState({ storage: true }, null, '/' + siteVars.answerSpace + '/?_storage=true');
+	History.pushState({storage: true}, null, '/' + siteVars.answerSpace + '/?_storage=true');
 }
 
 function showPendingView() {
@@ -2063,19 +1970,21 @@ function goBackToTopLevelAnswerView(event)
 }
 
 /**
- * Add a form submission to the queue.
+ * Count the number of stored submissions for both BlinkForms v1 and v2.
  * @returns {jQueryPromise} number of stored forms
  */
 function countPendingForms() {
 	var deferred = new $.Deferred();
 	$.when(MyAnswers.pendingStore.size()).then(function(size) {
-		deferred.resolve(size);
+		$.when(MyAnswers.pendingV1Store.size()).then(function(sizeV1) {
+			deferred.resolve(size + sizeV1);
+		});
 	});
 	return deferred.promise();
 }
 
 /**
- * Add a form submission to the queue.
+ * Add a BlinkForms v2 submission to the queue.
  * @param {String} interaction ID
  * @param {String} form name of the form object
  * @param {String} uuid UUID
@@ -2093,7 +2002,7 @@ function pushPendingForm(interaction, form, uuid, data) {
 }
 
 /**
- * Remove a form submission from the queue.
+ * Remove a BlinkForms v2 submission from the queue.
  * @param {String} interaction ID
  * @param {String} form name of the form object
  * @param {String} uuid UUID
@@ -2111,109 +2020,113 @@ function clearPendingForm(interaction, form, uuid) {
 	return deferred.promise();
 }
 
-function queuePendingFormData(str, arrayAsString, method, uuid, callback) {
-	// TODO: change queuePendingFormData to jQuery Deferred
-	$.when(MyAnswers.store.get('_pendingFormDataString')).done(function(dataString) {
-		if (typeof dataString === 'string') {
-			log('queuePendingFormData(): existing queue found');
-			dataString += ':' + str;
-			MyAnswers.store.set('_pendingFormDataString', dataString);
-			$.when(MyAnswers.store.get('_pendingFormDataArrayAsString')).done(function(value) {
-				value += ':' + encodeURIComponent(arrayAsString);
-				MyAnswers.store.set('_pendingFormDataArrayAsString', value);
-			});
-			$.when(MyAnswers.store.get('_pendingFormMethod')).done(function(value) {
-				value += ':' + encodeURIComponent(method);
-				MyAnswers.store.set('_pendingFormMethod', value);
-			});
-			$.when(MyAnswers.store.get('_pendingFormUUID')).done(function(value) {
-				value += ':' + encodeURIComponent(uuid);
-				MyAnswers.store.set('_pendingFormUUID', value);
-			});
-		} else {
-			log('queuePendingFormData(): no existing queue found');
-			$.when(
-				MyAnswers.store.set('_pendingFormDataString', str),
-				MyAnswers.store.set('_pendingFormDataArrayAsString', encodeURIComponent(arrayAsString)),
-				MyAnswers.store.set('_pendingFormMethod', encodeURIComponent(method)),
-				MyAnswers.store.set('_pendingFormUUID', encodeURIComponent(uuid))
-			).done(callback);
-		}
+/**
+ * Add a BlinkForms v1 submission to the queue.
+ * @param {String} interaction ID
+ * @param {String} form name of the form object
+ * @param {String} uuid UUID
+ * @param {Object} data key=>value pairs to be JSON-encoded
+ * @returns {jQueryPromise}
+ */
+function pushPendingFormV1(interaction, uuid, data) {
+	var deferred = new $.Deferred();
+	$.when(MyAnswers.pendingStore.set(interaction + ':' + uuid, JSON.stringify(data))).then(function() {
+		deferred.resolve(data);
+	}).fail(function() {
+		deferred.reject();
 	});
+	return deferred.promise();
 }
 
-function submitFormWithRetry() {    
+/**
+ * Remove a BlinkForms v2 submission from the queue.
+ * @param {String} interaction ID
+ * @param {String} form name of the form object
+ * @param {String} uuid UUID
+ * @returns {jQueryPromise}
+ */
+function clearPendingFormV1(interaction, uuid) {
+	var deferred = new $.Deferred();
+	$.when(MyAnswers.pendingStore.remove(interaction + ':' + uuid)).then(function() {
+		deferred.resolve();
+	}).fail(function() {
+		deferred.reject();
+	}).always(function() {
+		setSubmitCachedFormButton();
+	});
+	return deferred.promise();
+}
+
+function submitFormWithRetry(data) {
 	var str, arr, method, uuid,
 		localKeyword;
-	$.when(MyAnswers.store.get('_pendingFormDataString')).done(function(dataString) {
-		if (typeof dataString === 'string') {
-			headPendingFormData(function(qx) {
-				str = qx[0];
-				arr = qx[1].split("/");
-				method = qx[2];
-				uuid = qx[3];
-				var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
-					currentBox = $('.view:visible > .box').first(),
-					requestData;
-				if (arr[0] === '..') {
-					answerUrl += "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(arr[1]) + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
-					localKeyword = arr[1];
-				} else {
-					answerUrl += "asn=" + arr[1] + "&iact=" + encodeURIComponent(arr[2]);
-					localKeyword = arr[2];
-				}
-				if (method === 'get') {
-					method = 'GET';
-					requestData = '&' + str;
-				} else {
-					method = 'POST';
-					requestData = str;
-				}
-	
-				MyAnswers.$body.trigger('taskBegun');
-				$.ajax({
-					type: method,
-					cache: 'false',
-					url: answerUrl,
-					data: requestData,
-					complete: function(xhr, textstatus) { // readystate === 4
-						var html;
-						if (isAJAXError(textstatus) || xhr.status !== 200) {
-							html = 'Unable to contact server. Your submission has been stored for future attempts.  (' + textstatus + ' ' + xhr.status + ')';
-						} else {
-							delHeadPendingFormData();
-							html = xhr.responseText;
-						}
-						$.when(MyAnswersDevice.hideView()).always(function() {
-							if (currentBox.attr('id').indexOf('answerBox') !== -1) {
-								insertHTML(currentBox[0], html);
-								$.when(initialiseAnswerFeatures(currentBox)).always(function() {
-									currentBox.show('slide', {direction: 'right'}, 300);
-									MyAnswersDevice.showView(currentBox.closest('.view'));
-								});
-							} else {
-								var answerBox2 = document.getElementById('answerBox2');
-								insertHTML(answerBox2, html);
-								$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
-									MyAnswersDevice.showView($('#answerView2'));
-								});
-							}
-							MyAnswers.$body.trigger('taskComplete');
-						});
-					},
-					timeout: Math.max(currentConfig.uploadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
-				});
-			});
+	if (typeof dataString === 'string') {
+		str = data.data;
+		arr = data.action.split("/");
+		method = data.method;
+		uuid = data.uuid;
+		var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+			currentBox = $('.view:visible > .box').first(),
+			requestData;
+		if (arr[0] === '..') {
+			answerUrl += "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(arr[1]) + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
+			localKeyword = arr[1];
 		} else {
-			log('submitFormWithRetry(): error: no forms in the queue');
+			answerUrl += "asn=" + arr[1] + "&iact=" + encodeURIComponent(arr[2]);
+			localKeyword = arr[2];
 		}
-	});
+		if (method === 'GET') {
+			requestData = '&' + str;
+		} else {
+			method = 'POST';
+			requestData = str;
+		}
+
+		MyAnswers.$body.trigger('taskBegun');
+		$.ajax({
+			type: method,
+			cache: 'false',
+			url: answerUrl,
+			data: requestData,
+			complete: function(xhr, textstatus) { // readystate === 4
+				var html;
+				if (isAJAXError(textstatus) || xhr.status !== 200) {
+					html = 'Unable to contact server. Your submission has been stored for future attempts.  (' + textstatus + ' ' + xhr.status + ')';
+				} else {
+					clearPendingFormV1(data.interaction, uuid);
+					html = xhr.responseText;
+				}
+				$.when(MyAnswersDevice.hideView()).always(function() {
+					if (currentBox.attr('id').indexOf('answerBox') !== -1) {
+						insertHTML(currentBox[0], html);
+						$.when(initialiseAnswerFeatures(currentBox)).always(function() {
+							currentBox.show('slide', {direction: 'right'}, 300);
+							MyAnswersDevice.showView(currentBox.closest('.view'));
+						});
+					} else {
+						var answerBox2 = document.getElementById('answerBox2');
+						insertHTML(answerBox2, html);
+						$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
+							MyAnswersDevice.showView($('#answerView2'));
+						});
+					}
+					MyAnswers.$body.trigger('taskComplete');
+				});
+			},
+			timeout: Math.max(currentConfig.uploadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
+		});
+	} else {
+		log('submitFormWithRetry(): error: no forms in the queue');
+	}
 }
 
 function submitForm() {
 	var str = '',
-		form = $('.view:visible').find('form').first();
-	form.find('input, textarea, select').each(function(index, element) {
+		$form = $('.view:visible').find('form').first(),
+		action = $form.attr('action'),
+		method = $form.attr('method'),
+		uuid = Math.uuid();
+	$form.find('input, textarea, select').each(function(index, element) {
     if (element.name)
     {
       if (element.type && (element.type.toLowerCase() === 'radio' || element.type.toLowerCase() === 'checkbox') && element.checked === false)
@@ -2235,7 +2148,7 @@ function submitForm() {
           if (element.type && (element.type.toLowerCase() === 'button')) {
             if ((element.value !== "Gallery") && (element.value !== "Camera"))
             { 
-              str += "&" + element.name + "=" + element.value;
+              str += "&" + element.name + "=" + encodeURIComponent(element.value);
             }
             else
             {
@@ -2244,7 +2157,7 @@ function submitForm() {
           }
           else
           {
-						str += "&" + element.name + "=" + element.value;
+						str += "&" + element.name + "=" + encodeURIComponent(element.value);
           }
           // log("else: " + str);
         }
@@ -2257,7 +2170,18 @@ function submitForm() {
   // var str = $('form').first().find('input, textarea, select').serialize();
   log("submitForm(2): " + document.forms[0].action);
   // log("submitForm(2a): " + str);
-  queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
+	$.when(pushPendingFormV1(currentInteraction, uuid, {
+			data: str,
+			'action': action,
+			'method': $.type(method) === 'string' ? method.toUpperCase() : 'post',
+			'uuid': uuid,
+			interaction: currentInteraction
+		}))
+		.fail(function() {
+			alert('Error: unable to feed submission through queue.');
+		})
+		.then(submitFormWithRetry);
+	// queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
   return false;
 }
 
@@ -2667,17 +2591,7 @@ function onBrowserReady() {
 			siteVars.hasLogin = true;
 		}
 		
-		// 
-		// The following variables are initialised here so the JS can be tested
-		// within Safari
-		//
-//		MyAnswers.cameraPresent = false;
-//		MyAnswers.multiTasking = false;
-		//
-		// End of device overriden variables
-		//
-		
-		// HTML5 Web Worker
+		// TODO: finish work on HTML5 Web Worker support
 		/*
 		 * deviceVars.hasWebWorkers = typeof(window.Worker) === 'function'; if
 		 * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
@@ -2744,6 +2658,7 @@ function onBodyLoad() {
   }
 }
 
+/* moving non-public functions into a closure for safety */
 (function(window, undefined) {
 	var document = window.document,
 		siteVars = window.siteVars,
@@ -2751,9 +2666,71 @@ function onBodyLoad() {
 		starsProfile = window.starsProfile,
 		$ = window.jQuery;
 
+/* *** EVENT HANDLERS *** */
+
+	function onPendingClick(event) {
+		var $button = $(event.target),
+			action = $button.data('action'),
+			$tr = $button.closest('tr'),
+			$table = $tr.closest('table'),
+			version = $table.data('blinkFormVersion'),
+			$cells = $tr.children('td'),
+			interaction = $tr.data('interaction'),
+			form = $tr.data('form'),
+			uuid = $cells.eq(1).text(),
+			requestUri;
+		if (version === 2) {
+			if (action === 'cancel') {
+				clearPendingForm(interaction, form, uuid);
+			} else if (action === 'resume') {
+				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
+				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm:  + ':' + form + ':' + uuid}}, null, requestUri);
+			}
+		} else if (version === 1) {
+			if (action === 'cancel') {
+				clearPendingFormV1(interaction, uuid);
+			} else if (action === 'submit') {
+				$.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
+					.fail(function() {
+						alert('Error: unable to retrieve this form.');
+					})
+					.then(submitFormWithRetry);
+			}
+		}
+	}
+
+	function onTaskBegun(event) {
+		MyAnswers.runningTasks++;
+		if ($('#startUp').size() > 0) {return true;}
+		if (typeof(MyAnswers.activityIndicatorTimer) === 'number') {return true;}
+		MyAnswers.activityIndicatorTimer = setTimeout(function() {
+			clearTimeout(MyAnswers.activityIndicatorTimer);
+			MyAnswers.activityIndicatorTimer = null;
+			$(MyAnswers.activityIndicator).removeClass('hidden');
+		}, 1000);
+		return true;
+	}
+
+	function onTaskComplete(event) {
+		if (MyAnswers.runningTasks > 0) {
+			MyAnswers.runningTasks--;
+		}
+		if (MyAnswers.runningTasks <= 0) {
+			if (MyAnswers.activityIndicatorTimer !== null) {
+				clearTimeout(MyAnswers.activityIndicatorTimer);
+			}
+			MyAnswers.activityIndicatorTimer = null;
+			$(MyAnswers.activityIndicator).addClass('hidden');
+		}
+		return true;
+	}
+
+/* *** INITIALISATION FUNCTIONS *** */
+
 	function loaded() {
 		log('loaded():');
 		try {
+			setSubmitCachedFormButton();
 			MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 			$.when(MyAnswers.siteStore.get('config')).then(function(data) {
 				if (typeof data === 'string') {
@@ -2816,10 +2793,13 @@ function onBodyLoad() {
 			$.when(MyAnswers.siteStore.ready()).then(function() {
 				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
 				$.when(MyAnswers.pendingStore.ready()).then(function() {
-			//		MyAnswers.dumpLocalStorage();
-					$.when(MyAnswers.updateLocalStorage()).done(function() {
-						loaded();
-						log('loaded(): returned after call by BlinkStorage');
+					MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
+					$.when(MyAnswers.pendingV1Store.ready()).then(function() {
+				//		MyAnswers.dumpLocalStorage();
+						$.when(MyAnswers.updateLocalStorage()).done(function() {
+							loaded();
+							log('loaded(): returned after call by BlinkStorage');
+						});
 					});
 				});
 			});
