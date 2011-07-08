@@ -1279,6 +1279,7 @@ function displayAnswerSpace() {
 	}
 	startUp.remove();
 	$('#content').removeClass('hidden');
+	setSubmitCachedFormButton();
 }
 
 function processMoJOs(interaction) {
@@ -2060,7 +2061,7 @@ function clearPendingFormV1(interaction, uuid) {
 function submitFormWithRetry(data) {
 	var str, arr, method, uuid,
 		localKeyword;
-	if (typeof dataString === 'string') {
+	if ($.type(data) === 'object') {
 		str = data.data;
 		arr = data.action.split("/");
 		method = data.method;
@@ -2730,7 +2731,6 @@ function onBodyLoad() {
 	function loaded() {
 		log('loaded():');
 		try {
-			setSubmitCachedFormButton();
 			MyAnswers.store.set('answerSpace', siteVars.answerSpace);
 			$.when(MyAnswers.siteStore.get('config')).then(function(data) {
 				if (typeof data === 'string') {
