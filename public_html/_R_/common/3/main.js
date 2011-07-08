@@ -2704,7 +2704,10 @@ function onBodyLoad() {
 					.fail(function() {
 						alert('Error: unable to retrieve this form.');
 					})
-					.then(submitFormWithRetry);
+					.then(function(data) {
+						data = $.parseJSON(data);
+						submitFormWithRetry(data);
+					});
 			}
 		}
 	}
