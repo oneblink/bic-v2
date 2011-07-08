@@ -629,6 +629,19 @@ function setSubmitCachedFormButton() {
 						$tbody.children('tr:not(.hidden)').remove();
 						for (k = 0; k < kLength; k++) {
 							key = keys[k].split(':');
+							interaction = siteVars.config['i' + key[0]];
+							if ($.type(interaction) === 'object') {
+								name = interaction.pertinent.displayName || interaction.pertinent.name;
+							} else {
+								name = '<span class="bForm-error">unavailable</span>';
+							}
+							$tr = $hiddenTr.clone();
+							$tr.data('interaction', key[0]);
+							$cells = $tr.children('td');
+							$cells.eq(0).text(name);
+							$cells.eq(1).text(key[1]);
+							$tr.removeClass('hidden');
+							$tr.appendTo($tbody);
 							count++;
 						}
 						$table.removeClass('hidden');
