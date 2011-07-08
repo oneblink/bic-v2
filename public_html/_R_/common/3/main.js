@@ -2031,7 +2031,7 @@ function clearPendingForm(interaction, form, uuid) {
  */
 function pushPendingFormV1(interaction, uuid, data) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.set(interaction + ':' + uuid, JSON.stringify(data))).then(function() {
+	$.when(MyAnswers.pendingV1Store.set(interaction + ':' + uuid, JSON.stringify(data))).then(function() {
 		deferred.resolve(data);
 	}).fail(function() {
 		deferred.reject();
