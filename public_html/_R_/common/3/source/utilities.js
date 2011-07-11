@@ -22,6 +22,21 @@ function computeTimeout(messageLength) {
   return Math.floor((messageLength * lowestTransferRateConst) + 15000);
 }
 
+/* duck-punching Math.round() so it accepts a 2nd parameter */
+(function(window, undefined) {
+	var Math = window.Math,
+		oldRound = Math.round;
+	Math.round = function(value, decimals) {
+		if (!decimals || decimals === 0) {
+			return oldRound(value);
+		}
+		if (typeof decimals === 'number' && decimals > 0) {
+			value = Math.round(value * Math.pow(10, decimals))/Math.pow(10, decimals);
+		}
+		return value;
+	};
+}(this));
+
 /*
  * Math.uuid.js, minimalistic uuid generator. Original script from Robert
  * Kieffer, http://www.broofa.com Dual licensed under the MIT and GPL licenses.
