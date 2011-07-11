@@ -382,9 +382,7 @@ function getPicture_Success(imageData) {
 }
 
 function getPicture(sourceType) {
-	// TODO: feed quality and imageScale values from configuration
-//  var options = { quality: siteConfig.imageQuality, imageScale: siteConfig.imageScale };
-	var options = {quality: 60, imageScale: 40};
+	var options = {quality: currentConfig.imageCaptureQuality, imageScale: currentConfig.imageCaptureScale};
 	if (sourceType !== undefined) {
 		options.sourceType = sourceType;
 	}
@@ -1675,8 +1673,12 @@ function gotoNextScreen(keyword, category, masterCategory) {
 }
 
 function showSecondLevelAnswerView(keyword, arg0, reverse) {
+	var id, requestUri;
 	log('showSecondLevelAnswerView(): keyword=' + keyword + ' args=' + arg0);
-	showAnswerView(keyword, arg0, reverse);
+	if (id = resolveItemName(keyword, 'interactions')) {
+		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + arg0;
+		History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': deserialize(arg0)}, null, requestUri);
+	}
 }
 
 function showKeywordView(keyword) {
@@ -2673,7 +2675,6 @@ function onBodyLoad() {
 	var document = window.document,
 		siteVars = window.siteVars,
 		MyAnswers = window.MyAnswers,
-		starsProfile = window.starsProfile,
 		$ = window.jQuery;
 
 /* *** EVENT HANDLERS *** */
@@ -2693,8 +2694,8 @@ function onBodyLoad() {
 			if (action === 'cancel') {
 				clearPendingForm(interaction, form, uuid);
 			} else if (action === 'resume') {
-				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
-				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm:  + ':' + form + ':' + uuid}}, null, requestUri);
+				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
+				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
 			}
 		} else if (version === 1) {
 			if (action === 'cancel') {
@@ -2763,8 +2764,8 @@ function onBodyLoad() {
 					$.when(requestLoginStatus()).always(requestConfig);
 				});
 			});
-			$.when(MyAnswers.store.get('starsProfile')).done(function(stars) {
-				if (typeof stars === 'string') {
+			$.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
+				if ($.type(stars) === 'string') {
 					stars = $.parseJSON(stars);
 				}
 				if ($.type(stars) === 'object') {
