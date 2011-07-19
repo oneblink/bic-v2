@@ -796,15 +796,6 @@ function updateOrientation()
 
 // *** END EVENT HANDLERS ***
 
-if (window.device && window.device.ready) {
-	onDeviceReady();
-} else {
-	if (!addEvent(document, "deviceready", onDeviceReady)) {
-		alert("Unable to add deviceready handler");
-		throw("Unable to add deviceready handler");
-	}
-}
-
 function updateNavigationButtons() {
 	MyAnswers.dispatch.add(function() {
 		var $navBars = $('.navBar'),
@@ -2647,7 +2638,25 @@ function onBrowserReady() {
 			} 
 			log('AJAX complete: ' + url + ' ' + readyState + ' ' + status);
 		});
-		MyAnswers.browserDeferred.resolve();
+
+		if (siteVars.serverAppBranch === 'W') {
+			MyAnswers.blinkgapDeferred = new $.Deferred();
+			if (window.device && window.device.ready) {
+				onDeviceReady();
+			} else {
+				if (!addEvent(document, "deviceready", onDeviceReady)) {
+					alert("Unable to add deviceready handler");
+					throw("Unable to add deviceready handler");
+				}
+			}
+			$.when(MyAnswers.blinkgapDeferred.promise())
+				.done(function() {
+					delete MyAnswers.blinkgapDeferred;
+					MyAnswers.browserDeferred.resolve();
+				});
+		} else {
+			MyAnswers.browserDeferred.resolve();
+		}
   } catch(e) {
 		log("onBrowserReady: Exception");
 		log(e);
@@ -2827,11 +2836,12 @@ function onBodyLoad() {
 		$('#pendingBox').delegate('button', 'click', onPendingClick);
 	}
 
-	$.when(
+	MyAnswers.bootPromises = [
 		MyAnswers.deviceDeferred.promise(),
 		MyAnswers.browserDeferred.promise(),
 		MyAnswers.mainDeferred.promise()
-	).done(function() {
+	];
+	$.whenArray(MyAnswers.bootPromises).done(function() {
 		log("all promises kept, initialising...");
 		try {
 			init_main();
@@ -2841,6 +2851,10 @@ function onBodyLoad() {
 			log(e);
 		}
 		log("User-Agent: " + window.navigator.userAgent);
+		delete MyAnswers.bootPromises;
+		delete MyAnswers.deviceDeferred;
+		delete MyAnswers.browserDeferred;
+		delete MyAnswers.mainDeferred;
 	}).fail(function() {
 		log('init failed, not all promises kept');
 	});
