@@ -28,24 +28,31 @@ function init_device()
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 function onDeviceReady() {
-  log("Device Ready");
-  log("URL to Load: " + window.Settings.LoadURL);
-  log("Device: " + window.device.platform);
-  log("Camera Present: " + window.device.camerapresent);
-  log("Multitasking: " + window.device.multitasking);
-  MyAnswers.cameraPresent = window.device.camerapresent;
-  MyAnswers.loadURL = window.Settings.LoadURL;
-	siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
-  MyAnswers.domain = "//" + siteVars.serverDomain + "/";
-  log("Domain: " + MyAnswers.domain);
-  MyAnswers.multiTasking = window.device.multitasking;
-  siteVars.serverAppVersion = window.Settings.codeVersion;
-  siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
-  siteVars.answerSpace = window.Settings.answerSpace;
-  siteVars.serverDevicePath = MyAnswers.loadURL + 'ios/' + siteVars.serverAppVersion + '/';
-  deviceVars.deviceFileName = '/ios.js';
-  log("AppDevicePath: " + siteVars.serverDevicePath);
-  log("AppPath: " + siteVars.serverAppPath);
+	try {
+		log("Device Ready");
+		log("URL to Load: " + window.Settings.LoadURL);
+		log("Device: " + window.device.platform);
+		log("Camera Present: " + window.device.camerapresent);
+		log("Multitasking: " + window.device.multitasking);
+		MyAnswers.cameraPresent = window.device.camerapresent;
+		MyAnswers.loadURL = window.Settings.LoadURL;
+		siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
+		MyAnswers.domain = "//" + siteVars.serverDomain + "/";
+		log("Domain: " + MyAnswers.domain);
+		MyAnswers.multiTasking = window.device.multitasking;
+		siteVars.serverAppVersion = window.Settings.codeVersion;
+		siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
+		siteVars.answerSpace = window.Settings.answerSpace;
+		siteVars.serverDevicePath = MyAnswers.loadURL + 'ios/' + siteVars.serverAppVersion + '/';
+		deviceVars.deviceFileName = '/ios.js';
+		log("AppDevicePath: " + siteVars.serverDevicePath);
+		log("AppPath: " + siteVars.serverAppPath);
+		MyAnswers.blinkgapDeferred.resolve();
+	} catch(e) {
+		log("onDeviceReady exception: ");
+		log(e);
+		MyAnswers.blinkgapDeferred.reject();
+	}
 }
 
 (function(window, undefined) {

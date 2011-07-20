@@ -46,18 +46,13 @@ function onDeviceReady() {
 		siteVars.serverDevicePath = MyAnswers.loadURL + 'android/' + siteVars.serverAppVersion + '/';
 		log("MyAnswers.loadURL: " + MyAnswers.loadURL);
 		deviceVars.deviceFileName = '/android.js';
-		//if (window.device.platform.search(/iphone/i) != -1) {
-		//  siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
-		//  deviceVars.deviceFileName = '/iphone.js';
-		//} else {
-		//  siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
-		//  deviceVars.deviceFileName = '/ipad.js';
-		//}
 		log("AppDevicePath: " + siteVars.serverDevicePath);
 		log("AppPath: " + siteVars.serverAppPath);
+		MyAnswers.blinkgapDeferred.resolve();
   } catch(e) {
 		log("onDeviceReady exception: ");
 		log(e);
+		MyAnswers.blinkgapDeferred.reject();
 	}
 }
 

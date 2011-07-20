@@ -37,6 +37,14 @@ function computeTimeout(messageLength) {
 	};
 }(this));
 
+/* function to allow passing an array to jQuery.when() */
+(function(window, undefined) {
+	var $ = window.jQuery;
+	$.whenArray = function(array) {
+		return $.when.apply($, array);
+	};
+}(this));
+
 /*
  * Math.uuid.js, minimalistic uuid generator. Original script from Robert
  * Kieffer, http://www.broofa.com Dual licensed under the MIT and GPL licenses.
