@@ -51,7 +51,7 @@ function computeTimeout(messageLength) {
 		var args = $.makeArray(arguments),
 			deferred = args.shift();
 		setTimeout(function() {
-			deferred.resolve.apply(deferred, arguments);
+			deferred.resolve.apply(deferred, args);
 		}, 0);
 		return this;
 	};
