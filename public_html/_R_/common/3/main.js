@@ -2800,7 +2800,7 @@ function onBodyLoad() {
 		$.fx.interval = 27; // default is 13, increasing this to be kinder on devices
 
 		ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
-		MyAnswers.dispatch = new BlinkDispatch(siteVars.serverAppBranch === 'W' ? 93 : 47);
+		MyAnswers.dispatch = new BlinkDispatch(siteVars.serverAppBranch === 'W' ? 149 : 47);
 
 		MyAnswers.runningTasks = 0; // track the number of tasks in progress
 
