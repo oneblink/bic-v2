@@ -37,11 +37,23 @@ function computeTimeout(messageLength) {
 	};
 }(this));
 
-/* function to allow passing an array to jQuery.when() */
+/* minor improvements to  */
 (function(window, undefined) {
 	var $ = window.jQuery;
+	/* function to allow passing an array to jQuery.when() */
 	$.whenArray = function(array) {
 		return $.when.apply($, array);
+	};
+	/* automatically wrap Deferred.resolve in a setTimeout
+	 * @param {jQueryDeferred} deferred
+	 */
+	$.resolveTimeout = function() {
+		var args = $.makeArray(arguments),
+			deferred = args.shift();
+		setTimeout(function() {
+			deferred.resolve.apply(deferred, args);
+		}, 0);
+		return this;
 	};
 }(this));
 
