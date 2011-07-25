@@ -471,10 +471,18 @@ function performXSLT(xmlString, xslString) {
 
 //test to see if the user it viewing the highest level screen
 function isHome() {
-	if ($('.view:visible').first().attr('id') === $('.box:not(:empty)').first().parent().attr('id')) {
-		return true;
+	var siteStructure = siteVars.config['a' + siteVars.id].pertinent.siteStructure,
+		currentView = $('.view:visible').first().attr('id');
+	switch (siteStructure) {
+		case 'master categories':
+			return currentView === 'masterCategoriesView';
+			break;
+		case 'categories':
+			return currentView === 'categoriesView';
+			break;
+		default:
+			return currentView === 'keywordListView';
 	}
-	return false;
 }
 
 // perform all steps necessary to populate element with MoJO result
