@@ -65,18 +65,18 @@ textarea[cols] { width: auto; }
 
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
-form td input { width: 100%; }
-form td input[type=button],
-form td input[type=submit],
-form td input[type=reset],
-form td input[type=checkbox],
-form td input[type=file],
-form td input[type=image],
-form td input[type=radio] {
+td input { width: 100%; }
+td input[type=button],
+td input[type=submit],
+td input[type=reset],
+td input[type=checkbox],
+td input[type=file],
+td input[type=image],
+td input[type=radio] {
 	width: auto;
 }
 
-cd [type=file] {
+td [type=file] {
 	font-size: smaller;
 }
 
