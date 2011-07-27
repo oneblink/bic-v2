@@ -101,7 +101,7 @@
 		} else if (type === 'websqldatabase') {
 			
 			var successHandler = typeof $ === 'function' ? $.noop : function () { },
-				estimatedSize = (window.device ? 5 : 3) * 1024 * 1024;
+				estimatedSize = (window.device ? 5 : 1) * 1024 * 1024;
 			
 			function errorHandler(error) {
 				log('BlinkStorage error: ' + error.code + ' ' + error.message);
