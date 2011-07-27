@@ -10,14 +10,12 @@ html, body {
 	height: 100%;
 	font-size: medium;
 }
-
 header {
 	display: block;
 	overflow: hidden;
 	width: 100%;
 	background-color: #FFF;
 }
-
 header img {
 	display: block;
 	width: 100%;
@@ -28,7 +26,7 @@ form img {
 	max-height: 10em;
 }
 
-form img[name] {
+form img[name], figure img {
 	display: block;
 	margin: .5em auto;
 }
@@ -41,9 +39,9 @@ form table {
 	table-layout: fixed;
 }
 
-form td {
-	padding: 0;
-}
+form td { padding: .1em }
+form td[colspan] { padding: 0 }
+
 
 select {
 	white-space: nowrap;
@@ -65,11 +63,18 @@ textarea[cols] { width: auto; }
 
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
-form td input[type=text], form td input[type=email] {
-	width: 100%;
+td input { width: 100%; }
+td input[type=button],
+td input[type=submit],
+td input[type=reset],
+td input[type=checkbox],
+td input[type=file],
+td input[type=image],
+td input[type=radio] {
+	width: auto;
 }
 
-[type=file] {
+td [type=file] {
 	font-size: smaller;
 }
 
@@ -135,6 +140,10 @@ form col.bForm-input { width: 65%; }
 	color: #A00;
 }
 
+.bForm-dataDisplay {
+	white-space: pre-wrap;
+}
+
 .bForm-label, .bForm-value { font-size: smaller; }
 .bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
@@ -148,7 +157,9 @@ form col.bForm-input { width: 65%; }
 	text-shadow: 0 0 .5em #000;
 	cursor: help;
 }
-
+.fieldInput{
+    padding-right:1em;
+}
 /* *** END BlinkForms2 *** */
 
 #loginBox input[type=text], #loginBox input[type=password] {
