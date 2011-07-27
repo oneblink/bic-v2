@@ -932,6 +932,7 @@ function goBackToMasterCategoriesView()
 
 // run after any change to current*
 function updateCurrentConfig() {
+	var $footer = $('#activeContent > footer');
 	// see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
 	// TODO: need to fold orientation-specific config into this somewhere
 	log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
@@ -961,10 +962,11 @@ function updateCurrentConfig() {
 			$banner.addClass('hidden');
 		}
 	});
-	MyAnswers.dispatch.add(function() {
-		var $footer = $('#activeContent > footer');
-		$footer.text(currentConfig.footer);
-	});
+	if ($footer.html() !== currentConfig.footer) {
+		MyAnswers.dispatch.add(function() {
+			$footer.html(currentConfig.footer);
+		});
+	}
 	MyAnswers.dispatch.add(function() {
 		var style = '',
 			$style = $('style[data-setting="styleSheet"]');

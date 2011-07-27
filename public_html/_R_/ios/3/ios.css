@@ -20,6 +20,10 @@ button, [type=button], [type=submit], [type=reset] {
 	font-size: x-small;
 }
 
+#activeContent {
+		padding-bottom: 44px;
+}
+
 #activityIndicator {
 	position: fixed;
 	left: 50%;
@@ -140,7 +144,6 @@ button, [type=button], [type=submit], [type=reset] {
 
 .view {
 	display: none;
-	padding-bottom: 44px;
 }
 
 .view.animating {
