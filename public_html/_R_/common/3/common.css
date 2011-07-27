@@ -10,14 +10,12 @@ html, body {
 	height: 100%;
 	font-size: medium;
 }
-
 header {
 	display: block;
 	overflow: hidden;
 	width: 100%;
 	background-color: #FFF;
 }
-
 header img {
 	display: block;
 	width: 100%;
@@ -159,7 +157,9 @@ form col.bForm-input { width: 65%; }
 	text-shadow: 0 0 .5em #000;
 	cursor: help;
 }
-
+.fieldInput{
+    padding-right:1em;
+}
 /* *** END BlinkForms2 *** */
 
 #loginBox input[type=text], #loginBox input[type=password] {
