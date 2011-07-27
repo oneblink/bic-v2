@@ -5,8 +5,8 @@ $errorColor: #a00;
 $legacy-support-for-ie: false;
 $experimental-support-for-khtml: false;
 @import "compass/support";
-
 @import "compass/css3/appearance";
+@import "compass/utilities/general/min";
 
 * {
 	margin: 0;
@@ -14,10 +14,8 @@ $experimental-support-for-khtml: false;
 }
 
 html, body {
-	min-width: 100%;
-	width: 100%;
-	min-height: 100%;
-	height: 100%;
+	@include min-height(100%);
+	@include min-width(100%);
 	font-size: medium;
 }
 
@@ -84,7 +82,7 @@ textarea, select, input, label, button {
 textarea {
 	width: 100%;
 	height: 5em;
-	min-height: 5em;
+	@include min-height(5em);
 	&[rows] { height: auto; }
 	&[cols] { width: auto; }
 }
@@ -104,7 +102,7 @@ button, .button {
 	border: 1px solid #000;
 	margin: .2em;
 	padding: .5em 1em;
-	min-width: 3em;
+	@include min-width(3em);
 	font-weight: bold;
 	&[disabled] { opacity: 0.5; }
 }
@@ -205,7 +203,7 @@ form {
 }
 
 header, nav, ul.box {
-	user-select: none;
+	@include experimental(user-select, none);
 }
 
 .googlemap {
@@ -223,30 +221,28 @@ img.v2col { width: 50%; }
 img.v3col { width: 33%; }
 img.v4col { width: 25%; }
 
+
+#startUp, #content, #activeContent {
+	@include min-height(100%);
+	@include min-width(100%);
+}
+
 #startUp {
 	position: absolute;
 	top: 0;
 	padding-top: 20%;
-	width: 100%;
-	min-height: 100%;
-	height: 100%;
 	background-color: white;
 	color: black;
 	text-align: center;
 	z-index: 50;
 }
 
- #content {
+#content {
 	position: relative;
-	width: auto;
-	min-height: 100%;
-	height: 100%;
 }
 
 #activeContent {
 	position: relative;
-	width: 100%;
-	min-height: 100%;
 	overflow-x: hidden;
 	clear: both;
 }
@@ -406,7 +402,6 @@ ul.box > li > .description {
 }
 .bLive-screen .button {
 	display: inline-block;
-	-webkit-appearance: none;
 	margin: .5em;
 	padding: .25em;
 	height: auto;
@@ -444,26 +439,26 @@ ul.box > li > .description {
 	font-style: italic;
 	color: #003;
 }
-.bLive-screen h1 {
-	font-size: 175%;
+.bLive-screen {
+	h1 { font-size: 175%; }
+	h2 { font-size: 130%; }
 }
-.bLive-screen h2 {
-	font-size: 130%;
-}
-.bLive-shoutbox textarea, .bLive-shoutbox input[type=text] {
-	margin: .2em;
-	padding: .4em;
-	font-size: larger;
-	border: .2em solid #77F;
+.bLive-shoutbox {
+	textarea, input[type=text] {
+		margin: .2em;
+		padding: .4em;
+		font-size: larger;
+		border: .2em solid #77F;
+	}
 }
 .bLive-shout {
 	padding: 0 .5em;
 	text-align: left;
 	font-size: larger;
-}
-.bLive-shout > .info {
-	font-size: smaller;
-	text-align: right;
+	>.info {
+		font-size: smaller;
+		text-align: right;
+	}
 }
 .bLive-results, .bLive-poll, .bLive-survey {
 	padding: 1em;
@@ -490,7 +485,7 @@ ul.box > li > .description {
 #MyAnswersSideBar {
 	position: absolute;
 	top: 0;
-	min-height: 100%;
+	@include min-height(100%);
 	z-index: 2;
 }
 
@@ -524,15 +519,16 @@ ul.box > li > .description {
 .signaturePad {
 	display: none;
 	clear: both;
+
+	>canvas {
+		margin: 0px auto;
+		border: 2px solid #A00;
+		background-color: #FFF;
+		position: relative;
+		cursor: crosshair;
+	}
 }
 	
-.signaturePad > canvas {
-	margin: 0px auto;
-	border: 2px solid #A00;
-	background-color: #FFF;
-	position: relative;
-	cursor: crosshair;
-}
 
 /* end signature pad styles */
 
