@@ -256,6 +256,13 @@ img.v4col { width: 25%; }
 .box {
 	position: relative;
 	text-align: center;
+
+	ul, ol {
+		margin: .8em 0;
+		padding-left: 1.75em;
+	}
+
+	p { margin: .8em 0; }
 }
 
 .paddedBox {
@@ -326,39 +333,31 @@ ul.box {
 	padding: 0;
 	list-style: none;
 	background: none;
-}
 
-ul.box > li {
-	position: relative;
-	margin: 0;
-	text-align: left;
-	overflow: hidden;
-	cursor: pointer;
-}
+	> li {
+		position: relative;
+		margin: 0;
+		text-align: left;
+		overflow: hidden;
+		cursor: pointer;
 
-ul.box > li > .label, ul.box > li > .description {
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-	margin: 2px;
-}
+		> div {
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			overflow: hidden;
+			margin: 2px;
+		}
 
-ul.box > li > .label {
-	font-size: larger;
-	font-weight: bold;
-}
+		> .label {
+			font-size: larger;
+			font-weight: bold;
+		}
 
-ul.box > li > .description {
-	font-size: smaller;
-}
+		> .description {
+			font-size: smaller;
+		}
 
-.box ul, .box ol {
-	margin: .8em 0;
-	padding-left: 1.75em;
-}
-
-.box p {
-	margin: .8em 0;
+	}
 }
 
 #answerSpacesList .label, #answerSpacesList .description {
@@ -368,7 +367,41 @@ ul.box > li > .description {
 .bLive-screen {
 	margin: 0 auto;
 	text-align: center;
+
+	h1 { font-size: 175%; }
+	h2 { font-size: 130%; }
+
+	.button {
+		display: inline-block;
+		margin: .5em;
+		padding: .25em;
+		height: auto;
+		text-decoration: none;
+		cursor: pointer;
+		background-color: #66E;
+		border: 2px solid #77F;
+		border-radius: 4px;
+		color: #FFF;
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: inherit;
+
+		&:hover { background-color: #77F; }
+
+		&.refresh {
+			background-color: #4B4;
+			border: 2px solid #5D5;
+			&:hover { background-color: #5D5; }
+		}
+
+		&.important {
+			background-color: #B33;
+			border: 2px solid #F77;
+			&:hover { background-color: #F77; }
+		}
+	}
 }
+
 .bLive-box, .bLive-link {
 	margin: .5em auto;
 	border: .2em solid #77F;
@@ -400,48 +433,9 @@ ul.box > li > .description {
 .bLive-link.odd:hover {
 	background-color: #FFE;
 }
-.bLive-screen .button {
-	display: inline-block;
-	margin: .5em;
-	padding: .25em;
-	height: auto;
-	text-decoration: none;
-	cursor: pointer;
-	background-color: #66E;
-	border: 2px solid #77F;
-	border-radius: 4px;
-	color: #FFF;
-	font-family: inherit;
-	font-size: inherit;
-	font-weight: inherit;
-}
-.bLive-screen .button:hover {
-	background-color: #77F;
-}
-.bLive-screen .button.refresh {
-	background-color: #4B4;
-	border: 2px solid #5D5;
-}
-
-.bLive-screen .button.refresh:hover {
-	background-color: #5D5;
-}
-
-.bLive-screen .button.important {
-	background-color: #B33;
-	border: 2px solid #F77;
-}
-
-.bLive-screen .button.important:hover {
-	background-color: #F77;
-}
 .actionresult {
 	font-style: italic;
 	color: #003;
-}
-.bLive-screen {
-	h1 { font-size: 175%; }
-	h2 { font-size: 130%; }
 }
 .bLive-shoutbox {
 	textarea, input[type=text] {
@@ -487,19 +481,20 @@ ul.box > li > .description {
 	top: 0;
 	@include min-height(100%);
 	z-index: 2;
-}
+	@include experimental(user-select, none);
 
-#MyAnswersSideBar > ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
+	> ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
 
-#MyAnswersSideBar > ul > li {
-	margin: 0;
-	padding: 1em .8em;
-	font-weight: bold;
-	cursor: pointer;
+		> li {
+			margin: 0;
+			padding: 1em .8em;
+			font-weight: bold;
+			cursor: pointer;
+		}
+	}
 }
 
 /* end MyAnswersSideBar styles */
