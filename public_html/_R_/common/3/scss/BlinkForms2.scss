@@ -1,0 +1,100 @@
+/*
+	- used by all devices that render BlinkForms2
+*/
+@import "base";
+
+/* controls styles */
+@import "controls";
+/* end controls */
+
+@mixin img-center {
+	display: block;
+	margin: .5em auto;
+}
+
+figure {
+	img {
+		@include img-center;
+	}
+}
+
+form {
+	img {
+		max-width: 100%;
+		max-height: $formImgMaxHeight;
+		&[name] {
+			@include img-center;
+		}
+	}
+
+	td {
+		padding: .2em;
+		&[colspan] { padding: 0; }
+	}
+}
+
+form {
+	/* we are currently hiding form metadata in a caption <element> */
+	caption.bForm-input { display: none; }
+
+	col {
+		&.bForm-tooltip { width: 24px; }
+		&.bForm-label { width: 35%; }
+		&.bForm-input { width: 65%; }
+	}
+
+	table {
+		overflow: hidden;
+		width: 100%;
+		text-align: left;
+		border-spacing: 0;
+		table-layout: fixed;
+
+		table {
+			margin-bottom: 2px;
+			border-bottom: 2px solid #AAA;
+		}
+	}
+
+	.bForm-input {
+		>span {
+			display: inline-block;
+		}
+	}
+}
+
+.bForm-subFormLabel {
+	display: inline-block;
+	font-weight: bolder;
+	margin: .5em;
+}
+
+.bForm-error { color: $errorColor; }
+
+.bForm-dataDisplay {
+	white-space: pre-wrap;
+}
+
+.bForm-label, .bForm-value { font-size: smaller; }
+.bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
+.bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
+.bForm-input > input[type=button] { display: inline-block; }
+.bForm-input { padding-right: 30px; }
+.bForm-tooltip > span {
+	font-size: larger;
+	font-weight: bolder;
+	color: #FFF;
+	text-outline: 1px 1px #000;
+	text-shadow: 0 0 .5em #000;
+	cursor: help;
+}
+
+.fieldInput{
+    padding-right:1em;
+}
+
+.bForm-subFormControls > button {
+	padding: .5em;
+}
+
+

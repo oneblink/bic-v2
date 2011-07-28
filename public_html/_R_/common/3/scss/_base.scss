@@ -1,0 +1,11 @@
+$backgroundColor: #fff;
+$formImgMaxHeight: 10em;
+$errorColor: #a00;
+
+$legacy-support-for-ie: false;
+$experimental-support-for-khtml: false;
+@import "compass/support";
+@import "compass/css3/appearance";
+@import "compass/utilities/general/min";
+
+

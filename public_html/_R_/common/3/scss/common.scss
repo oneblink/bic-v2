@@ -1,12 +1,8 @@
-$backgroundColor: #fff;
-$formImgMaxHeight: 10em;
-$errorColor: #a00;
-
-$legacy-support-for-ie: false;
-$experimental-support-for-khtml: false;
-@import "compass/support";
-@import "compass/css3/appearance";
-@import "compass/utilities/general/min";
+/*
+	- used by all devices on the dynamic client
+	- includes BlinkForms2 styles so that the dynamic client just needs a single CSS file
+*/
+@import "base";
 
 * {
 	margin: 0;
@@ -31,93 +27,6 @@ header {
 	}
 }
 
-img.center {
-	display: block;
-	margin: .5em auto;
-}
-
-figure {
-	img {
-		@extend img.center
-	}
-}
-
-form {
-	img {
-		max-width: 100%;
-		max-height: $formImgMaxHeight;
-		&[name] {
-			@extend img.center
-		}
-	}
-
-	input[type=reset] {
-		color: $errorColor;
-	}
-
-	table {
-		overflow: hidden;
-		width: 100%;
-		text-align: left;
-		border-spacing: 0;
-		table-layout: fixed;
-	}
-
-	td {
-		padding: .2em;
-		&[colspan] { padding: 0; }
-	}
-}
-
-select {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-textarea, select, input, label, button {
-	max-width: 100%;
-	font-size: medium;
-}
-
-textarea {
-	width: 100%;
-	height: 5em;
-	@include min-height(5em);
-	&[rows] { height: auto; }
-	&[cols] { width: auto; }
-}
-
-td {
-	input {
-		width: 100%;
-		&[type=button], &[type=checkbox], &[type=image], &[type=radio], &[type=reset], &[type=submit], &[type=file] { width: auto; } 
-		&[type=file] { font-size: smaller; }
-	}
-}
-
-input[type=checkbox], input[type=radio] { margin: .4em; }
-
-button, .button {
-	@include appearance(none);
-	border: 1px solid #000;
-	margin: .2em;
-	padding: .5em 1em;
-	@include min-width(3em);
-	font-weight: bold;
-	&[disabled] { opacity: 0.5; }
-}
-
-input {
-	&[type=button], &[type=reset], &[type=submit] {
-		@extend button;
-		&[disabled] { @extend button[disabled]; }
-	}
-}
-
-.bForm-subFormControls > button {
-	padding: .5em;
-}
-
 hr { margin: 15px 0px; }
 
 a {
@@ -134,59 +43,9 @@ ul, ol {
 	z-index: 1;
 }
 
-/* *** BlinkForms2 *** */
-
-form {
-	/* we are currently hiding form metadata in a caption <element> */
-	caption.bForm-input { display: none; }
-
-	col {
-		&.bForm-tooltip { width: 24px; }
-		&.bForm-label { width: 35%; }
-		&.bForm-input { width: 65%; }
-	}
-
-	table table {
-		margin-bottom: 2px;
-		border-bottom: 2px solid #AAA;
-	}
-
-	.bForm-input {
-		>span {
-			display: inline-block;
-		}
-	}
-}
-
-.bForm-subFormLabel {
-	display: inline-block;
-	font-weight: bolder;
-	margin: .5em;
-}
-
-.bForm-error { color: $errorColor; }
-
-.bForm-dataDisplay {
-	white-space: pre-wrap;
-}
-
-.bForm-label, .bForm-value { font-size: smaller; }
-.bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
-.bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
-.bForm-input > input[type=button] { display: inline-block; }
-.bForm-input { padding-right: 30px; }
-.bForm-tooltip > span {
-	font-size: larger;
-	font-weight: bolder;
-	color: #FFF;
-	text-outline: 1px 1px #000;
-	text-shadow: 0 0 .5em #000;
-	cursor: help;
-}
-.fieldInput{
-    padding-right:1em;
-}
-/* *** END BlinkForms2 *** */
+/* BlinkForms2 styles */
+@import "BlinkForms2";
+/* end BlinkForms2 */
 
 #loginBox input[type=text], #loginBox input[type=password] {
 	width: 80%;
@@ -307,18 +166,11 @@ img.v4col { width: 25%; }
 	width: 192px;
 }
 
-.selected #helpTitle {
-	color: white;
+.selected {
+	#helpTitle { color: white; }
+	#descriptionTextBox { color: white; }
+	#categoryLabel { color: white; }
 }
-
-.selected #descriptionTextBox {
-	color: white;
-}
-
-.selected #categoryLabel {
-	color: white;
-}
-
 #masterCategoriesBox, #categoriesBox, #keywordBox {
 	line-height: 0px;
 }
@@ -364,99 +216,9 @@ ul.box {
 	width: 70%;
 }
 
-.bLive-screen {
-	margin: 0 auto;
-	text-align: center;
-
-	h1 { font-size: 175%; }
-	h2 { font-size: 130%; }
-
-	.button {
-		display: inline-block;
-		margin: .5em;
-		padding: .25em;
-		height: auto;
-		text-decoration: none;
-		cursor: pointer;
-		background-color: #66E;
-		border: 2px solid #77F;
-		border-radius: 4px;
-		color: #FFF;
-		font-family: inherit;
-		font-size: inherit;
-		font-weight: inherit;
-
-		&:hover { background-color: #77F; }
-
-		&.refresh {
-			background-color: #4B4;
-			border: 2px solid #5D5;
-			&:hover { background-color: #5D5; }
-		}
-
-		&.important {
-			background-color: #B33;
-			border: 2px solid #F77;
-			&:hover { background-color: #F77; }
-		}
-	}
-}
-
-.bLive-box, .bLive-link {
-	margin: .5em auto;
-	border: .2em solid #77F;
-	background-color: #FFF;
-	width: 85%;
-	max-width: 35em;
-}
-.bLive-box.narrow, .bLive-link {
-	width: 85%;
-	max-width: 25em;
-}
-.bLive-box table {
-	margin: 1em auto;
-}
-.bLive-box td {
-	border-spacing: 0;
-	text-align: left;
-	padding: .25em;
-}
-.bLive-link {
-	display: block;
-	padding: 1em;
-	text-decoration: none;
-	cursor: pointer;
-}
-.bLive-link:hover, .bLive-link.even:hover {
-	background-color: #EEF;
-}
-.bLive-link.odd:hover {
-	background-color: #FFE;
-}
-.actionresult {
-	font-style: italic;
-	color: #003;
-}
-.bLive-shoutbox {
-	textarea, input[type=text] {
-		margin: .2em;
-		padding: .4em;
-		font-size: larger;
-		border: .2em solid #77F;
-	}
-}
-.bLive-shout {
-	padding: 0 .5em;
-	text-align: left;
-	font-size: larger;
-	>.info {
-		font-size: smaller;
-		text-align: right;
-	}
-}
-.bLive-results, .bLive-poll, .bLive-survey {
-	padding: 1em;
-}
+/* BlinkLive styles */
+@import "BlinkLive";
+/* end BlinkLive */
 
 .blink-star-on, .blink-star-off {
 	display: inline-block;
@@ -523,7 +285,6 @@ ul.box {
 		cursor: crosshair;
 	}
 }
-	
 
 /* end signature pad styles */
 
