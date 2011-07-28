@@ -43,8 +43,12 @@ ul, ol {
 	z-index: 1;
 }
 
+/* controls styles */
+@import "controls";
+/* end controls */
+
 /* BlinkForms2 styles */
-@import "BlinkForms2";
+@import "BlinkForms";
 /* end BlinkForms2 */
 
 #loginBox input[type=text], #loginBox input[type=password] {
