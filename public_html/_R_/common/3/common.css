@@ -1,522 +1,315 @@
-* {
-	margin: 0;
-	padding: 0;
-}
+/*
+	- used by all devices on the dynamic client
+	- includes BlinkForms2 styles so that the dynamic client just needs a single CSS file
+*/
+/* line 7, scss/common.scss */
+* { margin: 0; padding: 0; }
 
-html, body {
-	min-width: 100%;
-	width: 100%;
-	min-height: 100%;
-	height: 100%;
-	font-size: medium;
-}
-header {
-	display: block;
-	overflow: hidden;
-	width: 100%;
-	background-color: #FFF;
-}
-header img {
-	display: block;
-	width: 100%;
-}
+/* line 12, scss/common.scss */
+html, body { min-height: 100%; min-width: 100%; font-size: medium; }
 
-form img {
-	max-width: 100%;
-	max-height: 10em;
-}
+/* line 18, scss/common.scss */
+header { display: block; overflow: hidden; width: 100%; background-color: white; }
+/* line 24, scss/common.scss */
+header img { display: block; width: 100%; }
 
-form img[name], figure img {
-	display: block;
-	margin: .5em auto;
-}
-
-form table {
-	overflow: hidden;
-	width: 100%;
-	text-align: left;
-	border-spacing: 0;
-	table-layout: fixed;
-}
-
-form td { padding: .1em }
-form td[colspan] { padding: 0 }
-
-
-select {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-textarea, select, input, label, button {
-	max-width: 100%;
-	font-size: medium;
-}
-
-textarea {
-	width: 100%;
-	height: 5em;
-	min-height: 5em;
-}
-textarea[rows] { height: auto; }
-textarea[cols] { width: auto; }
-
-input[type=checkbox], input[type=radio] { margin: .4em; }
-
-td input { width: 100%; }
-td input[type=button],
-td input[type=submit],
-td input[type=reset],
-td input[type=checkbox],
-td input[type=file],
-td input[type=image],
-td input[type=radio] {
-	width: auto;
-}
-
-td [type=file] {
-	font-size: smaller;
-}
-
-button[disabled], .button[disabled] { opacity: 0.5; }
-button, [type=button], [type=submit], [type=reset] {
-	-webkit-appearance: none;
-	margin: .2em;
-	padding: .5em 1em;
-	min-width: 3em;
-	font-weight: bold;
-}
-
-.bForm-subFormControls > button {
-	padding: .5em;
-}
-
-form [type=reset] {
-	color: #A00;
-}
-
+/* line 30, scss/common.scss */
 hr { margin: 15px 0px; }
 
-a {
-	cursor: pointer;
-	text-decoration: underline;
-}
+/* line 32, scss/common.scss */
+a { cursor: pointer; text-decoration: underline; }
 
-ul, ol {
-	-webkit-padding-start: 0px;
-}
+/* line 37, scss/common.scss */
+ul, ol { -webkit-padding-start: 0px; }
 
-#content, #stackLayout {
-	position: relative;
-	z-index: 1;
-}
+/* line 41, scss/common.scss */
+#content, #stackLayout { position: relative; z-index: 1; }
 
-/* *** BlinkForms2 *** */
+/* controls styles */
+/* line 2, scss/_controls.scss */
+td input { width: 100%; }
+/* line 4, scss/_controls.scss */
+td input[type=button], td input[type=checkbox], td input[type=image], td input[type=radio], td input[type=reset], td input[type=submit], td input[type=file] { width: auto; }
+/* line 5, scss/_controls.scss */
+td input[type=file] { font-size: smaller; }
 
-form caption.bForm-input {
-	display: none; /* we are currently hiding form metadata in a caption <element> */
-}
+/* line 10, scss/_controls.scss */
+form input[type=reset] { color: #aa0000; }
 
-form table table {
-	margin-bottom: 2px;
-	border-bottom: 2px solid #AAA;
-}
+/* line 15, scss/_controls.scss */
+select { white-space: nowrap; text-overflow: ellipsis; }
 
-form .bForm-input > span {
-	display: inline-block;
-}
+/* line 20, scss/_controls.scss */
+textarea, select, input, label, button, input[type=button], input[type=reset], input[type=submit] { max-width: 100%; font-size: medium; }
 
+/* line 25, scss/_controls.scss */
+textarea { width: 100%; height: 5em; min-height: 5em; }
+/* line 29, scss/_controls.scss */
+textarea[rows] { height: auto; }
+/* line 30, scss/_controls.scss */
+textarea[cols] { width: auto; }
+
+/* line 33, scss/_controls.scss */
+input[type=checkbox], input[type=radio] { margin: .4em; }
+
+/* line 35, scss/_controls.scss */
+button, input[type=button], input[type=reset], input[type=submit], .button { -moz-appearance: none; -webkit-appearance: none; appearance: none; border: 1px solid #000; background-color: #fff; margin: .2em; padding: .5em 1em; min-width: 3em; font-weight: bold; }
+/* line 43, scss/_controls.scss */
+button[disabled], input[disabled][type=button], input[disabled][type=reset], input[disabled][type=submit], .button[disabled] { opacity: 0.5; }
+
+/* end controls */
+/* BlinkForms2 styles */
+/* line 7, scss/_BlinkForms.scss */
+figure img { display: block; margin: .5em auto; }
+
+/* line 13, scss/_BlinkForms.scss */
+form img { max-width: 100%; max-height: 10em; }
+/* line 16, scss/_BlinkForms.scss */
+form img[name] { display: block; margin: .5em auto; }
+/* line 21, scss/_BlinkForms.scss */
+form td { padding: .2em; }
+/* line 23, scss/_BlinkForms.scss */
+form td[colspan] { padding: 0; }
+
+/* line 27, scss/_BlinkForms.scss */
+form { /* we are currently hiding form metadata in a caption <element> */ }
+/* line 29, scss/_BlinkForms.scss */
+form caption.bForm-input { display: none; }
+/* line 32, scss/_BlinkForms.scss */
 form col.bForm-tooltip { width: 24px; }
+/* line 33, scss/_BlinkForms.scss */
 form col.bForm-label { width: 35%; }
+/* line 34, scss/_BlinkForms.scss */
 form col.bForm-input { width: 65%; }
+/* line 37, scss/_BlinkForms.scss */
+form table { overflow: hidden; width: 100%; text-align: left; border-spacing: 0; table-layout: fixed; }
+/* line 44, scss/_BlinkForms.scss */
+form table table { margin-bottom: 2px; border-bottom: 2px solid #AAA; }
+/* line 51, scss/_BlinkForms.scss */
+form .bForm-input > span { display: inline-block; }
 
-.bForm-subFormLabel {
-	display: inline-block;
-	font-weight: bolder;
-	margin: .5em;
-}
+/* line 57, scss/_BlinkForms.scss */
+.bForm-subFormLabel { display: inline-block; font-weight: bolder; margin: .5em; }
 
-.bForm-error {
-	color: #A00;
-}
+/* line 63, scss/_BlinkForms.scss */
+.bForm-error { color: #aa0000; }
 
-.bForm-dataDisplay {
-	white-space: pre-wrap;
-}
+/* line 65, scss/_BlinkForms.scss */
+.bForm-dataDisplay { white-space: pre-wrap; }
 
+/* line 69, scss/_BlinkForms.scss */
 .bForm-label, .bForm-value { font-size: smaller; }
+
+/* line 70, scss/_BlinkForms.scss */
 .bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
+
+/* line 71, scss/_BlinkForms.scss */
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
+
+/* line 72, scss/_BlinkForms.scss */
 .bForm-input > input[type=button] { display: inline-block; }
+
+/* line 73, scss/_BlinkForms.scss */
 .bForm-input { padding-right: 30px; }
-.bForm-tooltip > span {
-	font-size: larger;
-	font-weight: bolder;
-	color: #FFF;
-	text-outline: 1px 1px #000;
-	text-shadow: 0 0 .5em #000;
-	cursor: help;
-}
-.fieldInput{
-    padding-right:1em;
-}
-/* *** END BlinkForms2 *** */
 
-#loginBox input[type=text], #loginBox input[type=password] {
-	width: 80%;
-}
+/* line 74, scss/_BlinkForms.scss */
+.bForm-tooltip > span { font-size: larger; font-weight: bolder; color: #FFF; text-outline: 1px 1px #000; text-shadow: 0 0 .5em #000; cursor: help; }
 
-#loginStatus {
-	font-size: small;
-	text-align: center;
-	cursor: pointer;
-}
-#loginStatus > .loginAccount {
-	font-size: medium;
-	color: blue;
-}
+/* line 83, scss/_BlinkForms.scss */
+.fieldInput { padding-right: 1em; }
 
-header, nav, ul.box {
-	user-select: none;
-	-o-user-select: none;
-	-moz-user-select: none;
-	-webkit-user-select: none;
-}
+/* line 87, scss/_BlinkForms.scss */
+.bForm-subFormControls > button, .bForm-subFormControls > input[type=button], .bForm-subFormControls > input[type=reset], .bForm-subFormControls > input[type=submit] { padding: .5em; }
 
-.googlemap {
-	width: 100%;
-	height: 360px;
-}
+/* end BlinkForms2 */
+/* line 54, scss/common.scss */
+#loginBox input[type=text], #loginBox input[type=password] { width: 80%; }
 
-.hidden {
-	display: none !important;
-	z-index: -1 !important;
-}
+/* line 58, scss/common.scss */
+#loginStatus { font-size: small; text-align: center; cursor: pointer; }
 
+/* line 63, scss/common.scss */
+#loginStatus > .loginAccount { font-size: medium; color: blue; }
+
+/* line 68, scss/common.scss */
+header, nav, ul.box { -moz-user-select: none; -webkit-user-select: none; -o-user-select: none; -ms-user-select: none; user-select: none; }
+
+/* line 72, scss/common.scss */
+.googlemap { width: 100%; height: 360px; }
+
+/* line 77, scss/common.scss */
+.hidden { display: none !important; z-index: -1 !important; }
+
+/* line 82, scss/common.scss */
 img.v1col { width: 100%; }
+
+/* line 83, scss/common.scss */
 img.v2col { width: 50%; }
+
+/* line 84, scss/common.scss */
 img.v3col { width: 33%; }
+
+/* line 85, scss/common.scss */
 img.v4col { width: 25%; }
 
-#startUp {
-	position: absolute;
-	top: 0;
-	padding-top: 20%;
-	width: 100%;
-	min-height: 100%;
-	height: 100%;
-	background-color: white;
-	color: black;
-	text-align: center;
-	z-index: 50;
-}
+/* line 88, scss/common.scss */
+#startUp, #content, #activeContent { min-height: 100%; min-width: 100%; }
 
- #content {
-	position: relative;
-	width: auto;
-	min-height: 100%;
-	height: 100%;
-}
+/* line 93, scss/common.scss */
+#startUp { position: absolute; top: 0; padding-top: 20%; background-color: white; color: black; text-align: center; z-index: 50; }
 
-#activeContent {
-	position: relative;
-	width: 100%;
-	min-height: 100%;
-	overflow-x: hidden;
-	clear: both;
-}
+/* line 103, scss/common.scss */
+#content { position: relative; }
 
-.view {
-	position: relative;
-	width: 100%;
-	text-align: center;
-}
+/* line 107, scss/common.scss */
+#activeContent { position: relative; overflow-x: hidden; clear: both; }
 
-.box {
-	position: relative;
-	text-align: center;
-}
+/* line 113, scss/common.scss */
+.view { position: relative; width: 100%; text-align: center; }
 
-.paddedBox {
-	text-align: left;
-}
+/* line 119, scss/common.scss */
+.box { position: relative; text-align: center; }
+/* line 123, scss/common.scss */
+.box ul, .box ol { margin: .8em 0; padding-left: 1.75em; }
+/* line 128, scss/common.scss */
+.box p { margin: .8em 0; }
 
-#answerSpacesListView .welcomeBox, #helpTitle {
-	text-align: center;
-}
+/* line 131, scss/common.scss */
+.paddedBox { text-align: left; }
 
-#categorySelectorArea {
-	font-weight: bold;
-	margin: 10px;
-	text-align: center;
-}
+/* line 135, scss/common.scss */
+#answerSpacesListView .welcomeBox, #helpTitle { text-align: center; }
 
-#activityIndicator, #navBoxHeader {
-	z-index: 5;
-}
+/* line 139, scss/common.scss */
+#categorySelectorArea { font-weight: bold; margin: 10px; text-align: center; }
 
-.navLeft {
-	float:left;
-}
+/* line 145, scss/common.scss */
+#activityIndicator, #navBoxHeader { z-index: 5; }
 
-.navCentre {
-	margin-left: auto;
-	margin-right: auto;
-}
+/* line 149, scss/common.scss */
+.navLeft { float: left; }
 
-.navRight {
-	float: right;
-}
+/* line 153, scss/common.scss */
+.navCentre { margin-left: auto; margin-right: auto; }
 
-.argTextField {
-	color: black;
-	font-family: HelveticaNeue;
-	font-size: 10pt;
-	position: relative;
-	display: block;
-	margin-left: 0px;
-	margin-top: 0px;
-	width: 192px;
-}
+/* line 158, scss/common.scss */
+.navRight { float: right; }
 
-.selected #helpTitle {
-	color: white;
-}
+/* line 162, scss/common.scss */
+.argTextField { color: black; font-family: HelveticaNeue; font-size: 10pt; position: relative; display: block; margin-left: 0px; margin-top: 0px; width: 192px; }
 
-.selected #descriptionTextBox {
-	color: white;
-}
+/* line 174, scss/common.scss */
+.selected #helpTitle { color: white; }
+/* line 175, scss/common.scss */
+.selected #descriptionTextBox { color: white; }
+/* line 176, scss/common.scss */
+.selected #categoryLabel { color: white; }
 
-.selected #categoryLabel {
-	color: white;
-}
+/* line 178, scss/common.scss */
+#masterCategoriesBox, #categoriesBox, #keywordBox { line-height: 0px; }
 
-#masterCategoriesBox, #categoriesBox, #keywordBox {
-	line-height: 0px;
-}
+/* line 182, scss/common.scss */
+#masterCategoriesBox img, #categoriesBox img, #keywordBox img, #answerSpacesList img { display: inline-block; }
 
-#masterCategoriesBox img, #categoriesBox img, #keywordBox img, #answerSpacesList img {
-	display: inline-block;
-}
+/* line 186, scss/common.scss */
+ul.box { position: relative; margin: 0; padding: 0; list-style: none; background: none; }
+/* line 193, scss/common.scss */
+ul.box > li { position: relative; margin: 0; text-align: left; overflow: hidden; cursor: pointer; }
+/* line 200, scss/common.scss */
+ul.box > li > div { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin: 2px; }
+/* line 207, scss/common.scss */
+ul.box > li > .label { font-size: larger; font-weight: bold; }
+/* line 212, scss/common.scss */
+ul.box > li > .description { font-size: smaller; }
 
-ul.box {
-	position: relative;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-	background: none;
-}
+/* line 219, scss/common.scss */
+#answerSpacesList .label, #answerSpacesList .description { width: 70%; }
 
-ul.box > li {
-	position: relative;
-	margin: 0;
-	text-align: left;
-	overflow: hidden;
-	cursor: pointer;
-}
+/* BlinkLive styles */
+/* line 1, scss/_BlinkLive.scss */
+.bLive-screen { margin: 0 auto; text-align: center; }
+/* line 5, scss/_BlinkLive.scss */
+.bLive-screen h1 { font-size: 175%; }
+/* line 6, scss/_BlinkLive.scss */
+.bLive-screen h2 { font-size: 130%; }
+/* line 8, scss/_BlinkLive.scss */
+.bLive-screen .button { display: inline-block; margin: .5em; padding: .25em; height: auto; text-decoration: none; cursor: pointer; background-color: #66E; border: 2px solid #77F; border-radius: 4px; color: #FFF; font-family: inherit; font-size: inherit; font-weight: inherit; }
+/* line 23, scss/_BlinkLive.scss */
+.bLive-screen .button:hover { background-color: #77F; }
+/* line 25, scss/_BlinkLive.scss */
+.bLive-screen .button.refresh { background-color: #4B4; border: 2px solid #5D5; }
+/* line 28, scss/_BlinkLive.scss */
+.bLive-screen .button.refresh:hover { background-color: #5D5; }
+/* line 31, scss/_BlinkLive.scss */
+.bLive-screen .button.important { background-color: #B33; border: 2px solid #F77; }
+/* line 34, scss/_BlinkLive.scss */
+.bLive-screen .button.important:hover { background-color: #F77; }
 
-ul.box > li > .label, ul.box > li > .description {
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-	margin: 2px;
-}
+/* line 39, scss/_BlinkLive.scss */
+.bLive-box, .bLive-link { margin: .5em auto; border: .2em solid #77F; background-color: #FFF; width: 85%; max-width: 35em; }
 
-ul.box > li > .label {
-	font-size: larger;
-	font-weight: bold;
-}
+/* line 46, scss/_BlinkLive.scss */
+.bLive-box.narrow, .bLive-link { width: 85%; max-width: 25em; }
 
-ul.box > li > .description {
-	font-size: smaller;
-}
+/* line 50, scss/_BlinkLive.scss */
+.bLive-box table { margin: 1em auto; }
 
-.box ul, .box ol {
-	margin: .8em 0;
-	padding-left: 1.75em;
-}
+/* line 53, scss/_BlinkLive.scss */
+.bLive-box td { border-spacing: 0; text-align: left; padding: .25em; }
 
-.box p {
-	margin: .8em 0;
-}
+/* line 58, scss/_BlinkLive.scss */
+.bLive-link { display: block; padding: 1em; text-decoration: none; cursor: pointer; }
 
-#answerSpacesList .label, #answerSpacesList .description {
-	width: 70%;
-}
+/* line 64, scss/_BlinkLive.scss */
+.bLive-link:hover, .bLive-link.even:hover { background-color: #EEF; }
 
-.bLive-screen {
-	margin: 0 auto;
-	text-align: center;
-}
-.bLive-box, .bLive-link {
-	margin: .5em auto;
-	border: .2em solid #77F;
-	background-color: #FFF;
-	width: 85%;
-	max-width: 35em;
-}
-.bLive-box.narrow, .bLive-link {
-	width: 85%;
-	max-width: 25em;
-}
-.bLive-box table {
-	margin: 1em auto;
-}
-.bLive-box td {
-	border-spacing: 0;
-	text-align: left;
-	padding: .25em;
-}
-.bLive-link {
-	display: block;
-	padding: 1em;
-	text-decoration: none;
-	cursor: pointer;
-}
-.bLive-link:hover, .bLive-link.even:hover {
-	background-color: #EEF;
-}
-.bLive-link.odd:hover {
-	background-color: #FFE;
-}
-.bLive-screen .button {
-	display: inline-block;
-	-webkit-appearance: none;
-	margin: .5em;
-	padding: .25em;
-	height: auto;
-	text-decoration: none;
-	cursor: pointer;
-	background-color: #66E;
-	border: 2px solid #77F;
-	border-radius: 4px;
-	color: #FFF;
-	font-family: inherit;
-	font-size: inherit;
-	font-weight: inherit;
-}
-.bLive-screen .button:hover {
-	background-color: #77F;
-}
-.bLive-screen .button.refresh {
-	background-color: #4B4;
-	border: 2px solid #5D5;
-}
+/* line 67, scss/_BlinkLive.scss */
+.bLive-link.odd:hover { background-color: #FFE; }
 
-.bLive-screen .button.refresh:hover {
-	background-color: #5D5;
-}
+/* line 70, scss/_BlinkLive.scss */
+.actionresult { font-style: italic; color: #003; }
 
-.bLive-screen .button.important {
-	background-color: #B33;
-	border: 2px solid #F77;
-}
+/* line 75, scss/_BlinkLive.scss */
+.bLive-shoutbox textarea, .bLive-shoutbox input[type=text] { margin: .2em; padding: .4em; font-size: larger; border: .2em solid #77F; }
 
-.bLive-screen .button.important:hover {
-	background-color: #F77;
-}
-.actionresult {
-	font-style: italic;
-	color: #003;
-}
-.bLive-screen h1 {
-	font-size: 175%;
-}
-.bLive-screen h2 {
-	font-size: 130%;
-}
-.bLive-shoutbox textarea, .bLive-shoutbox input[type=text] {
-	margin: .2em;
-	padding: .4em;
-	font-size: larger;
-	border: .2em solid #77F;
-}
-.bLive-shout {
-	padding: 0 .5em;
-	text-align: left;
-	font-size: larger;
-}
-.bLive-shout > .info {
-	font-size: smaller;
-	text-align: right;
-}
-.bLive-results, .bLive-poll, .bLive-survey {
-	padding: 1em;
-}
+/* line 82, scss/_BlinkLive.scss */
+.bLive-shout { padding: 0 .5em; text-align: left; font-size: larger; }
+/* line 86, scss/_BlinkLive.scss */
+.bLive-shout > .info { font-size: smaller; text-align: right; }
 
-.blink-star-on, .blink-star-off {
-	display: inline-block;
-	margin: .1em;
-	width: 32px;
-	height: 32px;
-	background-color: transparent;
-}
+/* line 91, scss/_BlinkLive.scss */
+.bLive-results, .bLive-poll, .bLive-survey { padding: 1em; }
 
-.blink-star-on {
-	background-image: url(/gfx/star-on32.png);
-}
+/* end BlinkLive */
+/* line 227, scss/common.scss */
+.blink-star-on, .blink-star-off { display: inline-block; margin: .1em; width: 32px; height: 32px; background-color: transparent; }
 
-.blink-star-off {
-	background-image: url(/gfx/star-off32.png);
-}
+/* line 235, scss/common.scss */
+.blink-star-on { background-image: url(/gfx/star-on32.png); }
+
+/* line 239, scss/common.scss */
+.blink-star-off { background-image: url(/gfx/star-off32.png); }
 
 /* MyAnswersSideBar styles */
-
-#MyAnswersSideBar {
-	position: absolute;
-	top: 0;
-	min-height: 100%;
-	z-index: 2;
-}
-
-#MyAnswersSideBar > ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-#MyAnswersSideBar > ul > li {
-	margin: 0;
-	padding: 1em .8em;
-	font-weight: bold;
-	cursor: pointer;
-}
+/* line 245, scss/common.scss */
+#MyAnswersSideBar { position: absolute; top: 0; min-height: 100%; z-index: 2; -moz-user-select: none; -webkit-user-select: none; -o-user-select: none; -ms-user-select: none; user-select: none; }
+/* line 252, scss/common.scss */
+#MyAnswersSideBar > ul { margin: 0; padding: 0; list-style: none; }
+/* line 257, scss/common.scss */
+#MyAnswersSideBar > ul > li { margin: 0; padding: 1em .8em; font-weight: bold; cursor: pointer; }
 
 /* end MyAnswersSideBar styles */
-
 /* signature pad styles */
+/* line 270, scss/common.scss */
+#signaturePad { position: fixed; margin: 0; padding: 0; top: 0; left: 0; background-color: transparent; z-index: 10; }
 
-#signaturePad {
-	position: fixed;
-	margin: 0;
-	padding: 0;
-	top: 0;
-	left: 0;
-	background-color: transparent;
-	z-index: 10;
-}
-
-.signaturePad {
-	display: none;
-	clear: both;
-}
-	
-.signaturePad > canvas {
-	margin: 0px auto;
-	border: 2px solid #A00;
-	background-color: #FFF;
-	position: relative;
-	cursor: crosshair;
-}
+/* line 280, scss/common.scss */
+.signaturePad { display: none; clear: both; }
+/* line 284, scss/common.scss */
+.signaturePad > canvas { margin: 0px auto; border: 2px solid #A00; background-color: #FFF; position: relative; cursor: crosshair; }
 
 /* end signature pad styles */
-
-@-webkit-keyframes pulse {
-	from {
-		opacity: 1;
-	}
-	to {
-		opacity: 0;
-	}
-}
-
+@-webkit-keyframes pulse { /* line 296, scss/common.scss */
+  from { opacity: 1; }
+  /* line 299, scss/common.scss */
+  to { opacity: 0; } }

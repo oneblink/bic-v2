@@ -2572,6 +2572,7 @@ MyAnswers.updateLocalStorage = function() {
 // *** BEGIN APPLICATION INIT ***
 
 function onBrowserReady() {
+	var $startup = $('#startUp');
 	log("onBrowserReady: " + window.location.href);
 	try {
 		var uriParts = parse_url(window.location.href),
@@ -2670,6 +2671,7 @@ function onBrowserReady() {
   } catch(e) {
 		log("onBrowserReady: Exception");
 		log(e);
+		$startup.append('browser error: ' + e);
 		MyAnswers.browserDeferred.reject();
 	}
 }
@@ -2694,7 +2696,8 @@ function onBodyLoad() {
 	var document = window.document,
 		siteVars = window.siteVars,
 		MyAnswers = window.MyAnswers,
-		$ = window.jQuery;
+		$ = window.jQuery,
+		$startup = $('#startUp');
 
 /* *** EVENT HANDLERS *** */
 
@@ -2794,6 +2797,7 @@ function onBodyLoad() {
 		} catch(e) {
 			log("loaded(): exception:");
 			log(e);
+			$startup.append('loading error: ' + e);
 		}
 	}
 
@@ -2859,6 +2863,7 @@ function onBodyLoad() {
 		} catch(e) {
 			log('exception in init_?():');
 			log(e);
+			$startup.append('initialisation error: ' + e);
 		}
 		log("User-Agent: " + window.navigator.userAgent);
 		delete MyAnswers.bootPromises;
