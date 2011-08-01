@@ -4,6 +4,10 @@
 */
 @import "base";
 
+@viewport {
+	min-height: device-height;
+}
+
 * {
 	margin: 0;
 	padding: 0;
@@ -12,8 +16,17 @@
 html, body {
 	@include min-height(100%);
 	@include min-width(100%);
+	width: 100%;
 	font-size: medium;
 }
+
+@media (max-device-height: 640px) {
+	html {
+		@include min-height(416px);
+	}
+}
+
+body { position: relative; }
 
 header {
 	display: block;
@@ -38,7 +51,7 @@ ul, ol {
 	-webkit-padding-start: 0px;
 }
 
-#content, #stackLayout {
+#stackLayout {
 	position: relative;
 	z-index: 1;
 }
@@ -85,29 +98,16 @@ img.v3col { width: 33%; }
 img.v4col { width: 25%; }
 
 
-#startUp, #content, #activeContent {
+#startUp {
 	@include min-height(100%);
 	@include min-width(100%);
-}
-
-#startUp {
-	position: absolute;
+	position: fixed;
 	top: 0;
 	padding-top: 20%;
 	background-color: white;
 	color: black;
 	text-align: center;
 	z-index: 50;
-}
-
-#content {
-	position: relative;
-}
-
-#activeContent {
-	position: relative;
-	overflow-x: hidden;
-	clear: both;
 }
 
 .view {
@@ -177,10 +177,8 @@ img.v4col { width: 25%; }
 }
 #masterCategoriesBox, #categoriesBox, #keywordBox {
 	line-height: 0px;
-}
 
-#masterCategoriesBox img, #categoriesBox img, #keywordBox img, #answerSpacesList img {
-	display: inline-block;
+	img { display: inline-block; }
 }
 
 ul.box {

@@ -56,7 +56,8 @@ function onDeviceReady() {
 }
 
 (function(window, undefined) {
-	var MyAnswersDevice = function() {
+	var $ = window.jQuery,
+		MyAnswersDevice = function() {
 		var MyAnswersDevice = function() {};
 		MyAnswersDevice.hideLocationBar = function() {
 			window.scrollTo(0, 1);
@@ -73,7 +74,7 @@ function onDeviceReady() {
 					deferred.resolve();
 					return deferred.promise();
 				}
-				$('#activeContent > footer').addClass('hidden');
+				MyAnswers.$body.children('footer').addClass('hidden');
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating');
@@ -106,7 +107,7 @@ function onDeviceReady() {
 					$view.removeClass('animating');
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
-					$('#activeContent > footer').removeClass('hidden');
+					MyAnswers.$body.children('footer').removeClass('hidden');
 					deferred.resolve();
 				});
 				setTimeout(function() {

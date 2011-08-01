@@ -1,15 +1,19 @@
 body {
 	font-family: Helvetica;
+	padding-bottom: 44px;
 }
 
 body, nav {
 	background-color: #E3E4EA;
 }
 
+button, input, textarea {
+	border-radius: 4px;
+}
+
 textarea, input[type=text], input[type=email], input[type=url], input[type=tel], input[type=password] {
 	padding: 4px;
 	border: 1px solid #AAAAAA;
-	-webkit-border-radius: 4px;
 }
 
 button, [type=button], [type=submit], [type=reset] {
@@ -20,10 +24,6 @@ button, [type=button], [type=submit], [type=reset] {
 	font-size: x-small;
 }
 
-#activeContent {
-		padding-bottom: 44px;
-}
-
 #activityIndicator {
 	position: fixed;
 	left: 50%;
@@ -31,8 +31,6 @@ button, [type=button], [type=submit], [type=reset] {
 	padding: 10px;
 	background: rgba(0, 0, 0, 0.75);
 	border-radius: 10px;
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
 	color: white;
 }
 
@@ -57,8 +55,6 @@ button, [type=button], [type=submit], [type=reset] {
 .bordered {
 	border: 1px solid #B7B7BC;
 	background-color: #FFF;
-	-moz-border-radius: 8px;
-	-webkit-border-radius: 8px;
 	border-radius: 8px;
 }
 
