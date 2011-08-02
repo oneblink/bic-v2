@@ -82,6 +82,13 @@ form .bForm-input > span { display: inline-block; }
 
 .bForm-subFormControls > button, .bForm-subFormControls > input[type=button], .bForm-subFormControls > input[type=reset], .bForm-subFormControls > input[type=submit] { padding: .5em; }
 
+/* signature pad styles */
+#signaturePad { position: fixed; margin: 0; padding: 0; top: 0; left: 0; background-color: transparent; z-index: 10; }
+
+.signaturePad { display: none; clear: both; }
+.signaturePad > canvas { margin: 0px auto; border: 2px solid #A00; background-color: #FFF; position: relative; cursor: crosshair; }
+
+/* end signature pad styles */
 /* end BlinkForms2 */
 #loginBox input[type=text], #loginBox input[type=password] { width: 80%; }
 
@@ -189,12 +196,5 @@ ul.box > li > .description { font-size: smaller; }
 #MyAnswersSideBar > ul > li { margin: 0; padding: 1em .8em; font-weight: bold; cursor: pointer; }
 
 /* end MyAnswersSideBar styles */
-/* signature pad styles */
-#signaturePad { position: fixed; margin: 0; padding: 0; top: 0; left: 0; background-color: transparent; z-index: 10; }
-
-.signaturePad { display: none; clear: both; }
-.signaturePad > canvas { margin: 0px auto; border: 2px solid #A00; background-color: #FFF; position: relative; cursor: crosshair; }
-
-/* end signature pad styles */
 @-webkit-keyframes pulse { from { opacity: 1; }
   to { opacity: 0; } }

@@ -88,4 +88,30 @@ form {
 	padding: .5em;
 }
 
+/* signature pad styles */
+
+#signaturePad {
+	position: fixed;
+	margin: 0;
+	padding: 0;
+	top: 0;
+	left: 0;
+	background-color: transparent;
+	z-index: 10;
+}
+
+.signaturePad {
+	display: none;
+	clear: both;
+
+	>canvas {
+		margin: 0px auto;
+		border: 2px solid #A00;
+		background-color: #FFF;
+		position: relative;
+		cursor: crosshair;
+	}
+}
+
+/* end signature pad styles */
 
