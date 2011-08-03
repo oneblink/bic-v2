@@ -2677,11 +2677,6 @@ function onBrowserReady() {
 	}
 }
 
-// Function: loaded()
-// Called by Window's load event when the web application is ready to start
-//
-
-
 /* called by Modernizr.load in index.php when scripts are loaded */
 function onBodyLoad() {
   if (!window.device) {
@@ -2789,7 +2784,13 @@ function onBodyLoad() {
 						siteVars.map = data;
 					}
 				}).always(function() {
-					$.when(requestLoginStatus()).always(requestConfig);
+					if (deviceVars.isOnline) {
+						$.when(requestLoginStatus()).always(requestConfig);
+					} else if (siteVars.config && siteVars.map) {
+						displayAnswerSpace();
+					} else {
+						$startup.append('error: unable to contact server, insufficient data found in local storage');
+					}
 				});
 			});
 			$.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
