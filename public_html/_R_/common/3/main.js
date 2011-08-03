@@ -932,7 +932,7 @@ function goBackToMasterCategoriesView()
 
 // run after any change to current*
 function updateCurrentConfig() {
-	var $footer = $('#activeContent > footer');
+	var $footer = MyAnswers.$body.children('footer');
 	// see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
 	// TODO: need to fold orientation-specific config into this somewhere
 	log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
@@ -971,13 +971,13 @@ function updateCurrentConfig() {
 		var style = '',
 			$style = $('style[data-setting="styleSheet"]');
 		style += currentConfig.styleSheet || '';
-		style += currentConfig.interfaceStyle ? 'body, #content, #activeContent { ' + currentConfig.interfaceStyle + ' }\n' : '';
+		style += currentConfig.interfaceStyle ? 'body { ' + currentConfig.interfaceStyle + ' }\n' : '';
 		style += currentConfig.backgroundStyle ? '.box { ' + currentConfig.backgroundStyle + ' }\n' : '';
 		style += currentConfig.inputPromptStyle ? '#argsBox { ' + currentConfig.inputPromptStyle + ' }\n' : '';
 		style += currentConfig.evenRowStyle ? 'ul.box > li:nth-child(even), tr.even { ' + currentConfig.evenRowStyle + ' }\n' : '';
 		style += currentConfig.oddRowStyle ? 'ul.box > li:nth-child(odd), tr.odd { ' + currentConfig.oddRowStyle + ' }\n' : '';
-		style += currentConfig.headerStyle ? '#content > header { ' + currentConfig.headerStyle + ' }\n' : '';
-		style += currentConfig.footerStyle ? '#activeContent > footer { ' + currentConfig.footerStyle + ' }\n' : '';
+		style += currentConfig.headerStyle ? 'body > header { ' + currentConfig.headerStyle + ' }\n' : '';
+		style += currentConfig.footerStyle ? 'body > footer { ' + currentConfig.footerStyle + ' }\n' : '';
 		style += currentConfig.masterCategoriesStyle ? '#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }\n' : '';
 		style += currentConfig.categoriesStyle ? '#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }\n' : '';
 		style += currentConfig.interactionsStyle ? '#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }\n' : '';
@@ -2596,6 +2596,7 @@ function onBrowserReady() {
 
 		MyAnswers.$body = $('body');
 		MyAnswers.$document = $(window.document);
+		MyAnswers.$window = $(window);
 
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
 			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
@@ -2700,6 +2701,11 @@ function onBodyLoad() {
 		$startup = $('#startUp');
 
 /* *** EVENT HANDLERS *** */
+
+/*	function onWindowResize(event) {
+ *	// TODO: a window resize event _may_ cause DOM issues with out transitions
+		$('html').css('min-height', window.innerHeight);
+	} */
 
 	function onPendingClick(event) {
 		var $button = $(event.target),
@@ -2820,8 +2826,10 @@ function onBodyLoad() {
 
 		// to facilitate building regex replacements
 		RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");};
-
+		
 		addEvent(document, 'orientationChanged', updateOrientation);
+//		MyAnswers.$window.bind('resize', onWindowResize);
+//		MyAnswers.$window.trigger('resize');
 
 		MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
 		$.when(MyAnswers.store.ready()).then(function() {

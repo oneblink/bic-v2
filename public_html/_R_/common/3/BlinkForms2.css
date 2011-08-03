@@ -2,99 +2,70 @@
 	- used by all devices that render BlinkForms2
 */
 /* controls styles */
-/* line 2, scss/_controls.scss */
 td input { width: 100%; }
-/* line 4, scss/_controls.scss */
 td input[type=button], td input[type=checkbox], td input[type=image], td input[type=radio], td input[type=reset], td input[type=submit], td input[type=file] { width: auto; }
-/* line 5, scss/_controls.scss */
 td input[type=file] { font-size: smaller; }
 
-/* line 10, scss/_controls.scss */
 form input[type=reset] { color: #aa0000; }
 
-/* line 15, scss/_controls.scss */
 select { white-space: nowrap; text-overflow: ellipsis; }
 
-/* line 20, scss/_controls.scss */
 textarea, select, input, label, button, input[type=button], input[type=reset], input[type=submit] { max-width: 100%; font-size: medium; }
 
-/* line 25, scss/_controls.scss */
 textarea { width: 100%; height: 5em; min-height: 5em; }
-/* line 29, scss/_controls.scss */
 textarea[rows] { height: auto; }
-/* line 30, scss/_controls.scss */
 textarea[cols] { width: auto; }
 
-/* line 33, scss/_controls.scss */
 input[type=checkbox], input[type=radio] { margin: .4em; }
 
-/* line 35, scss/_controls.scss */
 button, input[type=button], input[type=reset], input[type=submit], .button { -moz-appearance: none; -webkit-appearance: none; appearance: none; border: 1px solid #000; background-color: #fff; margin: .2em; padding: .5em 1em; min-width: 3em; font-weight: bold; }
-/* line 43, scss/_controls.scss */
 button[disabled], input[disabled][type=button], input[disabled][type=reset], input[disabled][type=submit], .button[disabled] { opacity: 0.5; }
 
 /* end controls */
 /* BlinkForms2 styles */
-/* line 7, scss/_BlinkForms.scss */
 figure img { display: block; margin: .5em auto; }
 
-/* line 13, scss/_BlinkForms.scss */
 form img { max-width: 100%; max-height: 10em; }
-/* line 16, scss/_BlinkForms.scss */
 form img[name] { display: block; margin: .5em auto; }
-/* line 21, scss/_BlinkForms.scss */
 form td { padding: .2em; }
-/* line 23, scss/_BlinkForms.scss */
 form td[colspan] { padding: 0; }
 
-/* line 27, scss/_BlinkForms.scss */
 form { /* we are currently hiding form metadata in a caption <element> */ }
-/* line 29, scss/_BlinkForms.scss */
 form caption.bForm-input { display: none; }
-/* line 32, scss/_BlinkForms.scss */
 form col.bForm-tooltip { width: 24px; }
-/* line 33, scss/_BlinkForms.scss */
 form col.bForm-label { width: 35%; }
-/* line 34, scss/_BlinkForms.scss */
 form col.bForm-input { width: 65%; }
-/* line 37, scss/_BlinkForms.scss */
 form table { overflow: hidden; width: 100%; text-align: left; border-spacing: 0; table-layout: fixed; }
-/* line 44, scss/_BlinkForms.scss */
 form table table { margin-bottom: 2px; border-bottom: 2px solid #AAA; }
-/* line 51, scss/_BlinkForms.scss */
 form .bForm-input > span { display: inline-block; }
 
-/* line 57, scss/_BlinkForms.scss */
 .bForm-subFormLabel { display: inline-block; font-weight: bolder; margin: .5em; }
 
-/* line 63, scss/_BlinkForms.scss */
 .bForm-error { color: #aa0000; }
 
-/* line 65, scss/_BlinkForms.scss */
 .bForm-dataDisplay { white-space: pre-wrap; }
 
-/* line 69, scss/_BlinkForms.scss */
 .bForm-label, .bForm-value { font-size: smaller; }
 
-/* line 70, scss/_BlinkForms.scss */
 .bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
 
-/* line 71, scss/_BlinkForms.scss */
 .bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
 
-/* line 72, scss/_BlinkForms.scss */
 .bForm-input > input[type=button] { display: inline-block; }
 
-/* line 73, scss/_BlinkForms.scss */
 .bForm-input { padding-right: 30px; }
 
-/* line 74, scss/_BlinkForms.scss */
 .bForm-tooltip > span { font-size: larger; font-weight: bolder; color: #FFF; text-outline: 1px 1px #000; text-shadow: 0 0 .5em #000; cursor: help; }
 
-/* line 83, scss/_BlinkForms.scss */
 .fieldInput { padding-right: 1em; }
 
-/* line 87, scss/_BlinkForms.scss */
 .bForm-subFormControls > button, .bForm-subFormControls > input[type=button], .bForm-subFormControls > input[type=reset], .bForm-subFormControls > input[type=submit] { padding: .5em; }
 
+/* signature pad styles */
+#signaturePad { position: fixed; margin: 0; padding: 0; top: 0; left: 0; background-color: transparent; z-index: 10; }
+
+.signaturePad { display: none; clear: both; }
+.signaturePad > canvas { margin: 0px auto; border: 2px solid #A00; background-color: #FFF; position: relative; cursor: crosshair; }
+
+/* end signature pad styles */
 /* end BlinkForms2 */
