@@ -115,36 +115,6 @@ siteVars.forms = siteVars.forms || {};
 	});
 })(this);
 
-(function(window, undefined) {
-	var deviceVars = window.deviceVars,
-		siteVars = window.siteVars,
-		navigator = window.navigator,
-		$window = $(window);
-
-	function networkReachableFn(state) {
-		var state = state.code || state;
-		deviceVars.isOnline = state > 0;
-		deviceVars.isOnlineCell = state === 1;
-		deviceVars.isOnlineWiFi = state === 2;
-		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
-	}
-
-	function onNetworkChange() {
-		var host;
-//		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
-//			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
-//			navigator.network.isReachable(host, networkReachableFn);
-//		} else {
-			deviceVars.isOnline = navigator.onLine === true;
-			log('onNetworkChange(): online=' + deviceVars.isOnline);
-//		}
-	}
-
-	$window.bind('online', onNetworkChange);
-	$window.bind('offline', onNetworkChange);
-	$window.trigger('online');
-}(this));
-
 function hasCSSFixedPosition() {
 	var $body = $('body'),
 		$div = $('<div id="fixed" />'),
@@ -2691,11 +2661,35 @@ function onBodyLoad() {
 (function(window, undefined) {
 	var document = window.document,
 		siteVars = window.siteVars,
+		deviceVars = window.deviceVars,
 		MyAnswers = window.MyAnswers,
 		$ = window.jQuery,
-		$startup = $('#startUp');
+		$startup = $('#startUp'),
+		navigator = window.navigator,
+		$window = $(window);
+		
+/* *** HELPER FUNCTIONS *** */
+
+	function networkReachableFn(state) {
+		var state = state.code || state;
+		deviceVars.isOnline = state > 0;
+		deviceVars.isOnlineCell = state === 1;
+		deviceVars.isOnlineWiFi = state === 2;
+		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
+	}
 
 /* *** EVENT HANDLERS *** */
+
+	function onNetworkChange() {
+		var host;
+//		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
+//			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
+//			navigator.network.isReachable(host, networkReachableFn);
+//		} else {
+			deviceVars.isOnline = navigator.onLine === true;
+			log('onNetworkChange(): online=' + deviceVars.isOnline);
+//		}
+	}
 
 /*	function onWindowResize(event) {
  *	// TODO: a window resize event _may_ cause DOM issues with out transitions
@@ -2857,6 +2851,10 @@ function onBodyLoad() {
 		MyAnswers.$body.bind('taskComplete', onTaskComplete);
 		MyAnswers.$body.delegate('a', 'click', onLinkClick);
 		$('#pendingBox').delegate('button', 'click', onPendingClick);
+
+		$window.bind('online', onNetworkChange);
+		$window.bind('offline', onNetworkChange);
+		onNetworkChange(); // $window.trigger('online');
 	}
 
 	MyAnswers.bootPromises = [
