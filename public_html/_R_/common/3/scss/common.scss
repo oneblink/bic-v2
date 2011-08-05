@@ -14,13 +14,11 @@
 }
 
 html, body {
-	@include min-height(100%);
+	min-height: 100%;
 	@include min-width(100%);
 	width: 100%;
 	font-size: medium;
 }
-
-body { position: relative; }
 
 header {
 	display: block;

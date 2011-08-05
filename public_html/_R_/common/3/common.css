@@ -8,8 +8,6 @@
 
 html, body { min-height: 100%; min-width: 100%; width: 100%; font-size: medium; }
 
-body { position: relative; }
-
 header { display: block; overflow: hidden; width: 100%; background-color: white; }
 header img { display: block; width: 100%; }
 
@@ -40,6 +38,11 @@ input[type=checkbox], input[type=radio] { margin: .4em; }
 
 button, input[type=button], input[type=reset], input[type=submit], .button { -moz-appearance: none; -webkit-appearance: none; appearance: none; border: 1px solid #000; background-color: #fff; margin: .2em; padding: .5em 1em; min-width: 3em; font-weight: bold; }
 button[disabled], input[disabled][type=button], input[disabled][type=reset], input[disabled][type=submit], .button[disabled] { opacity: 0.5; }
+
+/* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
+input, textarea { background-color: #fff; }
+input:required, textarea:required { background-color: #FFE473; }
+input:invalid, textarea:invalid { background-color: #FF8073; }
 
 /* end controls */
 /* BlinkForms2 styles */
