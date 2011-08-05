@@ -49,10 +49,6 @@ table input[type=file] { position: relative; }
 	font-weight: normal;
 }
 
-#activityIndicator {
-	position: fixed;
-}
-
 #activityIndicator img.spinner {
 	-moz-animation-name: spinner;
 	-moz-animation-duration: 1s;
