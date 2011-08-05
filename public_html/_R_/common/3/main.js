@@ -19,6 +19,37 @@ MyAnswers.mainDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
 
+(function(window, undefined) {
+	var Modernizr = window.Modernizr,
+		document = window.document;
+	Modernizr.addTest('positionfixed', function () {
+		var test  = document.createElement('div'),
+			fake = false,
+			root = document.body || (function () {
+				fake = true;
+				return document.documentElement.appendChild(document.createElement('body'));
+			}());
+		var oldCssText = root.style.cssText,
+		ret, offset;
+		root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
+		test.style.cssText = 'position: fixed; top: 100px';
+		root.appendChild(test);
+		window.scrollTo(0, 500);
+		offset = $(test).offset();
+		ret = offset.top === 600; // 100 + 500
+		if (!ret && typeof test.getBoundingClientRect !== 'undefined') {
+			ret = test.getBoundingClientRect().top === 100;
+		}
+		root.removeChild(test);
+		root.style.cssText = oldCssText;
+		window.scrollTo(0, 1);
+		if (fake) {
+			document.documentElement.removeChild(root);
+		}
+		return ret;
+	});
+}(this));
+
 // *** BEGIN UTILS ***
 
 (function($, undefined) {
@@ -114,26 +145,6 @@ siteVars.forms = siteVars.forms || {};
 		return false;
 	});
 })(this);
-
-function hasCSSFixedPosition() {
-	var $body = $('body'),
-		$div = $('<div id="fixed" />'),
-		height = $body[0].style.height, 
-		scroll = $body.scrollTop(),
-		hasSupport;
-	if (!$div[0].getBoundingClientRect) {
-		return false;
-	}
-	$div.css({position: 'fixed', top: '100px'}).html('test');
-	$body.append($div);
-	$body.css('height', '3000px');
-	$body.scrollTop(50);
-	$body.css('height', height);
-	hasSupport = $div[0].getBoundingClientRect().top === 100;
-	$div.remove();
-	$body.scrollTop(scroll);
-	return hasSupport; 
-}
 
 function isCameraPresent() {
 	if (typeof window.device === 'undefined') {
@@ -2813,6 +2824,8 @@ function onBodyLoad() {
 		lastPictureTaken.currentName = null;
 
 		$.fx.interval = 27; // default is 13, increasing this to be kinder on devices
+		
+		log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
 
 		ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
 		MyAnswers.dispatch = new BlinkDispatch(siteVars.serverAppBranch === 'W' ? 149 : 47);

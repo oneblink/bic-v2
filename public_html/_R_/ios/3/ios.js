@@ -1,8 +1,9 @@
 var activityIndicatorTop, $navBar;
 MyAnswers.deviceDeferred = new $.Deferred();
 
-function init_device()
-{
+function init_device() {
+	var $activityIndicator = $('#activityIndicator'),
+		matches;
 	log('init_device()');
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion !== null ? deviceVars.engineVersion[1] : 525;
@@ -11,14 +12,20 @@ function init_device()
 	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
 	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
 
+	// assume no CSS Fixed Position support for iOS < 5
+	matches = navigator.userAgent.match(/OS (\d)[_\d]* like Mac OS X;/);
+	if ($.type(matches) === 'array') {
+		Modernizr.positionfixed = matches[1] < 5 ? false : Modernizr.positionfixed; 
+	}
+
 	// caching frequently-accessed selectors
 	$navBar = $('#navBoxHeader');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
-	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
-	log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
-	if (deviceVars.hasCSSFixedPosition) {
-		$('#activityIndicator').css('top', activityIndicatorTop);
+	$activityIndicator.css('top', activityIndicatorTop);
+	if (Modernizr.positionfixed) {
+		$activityIndicator.css('position', 'fixed');
 	} else if (typeof onScroll === 'function') {
+		$activityIndicator.css('position', 'absolute');
 		$(window).bind('scroll', onScroll);
 		MyAnswers.dispatch.add(function() {
 			$(window).trigger('scroll');
@@ -134,9 +141,7 @@ function updatePartCSS(element, property, value, valueFormat) {
 
 function onScroll() {
 	MyAnswers.dispatch.add(function() {
-		var //headerBottom = $('.header').height(),
-			scrollTop = $(window).scrollTop(),
-			offset;
+		var scrollTop = $(window).scrollTop();
 		updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 		updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 		updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
