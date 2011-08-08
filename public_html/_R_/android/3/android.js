@@ -3,8 +3,8 @@ MyAnswers.deviceDeferred = new $.Deferred();
 
 // ** device-specific initialisation of variables and flags **
 
-function init_device()
-{
+function init_device() {
+	var $activityIndicator = $('#activityIndicator');
 	log('init_device()');
 	deviceVars.scrollProperty = '-webkit-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
@@ -14,14 +14,15 @@ function init_device()
 	// caching frequently-accessed selectors
 	$navBar = $('#navBoxHeader');
 	activityIndicatorTop = Math.floor($(window).height() / 2);
-
-	deviceVars.hasCSSFixedPosition = hasCSSFixedPosition();
-	log('hasCSSFixedPosition: ' + deviceVars.hasCSSFixedPosition);
-	if (deviceVars.hasCSSFixedPosition) {
-		$('#activityIndicator').css('top', activityIndicatorTop);
+	$activityIndicator.css('top', activityIndicatorTop);
+	if (Modernizr.positionfixed) {
+		$activityIndicator.css('position', 'fixed');
 	} else if (typeof onScroll === 'function') {
+		$activityIndicator.css('position', 'absolute');
 		$(window).bind('scroll', onScroll);
-		$(window).trigger('scroll');
+		MyAnswers.dispatch.add(function() {
+			$(window).trigger('scroll');
+		});
 	}
 }
 
@@ -161,9 +162,7 @@ function updatePartCSS(element, property, value, valueFormat) {
 }
 
 function onScroll() {
-	var //headerBottom = $('header').height(),
-		scrollTop = $(window).scrollTop(),
-		offset;
+	var scrollTop = $(window).scrollTop();
 	updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
