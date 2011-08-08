@@ -2567,6 +2567,7 @@ function onBrowserReady() {
 				(uriParts.scheme === 'http' && uriParts.port !== "80"))) {
 			siteVars.serverDomain += ':' + uriParts.port;
 		}
+		log("*** main scheme: " + uriParts.scheme + ", port: " +  uriParts.port + ", domain: " + siteVars.serverDomain);
 		siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
 		siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 		siteVars.queryParameters = getURLParameters();
