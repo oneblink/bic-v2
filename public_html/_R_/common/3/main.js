@@ -14,10 +14,41 @@ deviceVars.isOnline = true;
 function PictureSourceType() {}
 function lastPictureTaken () {}
 
-MyAnswers.browserDeferred = new $.Deferred();
 MyAnswers.mainDeferred = new $.Deferred();
+MyAnswers.browserDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
+
+(function(window, undefined) {
+	var Modernizr = window.Modernizr,
+		document = window.document;
+	Modernizr.addTest('positionfixed', function () {
+		var test  = document.createElement('div'),
+			fake = false,
+			root = document.body || (function () {
+				fake = true;
+				return document.documentElement.appendChild(document.createElement('body'));
+			}());
+		var oldCssText = root.style.cssText,
+		ret, offset;
+		root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
+		test.style.cssText = 'position: fixed; top: 100px';
+		root.appendChild(test);
+		window.scrollTo(0, 500);
+		offset = $(test).offset();
+		ret = offset.top === 600; // 100 + 500
+		if (!ret && typeof test.getBoundingClientRect !== 'undefined') {
+			ret = test.getBoundingClientRect().top === 100;
+		}
+		root.removeChild(test);
+		root.style.cssText = oldCssText;
+		window.scrollTo(0, 1);
+		if (fake) {
+			document.documentElement.removeChild(root);
+		}
+		return ret;
+	});
+}(this));
 
 // *** BEGIN UTILS ***
 
@@ -114,56 +145,6 @@ siteVars.forms = siteVars.forms || {};
 		return false;
 	});
 })(this);
-
-(function(window, undefined) {
-	var deviceVars = window.deviceVars,
-		siteVars = window.siteVars,
-		navigator = window.navigator,
-		$window = $(window);
-
-	function networkReachableFn(state) {
-		var state = state.code || state;
-		deviceVars.isOnline = state > 0;
-		deviceVars.isOnlineCell = state === 1;
-		deviceVars.isOnlineWiFi = state === 2;
-		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
-	}
-
-	function onNetworkChange() {
-		var host;
-//		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
-//			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
-//			navigator.network.isReachable(host, networkReachableFn);
-//		} else {
-			deviceVars.isOnline = navigator.onLine === true;
-			log('onNetworkChange(): online=' + deviceVars.isOnline);
-//		}
-	}
-
-	$window.bind('online', onNetworkChange);
-	$window.bind('offline', onNetworkChange);
-	$window.trigger('online');
-}(this));
-
-function hasCSSFixedPosition() {
-	var $body = $('body'),
-		$div = $('<div id="fixed" />'),
-		height = $body[0].style.height, 
-		scroll = $body.scrollTop(),
-		hasSupport;
-	if (!$div[0].getBoundingClientRect) {
-		return false;
-	}
-	$div.css({position: 'fixed', top: '100px'}).html('test');
-	$body.append($div);
-	$body.css('height', '3000px');
-	$body.scrollTop(50);
-	$body.css('height', height);
-	hasSupport = $div[0].getBoundingClientRect().top === 100;
-	$div.remove();
-	$body.scrollTop(scroll);
-	return hasSupport; 
-}
 
 function isCameraPresent() {
 	if (typeof window.device === 'undefined') {
@@ -2677,30 +2658,39 @@ function onBrowserReady() {
 	}
 }
 
-// Function: loaded()
-// Called by Window's load event when the web application is ready to start
-//
-
-
-/* called by Modernizr.load in index.php when scripts are loaded */
-function onBodyLoad() {
-  if (!window.device) {
-    log("onBodyLoad: direct call to onBrowserReady()");
-    onBrowserReady();
-  } else {
-    setTimeout(onBrowserReady, 2000);
-  }
-}
-
 /* moving non-public functions into a closure for safety */
 (function(window, undefined) {
 	var document = window.document,
 		siteVars = window.siteVars,
+		deviceVars = window.deviceVars,
 		MyAnswers = window.MyAnswers,
 		$ = window.jQuery,
-		$startup = $('#startUp');
+		$startup = $('#startUp'),
+		navigator = window.navigator,
+		$window = $(window);
+		
+/* *** HELPER FUNCTIONS *** */
+
+	function networkReachableFn(state) {
+		var state = state.code || state;
+		deviceVars.isOnline = state > 0;
+		deviceVars.isOnlineCell = state === 1;
+		deviceVars.isOnlineWiFi = state === 2;
+		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
+	}
 
 /* *** EVENT HANDLERS *** */
+
+	function onNetworkChange() {
+		var host;
+//		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
+//			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
+//			navigator.network.isReachable(host, networkReachableFn);
+//		} else {
+			deviceVars.isOnline = navigator.onLine === true;
+			log('onNetworkChange(): online=' + deviceVars.isOnline);
+//		}
+	}
 
 /*	function onWindowResize(event) {
  *	// TODO: a window resize event _may_ cause DOM issues with out transitions
@@ -2789,7 +2779,13 @@ function onBodyLoad() {
 						siteVars.map = data;
 					}
 				}).always(function() {
-					$.when(requestLoginStatus()).always(requestConfig);
+					if (deviceVars.isOnline) {
+						$.when(requestLoginStatus()).always(requestConfig);
+					} else if (siteVars.config && siteVars.map) {
+						displayAnswerSpace();
+					} else {
+						$startup.append('error: unable to contact server, insufficient data found in local storage');
+					}
 				});
 			});
 			$.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
@@ -2818,6 +2814,8 @@ function onBodyLoad() {
 		lastPictureTaken.currentName = null;
 
 		$.fx.interval = 27; // default is 13, increasing this to be kinder on devices
+		
+		log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
 
 		ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
 		MyAnswers.dispatch = new BlinkDispatch(siteVars.serverAppBranch === 'W' ? 149 : 47);
@@ -2856,6 +2854,10 @@ function onBodyLoad() {
 		MyAnswers.$body.bind('taskComplete', onTaskComplete);
 		MyAnswers.$body.delegate('a', 'click', onLinkClick);
 		$('#pendingBox').delegate('button', 'click', onPendingClick);
+
+		$window.bind('online', onNetworkChange);
+		$window.bind('offline', onNetworkChange);
+		onNetworkChange(); // $window.trigger('online');
 	}
 
 	MyAnswers.bootPromises = [
@@ -2881,6 +2883,29 @@ function onBodyLoad() {
 	}).fail(function() {
 		log('init failed, not all promises kept');
 	});
+
+	// load in JSON and XSLT polyfills if necessary
+	$(document).ready(function() {
+		$.when(MyAnswers.mainDeferred.promise()).then(function() {
+			Modernizr.load([{
+				test: window.JSON,
+				nope: '/_c_/json2.js'
+			}, {
+				test: window.XSLTProcessor,
+				nope: '<?php echo $serverAppPath; ?>/ajaxslt-0.8.1-r61.min.js'
+			}, {
+				complete: function() {
+					if (!window.device) {
+						log("onBodyLoad: direct call to onBrowserReady()");
+						onBrowserReady();
+					} else {
+						setTimeout(onBrowserReady, 2000);
+					}
+				}
+			}]);
+		});
+	});
+
 }(this));
 
 // END APPLICATION INIT
