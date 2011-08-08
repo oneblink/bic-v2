@@ -15,7 +15,6 @@ function PictureSourceType() {}
 function lastPictureTaken () {}
 
 MyAnswers.browserDeferred = new $.Deferred();
-MyAnswers.mainDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
 
