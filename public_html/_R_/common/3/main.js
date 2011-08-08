@@ -14,6 +14,7 @@ deviceVars.isOnline = true;
 function PictureSourceType() {}
 function lastPictureTaken () {}
 
+MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
@@ -2657,16 +2658,6 @@ function onBrowserReady() {
 	}
 }
 
-/* called by Modernizr.load in index.php when scripts are loaded */
-function onBodyLoad() {
-  if (!window.device) {
-    log("onBodyLoad: direct call to onBrowserReady()");
-    onBrowserReady();
-  } else {
-    setTimeout(onBrowserReady, 2000);
-  }
-}
-
 /* moving non-public functions into a closure for safety */
 (function(window, undefined) {
 	var document = window.document,
@@ -2892,6 +2883,29 @@ function onBodyLoad() {
 	}).fail(function() {
 		log('init failed, not all promises kept');
 	});
+
+	// load in JSON and XSLT polyfills if necessary
+	$(document).ready(function() {
+		$.when(MyAnswers.mainDeferred.promise()).then(function() {
+			Modernizr.load([{
+				test: window.JSON,
+				nope: '/_c_/json2.js'
+			}, {
+				test: window.XSLTProcessor,
+				nope: '<?php echo $serverAppPath; ?>/ajaxslt-0.8.1-r61.min.js'
+			}, {
+				complete: function() {
+					if (!window.device) {
+						log("onBodyLoad: direct call to onBrowserReady()");
+						onBrowserReady();
+					} else {
+						setTimeout(onBrowserReady, 2000);
+					}
+				}
+			}]);
+		});
+	});
+
 }(this));
 
 // END APPLICATION INIT
