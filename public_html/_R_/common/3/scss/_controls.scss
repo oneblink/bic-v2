@@ -49,16 +49,17 @@ input {
 		&[disabled] { @extend button[disabled]; }
 	}
 }
+
+
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
 
-input, textarea {
+/*input, textarea {
 	background-color: #fff;
 	
 &:required { background-color:#FFE473; }
 &:invalid{ background-color:#FF8073; }
 
-//&:required { background-color:#FFFFCC; }
-	// &:required, &:focus:invalid { background-color:red; }
-	// &:valid { background-color:green; }
-}
+	 &:required, &:focus:invalid { background-color:red; }
+	 &:valid { background-color:green; }
+}*/
 
