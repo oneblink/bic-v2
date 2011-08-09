@@ -36,16 +36,10 @@ function onDeviceReady() {
 		//log("Multitasking: " + window.device.multitasking);
 		MyAnswers.cameraPresent = true; // TODO: find an Android device that lacks a camera
 		//MyAnswers.loadURL = window.Settings.LoadURL;
-		siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
-		MyAnswers.domain = "//" + siteVars.serverDomain + "/";
-		log("Domain: " + MyAnswers.domain);
 		//MyAnswers.multiTasking = window.device.multitasking;
 		//siteVars.serverAppVersion = window.Settings.codeVersion;
-		siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
 		//siteVars.answerSpace = window.Settings.answerSpace;
 		log("siteVars.answerSpace: " + siteVars.answerSpace);
-		siteVars.serverDevicePath = MyAnswers.loadURL + 'android/' + siteVars.serverAppVersion + '/';
-		log("MyAnswers.loadURL: " + MyAnswers.loadURL);
 		deviceVars.deviceFileName = '/android.js';
 		log("AppDevicePath: " + siteVars.serverDevicePath);
 		log("AppPath: " + siteVars.serverAppPath);
