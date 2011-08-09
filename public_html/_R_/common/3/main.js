@@ -252,7 +252,12 @@ function deserialize(argsString) {
 }
 
 function getURLParameters() {
-	var queryString = window.location.href.split('?')[1].split('#')[0];
+	var href = window.location.href,
+		queryString;
+	if (href.indexOf('?') === -1) {
+		return [];
+	}
+	queryString = href.split('?')[1].split('#')[0];
 	if (typeof queryString === 'string') {
 		var parameters = deserialize(queryString);
 		if (typeof parameters.keyword === 'string') {
@@ -1291,21 +1296,28 @@ function processMoJOs(interaction) {
 					if (typeof value === 'number' && !isNaN(value)) {
 						requestData._lc = value;
 					}
-					ajaxQueue.add({
-						url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
-						data: requestData,
-						dataType: 'xml',
-						complete: function(jqxhr, status) {
-							if (jqxhr.status === 200) {
-								MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
-//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-							}
-							if (jqxhr.status === 200 || jqxhr.status === 304) {
-								MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
-							}
-						},
-						timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-					});
+					if (deviceVars.isOnline) {
+						ajaxQueue.add({
+							url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+							data: requestData,
+							dataType: 'xml',
+							complete: function(jqxhr, status) {
+								if (jqxhr.status === 200) {
+									MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
+	//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+								} else {
+									deferred.reject();
+								}
+								if (jqxhr.status === 200 || jqxhr.status === 304) {
+									MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
+									deferred.resolve();
+								}
+							},
+							timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+						});
+					} else {
+						deferred.reject();
+					}
 				});
 			});
 			return deferred.promise();
@@ -1356,24 +1368,26 @@ function processForms() {
 			$formObject.children().each(formActionFn);
 			log('processForms()->formObjectFn(): formXML:' + id);
 		};
-	ajaxQueue.add({
-		url: siteVars.serverAppPath + '/xhr/GetForm.php',
-		dataType: 'xml',
-		complete: function(jqxhr, status) {
-			var $data;
-			if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
-				jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
-				$data = $($.parseXML(jqxhr.responseText));
-//				log($data);
-				$data.find('formObject').each(formObjectFn);
-//			MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-			}
-			if (jqxhr.status === 200 || jqxhr.status === 304) {
-				MyAnswers.store.set('formLastChecked:' + id, $.now());
-			}
-		},
-		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-	});
+	if (deviceVars.isOnline) {
+		ajaxQueue.add({
+			url: siteVars.serverAppPath + '/xhr/GetForm.php',
+			dataType: 'xml',
+			complete: function(jqxhr, status) {
+				var $data;
+				if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
+					jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
+					$data = $($.parseXML(jqxhr.responseText));
+	//				log($data);
+					$data.find('formObject').each(formObjectFn);
+	//			MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+				}
+				if (jqxhr.status === 200 || jqxhr.status === 304) {
+					MyAnswers.store.set('formLastChecked:' + id, $.now());
+				}
+			},
+			timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+		});
+	}
 }
 
 function processConfig(display) {
@@ -2558,22 +2572,15 @@ function onBrowserReady() {
 	try {
 		var uriParts = parse_url(window.location.href),
 			splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
-		siteVars.serverAppBranch =  splitUrl[1];
-		siteVars.serverAppVersion =  splitUrl[3];
-		siteVars.serverDomain = uriParts.host;
 
-		if ($.type(uriParts.port) === 'string' &&
-			((uriParts.scheme === 'https' && uriParts.port !== "443") ||
-				(uriParts.scheme === 'http' && uriParts.port !== "80"))) {
-			siteVars.serverDomain += ':' + uriParts.port;
-		}
+		log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
+
 		siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
 		siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 		siteVars.queryParameters = getURLParameters();
 		siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 		delete siteVars.queryParameters.uid;
 		delete siteVars.queryParameters.answerSpace;
-		MyAnswers.domain = '//' + siteVars.serverDomain + "/";
 
 		MyAnswers.$body = $('body');
 		MyAnswers.$document = $(window.document);
@@ -2622,7 +2629,7 @@ function onBrowserReady() {
 			}));
 			log('AJAX start: ' + url);
 		});
-		MyAnswers.$document.ajaxSuccess(function(event, jqxhr, options) {
+/*		MyAnswers.$document.ajaxSuccess(function(event, jqxhr, options) {
 			var status = typeof jqxhr === 'undefined' ? null : jqxhr.status,
 				readyState = typeof jqxhr === 'undefined' ? 4 : jqxhr.readyState,
 				url = decodeURI(options.url);
@@ -2630,7 +2637,7 @@ function onBrowserReady() {
 				url = url.substring(0, 100) + '...';
 			} 
 			log('AJAX complete: ' + url + ' ' + readyState + ' ' + status);
-		});
+		}); */
 
 		if (siteVars.serverAppBranch === 'W') {
 			MyAnswers.blinkgapDeferred = new $.Deferred();
@@ -2782,7 +2789,7 @@ function onBrowserReady() {
 					if (deviceVars.isOnline) {
 						$.when(requestLoginStatus()).always(requestConfig);
 					} else if (siteVars.config && siteVars.map) {
-						displayAnswerSpace();
+						processConfig(true);
 					} else {
 						$startup.append('error: unable to contact server, insufficient data found in local storage');
 					}
@@ -2831,7 +2838,7 @@ function onBrowserReady() {
 
 		MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
 		$.when(MyAnswers.store.ready()).then(function() {
-			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
+			MyAnswers.siteStore = new BlinkStorage('localstorage', siteVars.answerSpace, 'site');
 			$.when(MyAnswers.siteStore.ready()).then(function() {
 				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
 				$.when(MyAnswers.pendingStore.ready()).then(function() {

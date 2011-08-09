@@ -43,12 +43,7 @@ function onDeviceReady() {
 		log("Multitasking: " + window.device.multitasking);
 		MyAnswers.cameraPresent = window.device.camerapresent;
 		MyAnswers.loadURL = window.Settings.LoadURL;
-		siteVars.serverDomain = MyAnswers.loadURL.match(/:\/\/(.[^\/]+)/)[1];
-		MyAnswers.domain = "//" + siteVars.serverDomain + "/";
-		log("Domain: " + MyAnswers.domain);
 		MyAnswers.multiTasking = window.device.multitasking;
-		siteVars.serverAppVersion = window.Settings.codeVersion;
-		siteVars.serverAppPath = MyAnswers.loadURL + 'common/' + siteVars.serverAppVersion + '/';
 		siteVars.answerSpace = window.Settings.answerSpace;
 		siteVars.serverDevicePath = MyAnswers.loadURL + 'ios/' + siteVars.serverAppVersion + '/';
 		deviceVars.deviceFileName = '/ios.js';
