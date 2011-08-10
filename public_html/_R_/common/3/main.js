@@ -2838,7 +2838,7 @@ function onBrowserReady() {
 
 		MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
 		$.when(MyAnswers.store.ready()).then(function() {
-			MyAnswers.siteStore = new BlinkStorage('localstorage', siteVars.answerSpace, 'site');
+			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
 			$.when(MyAnswers.siteStore.ready()).then(function() {
 				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
 				$.when(MyAnswers.pendingStore.ready()).then(function() {
