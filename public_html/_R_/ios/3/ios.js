@@ -23,8 +23,10 @@ function init_device() {
 	activityIndicatorTop = Math.floor($(window).height() / 2);
 	$activityIndicator.css('top', activityIndicatorTop);
 	if (Modernizr.positionfixed) {
+		$navBar.css('position', 'fixed');
 		$activityIndicator.css('position', 'fixed');
 	} else if (typeof onScroll === 'function') {
+		$navBar.css('position', 'absolute');
 		$activityIndicator.css('position', 'absolute');
 		$(window).bind('scroll', onScroll);
 		MyAnswers.dispatch.add(function() {

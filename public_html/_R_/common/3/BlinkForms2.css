@@ -72,7 +72,7 @@ form .bForm-input > span { display: inline-block; }
 .bForm-subFormControls > button, .bForm-subFormControls > input[type=button], .bForm-subFormControls > input[type=reset], .bForm-subFormControls > input[type=submit] { padding: .5em; }
 
 /* signature pad styles */
-#signaturePad { position: fixed; margin: 0; padding: 0; top: 0; left: 0; background-color: transparent; z-index: 10; }
+#signaturePad { margin: 0; padding: 0; top: 0; left: 0; background-color: transparent; z-index: 10; }
 
 .signaturePad { display: none; clear: both; }
 .signaturePad > canvas { margin: 0px auto; border: 2px solid #A00; background-color: #FFF; position: relative; cursor: crosshair; }
