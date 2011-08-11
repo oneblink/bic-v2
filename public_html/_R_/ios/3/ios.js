@@ -20,11 +20,13 @@ function init_device() {
 
 	// caching frequently-accessed selectors
 	$navBar = $('#navBoxHeader');
-	activityIndicatorTop = Math.floor($(window).height() / 2);
+	activityIndicatorTop = Math.floor($(window).height() / 3);
 	$activityIndicator.css('top', activityIndicatorTop);
 	if (Modernizr.positionfixed) {
+		$navBar.css('position', 'fixed');
 		$activityIndicator.css('position', 'fixed');
 	} else if (typeof onScroll === 'function') {
+		$navBar.css('position', 'absolute');
 		$activityIndicator.css('position', 'absolute');
 		$(window).bind('scroll', onScroll);
 		MyAnswers.dispatch.add(function() {

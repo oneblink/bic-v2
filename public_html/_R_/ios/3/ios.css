@@ -93,7 +93,6 @@ button, [type=button], [type=submit], [type=reset] {
 }
 
 #navBoxHeader {
-	position: fixed;
 	top: 0;
 	color: #73777F;
 	font-size: large;

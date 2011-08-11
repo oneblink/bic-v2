@@ -1836,8 +1836,22 @@ function showActivateLoginView(event)
 	});
 }
 
-function showLoginView(event)
-{
+function showLoginView(event) {
+	var id,
+		requestUri;
+	if (!currentConfig.loginAccess) {
+		return false;
+	}
+	if (currentConfig.loginUseInteractions) {
+		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
+		if (!id) {
+			alert('error: interaction used for login prompt is inaccessible or misconfigured');
+			return false;
+		}
+		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
+		History.pushState({m: null, c: null, i: id}, null, requestUri);
+		return false;
+	}
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		MyAnswersDevice.showView($('#loginView'));
 		setMainLabel('Login');
@@ -1850,12 +1864,17 @@ function updateLoginButtons() {
 		logoutButton = document.getElementById('logoutButton');
 	if (!siteVars.hasLogin) {return;}
 	if (MyAnswers.isLoggedIn) {
-		if (typeof MyAnswers.loginAccount === 'string' && MyAnswers.loginAccount.length > 0) {
+		if (typeof MyAnswers.loginAccount !== 'undefined' && typeof MyAnswers.loginAccount !== 'boolean') {
 			MyAnswers.dispatch.add(function() {
-				var $loginStatus = $(loginStatus);
+				var $loginStatus = $(loginStatus),
+					text = 'logged in as<br />';
+				if ($.type(MyAnswers.loginAccount) === 'object') {
+					text += '<span class="loginAccount">' + MyAnswers.loginAccount.name || MyAnswers.loginAccount.name + '</span>';
+				} else {
+					text += '<span class="loginAccount">' + MyAnswers.loginAccount + '</span>';
+				}
 				$loginStatus.empty();
-				$loginStatus.append('logged in as<br />');
-				$loginStatus.append('<span class="loginAccount">' + MyAnswers.loginAccount + '</span>');
+				$loginStatus.append(text);
 				$loginStatus.click(submitLogout);
 			});
 			changeDOMclass(loginStatus, {remove: 'hidden'});
@@ -2608,26 +2627,26 @@ function onBrowserReady() {
 		 * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
 		 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
 		 */
-		MyAnswers.$document.ajaxSend(function(event, jqxhr, options) {
-			var url = decodeURI(options.url),
-				config = {
-					answerSpaceId: siteVars.id,
-					answerSpace: siteVars.answerSpace,
-					conditions: deviceVars.features
-				};
-			/*
-			 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
-			 * phpName; log(string + ' ' + e.position + ' ' +
-			 * e.total + ' ' + xhr + ' ' + options); }
-			 */
-			if (url.length > 100) {
-				url = url.substring(0, 100) + '...';
-			}
-			jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
-			jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
-				'requests': ++siteVars.requestsCounter
-			}));
-			log('AJAX start: ' + url);
+		$.ajaxPrefilter(function(options, original, jqxhr) {
+				var url = decodeURI(options.url),
+					config = {
+						answerSpaceId: siteVars.id,
+						answerSpace: siteVars.answerSpace,
+						conditions: deviceVars.features
+					};
+				/*
+				 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
+				 * phpName; log(string + ' ' + e.position + ' ' +
+				 * e.total + ' ' + xhr + ' ' + options); }
+				 */
+				if (url.length > 100) {
+					url = url.substring(0, 100) + '...';
+				}
+				jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
+				jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
+					'requests': ++siteVars.requestsCounter
+				}));
+				log('AJAX start: ' + url);
 		});
 /*		MyAnswers.$document.ajaxSuccess(function(event, jqxhr, options) {
 			var status = typeof jqxhr === 'undefined' ? null : jqxhr.status,
@@ -2838,7 +2857,7 @@ function onBrowserReady() {
 
 		MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
 		$.when(MyAnswers.store.ready()).then(function() {
-			MyAnswers.siteStore = new BlinkStorage('localstorage', siteVars.answerSpace, 'site');
+			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
 			$.when(MyAnswers.siteStore.ready()).then(function() {
 				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
 				$.when(MyAnswers.pendingStore.ready()).then(function() {
