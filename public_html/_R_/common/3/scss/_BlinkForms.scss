@@ -47,9 +47,34 @@ form {
 		}
 	}
 
-	.bForm-input {
-		>span {
+	td.bForm-input {
+		padding-right: 30px;
+
+		> input[type=button] { display: inline-block; }
+
+		> .radiooption, > .checkoption {
+			display: table-row;
+
+			label, input[type=radio], input[type=checkbox] {
+				text-align: left;
+				display: table-cell;
+			}
+		}
+
+		> span {
 			display: inline-block;
+		}
+	}
+
+	tr.bField-labelAbove {
+		td.bForm-input {
+			text-align: center;
+
+			> .radiooption, > .checkoption {
+				label, input[type=radio], input[type=checkbox] {
+					text-align: left;
+				}
+			}
 		}
 	}
 }
@@ -63,14 +88,12 @@ form {
 .bForm-error { color: $errorColor; }
 
 .bForm-dataDisplay {
+	margin: .5em;
 	white-space: pre-wrap;
 }
 
 .bForm-label, .bForm-value { font-size: smaller; }
-.bForm-input > .radiooption, .bForm-input > .checkoption { display: table-row; }
-.bForm-input > .radiooption label, .bForm-input > .radiooption input[type=radio], .bForm-input > .radiooption input[type=checkbox] { display: table-cell; }
-.bForm-input > input[type=button] { display: inline-block; }
-.bForm-input { padding-right: 30px; }
+
 .bForm-tooltip > span {
 	font-size: larger;
 	font-weight: bolder;

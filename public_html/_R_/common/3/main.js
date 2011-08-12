@@ -7,6 +7,8 @@ var MyAnswers = MyAnswers || {},
 	starsProfile = {},
 	ajaxQueue;
 
+$('#startUp-loadMain').addClass('working');
+
 currentConfig.downloadTimeout = 30;
 currentConfig.uploadTimeout = 45;
 deviceVars.isOnline = true;
@@ -2660,6 +2662,7 @@ function onBrowserReady() {
 
 		if (siteVars.serverAppBranch === 'W') {
 			MyAnswers.blinkgapDeferred = new $.Deferred();
+			$('#startUp-initBlinkGap').addClass('working');
 			if (window.device && window.device.ready) {
 				onDeviceReady();
 			} else {
@@ -2676,11 +2679,13 @@ function onBrowserReady() {
 		} else {
 			MyAnswers.browserDeferred.resolve();
 		}
+		$('#startUp-initBrowser').addClass('success');
   } catch(e) {
 		log("onBrowserReady: Exception");
 		log(e);
 		$startup.append('browser error: ' + e);
 		MyAnswers.browserDeferred.reject();
+		$('#startUp-initBrowser').addClass('error');
 	}
 }
 
@@ -2822,9 +2827,11 @@ function onBrowserReady() {
 					starsProfile = stars;
 				}
 			});
+			$('#startUp-initLoaded').addClass('success');
 		} catch(e) {
 			log("loaded(): exception:");
 			log(e);
+			$('#startUp-initLoaded').addClass('error');
 			$startup.append('loading error: ' + e);
 		}
 	}
@@ -2865,6 +2872,7 @@ function onBrowserReady() {
 					$.when(MyAnswers.pendingV1Store.ready()).then(function() {
 				//		MyAnswers.dumpLocalStorage();
 						$.when(MyAnswers.updateLocalStorage()).done(function() {
+							$('#startUp-initLoaded').addClass('working');
 							loaded();
 							log('loaded(): returned after call by BlinkStorage');
 						});
@@ -2884,6 +2892,7 @@ function onBrowserReady() {
 		$window.bind('online', onNetworkChange);
 		$window.bind('offline', onNetworkChange);
 		onNetworkChange(); // $window.trigger('online');
+		$('#startUp-initMain').addClass('success');
 	}
 
 	MyAnswers.bootPromises = [
@@ -2894,7 +2903,9 @@ function onBrowserReady() {
 	$.whenArray(MyAnswers.bootPromises).done(function() {
 		log("all promises kept, initialising...");
 		try {
+			$('#startUp-initMain').addClass('working');
 			init_main();
+			$('#startUp-initDevice').addClass('working');
 			init_device();
 		} catch(e) {
 			log('exception in init_?():');
@@ -2912,6 +2923,7 @@ function onBrowserReady() {
 
 	// load in JSON and XSLT polyfills if necessary
 	$(document).ready(function() {
+		$('#startUp-loadPolyFills').addClass('working');
 		$.when(MyAnswers.mainDeferred.promise()).then(function() {
 			Modernizr.load([{
 				test: window.JSON,
@@ -2921,6 +2933,8 @@ function onBrowserReady() {
 				nope: '<?php echo $serverAppPath; ?>/ajaxslt-0.8.1-r61.min.js'
 			}, {
 				complete: function() {
+					$('#startUp-loadPolyFills').addClass('success');
+					$('#startUp-initBrowser').addClass('working');
 					if (!window.device) {
 						log("onBodyLoad: direct call to onBrowserReady()");
 						onBrowserReady();
@@ -2936,4 +2950,5 @@ function onBrowserReady() {
 
 // END APPLICATION INIT
 
+$('#startUp-loadMain').addClass('success');
 MyAnswers.mainDeferred.resolve();
