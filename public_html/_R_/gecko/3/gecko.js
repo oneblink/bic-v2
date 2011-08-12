@@ -1,4 +1,6 @@
-var activityIndicatorTop, $navBar;
+var activityIndicatorTop, $navBar,
+	onDeviceReady = $.noop; // there are no gecko-based native applications
+$('#startUp-loadDevice').addClass('working');
 MyAnswers.deviceDeferred = new $.Deferred();
 
 // ** device-specific initialisation of variables and flags **
@@ -26,39 +28,7 @@ function init_device() {
 			$(window).trigger('scroll');
 		});
 	}
-}
-
-/* note, there are no gecko-based native applications, current */
-/* When this function is called, PhoneGap has been initialized and is ready to roll */
-function onDeviceReady() {
-	try {
-		log("Device Ready");
-		//log("URL to Load: " + window.Settings.LoadURL);
-		log("Device: " + window.device.platform);
-		//log("Camera Present: " + window.device.camerapresent);
-		//log("Multitasking: " + window.device.multitasking);
-		//MyAnswers.cameraPresent = window.device.camerapresent;
-		//MyAnswers.loadURL = window.Settings.LoadURL;
-		log("Domain: " + MyAnswers.domain);
-		//MyAnswers.multiTasking = window.device.multitasking;
-		//siteVars.serverAppVersion = window.Settings.codeVersion;
-		//siteVars.answerSpace = window.Settings.answerSpace;
-		log("siteVars.answerSpace: " + siteVars.answerSpace);
-		log("MyAnswers.loadURL: " + MyAnswers.loadURL);
-		deviceVars.deviceFileName = '/android.js';
-		//if (window.device.platform.search(/iphone/i) != -1) {
-		//  siteVars.serverDevicePath = MyAnswers.loadURL + 'iphone/' + siteVars.serverAppVersion + '/';
-		//  deviceVars.deviceFileName = '/iphone.js';
-		//} else {
-		//  siteVars.serverDevicePath = MyAnswers.loadURL + 'ipad/' + siteVars.serverAppVersion + '/';
-		//  deviceVars.deviceFileName = '/ipad.js';
-		//}
-		log("AppDevicePath: " + siteVars.serverDevicePath);
-		log("AppPath: " + siteVars.serverAppPath);
-  } catch(e) {
-		log("onDeviceReady exception: ");
-		log(e);
-	}
+	$('#startUp-initDevice').addClass('success');
 }
 
 (function(window, undefined) {
@@ -172,4 +142,5 @@ function onScroll() {
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
+$('#startUp-loadDevice').addClass('success');
 MyAnswers.deviceDeferred.resolve();

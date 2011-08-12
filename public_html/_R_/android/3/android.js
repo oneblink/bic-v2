@@ -1,4 +1,5 @@
 var activityIndicatorTop, $navBar;
+$('#startUp-loadDevice').addClass('working');
 MyAnswers.deviceDeferred = new $.Deferred();
 
 // ** device-specific initialisation of variables and flags **
@@ -26,6 +27,7 @@ function init_device() {
 			$(window).trigger('scroll');
 		});
 	}
+	$('#startUp-initDevice').addClass('success');
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -46,10 +48,12 @@ function onDeviceReady() {
 		log("AppDevicePath: " + siteVars.serverDevicePath);
 		log("AppPath: " + siteVars.serverAppPath);
 		MyAnswers.blinkgapDeferred.resolve();
+		$('#startUp-initBlinkGap').addClass('success');
   } catch(e) {
 		log("onDeviceReady exception: ");
 		log(e);
 		MyAnswers.blinkgapDeferred.reject();
+		$('#startUp-initBlinkGap').addClass('error');
 	}
 }
 
@@ -164,4 +168,5 @@ function onScroll() {
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
+$('#startUp-loadDevice').addClass('success');
 MyAnswers.deviceDeferred.resolve();
