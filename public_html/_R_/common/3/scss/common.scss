@@ -100,6 +100,12 @@ img.v4col { width: 25%; }
 	color: black;
 	text-align: center;
 	z-index: 50;
+	
+	span {
+		&.working { font-weight: bolder; }
+		&.error { color: #a00; }
+		&.success { color: #0a0; }
+	}
 }
 
 .view {
