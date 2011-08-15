@@ -1,6 +1,6 @@
 var activityIndicatorTop, $navBar,
 	onDeviceReady = $.noop; // there are no gecko-based native applications
-$('#startUp-loadDevice').addClass('working');
+document.getElementById('startUp-loadDevice').className = 'working';
 MyAnswers.deviceDeferred = new $.Deferred();
 
 // ** device-specific initialisation of variables and flags **
@@ -142,5 +142,5 @@ function onScroll() {
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 }
 
-$('#startUp-loadDevice').addClass('success');
+document.getElementById('startUp-loadDevice').className = 'working success';
 MyAnswers.deviceDeferred.resolve();

@@ -1,5 +1,5 @@
 var activityIndicatorTop, $navBar;
-$('#startUp-loadDevice').addClass('working');
+document.getElementById('startUp-loadDevice').className = 'working';
 MyAnswers.deviceDeferred = new $.Deferred();
 
 function init_device() {
@@ -206,5 +206,5 @@ function setupParts()
 	$('body').trigger('taskComplete');
 }
 
-$('#startUp-loadDevice').addClass('success');
+document.getElementById('startUp-loadDevice').className = 'working success';
 MyAnswers.deviceDeferred.resolve();
