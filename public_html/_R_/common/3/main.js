@@ -7,7 +7,7 @@ var MyAnswers = MyAnswers || {},
 	starsProfile = {},
 	ajaxQueue;
 
-$('#startUp-loadMain').addClass('working');
+document.getElementById('startUp-loadMain').className = 'working';
 
 currentConfig.downloadTimeout = 30;
 currentConfig.uploadTimeout = 45;
@@ -2950,5 +2950,5 @@ function onBrowserReady() {
 
 // END APPLICATION INIT
 
-$('#startUp-loadMain').addClass('success');
+document.getElementById('startUp-loadMain').className = 'working success';
 MyAnswers.mainDeferred.resolve();
