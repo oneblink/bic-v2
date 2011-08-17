@@ -548,6 +548,22 @@ function generateMojoAnswer(keyword, args) {
 	return deferred.promise();
 }
 
+function countPendingFormData(callback) {
+	// TODO: change countPendingFormData to jQuery Deferred
+	$.when(MyAnswers.store.get('_pendingFormDataString')).done(function(value) {
+		var q1;
+		if (typeof value === 'string') {
+			q1 = value.split(':');
+			log("countPendingFormData: q1.length = " + q1.length + ";");
+			callback(q1.length);
+		} else {
+			callback(0);
+		}
+	}).fail(function() {
+		callback(0);
+	});
+}
+
 function setSubmitCachedFormButton() {
 	var $button = $('#pendingButton'),
 		$box = $('#pendingBox'),
@@ -646,6 +662,22 @@ function setSubmitCachedFormButton() {
 			MyAnswers.dispatch.add(setupParts);
 		}
 	});
+/*	countPendingFormData(function(queueCount) {
+		var button = document.getElementById('pendingButton');
+		MyAnswers.dispatch.add(function() {
+			if (queueCount !== 0) {
+				log("setSubmitCachedFormButton: Cached items");
+				insertText(button, queueCount + ' Pending');
+				$(button).removeClass('hidden');
+			} else {
+				log("setSubmitCachedFormButton: NO Cached items");
+				$(button).addClass('hidden');
+			}
+		});
+		if (typeof setupParts === 'function') {
+			MyAnswers.dispatch.add(setupParts);
+		}
+	}); */
 }
 
 // *** END BLINK UTILS ***
@@ -810,21 +842,10 @@ function updateNavigationButtons() {
 	});
 }
 
-function initialiseAnswerFeatures($view, afterPost) {
+function initialiseAnswerFeatures($view) {
 	log('initialiseAnswerFeatures(): view=' + $view.attr('id'));
 	var deferred = new $.Deferred(),
-		promises = [],
-		oldLoginStatus;
-	// loginUseInteractions
-	if (afterPost && currentConfig.loginAccess && currentConfig.loginUseInteractions && currentConfig.loginPromptInteraction + '' === currentInteraction + '') {
-		oldLoginStatus = MyAnswers.isLoggedIn;
-		$.when(requestLoginStatus()).always(function() {
-			if (MyAnswers.isLoggedIn !== oldLoginStatus) {
-				window.location.reload();
-			}
-		});
-	}
-	// END: loginUseInteractions
+		promises = [];
 	MyAnswers.dispatch.add(function() {
 		var $inputs = $view.find('input, textarea, select'),
 			$form = $view.find('form').first(),
@@ -1850,14 +1871,13 @@ function updateLoginButtons() {
 				var $loginStatus = $(loginStatus),
 					text = 'logged in as<br />';
 				if ($.type(MyAnswers.loginAccount) === 'object') {
-					text += '<span class="loginAccount">' + MyAnswers.loginAccount.name || MyAnswers.loginAccount.username + '</span>';
+					text += '<span class="loginAccount">' + MyAnswers.loginAccount.name || MyAnswers.loginAccount.name + '</span>';
 				} else {
 					text += '<span class="loginAccount">' + MyAnswers.loginAccount + '</span>';
 				}
 				$loginStatus.empty();
 				$loginStatus.append(text);
-				$loginStatus.unbind();
-				$loginStatus.bind('click', submitLogout);
+				$loginStatus.click(submitLogout);
 			});
 			changeDOMclass(loginStatus, {remove: 'hidden'});
 		} else {
@@ -1905,7 +1925,8 @@ function requestLoginStatus() {
 	return deferred.promise();
 }
 
-function submitLogin() {
+function submitLogin()
+{
 	log('submitLogin();');
 	ajaxQueue.add({
 		type: 'GET',
@@ -1938,30 +1959,15 @@ function submitLogin() {
   });
 }
 
-function submitLogout(event) {
-	var id, requestUri;
+function submitLogout(event)
+{
 	log('submitLogout();');
-	if (!currentConfig.loginAccess) {
-		return false;
-	}
-	if (currentConfig.loginUseInteractions) {
-		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
-		if (!id) {
-			alert('error: interaction used for login prompt is inaccessible or misconfigured');
-			return false;
-		}
-		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
-		History.pushState({m: null, c: null, i: id}, null, requestUri);
-		return false;
-	}
-	if (confirm('Log out?')) {
+    if (confirm('Log out?')) {
 		ajaxQueue.add({
 			type: 'GET',
 			cache: "false",
 			url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-			data: {
-				'_a': 'logout'
-			},
+			data: {'_a': 'logout'},
 			complete: function(xhr, textstatus) {
 				if (xhr.status === 200) {
 					var data = $.parseJSON(xhr.responseText);
@@ -1978,14 +1984,14 @@ function submitLogout(event) {
 						}
 					}
 					updateLoginButtons();
-					//					getSiteConfig();
+//					getSiteConfig();
 					goBackToHome();
 				}
 			},
 			timeout: currentConfig.downloadTimeout * 1000
 		});
-	}
-	return false;
+    }
+    return false;
 }
 
 function goBackToTopLevelAnswerView(event)
@@ -2210,24 +2216,19 @@ function submitForm() {
 
 function submitAction(keyword, action) {
 	log('submitAction(): keyword=' + keyword + ' action=' + action);
-	var $view = $('.view:visible,'),
-		currentBox = $('.view:visible > .box'),
+	var currentBox = $('.view:visible > .box'),
 		form = currentBox.find('form').first(),
-		$submits = form.find('input[type=submit]'),
 		sessionInput = form.find('input[name=blink_session_data]'),
 		formData = (action === 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize(),
 		method = form.attr('method'),
 		requestData, requestUrl,
 		serializedProfile;
-	if ($submits.length === 1 && $submits.attr('name') && $submits.val()) {
-		formData += '&' + $submits.attr('name') + '=' + $submits.val();
-	}
 	if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile)) {
 		serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
 		formData = formData.replace('blink_session_data=', 'blink_session_data=' + encodeURIComponent(serializedProfile));
 		method = 'post';
 	}
-	if ($.type(method) === 'string' && method.toLowerCase() === 'get') {
+	if (method === 'get') {
 		method = 'GET';
 		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword;
 		requestData = '&' + formData + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
@@ -2262,7 +2263,7 @@ function submitAction(keyword, action) {
 				if (currentBox.attr('id').indexOf('answerBox') !== -1)
 				{
 					insertHTML(currentBox[0], html);
-					$.when(initialiseAnswerFeatures(currentBox, true)).always(function() {
+					$.when(initialiseAnswerFeatures(currentBox)).always(function() {
 						MyAnswersDevice.showView(currentBox.closest('.view'));
 					});
 				}
@@ -2270,7 +2271,7 @@ function submitAction(keyword, action) {
 				{
 					var answerBox2 = document.getElementById('answerBox2');
 					insertHTML(answerBox2, html);
-					$.when(initialiseAnswerFeatures($('#answerView2'), true)).always(function() {
+					$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
 						MyAnswersDevice.showView($('#answerView2'));
 					});
 				}
