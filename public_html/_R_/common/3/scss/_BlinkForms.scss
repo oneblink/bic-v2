@@ -66,17 +66,23 @@ form {
 		}
 	}
 
-	tr.bField-labelAbove {
-		td.bForm-input {
-			text-align: center;
-
-			> .radiooption, > .checkoption {
-				label, input[type=radio], input[type=checkbox] {
-					text-align: left;
-				}
+	@media only screen and (max-width: 720px) {
+		tr.bField-labelAbove {
+			td.bForm-input {
+				text-align: center;
 			}
 		}
 	}
+	
+	@media only screen and (min-width: 721px) {
+		tr.bField-labelAbove {
+			td.bForm-input {
+				padding-left: 35%;
+				text-align: left;
+			}
+		}
+	}
+	
 }
 
 .bForm-subFormLabel {
