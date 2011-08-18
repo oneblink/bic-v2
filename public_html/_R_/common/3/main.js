@@ -420,72 +420,93 @@ function isHome() {
 }
 
 // perform all steps necessary to populate element with MoJO result
-function generateMojoAnswer(keyword, args) {
-	log('generateMojoAnswer(): keyword=' + keyword.name);
-	var deferred = new $.Deferred(function(dfrd) {
-		var type,
-			xml,
-			xsl = keyword.xsl,
-			placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g),
-			p, pLength = placeholders ? placeholders.length : 0,
-			value,
-			variable, condition,
-			starDetailFn = function(d, detail) {
-				xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
-			},
-			conditionStarFn = function(star, details) {
-				condition += ' or ' + variable + '=\'' + star + '\'';
-			};
-		MyAnswers.dispatch.add($.noop);
-		MyAnswers.dispatch.add(function() {
-			if (keyword.xml.substr(0,6) === 'stars:') { // use starred items
-				type = keyword.xml.split(':')[1];
-				xml = '';
+function generateMojoAnswer(args) {
+	log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
+	var deferred = new $.Deferred(),
+		type,
+		xml,
+		xsl = currentConfig.xsl,
+		placeholders, p, pLength,
+		value,
+		variable, condition,
+		starDetailFn = function(d, detail) {
+			xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
+		},
+		conditionStarFn = function(star, details) {
+			condition += ' or ' + variable + '=\'' + star + '\'';
+		};
+	if ($.type(xsl) !== 'string' || xsl.length === 0) {
+		deferred.reject('<p>Error: this Interaction does not have any XSL to transform.</p>');
+		return deferred.promise();
+	}
+	if (args) {
+		placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
+		pLength = placeholders ? placeholders.length : 0;
+		for (p = 0; p < pLength; p++) {
+			value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
+			xsl = xsl.replace(placeholders[p], value);
+		}
+	}
+	if ($.type(currentConfig.xml) !== 'string' || currentConfig.xml.length === 0) {
+		$.when(performXSLT('<xml />', xsl)).done(function(html) {
+			deferred.resolve(html);
+		}).fail(function(html) {
+			deferred.resolve(html);
+		});
+		return deferred.promise();
+	}
+	MyAnswers.dispatch.add(function() {
+		if (currentConfig.mojoType === 'stars' || currentConfig.xml.substr(0,6) === 'stars:') { // use starred items
+			type = currentConfig.xml.replace(/^stars:/, '');
+			xml = '';
+			if ($.type(starsProfile[type]) !== 'object') {
+				xml = '<stars></stars>';
+			} else {
 				$.each(starsProfile[type], function(s, details) {
 					xml += '<' + type + ' id="' + s + '">';
 					$.each(details, starDetailFn);
 					xml += '</' + type + '>';
 				});
 				xml = '<stars>' + xml + '</stars>';
-				$.when(performXSLT(xml, xsl)).done(function(html) {
-					dfrd.resolve(html);
-				}).fail(function(html) {
-					dfrd.resolve(html);
-				});
-			} else {
-				$.when(MyAnswers.store.get('mojoXML:' + keyword.xml)).done(function(xml) {
-					for (p = 0; p < pLength; p++) {
-						value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
-						xsl = xsl.replace(placeholders[p], value);
-					}
-					while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
-						condition = '';
-						type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
-						variable = type[1];
-						type = type[2];
-						if ($.type(starsProfile[type]) === 'object') {
-							$.each(starsProfile[type], conditionStarFn);
-							condition = condition.substr(4);
-						}
-						if (condition.length > 0) {
-							xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
-						} else {
-							xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
-						}
-						log('generateMojoAnswer(): condition=' + condition);
-					}
-					if (typeof xml === 'string') {
-						$.when(performXSLT(xml, xsl)).done(function(html) {
-							dfrd.resolve(html);
-						}).fail(function(html) {
-							dfrd.resolve(html);
-						});
-					} else {
-						dfrd.resolve('<p>The data for this keyword is currently being downloaded to your handset for fast and efficient viewing. This will only occur again if the data is updated remotely.</p><p>Please try again in 30 seconds.</p>');
-					}
-				});
 			}
-		});
+			$.when(performXSLT(xml, xsl)).done(function(html) {
+				deferred.resolve(html);
+			}).fail(function(html) {
+				deferred.resolve(html);
+			});
+		} else {
+			$.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml)).always(function(xml) {
+				var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
+					hosted = '<p>Please try again in 30 seconds.</p>';
+				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
+					condition = '';
+					type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+					variable = type[1];
+					type = type[2];
+					if ($.type(starsProfile[type]) === 'object') {
+						$.each(starsProfile[type], conditionStarFn);
+						condition = condition.substr(4);
+					}
+					if (condition.length > 0) {
+						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+					} else {
+						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+					}
+					log('generateMojoAnswer(): condition=' + condition);
+				}
+				if (typeof xml === 'string') {
+					$.when(performXSLT(xml, xsl)).done(function(html) {
+						deferred.resolve(html);
+					}).fail(function(html) {
+						deferred.resolve(html);
+					});
+				} else if (currentConfig.mojoType === 'server-hosted') {
+					deferred.reject(general + hosted);
+				} else {
+					deferred.reject(general);
+				}
+			});
+		}
 	});
 	return deferred.promise();
 }
@@ -1575,50 +1596,56 @@ function displayAnswerSpace() {
 	setSubmitCachedFormButton();
 }
 
+function requestMoJO(mojo) {
+	var deferred = new $.Deferred();
+	if ($.type(mojo) !== 'string' || mojo.length === 0) {
+		deferred.resolve();
+		return deferred.promise();
+	}
+	$.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
+		var requestData = {
+				_id: siteVars.id,
+				_m: mojo
+			};
+		value = parseInt(value, 10);
+		if (typeof value === 'number' && !isNaN(value)) {
+			requestData._lc = value;
+		}
+		if (deviceVars.isOnline) {
+			ajaxQueue.add({
+				url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+				data: requestData,
+				dataType: 'xml',
+				complete: function(jqxhr, status) {
+					if (jqxhr.status === 200) {
+						MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
+//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+					} else {
+						deferred.reject();
+					}
+					if (jqxhr.status === 200 || jqxhr.status === 304) {
+						MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
+						deferred.resolve();
+					}
+				},
+				timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+			});
+		} else {
+			deferred.reject();
+		}
+	});
+	return deferred.promise();
+}
+
 function processMoJOs(interaction) {
-	var deferredFetches = {},
+	var deferred = new $.Deferred(),
+		deferredFetches = {},
 		interactions = interaction ? [ interaction ] : siteVars.map.interactions,
 		i, iLength = interactions.length,
-		config,
-		deferredFn = function(mojo) {
-			var deferred = new $.Deferred();
-			$.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
-				var requestData = {
-						_id: siteVars.id,
-						_m: mojo
-					};
-				value = parseInt(value, 10);
-				if (typeof value === 'number' && !isNaN(value)) {
-					requestData._lc = value;
-				}
-				if (deviceVars.isOnline) {
-					ajaxQueue.add({
-						url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
-						data: requestData,
-						dataType: 'xml',
-						complete: function(jqxhr, status) {
-							if (jqxhr.status === 200) {
-								MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
-//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-							} else {
-								deferred.reject();
-							}
-							if (jqxhr.status === 200 || jqxhr.status === 304) {
-								MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
-								deferred.resolve();
-							}
-						},
-						timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-					});
-				} else {
-					deferred.reject();
-				}
-			});
-			return deferred.promise();
-		};
+		config;
 	for (i = 0; i < iLength; i++) {
 		config = siteVars.config['i' + interactions[i]].pertinent;
-		if ($.type(config) === 'object' && config.type === 'xslt') {
+		if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
 			if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
 				if (!siteVars.mojos[config.xml]) {
 					siteVars.mojos[config.xml] = {
@@ -1630,11 +1657,18 @@ function processMoJOs(interaction) {
 					siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
 				}
 				if (!deferredFetches[config.xml]) {
-					deferredFetches[config.xml] = deferredFn(config.xml);
+					deferredFetches[config.xml] = requestMoJO(config.xml);
 				}
 			}
 		}
 	}
+	deferredFetches = $.map(deferredFetches, function(value, key) {
+		return value;
+	});
+	$.whenArray(deferredFetches)
+		.fail(deferred.reject)
+		.then(deferred.resolve);
+	return deferred.promise();
 }
 
 function processForms() {
@@ -1842,7 +1876,7 @@ function showAnswerView(interaction, argsString, reverse) {
 		answerBox = $answerBox[0],
 		completeFn = function() {
 			$.when(initialiseAnswerFeatures($answerView)).always(function() {
-				setMainLabel(config.displayName || config.name);
+				setMainLabel(currentConfig.displayName || currentConfig.name);
 				MyAnswersDevice.showView($answerView, reverse);
 				MyAnswers.dispatch.add(function() {MyAnswers.$body.trigger('taskComplete');});
 			});
@@ -1852,12 +1886,15 @@ function showAnswerView(interaction, argsString, reverse) {
 		alert('The requested Interaction could not be found.');
 		return;
 	}
-	config = siteVars.config['i' + interaction].pertinent;
 	MyAnswers.$body.trigger('taskBegun');
 	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
 		currentInteraction = interaction;
 		updateCurrentConfig();
-		processMoJOs(interaction);
+		if (typeof currentConfig.xml === 'string' && currentConfig.xml.substring(0, 6) !== 'stars:') {
+			if (currentConfig.mojoType === 'server-hosted') {
+				requestMoJO(currentConfig.xml);
+			}
+		}
 		if (typeof argsString === 'string' && argsString.length > 0) {
 			args = {};
 			$.extend(args, deserialize(argsString));
@@ -1866,26 +1903,27 @@ function showAnswerView(interaction, argsString, reverse) {
 		} else {
 			args = {};
 		}
-		if (config.inputPrompt && !argsString) {
+		if (currentConfig.inputPrompt && !argsString) {
 			$.extend(args, deserialize(createParamsAndArgs(interaction)));
 			delete args.answerSpace;
 			delete args.interaction;
 		}
-		if (config.type === 'message') {
-			insertHTML(answerBox, config.message);
+		if (currentConfig.type === 'message') {
+			insertHTML(answerBox, currentConfig.message);
 			completeFn();
-		} else if (config.type === 'xslt' && deviceVars.disableXSLT !== true) {
-			$.when(generateMojoAnswer(config, args)).done(function(html) {
-				insertHTML(answerBox, html);
-				completeFn();
-			});
+		} else if (currentConfig.type === 'xslt' && deviceVars.disableXSLT !== true) {
+			$.when(generateMojoAnswer(args))
+				.always(function(html) {
+					insertHTML(answerBox, html);
+					completeFn();
+				});
 		} else if (reverse) {
 			$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
 				insertHTML(answerBox, html);
 				completeFn();
 			});
-		} else if (config.type === 'form' && config.blinkFormObjectName && config.blinkFormAction) {
-			html = $('<form data-object-name="' + config.blinkFormObjectName + '" data-action="' + config.blinkFormAction + '" />');
+		} else if (currentConfig.type === 'form' && currentConfig.blinkFormObjectName && currentConfig.blinkFormAction) {
+			html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
 			html.data(args);
 			insertHTML(answerBox, html);
 			completeFn();
@@ -1893,7 +1931,7 @@ function showAnswerView(interaction, argsString, reverse) {
 			var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
 				requestData = {
 					asn: siteVars.answerSpace,
-					iact: config.name
+					iact: currentConfig.name
 				},
 				fallbackToStorage = function() {
 					$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
