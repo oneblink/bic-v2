@@ -1,3 +1,5 @@
+@import "compass/css3";
+
 td {
 	input {
 		width: 100%;
@@ -48,6 +50,16 @@ input {
 		@extend button;
 		&[disabled] { @extend button[disabled]; }
 	}
+	&[type=checkbox], &[type=radio] {
+		padding: .5em;
+		height: auto;
+		@include scale(1.5);
+	}
 }
 
+label.checkbox, label.radio {
+	display: inline-block;
+	margin: .5em;
+	text-align: left;
+}
 

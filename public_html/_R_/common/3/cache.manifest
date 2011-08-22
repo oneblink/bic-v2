@@ -1,12 +1,12 @@
 CACHE MANIFEST 
-# svn revision 2162
+# svn revision 2293
 
 CACHE:
 /_R_/common/3/common.css
 /_R_/common/3/common.min.js
 /_c_/json2.js
 /_c_/jquery/jquery-1.6.2.min.js
-/_c_/modernizr/modernizr-2.0.min.js
+/_c_/modernizr/modernizr-2.0.6.93004.min.js
 /_c_/historyjs/history-1.7.0.min.js
 /_c_/signaturepad/jquery.signaturepad-2.0.4.min.js
 /_c_/webshims/polyfiller-1.7.2.min.js
