@@ -71,6 +71,6 @@ input, textarea {
 	&:required, &:focus:invalid { background-color:red; }
 	&:valid { background-color:green; }*/
 
-	&:invalid{ background-color:red; }
+	&:invalid{ background-color:#FF8073; }
 }
 

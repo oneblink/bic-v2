@@ -48,7 +48,7 @@ input, textarea { /*background-color: #fff;
 &:required { background-color:#FFE473; }
 &:required, &:focus:invalid { background-color:red; }
 &:valid { background-color:green; }*/ }
-input:invalid, textarea:invalid { background-color: red; }
+input:invalid, textarea:invalid { background-color: #FF8073; }
 
 /* end controls */
 /* BlinkForms2 styles */
