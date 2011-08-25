@@ -144,6 +144,7 @@ button, [type=button], [type=submit], [type=reset] {
 
 .view {
 	display: none;
+	padding-top: 10px;
 }
 
 .view.animating {
@@ -153,6 +154,7 @@ button, [type=button], [type=submit], [type=reset] {
 
 .box, ul.box {
 	margin: 10px;
+	margin-top: 0px
 }
 
 .paddedBox {
@@ -200,16 +202,16 @@ ul.box > li > .label, ul.box > li > .description {
 
 /* MyAnswersSideBar styles */
 
-#MyAnswersSideBar {
+#BlinkSideBar {
 	border-right: 1px solid #000;
 }
 
-#MyAnswersSideBar > ul > li {
+#BlinkSideBar > ul > li {
 	border-top: 1px solid #EDEEF0;
 	border-bottom: 1px solid #D7D8DB;
 }
 
-#MyAnswersSideBar > ul > li.selected {
+#BlinkSideBar > ul > li.selected {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#058CF5), to(#015DE6));
 	color: white;
 	text-shadow: 0px -1px 1px #1D2863;

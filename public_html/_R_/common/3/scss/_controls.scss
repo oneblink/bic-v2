@@ -57,6 +57,12 @@ input {
 	}
 }
 
+fieldset.options {
+	label.checkbox, label.radio {
+		display: block;
+	}
+}
+
 label.checkbox, label.radio {
 	display: inline-block;
 	margin: .5em;

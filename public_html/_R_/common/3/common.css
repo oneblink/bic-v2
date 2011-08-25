@@ -41,6 +41,8 @@ button[disabled], input[disabled][type=button], input[disabled][type=reset], inp
 
 input[type=checkbox], input[type=radio] { padding: .5em; height: auto; -moz-transform: scale(1.5, 1.5); -webkit-transform: scale(1.5, 1.5); -o-transform: scale(1.5, 1.5); -ms-transform: scale(1.5, 1.5); transform: scale(1.5, 1.5); }
 
+fieldset.options label.checkbox, fieldset.options label.radio { display: block; }
+
 label.checkbox, label.radio { display: inline-block; margin: .5em; text-align: left; }
 
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
@@ -48,7 +50,7 @@ input, textarea { /*background-color: #fff;
 &:required { background-color:#FFE473; }
 &:required, &:focus:invalid { background-color:red; }
 &:valid { background-color:green; }*/ }
-input:invalid, textarea:invalid { background-color: #FF8073; }
+input:invalid, textarea:invalid { background-color: red; }
 
 /* end controls */
 /* BlinkForms2 styles */
@@ -121,7 +123,9 @@ img.v4col { width: 25%; }
 #startUp span.error { color: #a00; }
 #startUp span.success { color: #0a0; }
 
-.view { position: relative; width: 100%; text-align: center; }
+.view { position: relative; /* @include single-transition(width, 0.3s, linear, 0s); */ width: 100%; text-align: center; }
+.view.listing div.box:not(.welcomeBox) { line-height: 0px; }
+.view.listing div.box:not(.welcomeBox) img { display: inline-block; }
 
 .box { position: relative; text-align: center; }
 .box ul, .box ol { margin: .8em 0; padding-left: 1.75em; }
@@ -146,9 +150,6 @@ img.v4col { width: 25%; }
 .selected #helpTitle { color: white; }
 .selected #descriptionTextBox { color: white; }
 .selected #categoryLabel { color: white; }
-
-#masterCategoriesBox, #categoriesBox, #keywordBox { line-height: 0px; }
-#masterCategoriesBox img, #categoriesBox img, #keywordBox img { display: inline-block; }
 
 ul.box { position: relative; margin: 0; padding: 0; list-style: none; background: none; }
 ul.box > li { position: relative; margin: 0; text-align: left; overflow: hidden; cursor: pointer; }
@@ -199,10 +200,14 @@ ul.box > li > .description { font-size: smaller; }
 
 .blink-star-off { background-image: url(/gfx/star-off32.png); }
 
-/* MyAnswersSideBar styles */
-#MyAnswersSideBar { position: absolute; top: 0; min-height: 100%; z-index: 2; -moz-user-select: none; -webkit-user-select: none; -o-user-select: none; -ms-user-select: none; user-select: none; }
-#MyAnswersSideBar > ul { margin: 0; padding: 0; list-style: none; }
-#MyAnswersSideBar > ul > li { margin: 0; padding: 1em .8em; font-weight: bold; cursor: pointer; }
+/* BlinkSideBar styles */
+#BlinkSideBar { position: absolute; top: 0; display: none; width: 0; /* @include single-transition(width, 0.3s, linear, 0s); */ }
+#BlinkSideBar > ul.box > li { -moz-border-radius: 0px; -webkit-border-radius: 0px; -o-border-radius: 0px; -ms-border-radius: 0px; border-radius: 0px; border: none; background: transparent; }
+
+#stackLayout.bSideBar-on #BlinkSideBar { display: block; position: absolute; top: 0; min-height: 100%; z-index: 2; width: 20%; }
+#stackLayout.bSideBar-on #BlinkSideBar > ul { margin: 0; padding: 0; list-style: none; }
+#stackLayout.bSideBar-on #BlinkSideBar > ul > li { margin: 0; padding: 1em .8em; font-weight: bold; cursor: pointer; }
+#stackLayout.bSideBar-on .view { margin-left: 20%; width: 80%; }
 
 /* end MyAnswersSideBar styles */
 @-webkit-keyframes pulse { from { opacity: 1; }
