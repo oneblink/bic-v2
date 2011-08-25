@@ -1361,6 +1361,10 @@ function updateCurrentConfig() {
 				type = 'i';
 				break;
 		}
+		if ($view.attr('id') === 'BlinkSideBar') {
+			arrangement = 'list';
+			display = currentConfig.sidebarDisplay;
+		}
 		log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
 		switch (arrangement) {
 			case "list":
@@ -1459,7 +1463,7 @@ function updateCurrentConfig() {
 	};
 	BlinkSideBar.update = function() {
 		var config = siteVars.config['a' + siteVars.id].pertinent;
-		if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768) {
+		if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768 || config.sidebarDisplay === 'disabled') {
 			this.hide();
 			return;
 		} else if (hasMasterCategories && currentMasterCategory) {
