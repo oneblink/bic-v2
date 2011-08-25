@@ -41,6 +41,7 @@ button[disabled], input[disabled][type=button], input[disabled][type=reset], inp
 
 input[type=checkbox], input[type=radio] { padding: .5em; height: auto; -moz-transform: scale(1.5, 1.5); -webkit-transform: scale(1.5, 1.5); -o-transform: scale(1.5, 1.5); -ms-transform: scale(1.5, 1.5); transform: scale(1.5, 1.5); }
 
+fieldset.options label.checkbox, fieldset.options label.radio { display: block; }
 label.checkbox, label.radio { display: inline-block; margin: .5em; text-align: left; }
 
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
