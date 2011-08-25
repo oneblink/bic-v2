@@ -26,15 +26,12 @@ input[type=checkbox], input[type=radio] { padding: .5em; height: auto; -moz-tran
 label.checkbox, label.radio { display: inline-block; margin: .5em; text-align: left; }
 
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
-/*input, textarea {
-	background-color: #fff;
-	
+input, textarea { /*background-color: #fff;
 &:required { background-color:#FFE473; }
-&:invalid{ background-color:#FF8073; }
+&:required, &:focus:invalid { background-color:red; }
+&:valid { background-color:green; }*/ }
+input:invalid, textarea:invalid { background-color: red; }
 
-	 &:required, &:focus:invalid { background-color:red; }
-	 &:valid { background-color:green; }
-}*/
 /* end controls */
 /* BlinkForms2 styles */
 figure img { display: block; margin: .5em auto; }
