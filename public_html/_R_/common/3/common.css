@@ -46,11 +46,7 @@ fieldset.options label.checkbox, fieldset.options label.radio { display: block; 
 label.checkbox, label.radio { display: inline-block; margin: .5em; text-align: left; }
 
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
-input, textarea { /*background-color: #fff;
-&:required { background-color:#FFE473; }
-&:required, &:focus:invalid { background-color:red; }
-&:valid { background-color:green; }*/ }
-input:invalid, textarea:invalid { background-color: red; }
+input:invalid, textarea:invalid { background-color: #FF8073; }
 
 /* end controls */
 /* BlinkForms2 styles */

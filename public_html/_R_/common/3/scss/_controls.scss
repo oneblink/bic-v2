@@ -72,11 +72,6 @@ label.checkbox, label.radio {
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
 
 input, textarea {
-	/*background-color: #fff;
-	&:required { background-color:#FFE473; }
-	&:required, &:focus:invalid { background-color:red; }
-	&:valid { background-color:green; }*/
-
 	&:invalid{ background-color:#FF8073; }
 }
 
