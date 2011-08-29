@@ -118,8 +118,17 @@ img.v4col { width: 25%; }
 
 .view {
 	position: relative;
+	/* @include single-transition(width, 0.3s, linear, 0s); */
 	width: 100%;
 	text-align: center;
+
+	&.listing {
+		div.box:not(.welcomeBox) {
+			line-height: 0px;
+			img { display: inline-block; }
+		}
+	}
+
 }
 
 .box {
@@ -181,11 +190,6 @@ img.v4col { width: 25%; }
 	#descriptionTextBox { color: white; }
 	#categoryLabel { color: white; }
 }
-#masterCategoriesBox, #categoriesBox, #keywordBox {
-	line-height: 0px;
-
-	img { display: inline-block; }
-}
 
 ul.box {
 	position: relative;
@@ -244,28 +248,57 @@ ul.box {
 	background-image: url(/gfx/star-off32.png);
 }
 
-/* MyAnswersSideBar styles */
+/* BlinkSideBar styles */
 
-#MyAnswersSideBar {
+#BlinkSideBar {
 	position: absolute;
 	top: 0;
-	@include min-height(100%);
-	z-index: 2;
-	@include experimental(user-select, none);
-
-	> ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-
+	display: none;
+	width: 0;
+	/* @include single-transition(width, 0.3s, linear, 0s); */
+	
+	> ul.box {
+	
 		> li {
-			margin: 0;
-			padding: 1em .8em;
-			font-weight: bold;
-			cursor: pointer;
+			@include border-radius(0px);
+			border: none;
+			background: transparent;
 		}
+	
 	}
 }
+
+#stackLayout.bSideBar-on {
+	
+	#BlinkSideBar {
+		display: block;
+		position: absolute;
+		top: 0;
+		@include min-height(100%);
+		z-index: 2;
+		width: 20%;
+
+		> ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+
+			> li {
+				margin: 0;
+				padding: 1em .8em;
+				font-weight: bold;
+				cursor: pointer;
+			}
+		}
+	}
+	
+	.view {
+		margin-left: 20%;
+		width: 80%;
+	}
+	
+}
+
 
 /* end MyAnswersSideBar styles */
 

@@ -57,9 +57,22 @@ input {
 	}
 }
 
+fieldset.options {
+	border: 0;
+	label.checkbox, label.radio {
+		display: block;
+	}
+}
+
 label.checkbox, label.radio {
 	display: inline-block;
 	margin: .5em;
 	text-align: left;
+}
+
+/* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
+
+input, textarea {
+	&:invalid{ background-color:#FF8073; }
 }
 

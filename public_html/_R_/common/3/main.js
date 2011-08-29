@@ -858,9 +858,9 @@ function updateNavigationButtons() {
 		}
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
 		MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
-/*		if (typeof MyAnswersSideBar !== 'undefined') {
-			MyAnswersSideBar.update();
-		} */
+		if (MyAnswers.sideBar) {
+			MyAnswers.sideBar.update();
+		}
 	});
 }
 
@@ -1273,167 +1273,231 @@ function updateCurrentConfig() {
 	});
 }
 
-function onMasterCategoryClick(event) {
-	History.pushState({m: $(this).data('id')} , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
-}
-function onCategoryClick(event) {
-	History.pushState({m: $(this).data('masterCategory'), c: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
-}
-function onKeywordClick(event) {
-	var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
-	History.pushState({m: $(this).data('masterCategory'), c: $(this).data('category'), i: $(this).data('id')}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
-}
-function onHyperlinkClick(event) {window.location.assign($(this).data('hyperlink'));}
+(function(window, undefined) {
+	var MyAnswers = window.MyAnswers;
+	
+	function onMasterCategoryClick(event) {
+		History.pushState({
+			m: $(this).data('id')
+			} , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
+	}
+	function onCategoryClick(event) {
+		History.pushState({
+			m: $(this).data('masterCategory'), 
+			c: $(this).data('id')
+			}, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
+	}
+	function onKeywordClick(event) {
+		var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
+		History.pushState({
+			m: $(this).data('masterCategory'), 
+			c: $(this).data('category'), 
+			i: $(this).data('id')
+			}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
+	}
+	function onHyperlinkClick(event) {
+		window.location.assign($(this).data('hyperlink'));
+	}
 
-function populateItemListing(level) {
-	var arrangement, display, order, list, $visualBox, $listBox, type,
-		name, $item, $label, $description,
-		hook = {},
-		o, oLength,
-		category, columns, $images,
-		itemConfig;
-	hook.interactions = function($item) {
-		var id = $item.attr('data-id');
-		if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
-			$item.attr('data-hyperlink', siteVars.config['i' + id].pertinent.hyperlink);
-			$item.bind('click', onHyperlinkClick);
-		} else {
-			$item.bind('click', onKeywordClick);
-		}
-	};
-	hook.categories = function($item) {
-		var id = $item.attr('data-id');
-		if (siteVars.map['c' + id].length === 1) {
-			$item.attr('data-category', id);
-			$item.attr('data-id', siteVars.map['c' + id][0]);
-			hook.interactions($item);
-		} else if (siteVars.map['c' + id].length > 0) {
-			$item.bind('click', onCategoryClick);
-		}
-	};
-	hook.masterCategories = function($item) {
-		var id = $item.attr('data-id');
-		if (siteVars.map['m' + id].length === 1) {
-			$item.attr('data-master-category', id);
-			$item.attr('data-id', siteVars.map['m' + id][0]);
-			hook.categories($item);
-		} else if (siteVars.map['m' + id].length > 0) {
-			$item.bind('click', onMasterCategoryClick);
-		}
-	};
-	switch (level) {
-		case 'masterCategories':
-			arrangement = currentConfig.masterCategoriesArrangement;
-			display = currentConfig.masterCategoriesDisplay;
-			order = siteVars.map.masterCategories;
-			list = order;
-			type = 'm';
-			$visualBox = $('#masterCategoriesBox');
-			$listBox = $('#masterCategoriesList');
-			break;
-		case 'categories':
-			arrangement = currentConfig.categoriesArrangement;
-			display = currentConfig.categoriesDisplay;
-			order = siteVars.map.categories;
-			list = siteVars.map['m' + currentMasterCategory] || order;
-			type = 'c';
-			$visualBox = $('#categoriesBox');
-			$listBox = $('#categoriesList');
-			break;
-		case 'interactions':
-			arrangement = currentConfig.interactionsArrangement;
-			display = currentConfig.interactionsDisplay;
-			order = siteVars.map.interactions;
-			list = siteVars.map['c' + currentCategory] || order;
-			type = 'i';
-			$visualBox = $('#keywordBox');
-			$listBox = $('#keywordList');
-			break;
-	}
-	log('populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
-	switch (arrangement) {
-		case "list":
-			columns = 1;
-			break;
-		case "2 column":
-			columns = 2;
-			break;
-		case "3 column":
-			columns = 3;
-			break;
-		case "4 column":
-			columns = 4;
-			break;
-	}
-	emptyDOMelement($visualBox[0]);
-	emptyDOMelement($listBox[0]);
-	oLength = order.length;
-	MyAnswers.dispatch.add(function() {
-		for (o = 0; o < oLength; o++) {
-			itemConfig = siteVars.config[type + order[o]];
-			if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display === 'show') {
-				name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
-				if (display !== 'text only' && itemConfig.pertinent.icon) {
-					$item = $('<img />');
-					$item.attr({
-						'class': 'v' + columns + 'col',
-						'src': '/images/' + siteVars.id + '/' + itemConfig.pertinent.icon,
-						'alt': name
-					});
-					$visualBox.append($item);
-				} else {
-					$item = $('<li />');
-					$label = $('<div class="label" />');
-					$label.text(name);
-					$item.append($label);
-					if (typeof itemConfig.pertinent.description === 'string') {
-						$description = $('<div class="description" />');
-						$description.text(itemConfig.pertinent.description);
-						$item.append($description);
-					}
-					$listBox.append($item);
-				}
-				$item.attr('data-id', order[o]);
-				hook[level]($item);
-			}
-		}
-	});
-	MyAnswers.dispatch.add(function() {
-		if ($visualBox.children().size() > 0) {
-			$images = $visualBox.find('img');
-			if (columns === 1) {
-				$images.first().addClass('topLeft topRight');
-				$images.last().addClass('bottomLeft bottomRight');
+	MyAnswers.populateItemListing = function(level, $view) {
+		var arrangement, display, order, list, $visualBox, $listBox, type,
+			name, $item, $label, $description,
+			hook = {},
+			o, oLength,
+			category, columns, $images,
+			itemConfig;
+		hook.interactions = function($item) {
+			var id = $item.attr('data-id');
+			if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
+				$item.attr('data-hyperlink', siteVars.config['i' + id].pertinent.hyperlink);
+				$item.bind('click', onHyperlinkClick);
 			} else {
-				$images.first().addClass('topLeft');
-				if ($images.size() >= columns) {
-					$images.eq(columns - 1).addClass('topRight');
-				}
-				if ($images.size() % columns === 0) {
-					$images.eq(columns * -1).addClass('bottomLeft');
-					$images.last().addClass('bottomRight');
+				$item.bind('click', onKeywordClick);
+			}
+		};
+		hook.categories = function($item) {
+			var id = $item.attr('data-id');
+			if (siteVars.map['c' + id].length === 1) {
+				$item.attr('data-category', id);
+				$item.attr('data-id', siteVars.map['c' + id][0]);
+				hook.interactions($item);
+			} else if (siteVars.map['c' + id].length > 0) {
+				$item.bind('click', onCategoryClick);
+			}
+		};
+		hook.masterCategories = function($item) {
+			var id = $item.attr('data-id');
+			if (siteVars.map['m' + id].length === 1) {
+				$item.attr('data-master-category', id);
+				$item.attr('data-id', siteVars.map['m' + id][0]);
+				hook.categories($item);
+			} else if (siteVars.map['m' + id].length > 0) {
+				$item.bind('click', onMasterCategoryClick);
+			}
+		};
+		$view.children('.box:not(.welcomeBox)').remove();
+		$visualBox = $('<div class="box bordered" />');
+		$listBox = $('<ul class="box" />');
+		switch (level) {
+			case 'masterCategories':
+				arrangement = currentConfig.masterCategoriesArrangement;
+				display = currentConfig.masterCategoriesDisplay;
+				order = siteVars.map.masterCategories;
+				list = order;
+				type = 'm';
+				break;
+			case 'categories':
+				arrangement = currentConfig.categoriesArrangement;
+				display = currentConfig.categoriesDisplay;
+				order = siteVars.map.categories;
+				list = siteVars.map['m' + currentMasterCategory] || order;
+				type = 'c';
+				break;
+			case 'interactions':
+				arrangement = currentConfig.interactionsArrangement;
+				display = currentConfig.interactionsDisplay;
+				order = siteVars.map.interactions;
+				list = siteVars.map['c' + currentCategory] || order;
+				type = 'i';
+				break;
+		}
+		if ($view.attr('id') === 'BlinkSideBar') {
+			arrangement = 'list';
+			display = currentConfig.sidebarDisplay;
+		}
+		log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
+		switch (arrangement) {
+			case "list":
+				columns = 1;
+				break;
+			case "2 column":
+				columns = 2;
+				break;
+			case "3 column":
+				columns = 3;
+				break;
+			case "4 column":
+				columns = 4;
+				break;
+		}
+		oLength = order.length;
+		MyAnswers.dispatch.add(function() {
+			for (o = 0; o < oLength; o++) {
+				itemConfig = siteVars.config[type + order[o]];
+				if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display === 'show') {
+					name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
+					if (display !== 'text only' && itemConfig.pertinent.icon) {
+						$item = $('<img />');
+						$item.attr({
+							'class': 'v' + columns + 'col',
+							'src': '/images/' + siteVars.id + '/' + itemConfig.pertinent.icon,
+							'alt': name
+						});
+						$visualBox.append($item);
+					} else {
+						$item = $('<li />');
+						$label = $('<div class="label" />');
+						$label.text(name);
+						$item.append($label);
+						if (typeof itemConfig.pertinent.description === 'string') {
+							$description = $('<div class="description" />');
+							$description.text(itemConfig.pertinent.description);
+							$item.append($description);
+						}
+						$listBox.append($item);
+					}
+					$item.attr('data-id', order[o]);
+					hook[level]($item);
 				}
 			}
-			$visualBox.removeClass('hidden');
+		});
+		MyAnswers.dispatch.add(function() {
+			if ($visualBox.children().size() > 0) {
+				$images = $visualBox.find('img');
+				if (columns === 1) {
+					$images.first().addClass('topLeft topRight');
+					$images.last().addClass('bottomLeft bottomRight');
+				} else {
+					$images.first().addClass('topLeft');
+					if ($images.size() >= columns) {
+						$images.eq(columns - 1).addClass('topRight');
+					}
+					if ($images.size() % columns === 0) {
+						$images.eq(columns * -1).addClass('bottomLeft');
+						$images.last().addClass('bottomRight');
+					}
+				}
+				$visualBox.appendTo($view);
+			}
+		});
+		MyAnswers.dispatch.add(function() {
+			if ($listBox.children().size() > 0) {
+				$listBox.appendTo($view);
+			}
+		});
+	};
+	
+}(this));
+
+(function(window, undefined) {
+	var $ = window.jQuery,
+		MyAnswers = window.MyAnswers,
+		deviceVars = window.deviceVars,
+		BlinkSideBar = {},
+		$sideBar = $('#BlinkSideBar'),
+		$stack = $('#stackLayout'),
+		currentLevel, oldLevel,
+		currentItem, oldItem;
+
+	BlinkSideBar.show = function() {
+		MyAnswers.dispatch.add(function() {
+			$stack.addClass('bSideBar-on');
+			$stack.find('.selected').removeClass('selected');
+			$stack.find('[data-id=' + currentCategory + ']').addClass('selected');
+		});
+	};
+	BlinkSideBar.hide = function() {
+		MyAnswers.dispatch.add(function() {
+			$stack.removeClass('bSideBar-on');
+		});
+	};
+	BlinkSideBar.update = function() {
+		var config = siteVars.config['a' + siteVars.id].pertinent;
+		if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768 || config.sidebarDisplay === 'disabled') {
+			this.hide();
+			return;
+		} else if (hasMasterCategories && currentMasterCategory) {
+			currentLevel = 'masterCategories';
+			currentItem = currentMasterCategory;
+		} else if (hasCategories && currentCategory) {
+			currentLevel = 'categories';
+			currentItem = currentCategory;
+		} else if (hasInteractions && currentCategory) {
+			currentLevel = 'interactions';
+			currentItem = currentInteraction;
 		} else {
-			$visualBox.addClass('hidden');
+			this.hide();
+			return;
 		}
-	});
-	MyAnswers.dispatch.add(function() {
-		if ($listBox.children().size() > 0) {
-			$listBox.removeClass('hidden');
-		} else {
-			$listBox.addClass('hidden');
+		if (oldLevel !== currentLevel) {
+			MyAnswers.populateItemListing(currentLevel, $sideBar);
 		}
-	});
-}
+		oldLevel = currentLevel;
+		oldItem = currentItem;
+		this.show();
+	};
+		
+	MyAnswers.sideBar = BlinkSideBar;
+}(this));
+
 
 function showMasterCategoriesView(reverse) {
+	var $view = $('#masterCategoriesView');
 	log('showMasterCategoriesView()');
 	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
-		populateItemListing('masterCategories');
+		MyAnswers.populateItemListing('masterCategories', $view);
 		setMainLabel('Master Categories');
-		MyAnswersDevice.showView($('#masterCategoriesView'), reverse);
+		MyAnswersDevice.showView($view, reverse);
 	});
 }
 
@@ -1446,6 +1510,7 @@ function goBackToMasterCategoriesView() {
 }
 
 function showCategoriesView(masterCategory) {
+	var $view = $('#categoriesView');
 	log('showCategoriesView(): ' + masterCategory);
 	currentInteraction = null;
 	currentCategory = null;
@@ -1455,8 +1520,8 @@ function showCategoriesView(masterCategory) {
 	$.when(MyAnswersDevice.hideView()).always(function() {
 		updateCurrentConfig();
 		setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
-		populateItemListing('categories');
-		MyAnswersDevice.showView($('#categoriesView'));
+		MyAnswers.populateItemListing('categories', $view);
+		MyAnswersDevice.showView($view);
 	});
 }
 
@@ -1532,6 +1597,9 @@ function displayAnswerSpace() {
 		token = siteVars.queryParameters._t;
 	delete siteVars.queryParameters._t;
 	if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
+		if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768) {
+			$('#mainLabel').remove(); //  TODO: fix the main navigation label
+		}
 		currentConfig = siteVars.config['a' + siteVars.id].pertinent;
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
 			case 'interactions only':
@@ -2042,7 +2110,8 @@ function goBackToKeywordView(keyword) {
 }
 
 function showKeywordListView(category, masterCategory) {
-	var mainLabel;
+	var mainLabel,
+		$view = $('#keywordListView');
 	currentInteraction = null;
 	currentCategory = category;
 	if (hasMasterCategories && masterCategory) {
@@ -2059,8 +2128,8 @@ function showKeywordListView(category, masterCategory) {
 		} else {
 			mainLabel = 'Interactions';
 		}
-		populateItemListing('interactions');
-		MyAnswersDevice.showView($('#keywordListView'));
+		MyAnswers.populateItemListing('interactions', $view);
+		MyAnswersDevice.showView($view);
 		setMainLabel(mainLabel);
 	});
 }
@@ -2224,7 +2293,7 @@ function updateLoginButtons() {
 		changeDOMclass(loginButton, {remove: 'hidden'});
 	}
 	if (currentCategory !== undefined) {
-		populateItemListing('interactions');
+		MyAnswers.populateItemListing('interactions', $('#keywordListView'));
 	}
 }
 

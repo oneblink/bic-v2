@@ -203,7 +203,7 @@ ul.box > li > .label, ul.box > li > .description {
 	white-space: normal;
 }
 
-#keywordList .label, #keywordList .description {
+ul.box .label, ul.box .description {
 	margin-right: 50px;
 }
 
@@ -213,15 +213,15 @@ ul.box > li > .label, ul.box > li > .description {
 
 /* MyAnswersSideBar styles */
 
-#MyAnswersSideBar {
+#BlinkSideBar {
 	border-right: 2px solid #CCC;
 }
 
-#MyAnswersSideBar > ul > li {
+#BlinkSideBar > ul > li {
 	border-bottom: 1px solid #DDD;
 }
 
-#MyAnswersSideBar > ul > li.selected {
+#BlinkSideBar > ul > li.selected {
 	background: #CCF;
 }
 
