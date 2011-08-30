@@ -50,6 +50,19 @@ siteVars.forms = siteVars.forms || {};
 		}
 		return ret;
 	});
+	Modernizr.addTest('xpath', function () {
+		var xml = $.parseXML('<xml />');
+		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
+	});
+	Modernizr.addTest('xslt', function () {
+		var test = false;
+		if (typeof window.ActiveXObject !== 'undefined') {
+			test = true;
+		} else if (typeof window.XSLTProcessor !== 'undefined') {
+			test = true;
+		}
+		return test;
+	});
 }(this));
 
 // *** BEGIN UTILS ***
@@ -3024,8 +3037,20 @@ function onBrowserReady() {
 				test: window.JSON,
 				nope: '/_c_/json2.js'
 			}, {
-				test: window.XSLTProcessor,
-				nope: '<?php echo $serverAppPath; ?>/ajaxslt-0.8.1-r61.min.js'
+				test: !Modernizr.xpath || !Modernizr.xslt,
+				yep: '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js'
+			}, {
+				test: !Modernizr.xpath || !Modernizr.xslt,
+				yep: '/_c_/ajaxslt/0.8.1-r61/util.min.js'
+			}, {
+				test: !Modernizr.xpath || !Modernizr.xslt,
+				yep: '/_c_/ajaxslt/0.8.1-r61/dom.min.js'
+			}, {
+				test: Modernizr.xpath,
+				nope: '/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
+			}, {
+				test: Modernizr.xslt,
+				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
 			}, {
 				complete: function() {
 					$('#startUp-loadPolyFills').addClass('success');
