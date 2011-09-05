@@ -21,6 +21,10 @@ MyAnswers.browserDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
 
+MyAnswers.isLoggedIn = false;
+MyAnswers.isCustomLogin = false;
+MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
+
 (function(window, undefined) {
 	var Modernizr = window.Modernizr,
 		document = window.document;
@@ -49,6 +53,19 @@ siteVars.forms = siteVars.forms || {};
 			document.documentElement.removeChild(root);
 		}
 		return ret;
+	});
+	Modernizr.addTest('xpath', function () {
+		var xml = $.parseXML('<xml />');
+		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
+	});
+	Modernizr.addTest('xslt', function () {
+		var test = false;
+		if (typeof window.ActiveXObject !== 'undefined') {
+			test = true;
+		} else if (typeof window.XSLTProcessor !== 'undefined') {
+			test = true;
+		}
+		return test;
 	});
 }(this));
 
@@ -842,7 +859,7 @@ function updateNavigationButtons() {
 		} else {
 			$helpButton.addClass('hidden');
 		}
-		if (isHome()) {
+		if (isHome() || MyAnswers.isEmptySpace || MyAnswers.isLoginOnly) {
 			$navButtons.addClass('hidden');
 			$.when(countPendingForms()).then(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
@@ -1110,10 +1127,10 @@ function setupGoogleMaps()
 	$('div.googlemap').each(function(index, element) {
 		var googleMap = new google.maps.Map(element);
 		var data = $(element).data();
-		if (data.sensor === true && isLocationAvailable())
+/*		if (data.sensor === true && isLocationAvailable())
 		{
 			startTrackingLocation();
-		}
+		} */
 		if ($(element).data('mapAction') === 'directions')
 		{
 			setupGoogleMapsDirections(element, data, googleMap);
@@ -1166,15 +1183,7 @@ function initialiseAnswerFeatures($view, afterPost) {
 	MyAnswers.dispatch.add(function() {
 		var $inputs = $view.find('input, textarea, select'),
 			$form = $view.find('form').first(),
-			onGoogleJSLoaded = function(data, textstatus) {
-				if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google Maps
-					if ($.type(google.maps) !== 'object') {
-						google.load('maps', '3', {other_params : 'sensor=true', 'callback' : setupGoogleMaps});
-					} else {
-						setupGoogleMaps();
-					}
-				}
-			};
+			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof google.maps !== 'undefined';
 		MyAnswers.$body.trigger('taskBegun');
 		$inputs.unbind('blur', triggerScroll);
 		$inputs.bind('blur', triggerScroll);
@@ -1191,10 +1200,13 @@ function initialiseAnswerFeatures($view, afterPost) {
 			$(element).replaceWith($div);
 		});
 		if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
-			if ($.type(window.google) !== 'object' || $.type(google.load) !== 'function') {
-				$.getScript('http://www.google.com/jsapi?key=' + siteVars.googleAPIkey, onGoogleJSLoaded);
+			if (isGoogleJSLoaded) {
+				setTimeout(setupGoogleMaps, 1000);
 			} else {
-				onGoogleJSLoaded();
+				$.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=setupGoogleMaps')
+					.fail(function() {
+						throw('unable to download Google Maps JavaScript library');
+					});
 			}
 		} else {
 			stopTrackingLocation();
@@ -1616,7 +1628,7 @@ function displayAnswerSpace() {
 				break;
 		}
 		$('#answerSpacesListView').remove();
-		if (currentConfig.defaultScreen === 'login') {
+		if (currentConfig.defaultScreen === 'login' || MyAnswers.isLoginOnly) {
 			History.pushState({login: true});
 		} else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
 			requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
@@ -1789,10 +1801,12 @@ function processForms() {
 function processConfig(display) {
 	var items = [],
 		firstItem,
-		siteStructure;
+		siteStructure,
+		config;
 	log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
-		siteStructure = siteVars.config['a' + siteVars.id].pertinent.siteStructure;
+		config = siteVars.config['a' + siteVars.id].pertinent;
+		siteStructure = config.siteStructure;
 		if (siteStructure === 'master categories') {
 			hasMasterCategories = siteVars.map.masterCategories.length > 0;
 			if (hasMasterCategories && typeof currentMasterCategory === 'undefined') {
@@ -1817,7 +1831,22 @@ function processConfig(display) {
 				return 'i' + element;
 			}));
 		}
-		if (display === true && siteVars.config && siteVars.map) {
+		if (config.loginAccess && config.loginUseInteractions
+					&& config.loginPromptInteraction && config.loginStatusInteraction
+					&& siteVars.config['i' + config.loginPromptInteraction]
+					&& siteVars.config['i' + config.loginStatusInteraction]) {
+			MyAnswers.isCustomLogin = true;
+		}
+		if (siteVars.map.masterCategories.length === 0 && siteVars.map.categories.length === 0
+					&& siteVars.map.interactions.length === (MyAnswers.isCustomLogin ? 2 : 0)) {
+			MyAnswers.isEmptySpace = true;
+		}
+		if (config.loginAccess && !MyAnswers.isLoggedIn){
+			if (config.registeredOnly || MyAnswers.isEmptySpace) {
+				MyAnswers.isLoginOnly = true;
+			}
+		}
+		if (siteVars.config && siteVars.map && (display === true || MyAnswers.isEmptySpace)) {
 			displayAnswerSpace();
 			processMoJOs();
 			processForms();
@@ -1847,7 +1876,7 @@ function requestConfig(requestData) {
 			if (isAJAXError(textStatus) || jqxhr.status !== 200) {
 				processConfig(true);
 			} else {
-				if (typeof siteVars.config === 'undefined') {
+				if (typeof siteVars.config === 'undefined' || !requestData) {
 					siteVars.config = {};
 				}
 				ids = ($.type(requestData) === 'array') ? requestData : [ 'a' + siteVars.id ];
@@ -2246,7 +2275,7 @@ function showLoginView(event) {
 	if (!currentConfig.loginAccess) {
 		return false;
 	}
-	if (currentConfig.loginUseInteractions) {
+	if (MyAnswers.isCustomLogin) {
 		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
 		if (!id) {
 			alert('error: interaction used for login prompt is inaccessible or misconfigured');
@@ -2933,7 +2962,6 @@ function onBrowserReady() {
 
 	function init_main() {
 		log("init_main(): ");
-		siteVars.id = MyAnswers.$body.data('id');
 		siteVars.requestsCounter = 0;
 
 		PictureSourceType.PHOTO_LIBRARY = 0;
@@ -3024,8 +3052,20 @@ function onBrowserReady() {
 				test: window.JSON,
 				nope: '/_c_/json2.js'
 			}, {
-				test: window.XSLTProcessor,
-				nope: '<?php echo $serverAppPath; ?>/ajaxslt-0.8.1-r61.min.js'
+				test: !Modernizr.xpath || !Modernizr.xslt,
+				yep: '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js'
+			}, {
+				test: !Modernizr.xpath || !Modernizr.xslt,
+				yep: '/_c_/ajaxslt/0.8.1-r61/util.min.js'
+			}, {
+				test: !Modernizr.xpath || !Modernizr.xslt,
+				yep: '/_c_/ajaxslt/0.8.1-r61/dom.min.js'
+			}, {
+				test: Modernizr.xpath,
+				nope: '/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
+			}, {
+				test: Modernizr.xslt,
+				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
 			}, {
 				complete: function() {
 					$('#startUp-loadPolyFills').addClass('success');
