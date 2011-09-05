@@ -21,6 +21,10 @@ MyAnswers.browserDeferred = new $.Deferred();
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
 
+MyAnswers.isLoggedIn = false;
+MyAnswers.isCustomLogin = false;
+MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
+
 (function(window, undefined) {
 	var Modernizr = window.Modernizr,
 		document = window.document;
@@ -855,7 +859,7 @@ function updateNavigationButtons() {
 		} else {
 			$helpButton.addClass('hidden');
 		}
-		if (isHome()) {
+		if (isHome() || MyAnswers.isEmptySpace) {
 			$navButtons.addClass('hidden');
 			$.when(countPendingForms()).then(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
@@ -1629,7 +1633,7 @@ function displayAnswerSpace() {
 				break;
 		}
 		$('#answerSpacesListView').remove();
-		if (currentConfig.defaultScreen === 'login') {
+		if (currentConfig.defaultScreen === 'login' || MyAnswers.isLoginOnly) {
 			History.pushState({login: true});
 		} else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
 			requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
@@ -1802,10 +1806,12 @@ function processForms() {
 function processConfig(display) {
 	var items = [],
 		firstItem,
-		siteStructure;
+		siteStructure,
+		config;
 	log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
-		siteStructure = siteVars.config['a' + siteVars.id].pertinent.siteStructure;
+		config = siteVars.config['a' + siteVars.id].pertinent;
+		siteStructure = config.siteStructure;
 		if (siteStructure === 'master categories') {
 			hasMasterCategories = siteVars.map.masterCategories.length > 0;
 			if (hasMasterCategories && typeof currentMasterCategory === 'undefined') {
@@ -1830,7 +1836,22 @@ function processConfig(display) {
 				return 'i' + element;
 			}));
 		}
-		if (display === true && siteVars.config && siteVars.map) {
+		if (config.loginAccess && config.loginUseInteractions
+					&& config.loginPromptInteraction && config.loginStatusInteraction
+					&& siteVars.config['i' + config.loginPromptInteraction]
+					&& siteVars.config['i' + config.loginStatusInteraction]) {
+			MyAnswers.isCustomLogin = true;
+		}
+		if (siteVars.map.masterCategories.length === 0 && siteVars.map.categories.length === 0
+					&& siteVars.map.interactions.length === (MyAnswers.isCustomLogin ? 2 : 0)) {
+			MyAnswers.isEmptySpace = true;
+		}
+		if (config.loginAccess && !MyAnswers.isLoggedIn){
+			if (config.registeredOnly || MyAnswers.isEmptySpace) {
+				MyAnswers.isLoginOnly = true;
+			}
+		}
+		if (siteVars.config && siteVars.map && (display === true || MyAnswers.isEmptySpace)) {
 			displayAnswerSpace();
 			processMoJOs();
 			processForms();
@@ -1860,7 +1881,7 @@ function requestConfig(requestData) {
 			if (isAJAXError(textStatus) || jqxhr.status !== 200) {
 				processConfig(true);
 			} else {
-				if (typeof siteVars.config === 'undefined') {
+				if (typeof siteVars.config === 'undefined' || !requestData) {
 					siteVars.config = {};
 				}
 				ids = ($.type(requestData) === 'array') ? requestData : [ 'a' + siteVars.id ];
@@ -2259,7 +2280,7 @@ function showLoginView(event) {
 	if (!currentConfig.loginAccess) {
 		return false;
 	}
-	if (currentConfig.loginUseInteractions) {
+	if (MyAnswers.isCustomLogin) {
 		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
 		if (!id) {
 			alert('error: interaction used for login prompt is inaccessible or misconfigured');
