@@ -1127,10 +1127,10 @@ function setupGoogleMaps()
 	$('div.googlemap').each(function(index, element) {
 		var googleMap = new google.maps.Map(element);
 		var data = $(element).data();
-		if (data.sensor === true && isLocationAvailable())
+/*		if (data.sensor === true && isLocationAvailable())
 		{
 			startTrackingLocation();
-		}
+		} */
 		if ($(element).data('mapAction') === 'directions')
 		{
 			setupGoogleMapsDirections(element, data, googleMap);
@@ -1183,15 +1183,7 @@ function initialiseAnswerFeatures($view, afterPost) {
 	MyAnswers.dispatch.add(function() {
 		var $inputs = $view.find('input, textarea, select'),
 			$form = $view.find('form').first(),
-			onGoogleJSLoaded = function(data, textstatus) {
-				if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google Maps
-					if ($.type(google.maps) !== 'object') {
-						google.load('maps', '3', {other_params : 'sensor=true', 'callback' : setupGoogleMaps});
-					} else {
-						setupGoogleMaps();
-					}
-				}
-			};
+			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof google.maps !== 'undefined';
 		MyAnswers.$body.trigger('taskBegun');
 		$inputs.unbind('blur', triggerScroll);
 		$inputs.bind('blur', triggerScroll);
@@ -1208,10 +1200,13 @@ function initialiseAnswerFeatures($view, afterPost) {
 			$(element).replaceWith($div);
 		});
 		if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
-			if ($.type(window.google) !== 'object' || $.type(google.load) !== 'function') {
-				$.getScript('http://www.google.com/jsapi?key=' + siteVars.googleAPIkey, onGoogleJSLoaded);
+			if (isGoogleJSLoaded) {
+				setTimeout(setupGoogleMaps, 1000);
 			} else {
-				onGoogleJSLoaded();
+				$.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=setupGoogleMaps')
+					.fail(function() {
+						throw('unable to download Google Maps JavaScript library');
+					});
 			}
 		} else {
 			stopTrackingLocation();
@@ -2967,7 +2962,6 @@ function onBrowserReady() {
 
 	function init_main() {
 		log("init_main(): ");
-		siteVars.id = MyAnswers.$body.data('id');
 		siteVars.requestsCounter = 0;
 
 		PictureSourceType.PHOTO_LIBRARY = 0;
