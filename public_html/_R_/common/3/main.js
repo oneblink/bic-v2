@@ -1842,7 +1842,7 @@ function processConfig(display) {
 			MyAnswers.isEmptySpace = true;
 		}
 		if (config.loginAccess && !MyAnswers.isLoggedIn){
-			if (config.registeredOnly || MyAnswers.isEmptySpace) {
+			if (config.registeredOnly === 'deny anonymous' || MyAnswers.isEmptySpace) {
 				MyAnswers.isLoginOnly = true;
 			}
 		}
