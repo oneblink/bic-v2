@@ -859,7 +859,7 @@ function updateNavigationButtons() {
 		} else {
 			$helpButton.addClass('hidden');
 		}
-		if (isHome() || MyAnswers.isEmptySpace) {
+		if (isHome() || MyAnswers.isEmptySpace || MyAnswers.isLoginOnly) {
 			$navButtons.addClass('hidden');
 			$.when(countPendingForms()).then(function(queueCount) {
 				if (siteVars.hasLogin || !$helpButton.hasClass('hidden') || queueCount > 0) {
