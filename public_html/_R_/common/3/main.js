@@ -447,7 +447,7 @@ function generateMojoAnswer(args) {
 		value,
 		variable, condition,
 		starDetailFn = function(d, detail) {
-			xml += '<' + d + '>' + starsProfile[type][s][d] + '</' + d + '>';
+			xml += '<' + d + '>' + detail + '</' + d + '>';
 		},
 		conditionStarFn = function(star, details) {
 			condition += ' or ' + variable + '=\'' + star + '\'';
