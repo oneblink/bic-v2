@@ -1508,6 +1508,7 @@ function showMasterCategoriesView(reverse) {
 	log('showMasterCategoriesView()');
 	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
 		MyAnswers.populateItemListing('masterCategories', $view);
+		updateCurrentConfig();
 		setMainLabel('Master Categories');
 		MyAnswersDevice.showView($view, reverse);
 	});
@@ -1516,6 +1517,7 @@ function showMasterCategoriesView(reverse) {
 function goBackToMasterCategoriesView() {
 	log('goBackToMasterCategoriesView()');
 	$.when(MyAnswersDevice.hideView(true)).always(function() {
+		updateCurrentConfig();
 		setMainLabel('Master Categories');
 		MyAnswersDevice.showView($('#masterCategoriesView'), true);
 	});
