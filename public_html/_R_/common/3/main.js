@@ -3011,7 +3011,8 @@ function onBrowserReady() {
 
 		MyAnswers.$body.bind('taskBegun', onTaskBegun);
 		MyAnswers.$body.bind('taskComplete', onTaskComplete);
-		MyAnswers.$body.delegate('a', 'click', onLinkClick);
+		MyAnswers.$body.delegate('a:not([href="#"])', 'click', onLinkClick);
+		MyAnswers.$body.delegate('a[href="#"]', 'click', false);
 		$('#pendingBox').delegate('button', 'click', onPendingClick);
 
 		$window.bind('online', onNetworkChange);
