@@ -41,12 +41,16 @@ button[disabled], input[disabled][type=button], input[disabled][type=reset], inp
 
 input[type=checkbox], input[type=radio] { padding: .5em; height: auto; -moz-transform: scale(1.5, 1.5); -webkit-transform: scale(1.5, 1.5); -o-transform: scale(1.5, 1.5); -ms-transform: scale(1.5, 1.5); transform: scale(1.5, 1.5); }
 
+fieldset.options { border: 0; }
 fieldset.options label.checkbox, fieldset.options label.radio { display: block; }
 
 label.checkbox, label.radio { display: inline-block; margin: .5em; text-align: left; }
 
 /* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
 input:invalid, textarea:invalid { background-color: #FF8073; }
+
+/* adjust jQuery UI */
+.ui-datepicker { margin-top: 50px; }
 
 /* end controls */
 /* BlinkForms2 styles */
@@ -80,7 +84,7 @@ form td.bForm-input > span { display: inline-block; }
 
 .bForm-label, .bForm-value { font-size: smaller; }
 
-.bForm-tooltip > span { font-size: larger; font-weight: bolder; color: #FFF; text-outline: 1px 1px #000; text-shadow: 0 0 .5em #000; cursor: help; }
+td.bForm-tooltip > a { font-size: larger; font-weight: bolder; color: #FFF; text-outline: 1px 1px #000; text-shadow: 0 0 .5em #000; cursor: help; }
 
 .fieldInput { padding-right: 1em; }
 
