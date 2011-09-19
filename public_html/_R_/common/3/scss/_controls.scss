@@ -76,3 +76,7 @@ input, textarea {
 	&:invalid{ background-color:#FF8073; }
 }
 
+/* adjust jQuery UI */
+.ui-datepicker { 
+  margin-top: 50px;
+}
