@@ -1,11 +1,11 @@
 CACHE MANIFEST 
-# svn revision 2584
+# svn revision 2589
 
 CACHE:
 /_R_/common/3/common.css
 /_R_/common/3/common.min.js
 /_c_/json2.js
-/_c_/jquery/jquery-1.6.2.min.js
+/_c_/jquery/jquery-1.6.4.min.js
 /_c_/jquery-ui/1.8.16/js/jquery.ui.core.min.js
 /_c_/jquery-ui/1.8.16/js/jquery.ui.button.min.js
 /_c_/jquery-ui/1.8.16/js/jquery.effects.min.js
