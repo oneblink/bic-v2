@@ -392,7 +392,10 @@ function resolveItemName(name, level) {
 function performXSLT(xmlString, xslString) {
 	var deferred = new $.Deferred(function(dfrd) {
 		var html, xml, xsl;
-		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') {dfrd.reject('XSLT failed due to poorly formed XML or XSL.');return;}
+		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') {
+			dfrd.reject('XSLT failed due to poorly formed XML or XSL.');
+			return;
+		}
 		xml = $.parseXML(xmlString);
 		xsl = $.parseXML(xslString);
 		/*
@@ -406,14 +409,14 @@ function performXSLT(xmlString, xslString) {
 		if (window.ActiveXObject !== undefined) {
 			log('performXSLT(): using Internet Explorer method');
 			html = xml.transformNode(xsl);
+		} else if (typeof window.xsltProcess !== undefined) {
+			log('performXSLT(): performing XSLT via AJAXSLT library');
+			html = xsltProcess(xml, xsl);
 		} else if (window.XSLTProcessor !== undefined) {
 			log('performXSLT(): performing XSLT via XSLTProcessor()');
 			var xsltProcessor = new XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);
 			html = xsltProcessor.transformToFragment(xml, document);
-		} else if (xsltProcess !== undefined) {
-			log('performXSLT(): performing XSLT via AJAXSLT library');
-			html = xsltProcess(xml, xsl);
 		} else {
 			html = '<p>Your browser does not support MoJO keywords.</p>'; 
 		}
@@ -3055,20 +3058,15 @@ function onBrowserReady() {
 				test: window.JSON,
 				nope: '/_c_/json2.js'
 			}, {
-				test: !Modernizr.xpath || !Modernizr.xslt,
-				yep: '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js'
-			}, {
-				test: !Modernizr.xpath || !Modernizr.xslt,
-				yep: '/_c_/ajaxslt/0.8.1-r61/util.min.js'
-			}, {
-				test: !Modernizr.xpath || !Modernizr.xslt,
-				yep: '/_c_/ajaxslt/0.8.1-r61/dom.min.js'
-			}, {
-				test: Modernizr.xpath,
-				nope: '/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
-			}, {
 				test: Modernizr.xslt,
-				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
+				nope: [
+					'/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
+					'/_c_/ajaxslt/0.8.1-r61/util.min.js',
+					'/_c_/ajaxslt/0.8.1-r61/dom.min.js',
+					// TODO: figure out how to test if the above scripts are needed
+					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js',
+					'/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
+				]
 			}, {
 				complete: function() {
 					$('#startUp-loadPolyFills').addClass('success');
