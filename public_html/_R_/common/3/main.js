@@ -71,48 +71,6 @@ MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
 
 // *** BEGIN UTILS ***
 
-(function($, undefined) {
-	// duck-punching to make attr() return a map
-	var _oldAttr = $.fn.attr;
-	$.fn.attr = function() {
-		var a, aLength, attributes,	map;
-		if (this[0] && arguments.length === 0) {
-			map = {};
-			attributes = this[0].attributes;
-			aLength = attributes.length;
-			for (a = 0; a < aLength; a++) {
-				map[attributes[a].name.toLowerCase()] = attributes[a].value;
-			}
-			return map;
-		} else {
-			return _oldAttr.apply(this, arguments);
-		}
-	};
-	
-	// return just the element's HTML tag (no attributes or innerHTML)
-	$.fn.tag = function() {
-		var tag;
-		if (this[0]) {
-			tag = this[0].tagName || this[0].nodeName;
-			return tag.toLowerCase();
-		}
-	};
-	
-	// return a simple HTML tag string not containing the innerHTML
-	$.fn.tagHTML = function() {
-		var $this = $(this),
-			html;
-		if (this[0]) {
-			html = '<' + $this.tag();
-			$.each($this.attr(), function(key, value) {
-				html += ' ' + key + '="' + value + '"';
-			});
-			html += ' />';
-			return html;
-		}
-	};
-}(jQuery));
-
 function isCameraPresent() {
 	if (typeof window.device === 'undefined') {
 		return false;
