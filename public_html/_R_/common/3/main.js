@@ -367,7 +367,7 @@ function performXSLT(xmlString, xslString) {
 		if (window.ActiveXObject !== undefined) {
 			log('performXSLT(): using Internet Explorer method');
 			html = xml.transformNode(xsl);
-		} else if (typeof window.xsltProcess !== undefined) {
+		} else if (typeof window.xsltProcess !== 'undefined') {
 			log('performXSLT(): performing XSLT via AJAXSLT library');
 			html = xsltProcess(xml, xsl);
 		} else if (window.XSLTProcessor !== undefined) {
