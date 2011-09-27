@@ -25,50 +25,6 @@ MyAnswers.isLoggedIn = false;
 MyAnswers.isCustomLogin = false;
 MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
 
-(function(window, undefined) {
-	var Modernizr = window.Modernizr,
-		document = window.document;
-	Modernizr.addTest('positionfixed', function () {
-		var test  = document.createElement('div'),
-			fake = false,
-			root = document.body || (function () {
-				fake = true;
-				return document.documentElement.appendChild(document.createElement('body'));
-			}());
-		var oldCssText = root.style.cssText,
-		ret, offset;
-		root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
-		test.style.cssText = 'position: fixed; top: 100px';
-		root.appendChild(test);
-		window.scrollTo(0, 500);
-		offset = $(test).offset();
-		ret = offset.top === 600; // 100 + 500
-		if (!ret && typeof test.getBoundingClientRect !== 'undefined') {
-			ret = test.getBoundingClientRect().top === 100;
-		}
-		root.removeChild(test);
-		root.style.cssText = oldCssText;
-		window.scrollTo(0, 1);
-		if (fake) {
-			document.documentElement.removeChild(root);
-		}
-		return ret;
-	});
-	Modernizr.addTest('xpath', function () {
-		var xml = $.parseXML('<xml />');
-		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
-	});
-	Modernizr.addTest('xslt', function () {
-		var test = false;
-		if (typeof window.ActiveXObject !== 'undefined') {
-			test = true;
-		} else if (typeof window.XSLTProcessor !== 'undefined') {
-			test = true;
-		}
-		return test;
-	});
-}(this));
-
 // *** BEGIN UTILS ***
 
 function isCameraPresent() {
@@ -3024,7 +2980,14 @@ function onBrowserReady() {
 					// TODO: figure out how to test if the above scripts are needed
 					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js',
 					'/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
-				]
+				],
+				callback: function(url, result, key) {
+					if (result) {
+						log('Modernizr.load(): XPath supported natively');
+					} else {
+						log('Modernizr.load(): XPath supported via AJAXSLT');
+					}
+				}
 			}, {
 				complete: function() {
 					$('#startUp-loadPolyFills').addClass('success');

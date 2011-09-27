@@ -16,6 +16,51 @@ function log() {
 	}
 }
 
+/* new tests for Modernizr */
+(function(window, undefined) {
+	var Modernizr = window.Modernizr,
+		document = window.document;
+	Modernizr.addTest('positionfixed', function () {
+		var test  = document.createElement('div'),
+			fake = false,
+			root = document.body || (function () {
+				fake = true;
+				return document.documentElement.appendChild(document.createElement('body'));
+			}());
+		var oldCssText = root.style.cssText,
+		ret, offset;
+		root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
+		test.style.cssText = 'position: fixed; top: 100px';
+		root.appendChild(test);
+		window.scrollTo(0, 500);
+		offset = $(test).offset();
+		ret = offset.top === 600; // 100 + 500
+		if (!ret && typeof test.getBoundingClientRect !== 'undefined') {
+			ret = test.getBoundingClientRect().top === 100;
+		}
+		root.removeChild(test);
+		root.style.cssText = oldCssText;
+		window.scrollTo(0, 1);
+		if (fake) {
+			document.documentElement.removeChild(root);
+		}
+		return ret;
+	});
+	Modernizr.addTest('xpath', function () {
+		var xml = $.parseXML('<xml />');
+		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
+	});
+	Modernizr.addTest('xslt', function () {
+		var test = false;
+		if (typeof window.ActiveXObject !== 'undefined') {
+			test = true;
+		} else if (typeof window.XSLTProcessor !== 'undefined') {
+			test = true;
+		}
+		return test;
+	});
+}(this));
+
 function computeTimeout(messageLength) {
   var lowestTransferRateConst = 1000 / (4800 / 8);
 		// maxTransactionTimeout = 180 * 1000;
@@ -39,10 +84,10 @@ function computeTimeout(messageLength) {
 
 /* minor improvements to jQuery */
 (function(window, undefined) {
-	var $ = window.jQuery;
-
+	var $ = window.jQuery,
+		_oldAttr = $.fn.attr;
+	
 	// duck-punching to make attr() return a map
-	var _oldAttr = $.fn.attr;
 	$.fn.attr = function() {
 		var a, aLength, attributes,	map;
 		if (this[0] && arguments.length === 0) {
@@ -57,8 +102,8 @@ function computeTimeout(messageLength) {
 			return _oldAttr.apply(this, arguments);
 		}
 	};
-
-	/* return the element type or tag */
+	
+	// return just the element's HTML tag (no attributes or innerHTML)
 	$.fn.tag = function() {
 		var tag;
 		if (this.length > 0) {
@@ -73,7 +118,7 @@ function computeTimeout(messageLength) {
 	$.fn.tagHTML = function() {
 		var $this = $(this),
 			html;
-		if (this.length > 0 && this[0]) {
+		if (this[0]) {
 			html = '<' + $this.tag();
 			$.each($this.attr(), function(key, value) {
 				html += ' ' + key + '="' + value + '"';
@@ -81,7 +126,6 @@ function computeTimeout(messageLength) {
 			html += ' />';
 			return html;
 		}
-		return '';
 	};
 
 	/* function to allow passing an array to jQuery.when() */
@@ -98,6 +142,46 @@ function computeTimeout(messageLength) {
 			deferred.resolve.apply(deferred, args);
 		}, 0);
 		return this;
+	};
+	
+	/*
+	 * @param {String} string the (X)HTML or text to append to the selected element
+	 * @param {Number} attempts number of times to try
+	 * @param {String} [needle] resulting HTML must include this for success
+	 * @param {Number} [lastIndex] only used internally
+	 * @returns {jQueryPromise}
+	 */
+	$.fn.appendWithCheck = function(string, attempts, needle, lastIndex) {
+		var $element = $(this),
+			deferred = new $.Deferred();
+		if ($.type(needle) !== 'string') {
+			needle = string.match(/>([^<>\0\n\f\r\t\v]+)</);
+			if (!needle) {
+				needle = string.match(/(\w+)/);
+			}
+			needle = $.type(needle) === 'array' ? needle[0] : string;
+		}
+		if ($.type(lastIndex) !== 'number') {
+			MyAnswers.dispatch.add(function() {
+				lastIndex = $element.html().lastIndexOf(needle);
+			});
+		}
+		MyAnswers.dispatch.add(function() {
+			$element.append(string);
+		});
+		MyAnswers.dispatch.add(function() {
+			var html = $element.html();
+			if ($.type(html) !== 'string' || html.length === 0 || html.lastIndexOf(needle) > lastIndex) {
+				deferred.resolve();
+			} else if (attempts > 0) {
+				$.when($element.appendWithCheck(string, --attempts, needle, lastIndex))
+					.fail(deferred.reject)
+					.then(deferred.resolve);
+			} else {
+				deferred.reject();
+			}
+		});
+		return deferred.promise();
 	};
 }(this));
 
@@ -128,4 +212,3 @@ if (typeof Math.uuid !== 'function') {
 	};
 	Math.uuid.CHARS = '0123456789ABCDEFG'.split('');
 }
-
