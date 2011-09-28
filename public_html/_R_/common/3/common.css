@@ -108,7 +108,7 @@ header, nav, ul.box { -moz-user-select: none; -webkit-user-select: none; -o-user
 
 .googlemap { width: 100%; height: 360px; }
 
-.hidden { display: none !important; z-index: -1 !important; }
+[hidden], .hidden { display: none !important; z-index: -1 !important; }
 
 img.v1col { width: 100%; }
 
