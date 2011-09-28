@@ -1,25 +1,71 @@
 /* basic collection of utility functions not expected to undergo rapid development
  * requires jQuery
+ * if Modernizr is being used, please include this after Modernizr
  */
 
-function log() {
-	var console = window.console || window.debug,
-		fn, type;
-	if (typeof console !== 'undefined') {
-		fn = console.log;
-		type = $.type(fn);
-	}
-	if (type === 'function') {
-		fn.apply(console, arguments);
-	} else if (type === 'object') {
-		fn(arguments[0]);
-	}
-}
+/* logging functions 
+ * initialises log(), error(), warn(), info() in the global context
+ */
+(function(window, undefined) {
+	var $ = window.jQuery,
+		document = window.document,
+		early = { // catch messages from before we are ready
+			history: []
+		},
+		console,
+		fns = ['log', 'error', 'warn', 'info'];
+
+	// setup routing for early messages
+	console = early;
+	$.each(fns, function(index, fn) {
+		early[fn] = function() {
+			early.history.push({ 'fn': fn, 'arguments': $.makeArray(arguments) });
+		};
+		window[fn] = console[fn];
+	});
+
+	// re-route messages now that we are ready
+	$(document).ready(function() {
+		console = window.console || window.debug || { log: $.noop };
+		$.each(fns, function(index, fn) {
+			var type = $.type(console[fn]);
+			if (type === 'function') {
+				window[fn] = function() {
+					console[fn].apply(console, arguments);
+				}
+			} else if (type === 'object') {
+				window[fn] = function() {
+					console[fn](console, arguments);
+				}
+			} else if (fn !== 'log') {
+				window[fn] = window.log;
+			} else {
+				window[fn] = $.noop;
+			}
+		});
+		// playback early messages
+		$.each(early.history, function(index, message) {
+			var fn = window[message.fn],
+				type = $.type(fn);
+			if (type === 'function') {
+				fn.apply(console, message.arguments);
+			} else if (type === 'object') {
+				fn(message.arguments[0]);
+			}
+		});
+		delete early;
+	});
+}(this));
 
 /* new tests for Modernizr */
 (function(window, undefined) {
 	var Modernizr = window.Modernizr,
 		document = window.document;
+	
+	if (!Modernizr) {
+		return;
+	}
+	
 	Modernizr.addTest('positionfixed', function () {
 		var test  = document.createElement('div'),
 			fake = false,
@@ -46,10 +92,12 @@ function log() {
 		}
 		return ret;
 	});
+	
 	Modernizr.addTest('xpath', function () {
 		var xml = $.parseXML('<xml />');
 		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
 	});
+	
 	Modernizr.addTest('xslt', function () {
 		var test = false;
 		if (typeof window.ActiveXObject !== 'undefined') {
