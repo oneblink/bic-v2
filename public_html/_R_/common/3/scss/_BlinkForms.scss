@@ -143,3 +143,19 @@ td.bForm-tooltip > a {
 
 /* end signature pad styles */
 
+/* pending form styles */
+
+.box {
+	.bForm-pending {
+		dt, dd { display: inline-block; }
+		dt { font-weight: bolder; }
+		dt:after { content: ":" }
+		pre.uuid {
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			max-width: 90%;
+		}
+	}
+}
+
+/* END: pending form styles */
