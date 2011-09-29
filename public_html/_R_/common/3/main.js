@@ -448,101 +448,81 @@ function generateMojoAnswer(args) {
 function setSubmitCachedFormButton() {
 	var $button = $('#pendingButton'),
 		$box = $('#pendingBox'),
+		$section = $box.children('[data-blink-form-version=2]'),
+		$sectionV1 = $box.children('[data-blink-form-version=1]'),
 		$noMessage = $box.children('.bForm-noPending'),
 		count = 0,
 		promises = [];
-	$box.children('table').each(function(index, element) {
-		var $table = $(element),
-			version = $table.data('blinkFormVersion'),
-			$tbody = $table.children('tbody'),
-			$hiddenTr = $tbody.children('tr.hidden'),
-			$tr,
-			deferred = new $.Deferred();
-		promises.push(deferred.promise());
-		if (version === 2) {
-			$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
-				MyAnswers.dispatch.add(function() {
-					var k, kLength = keys.length,
-						key, $cells,
-						interaction, name;
-					if (kLength === 0) {
-						$table.addClass('hidden');
-					} else {
-						$tbody.children('tr:not(.hidden)').remove();
-						for (k = 0; k < kLength; k++) {
-							key = keys[k].split(':');
-							interaction = siteVars.config['i' + key[0]];
-							if ($.type(interaction) === 'object') {
-								name = interaction.pertinent.displayName || interaction.pertinent.name;
-							} else {
-								name = '<span class="bForm-error">unavailable</span>';
-							}
-							$tr = $hiddenTr.clone();
-							$tr.data('interaction', key[0]);
-							$tr.data('form', key[1]);
-							$cells = $tr.children('td');
-							$cells.eq(0).text(name);
-							$cells.eq(1).text(key[2]);
-							$tr.removeClass('hidden');
-							$tr.appendTo($tbody);
-							count++;
-						}
-						$table.removeClass('hidden');
+	$.when(MyAnswers.pendingStore.keys(), MyAnswers.pendingV1Store.keys())
+		.then(function(keys, keysV1) {
+			var count = keys.length + keysV1.length,
+				buttonText = count + ' Pending',
+				keysFn = function(index, key, $section) {
+					var version = $section.data('blinkFormVersion'),
+						$template = $section.children('.template[hidden]'),
+						$entry = $template.clone().prop('hidden', false).removeClass('template'),
+						keyParts = key.split(':'),
+						interaction = siteVars.config['i' + keyParts[0]],
+						name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
+						form = keyParts[1],
+						uuid = keyParts[2],
+						$summary;
+					$entry.children('h3').text(name);
+					$entry.children('pre.uuid').text(uuid);
+					// TODO: populate summary "list" fields in the <dl />
+					if (version === 2) {
+						$.when(MyAnswers.pendingStore.get(key))
+							.then(function(json) {
+								if (typeof json !== 'string' || json.length === 0) {
+									return;
+								} else if ($.type(json) !== 'object') {
+									json = $.parseJSON(json);
+								}
+								if ($.type(json) === 'array') {
+									$summary = $entry.children('dl');
+									$.each(json[1], function(name, value) {
+										$summary.append('<dt>' + name + '</dt><dd>' + value + '</dd>');
+									});
+								}
+							});
 					}
-					deferred.resolve();
-				});
+					$entry.data('interaction', keyParts[0]);
+					$entry.data('form', form);
+					$entry.appendTo($section);
+				};
+			log("setSubmitCachedFormButton(): " + buttonText);
+			$section.add($sectionV1).children('.bForm-pending:not(.template)').remove();
+			MyAnswers.dispatch.add(function() {
+				if (count !== 0) {
+					insertText($button[0], buttonText);
+					$noMessage.addClass('hidden');
+					$button.removeClass('hidden');
+					$sectionV1.prop('hidden', true);
+				} else {
+					$noMessage.removeClass('hidden');
+					$button.addClass('hidden');
+				}
 			});
-		} else if (version === 1) {
-			$.when(MyAnswers.pendingV1Store.keys()).then(function(keys) {
-				MyAnswers.dispatch.add(function() {
-					var k, kLength = keys.length,
-						key, $cells,
-						interaction, name;
-					if (kLength === 0) {
-						$table.addClass('hidden');
-					} else {
-						$tbody.children('tr:not(.hidden)').remove();
-						for (k = 0; k < kLength; k++) {
-							key = keys[k].split(':');
-							interaction = siteVars.config['i' + key[0]];
-							if ($.type(interaction) === 'object') {
-								name = interaction.pertinent.displayName || interaction.pertinent.name;
-							} else {
-								name = '<span class="bForm-error">unavailable</span>';
-							}
-							$tr = $hiddenTr.clone();
-							$tr.data('interaction', key[0]);
-							$cells = $tr.children('td');
-							$cells.eq(0).text(name);
-							$cells.eq(1).text(key[1]);
-							$tr.removeClass('hidden');
-							$tr.appendTo($tbody);
-							count++;
-						}
-						$table.removeClass('hidden');
-					}
-					deferred.resolve();
+			if (typeof setupParts === 'function') {
+				MyAnswers.dispatch.add(setupParts);
+			}
+			if (keys.length > 0) {
+				$.each(keys, function(index, key) {
+					keysFn(index, key, $section);
 				});
-			});
-		}
-	});
-	$.when.apply($, promises).then(function() {
-		MyAnswers.dispatch.add(function() {
-			var string = count + ' Pending';
-			log("setSubmitCachedFormButton(): " + string);
-			if (count !== 0) {
-				insertText($button[0], string);
-				$noMessage.addClass('hidden');
-				$button.removeClass('hidden');
+				$section.prop('hidden', false);
 			} else {
-				$noMessage.removeClass('hidden');
-				$button.addClass('hidden');
+				$section.prop('hidden', true);
+			}
+			if (keysV1.length > 0) {
+				$.each(keysV1, function(index, key) {
+					keysFn(index, key, $sectionV1);
+				});
+				$sectionV1.prop('hidden', false);
+			} else {
+				$sectionV1.prop('hidden', true);
 			}
 		});
-		if (typeof setupParts === 'function') {
-			MyAnswers.dispatch.add(setupParts);
-		}
-	});
 }
 
 // *** END BLINK UTILS ***
@@ -682,15 +662,19 @@ function countPendingForms() {
  * @param {String} form name of the form object
  * @param {String} uuid UUID
  * @param {Object} data key=>value pairs to be JSON-encoded
+ * @param {Object} summary key=>value pairs to be JSON-encoded
  * @returns {jQueryPromise}
  */
-function pushPendingForm(interaction, form, uuid, data) {
+function pushPendingForm(interaction, form, uuid, data, summary) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.set(interaction + ':' + form + ':' + uuid, JSON.stringify(data))).then(function() {
-		deferred.resolve();
-	}).fail(function() {
-		deferred.reject();
-	}).always(setSubmitCachedFormButton);
+	$.when(MyAnswers.pendingStore.set(interaction + ':' + form + ':' + uuid, JSON.stringify(data)))
+		.then(function() {
+			deferred.resolve();
+		})
+		.fail(function() {
+			deferred.reject();
+		})
+		.always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -703,11 +687,14 @@ function pushPendingForm(interaction, form, uuid, data) {
  */
 function clearPendingForm(interaction, form, uuid) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid)).then(function() {
-		deferred.resolve();
-	}).fail(function() {
-		deferred.reject();
-	}).always(setSubmitCachedFormButton);
+	$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid))
+		.then(function() {
+			deferred.resolve();
+		})
+		.fail(function() {
+			deferred.reject();
+		})
+		.always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -2774,23 +2761,23 @@ function onBrowserReady() {
 	function onPendingClick(event) {
 		var $button = $(event.target),
 			action = $button.data('action'),
-			$tr = $button.closest('tr'),
-			$table = $tr.closest('table'),
-			version = $table.data('blinkFormVersion'),
-			$cells = $tr.children('td'),
-			interaction = $tr.data('interaction'),
-			form = $tr.data('form'),
-			uuid = $cells.eq(1).text(),
-			requestUri;
+			$entry = $button.closest('.bForm-pending'),
+			$section = $entry.closest('section'),
+			version = $section.data('blinkFormVersion'),
+			interaction = $entry.data('interaction'),
+			form = $entry.data('form'),
+			uuid = $entry.children('pre.uuid').text(),
+			requestUri,
+			cancelText = 'Are you sure you wish to discard this pending record?';
 		if (version === 2) {
-			if (action === 'cancel') {
+			if (action === 'cancel' && confirm(cancelText)) {
 				clearPendingForm(interaction, form, uuid);
 			} else if (action === 'resume') {
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
 				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
 			}
 		} else if (version === 1) {
-			if (action === 'cancel') {
+			if (action === 'cancel' && confirm(cancelText)) {
 				clearPendingFormV1(interaction, uuid);
 			} else if (action === 'submit') {
 				$.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
