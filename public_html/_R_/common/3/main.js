@@ -138,7 +138,7 @@ function getURLParameters() {
 	if (href.indexOf('?') === -1) {
 		return [];
 	}
-	queryString = href.split('?')[1].split('#')[0];
+	queryString = href.match(/\?([^#]*)#?.*$/)[1];
 	if (typeof queryString === 'string') {
 		var parameters = deserialize(queryString);
 		if (typeof parameters.keyword === 'string') {
