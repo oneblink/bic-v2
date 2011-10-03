@@ -138,7 +138,7 @@ function getURLParameters() {
 	if (href.indexOf('?') === -1) {
 		return [];
 	}
-	queryString = href.split('?')[1].split('#')[0];
+	queryString = href.match(/\?([^#]*)#?.*$/)[1];
 	if (typeof queryString === 'string') {
 		var parameters = deserialize(queryString);
 		if (typeof parameters.keyword === 'string') {
@@ -1979,7 +1979,22 @@ function showAnswerView(interaction, argsString, reverse) {
 	});
 }
 
-function getAnswer(event) {showAnswerView(currentInteraction);}
+/*
+ * event handler for the "go" button on inputPrompt screens
+ */
+function getAnswer(event) {
+	var id = resolveItemName(currentInteraction, 'interactions'),
+		requestUri,
+		args, argsString;
+	if (id) {
+		args = deserialize(createParamsAndArgs(currentInteraction));
+		delete args.asn;
+		delete args.iact;
+		argsString = $.param(args);
+		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + argsString;
+		History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
+	}
+}
 
 function gotoNextScreen(keyword, category, masterCategory) {
 	var config,
