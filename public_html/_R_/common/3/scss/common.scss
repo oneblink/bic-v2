@@ -87,7 +87,7 @@ header, nav, ul.box {
 	height: 360px;
 }
 
-.hidden {
+[hidden], .hidden {
 	display: none !important;
 	z-index: -1 !important;
 }

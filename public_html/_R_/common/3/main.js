@@ -25,93 +25,7 @@ MyAnswers.isLoggedIn = false;
 MyAnswers.isCustomLogin = false;
 MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
 
-(function(window, undefined) {
-	var Modernizr = window.Modernizr,
-		document = window.document;
-	Modernizr.addTest('positionfixed', function () {
-		var test  = document.createElement('div'),
-			fake = false,
-			root = document.body || (function () {
-				fake = true;
-				return document.documentElement.appendChild(document.createElement('body'));
-			}());
-		var oldCssText = root.style.cssText,
-		ret, offset;
-		root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
-		test.style.cssText = 'position: fixed; top: 100px';
-		root.appendChild(test);
-		window.scrollTo(0, 500);
-		offset = $(test).offset();
-		ret = offset.top === 600; // 100 + 500
-		if (!ret && typeof test.getBoundingClientRect !== 'undefined') {
-			ret = test.getBoundingClientRect().top === 100;
-		}
-		root.removeChild(test);
-		root.style.cssText = oldCssText;
-		window.scrollTo(0, 1);
-		if (fake) {
-			document.documentElement.removeChild(root);
-		}
-		return ret;
-	});
-	Modernizr.addTest('xpath', function () {
-		var xml = $.parseXML('<xml />');
-		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
-	});
-	Modernizr.addTest('xslt', function () {
-		var test = false;
-		if (typeof window.ActiveXObject !== 'undefined') {
-			test = true;
-		} else if (typeof window.XSLTProcessor !== 'undefined') {
-			test = true;
-		}
-		return test;
-	});
-}(this));
-
 // *** BEGIN UTILS ***
-
-(function($, undefined) {
-	// duck-punching to make attr() return a map
-	var _oldAttr = $.fn.attr;
-	$.fn.attr = function() {
-		var a, aLength, attributes,	map;
-		if (this[0] && arguments.length === 0) {
-			map = {};
-			attributes = this[0].attributes;
-			aLength = attributes.length;
-			for (a = 0; a < aLength; a++) {
-				map[attributes[a].name.toLowerCase()] = attributes[a].value;
-			}
-			return map;
-		} else {
-			return _oldAttr.apply(this, arguments);
-		}
-	};
-	
-	// return just the element's HTML tag (no attributes or innerHTML)
-	$.fn.tag = function() {
-		var tag;
-		if (this[0]) {
-			tag = this[0].tagName || this[0].nodeName;
-			return tag.toLowerCase();
-		}
-	};
-	
-	// return a simple HTML tag string not containing the innerHTML
-	$.fn.tagHTML = function() {
-		var $this = $(this),
-			html;
-		if (this[0]) {
-			html = '<' + $this.tag();
-			$.each($this.attr(), function(key, value) {
-				html += ' ' + key + '="' + value + '"';
-			});
-			html += ' />';
-			return html;
-		}
-	};
-}(jQuery));
 
 function isCameraPresent() {
 	if (typeof window.device === 'undefined') {
@@ -224,7 +138,7 @@ function getURLParameters() {
 	if (href.indexOf('?') === -1) {
 		return [];
 	}
-	queryString = href.split('?')[1].split('#')[0];
+	queryString = href.match(/\?([^#]*)#?.*$/)[1];
 	if (typeof queryString === 'string') {
 		var parameters = deserialize(queryString);
 		if (typeof parameters.keyword === 'string') {
@@ -392,7 +306,10 @@ function resolveItemName(name, level) {
 function performXSLT(xmlString, xslString) {
 	var deferred = new $.Deferred(function(dfrd) {
 		var html, xml, xsl;
-		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') {dfrd.reject('XSLT failed due to poorly formed XML or XSL.');return;}
+		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') {
+			dfrd.reject('XSLT failed due to poorly formed XML or XSL.');
+			return;
+		}
 		xml = $.parseXML(xmlString);
 		xsl = $.parseXML(xslString);
 		/*
@@ -406,14 +323,14 @@ function performXSLT(xmlString, xslString) {
 		if (window.ActiveXObject !== undefined) {
 			log('performXSLT(): using Internet Explorer method');
 			html = xml.transformNode(xsl);
+		} else if (typeof window.xsltProcess !== 'undefined') {
+			log('performXSLT(): performing XSLT via AJAXSLT library');
+			html = xsltProcess(xml, xsl);
 		} else if (window.XSLTProcessor !== undefined) {
 			log('performXSLT(): performing XSLT via XSLTProcessor()');
 			var xsltProcessor = new XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);
 			html = xsltProcessor.transformToFragment(xml, document);
-		} else if (xsltProcess !== undefined) {
-			log('performXSLT(): performing XSLT via AJAXSLT library');
-			html = xsltProcess(xml, xsl);
 		} else {
 			html = '<p>Your browser does not support MoJO keywords.</p>'; 
 		}
@@ -531,101 +448,81 @@ function generateMojoAnswer(args) {
 function setSubmitCachedFormButton() {
 	var $button = $('#pendingButton'),
 		$box = $('#pendingBox'),
+		$section = $box.children('[data-blink-form-version=2]'),
+		$sectionV1 = $box.children('[data-blink-form-version=1]'),
 		$noMessage = $box.children('.bForm-noPending'),
 		count = 0,
 		promises = [];
-	$box.children('table').each(function(index, element) {
-		var $table = $(element),
-			version = $table.data('blinkFormVersion'),
-			$tbody = $table.children('tbody'),
-			$hiddenTr = $tbody.children('tr.hidden'),
-			$tr,
-			deferred = new $.Deferred();
-		promises.push(deferred.promise());
-		if (version === 2) {
-			$.when(MyAnswers.pendingStore.keys()).then(function(keys) {
-				MyAnswers.dispatch.add(function() {
-					var k, kLength = keys.length,
-						key, $cells,
-						interaction, name;
-					if (kLength === 0) {
-						$table.addClass('hidden');
-					} else {
-						$tbody.children('tr:not(.hidden)').remove();
-						for (k = 0; k < kLength; k++) {
-							key = keys[k].split(':');
-							interaction = siteVars.config['i' + key[0]];
-							if ($.type(interaction) === 'object') {
-								name = interaction.pertinent.displayName || interaction.pertinent.name;
-							} else {
-								name = '<span class="bForm-error">unavailable</span>';
-							}
-							$tr = $hiddenTr.clone();
-							$tr.data('interaction', key[0]);
-							$tr.data('form', key[1]);
-							$cells = $tr.children('td');
-							$cells.eq(0).text(name);
-							$cells.eq(1).text(key[2]);
-							$tr.removeClass('hidden');
-							$tr.appendTo($tbody);
-							count++;
-						}
-						$table.removeClass('hidden');
+	$.when(MyAnswers.pendingStore.keys(), MyAnswers.pendingV1Store.keys())
+		.then(function(keys, keysV1) {
+			var count = keys.length + keysV1.length,
+				buttonText = count + ' Pending',
+				keysFn = function(index, key, $section) {
+					var version = $section.data('blinkFormVersion'),
+						$template = $section.children('.template[hidden]'),
+						$entry = $template.clone().prop('hidden', false).removeClass('template'),
+						keyParts = key.split(':'),
+						interaction = siteVars.config['i' + keyParts[0]],
+						name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
+						form = keyParts[1],
+						uuid = keyParts[2],
+						$summary;
+					$entry.children('h3').text(name);
+					$entry.children('pre.uuid').text(uuid);
+					// TODO: populate summary "list" fields in the <dl />
+					if (version === 2) {
+						$.when(MyAnswers.pendingStore.get(key))
+							.then(function(json) {
+								if (typeof json !== 'string' || json.length === 0) {
+									return;
+								} else if ($.type(json) !== 'object') {
+									json = $.parseJSON(json);
+								}
+								if ($.type(json) === 'array') {
+									$summary = $entry.children('dl');
+									$.each(json[1], function(name, value) {
+										$summary.append('<dt>' + name + '</dt><dd>' + value + '</dd>');
+									});
+								}
+							});
 					}
-					deferred.resolve();
-				});
+					$entry.data('interaction', keyParts[0]);
+					$entry.data('form', form);
+					$entry.appendTo($section);
+				};
+			log("setSubmitCachedFormButton(): " + buttonText);
+			$section.add($sectionV1).children('.bForm-pending:not(.template)').remove();
+			MyAnswers.dispatch.add(function() {
+				if (count !== 0) {
+					insertText($button[0], buttonText);
+					$noMessage.addClass('hidden');
+					$button.removeClass('hidden');
+					$sectionV1.prop('hidden', true);
+				} else {
+					$noMessage.removeClass('hidden');
+					$button.addClass('hidden');
+				}
 			});
-		} else if (version === 1) {
-			$.when(MyAnswers.pendingV1Store.keys()).then(function(keys) {
-				MyAnswers.dispatch.add(function() {
-					var k, kLength = keys.length,
-						key, $cells,
-						interaction, name;
-					if (kLength === 0) {
-						$table.addClass('hidden');
-					} else {
-						$tbody.children('tr:not(.hidden)').remove();
-						for (k = 0; k < kLength; k++) {
-							key = keys[k].split(':');
-							interaction = siteVars.config['i' + key[0]];
-							if ($.type(interaction) === 'object') {
-								name = interaction.pertinent.displayName || interaction.pertinent.name;
-							} else {
-								name = '<span class="bForm-error">unavailable</span>';
-							}
-							$tr = $hiddenTr.clone();
-							$tr.data('interaction', key[0]);
-							$cells = $tr.children('td');
-							$cells.eq(0).text(name);
-							$cells.eq(1).text(key[1]);
-							$tr.removeClass('hidden');
-							$tr.appendTo($tbody);
-							count++;
-						}
-						$table.removeClass('hidden');
-					}
-					deferred.resolve();
+			if (typeof setupParts === 'function') {
+				MyAnswers.dispatch.add(setupParts);
+			}
+			if (keys.length > 0) {
+				$.each(keys, function(index, key) {
+					keysFn(index, key, $section);
 				});
-			});
-		}
-	});
-	$.when.apply($, promises).then(function() {
-		MyAnswers.dispatch.add(function() {
-			var string = count + ' Pending';
-			log("setSubmitCachedFormButton(): " + string);
-			if (count !== 0) {
-				insertText($button[0], string);
-				$noMessage.addClass('hidden');
-				$button.removeClass('hidden');
+				$section.prop('hidden', false);
 			} else {
-				$noMessage.removeClass('hidden');
-				$button.addClass('hidden');
+				$section.prop('hidden', true);
+			}
+			if (keysV1.length > 0) {
+				$.each(keysV1, function(index, key) {
+					keysFn(index, key, $sectionV1);
+				});
+				$sectionV1.prop('hidden', false);
+			} else {
+				$sectionV1.prop('hidden', true);
 			}
 		});
-		if (typeof setupParts === 'function') {
-			MyAnswers.dispatch.add(setupParts);
-		}
-	});
 }
 
 // *** END BLINK UTILS ***
@@ -765,15 +662,19 @@ function countPendingForms() {
  * @param {String} form name of the form object
  * @param {String} uuid UUID
  * @param {Object} data key=>value pairs to be JSON-encoded
+ * @param {Object} summary key=>value pairs to be JSON-encoded
  * @returns {jQueryPromise}
  */
-function pushPendingForm(interaction, form, uuid, data) {
+function pushPendingForm(interaction, form, uuid, data, summary) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.set(interaction + ':' + form + ':' + uuid, JSON.stringify(data))).then(function() {
-		deferred.resolve();
-	}).fail(function() {
-		deferred.reject();
-	}).always(setSubmitCachedFormButton);
+	$.when(MyAnswers.pendingStore.set(interaction + ':' + form + ':' + uuid, JSON.stringify(data)))
+		.then(function() {
+			deferred.resolve();
+		})
+		.fail(function() {
+			deferred.reject();
+		})
+		.always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -786,11 +687,14 @@ function pushPendingForm(interaction, form, uuid, data) {
  */
 function clearPendingForm(interaction, form, uuid) {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid)).then(function() {
-		deferred.resolve();
-	}).fail(function() {
-		deferred.reject();
-	}).always(setSubmitCachedFormButton);
+	$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid))
+		.then(function() {
+			deferred.resolve();
+		})
+		.fail(function() {
+			deferred.reject();
+		})
+		.always(setSubmitCachedFormButton);
 	return deferred.promise();
 }
 
@@ -2872,23 +2776,23 @@ function onBrowserReady() {
 	function onPendingClick(event) {
 		var $button = $(event.target),
 			action = $button.data('action'),
-			$tr = $button.closest('tr'),
-			$table = $tr.closest('table'),
-			version = $table.data('blinkFormVersion'),
-			$cells = $tr.children('td'),
-			interaction = $tr.data('interaction'),
-			form = $tr.data('form'),
-			uuid = $cells.eq(1).text(),
-			requestUri;
+			$entry = $button.closest('.bForm-pending'),
+			$section = $entry.closest('section'),
+			version = $section.data('blinkFormVersion'),
+			interaction = $entry.data('interaction'),
+			form = $entry.data('form'),
+			uuid = $entry.children('pre.uuid').text(),
+			requestUri,
+			cancelText = 'Are you sure you wish to discard this pending record?';
 		if (version === 2) {
-			if (action === 'cancel') {
+			if (action === 'cancel' && confirm(cancelText)) {
 				clearPendingForm(interaction, form, uuid);
 			} else if (action === 'resume') {
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
 				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
 			}
 		} else if (version === 1) {
-			if (action === 'cancel') {
+			if (action === 'cancel' && confirm(cancelText)) {
 				clearPendingFormV1(interaction, uuid);
 			} else if (action === 'submit') {
 				$.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
@@ -3070,20 +2974,22 @@ function onBrowserReady() {
 				test: window.JSON,
 				nope: '/_c_/json2.js'
 			}, {
-				test: !Modernizr.xpath || !Modernizr.xslt,
-				yep: '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js'
-			}, {
-				test: !Modernizr.xpath || !Modernizr.xslt,
-				yep: '/_c_/ajaxslt/0.8.1-r61/util.min.js'
-			}, {
-				test: !Modernizr.xpath || !Modernizr.xslt,
-				yep: '/_c_/ajaxslt/0.8.1-r61/dom.min.js'
-			}, {
-				test: Modernizr.xpath,
-				nope: '/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
-			}, {
 				test: Modernizr.xslt,
-				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
+				nope: [
+					'/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
+					'/_c_/ajaxslt/0.8.1-r61/util.min.js',
+					'/_c_/ajaxslt/0.8.1-r61/dom.min.js',
+					// TODO: figure out how to test if the above scripts are needed
+					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js',
+					'/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
+				],
+				callback: function(url, result, key) {
+					if (result) {
+						log('Modernizr.load(): XPath supported natively');
+					} else {
+						log('Modernizr.load(): XPath supported via AJAXSLT');
+					}
+				}
 			}, {
 				complete: function() {
 					$('#startUp-loadPolyFills').addClass('success');

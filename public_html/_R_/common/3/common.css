@@ -97,6 +97,13 @@ td.bForm-tooltip > a { font-size: larger; font-weight: bolder; color: #FFF; text
 .signaturePad > canvas { margin: 0px auto; border: 2px solid #A00; background-color: #FFF; position: relative; cursor: crosshair; }
 
 /* end signature pad styles */
+/* pending form styles */
+.box .bForm-pending dt, .box .bForm-pending dd { display: inline-block; }
+.box .bForm-pending dt { font-weight: bolder; }
+.box .bForm-pending dt:after { content: ":"; }
+.box .bForm-pending pre.uuid { white-space: nowrap; text-overflow: ellipsis; max-width: 90%; }
+
+/* END: pending form styles */
 /* end BlinkForms2 */
 #loginBox input[type=text], #loginBox input[type=password] { width: 80%; }
 
@@ -108,7 +115,7 @@ header, nav, ul.box { -moz-user-select: none; -webkit-user-select: none; -o-user
 
 .googlemap { width: 100%; height: 360px; }
 
-.hidden { display: none !important; z-index: -1 !important; }
+[hidden], .hidden { display: none !important; z-index: -1 !important; }
 
 img.v1col { width: 100%; }
 
