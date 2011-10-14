@@ -1706,7 +1706,6 @@ function processForms() {
 
 function processConfig(display) {
 	var items = [],
-		firstItem,
 		siteStructure,
 		config;
 	log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
@@ -1766,18 +1765,17 @@ function processConfig(display) {
 
 function requestConfig(requestData) {
 	var now = $.now();
+	log('requestConfig(): ' + requestData);
 	if ($.type(requestData) !== 'array' || requestData.length === 0) {
 		requestData = null;
 	}
-	ajaxQueue.add({
+	$.ajax({
 		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
 		type: 'POST',
 		data: requestData ? {items: requestData} : null,
 		dataType: 'json',
 		complete: function(jqxhr, textStatus) {
 			var data,
-				items,
-				type,
 				id, ids, i, iLength;
 			if (isAJAXError(textStatus) || jqxhr.status !== 200) {
 				processConfig(true);
@@ -2500,7 +2498,7 @@ function submitForm() {
 function submitAction(keyword, action) {
 	log('submitAction(): keyword=' + keyword + ' action=' + action);
 	var $view = $('.view:visible,'),
-		currentBox = $('.view:visible > .box'),
+		currentBox = $view.children('.box'),
 		form = currentBox.find('form').first(),
 		$submits = form.find('input[type=submit]'),
 		sessionInput = form.find('input[name=blink_session_data]'),
@@ -2598,9 +2596,6 @@ function onBrowserReady() {
 	var $startup = $('#startUp');
 	log("onBrowserReady: " + window.location.href);
 	try {
-		var uriParts = parse_url(window.location.href),
-			splitUrl = uriParts.path.match(/_([RW])_\/(.+)\/(.+)\/index\.php/);
-
 		log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
 
 		siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
@@ -2613,6 +2608,50 @@ function onBrowserReady() {
 		MyAnswers.$body = $('body');
 		MyAnswers.$document = $(window.document);
 		MyAnswers.$window = $(window);
+		
+/*		if (location.href.indexOf('#') === -1) {
+			location.assign(location.href.split('#')[0]);
+		} */
+
+		if (History.enabled) {
+			$(window).bind('statechange', function(event) {
+				var state = History.getState();
+				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
+				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+				if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
+					$.noop(); // do we need to do something if we have fired this early?
+				} else if (state.data.storage) {
+					showPendingView();
+				} else if (siteVars.hasLogin && state.data.login) {
+					showLoginView();
+				} else if (hasInteractions && state.data.i) {
+					// TODO: inputs=true should always force the prompt to display
+					if ($.isEmptyObject(state.data.arguments)) {
+						gotoNextScreen(state.data.i);
+					} else {
+						showAnswerView(state.data.i, state.data.arguments);
+					}
+				} else if (hasCategories && state.data.c) {
+					showKeywordListView(state.data.c);
+				} else if (hasMasterCategories && state.data.m) {
+					showCategoriesView(state.data.m);
+				} else {
+					if (hasMasterCategories) {
+						showMasterCategoriesView();
+					} else if (hasCategories) {
+						showCategoriesView();
+					} else if (answerSpaceOneKeyword) {
+						gotoNextScreen(siteVars.map.interactions[0]);
+					} else {
+						showKeywordListView();
+					}
+				}
+				event.preventDefault();
+				return false;
+			});		
+		} else {
+			warn('History.JS is not enabled');
+		}
 
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
 			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
@@ -2735,43 +2774,6 @@ function onBrowserReady() {
 /*	function onWindowResize(event) {
 		$('html').css('min-height', window.innerHeight);
 	} */
-
-	if (History.enabled) {
-		$(window).bind('statechange', function(event) {
-			var state = History.getState();
-			// TODO: work out a way to detect Back-navigation so reverse transitions can be used
-			log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
-			if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
-				$.noop(); // do we need to do something if we have fired this early?
-			} else if (state.data.storage) {
-				showPendingView();
-			} else if (siteVars.hasLogin && state.data.login) {
-				showLoginView();
-			} else if (hasInteractions && state.data.i) {
-				if ($.isEmptyObject(state.data.arguments)) {
-					gotoNextScreen(state.data.i);
-				} else {
-					showAnswerView(state.data.i, state.data.arguments);
-				}
-			} else if (hasCategories && state.data.c) {
-				showKeywordListView(state.data.c);
-			} else if (hasMasterCategories && state.data.m) {
-				showCategoriesView(state.data.m);
-			} else {
-				if (hasMasterCategories) {
-					showMasterCategoriesView();
-				} else if (hasCategories) {
-					showCategoriesView();
-				} else if (answerSpaceOneKeyword) {
-					gotoNextScreen(siteVars.map.interactions[0]);
-				} else {
-					showKeywordListView();
-				}
-			}
-			event.preventDefault();
-			return false;
-		});		
-	}
 
 	function onPendingClick(event) {
 		var $button = $(event.target),
@@ -2974,32 +2976,35 @@ function onBrowserReady() {
 				test: window.JSON,
 				nope: '/_c_/json2.js'
 			}, {
-				test: Modernizr.xslt,
+				test: Modernizr.xslt && Modernizr.xpath,
 				nope: [
 					'/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
 					'/_c_/ajaxslt/0.8.1-r61/util.min.js',
 					'/_c_/ajaxslt/0.8.1-r61/dom.min.js',
 					// TODO: figure out how to test if the above scripts are needed
-					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js',
-					'/_c_/ajaxslt/0.8.1-r61/xslt.min.js'
+					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
 				],
-				callback: function(url, result, key) {
-					if (result) {
-						log('Modernizr.load(): XPath supported natively');
-					} else {
-						log('Modernizr.load(): XPath supported via AJAXSLT');
-					}
+				complete: function() {
+					log('Modernizr.load(): XPath supported ' + (Modernizr.xpath ? 'natively' : 'via AJAXSLT'));
+				}
+			}, {
+				test: Modernizr.xslt,
+				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js',
+				complete: function() {
+					log('Modernizr.load(): XSLT supported ' + (Modernizr.xslt ? 'natively' : 'via AJAXSLT'));
+				}
+			}, {
+				test: Modernizr.history,
+				yep: '/_c_/historyjs/history-1.7.1-r2.html5.min.js',
+				nope: '/_c_/historyjs/history-1.7.1-r2.min.js',
+				callback: function(url, result) {
+					log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
 				}
 			}, {
 				complete: function() {
 					$('#startUp-loadPolyFills').addClass('success');
 					$('#startUp-initBrowser').addClass('working');
-					if (!window.device) {
-						log("onBodyLoad: direct call to onBrowserReady()");
-						onBrowserReady();
-					} else {
-						setTimeout(onBrowserReady, 2000);
-					}
+					setTimeout(onBrowserReady, window.device ? 2000 : 193);
 				}
 			}]);
 		});

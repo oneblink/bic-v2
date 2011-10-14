@@ -35,7 +35,7 @@
 				}
 			} else if (type === 'object') {
 				window[fn] = function() {
-					console[fn](console, arguments);
+					console[fn](arguments[0]);
 				}
 			} else if (fn !== 'log') {
 				window[fn] = window.log;
