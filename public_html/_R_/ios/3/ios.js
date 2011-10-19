@@ -26,9 +26,11 @@ function init_device() {
 	if (Modernizr.positionfixed) {
 		$navBar.css('position', 'fixed');
 		$activityIndicator.css('position', 'fixed');
-	} else if (typeof onScroll === 'function') {
+	} else {
 		$navBar.css('position', 'absolute');
 		$activityIndicator.css('position', 'absolute');
+	}
+	if (typeof onScroll === 'function') {
 		$(window).bind('scroll', onScroll);
 		MyAnswers.dispatch.add(function() {
 			$(window).trigger('scroll');
@@ -143,9 +145,13 @@ function updatePartCSS(element, property, value, valueFormat) {
 function onScroll() {
 	MyAnswers.dispatch.add(function() {
 		var scrollTop = $(window).scrollTop();
-		updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-		updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-		updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+		if (!Modernizr.positionfixed) {
+			updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+			updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+		}
+		if ($.inArray('ios', deviceVars.features) !== -1) {
+			updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+		}
 	});
 }
 
