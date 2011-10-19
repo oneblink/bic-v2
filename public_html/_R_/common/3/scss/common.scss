@@ -14,19 +14,11 @@
 }
 
 html, body {
-	@include min-height(100%);
+	min-height: 100%;
 	@include min-width(100%);
 	width: 100%;
 	font-size: medium;
 }
-
-@media (max-device-height: 640px) {
-	html {
-		@include min-height(416px);
-	}
-}
-
-body { position: relative; }
 
 header {
 	display: block;
