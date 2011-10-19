@@ -212,9 +212,9 @@ function processBlinkAnswerMessage(message) {
 			}
 		}
 		if ($.type(message.staron) === 'array') {
-			iLength = message.staroff.length;
+			iLength = message.staron.length;
 			for (i = 0; i < iLength; i++) {
-				starsProfile[message.startype][message.staroff[i]] = starsProfile[message.startype][message.staroff[i]] || {};
+				starsProfile[message.startype][message.staron[i]] = starsProfile[message.startype][message.staron[i]] || {};
 			}
 		}
 		MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
@@ -612,6 +612,11 @@ function onLinkClick(event) {
 				}
 				delete args.interaction;
 				delete args.keyword;
+				delete args.style;
+				if (attributes['data-submit-stars-type']) {
+					args._submitStarsType = $element.data('submitStarsType');
+					args._submitStarsPost = $element.data('submitStarsPost') || 'stars';
+				}
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
 				History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
 			}
@@ -2613,8 +2618,7 @@ function onBrowserReady() {
 			location.assign(location.href.split('#')[0]);
 		} */
 
-		if (History.enabled) {
-			$(window).bind('statechange', function(event) {
+		History.Adapter.bind(window, 'statechange', function(event) {
 				var state = History.getState();
 				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
 				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
@@ -2649,8 +2653,9 @@ function onBrowserReady() {
 				event.preventDefault();
 				return false;
 			});		
-		} else {
-			warn('History.JS is not enabled');
+		
+		if (!History.enabled) {
+			warn('History.JS is in emulation mode');
 		}
 
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
@@ -2974,7 +2979,7 @@ function onBrowserReady() {
 		$.when(MyAnswers.mainDeferred.promise()).then(function() {
 			Modernizr.load([{
 				test: window.JSON,
-				nope: '/_c_/json2.js'
+				nope: '/_c_/json2.min.js'
 			}, {
 				test: Modernizr.xslt && Modernizr.xpath,
 				nope: [
@@ -2994,7 +2999,7 @@ function onBrowserReady() {
 					log('Modernizr.load(): XSLT supported ' + (Modernizr.xslt ? 'natively' : 'via AJAXSLT'));
 				}
 			}, {
-				test: Modernizr.history,
+				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
 				yep: '/_c_/historyjs/history-1.7.1-r2.html5.min.js',
 				nope: '/_c_/historyjs/history-1.7.1-r2.min.js',
 				callback: function(url, result) {
