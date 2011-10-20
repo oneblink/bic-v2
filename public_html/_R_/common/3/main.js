@@ -503,9 +503,6 @@ function setSubmitCachedFormButton() {
 					$button.addClass('hidden');
 				}
 			});
-			if (typeof setupParts === 'function') {
-				MyAnswers.dispatch.add(setupParts);
-			}
 			if (keys.length > 0) {
 				$.each(keys, function(index, key) {
 					keysFn(index, key, $section);
