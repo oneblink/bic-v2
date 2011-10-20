@@ -2749,8 +2749,7 @@ function onBrowserReady() {
 		$ = window.jQuery,
 		$startup = $('#startUp'),
 		navigator = window.navigator,
-		$window = $(window),
-		History = window.History;
+		$window = $(window);
 		
 /* *** HELPER FUNCTIONS *** */
 
@@ -2796,7 +2795,7 @@ function onBrowserReady() {
 				clearPendingForm(interaction, form, uuid);
 			} else if (action === 'resume') {
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
-				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
+				window.History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
 			}
 		} else if (version === 1) {
 			if (action === 'cancel' && confirm(cancelText)) {
