@@ -231,6 +231,34 @@ function computeTimeout(messageLength) {
 		});
 		return deferred.promise();
 	};
+	
+	/*
+	 * @param {Array} urls array of URL strings to request
+	 * @returns {jQueryPromise}
+	 */
+	$.getScripts = function(urls) {
+		var type = $.type(urls),
+		dfrd = new $.Deferred();
+		/* END: var */
+		if (type === 'string') {
+			urls = [ urls ];
+		} else if (type !== 'array' || urls.length === 0) {
+			setTimeout(dfrd.resolve, 47); // TODO: maybe this should reject instead?
+			return dfrd.promise();
+		}
+		$.getScript(urls[0])
+		.always(function(data, status, jqxhr) {
+			if (jqxhr.status === 304 || jqxhr.status === 200 || jqxhr.status === 0) {
+				urls.splice(0, 1);
+				$.when($.getScripts(urls))
+				.fail(dfrd.reject)
+				.then(dfrd.resolve);
+			} else {
+				dfrd.reject();
+			}
+		});
+		return dfrd.promise();
+	};
 }(this));
 
 /*

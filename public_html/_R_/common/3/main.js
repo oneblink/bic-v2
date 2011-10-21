@@ -18,6 +18,8 @@ function lastPictureTaken () {}
 
 MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
+MyAnswers.formsDeferred = new $.Deferred();
+MyAnswers.dfrdMoJOs = null; // processMoJOs() promise
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
 
@@ -46,7 +48,7 @@ function addEvent(obj, evType, fn) {
 		var r = obj.attachEvent("on"+evType, fn); 
 		return r; 
 	} else { 
-		return false; 
+		return false;
 	} 
 }
 
@@ -212,9 +214,9 @@ function processBlinkAnswerMessage(message) {
 			}
 		}
 		if ($.type(message.staron) === 'array') {
-			iLength = message.staroff.length;
+			iLength = message.staron.length;
 			for (i = 0; i < iLength; i++) {
-				starsProfile[message.startype][message.staroff[i]] = starsProfile[message.startype][message.staroff[i]] || {};
+				starsProfile[message.startype][message.staron[i]] = starsProfile[message.startype][message.staron[i]] || {};
 			}
 		}
 		MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
@@ -378,6 +380,10 @@ function generateMojoAnswer(args) {
 		pLength = placeholders ? placeholders.length : 0;
 		for (p = 0; p < pLength; p++) {
 			value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
+			// TODO: find a better solution upstream for having to decode this here
+			value = value.replace('"', '');
+			value = value.replace("'", '');
+			value = decodeURIComponent(value);
 			xsl = xsl.replace(placeholders[p], value);
 		}
 	}
@@ -414,7 +420,7 @@ function generateMojoAnswer(args) {
 					hosted = '<p>Please try again in 30 seconds.</p>';
 				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
 					condition = '';
-					type = xsl.match(/blink-stars\((.+),\W*(\w+)\W*\)/);
+					type = xsl.match(/blink-stars\(([@\w]+),\W*(\w+)\W*\)/);
 					variable = type[1];
 					type = type[2];
 					if ($.type(starsProfile[type]) === 'object') {
@@ -422,9 +428,9 @@ function generateMojoAnswer(args) {
 						condition = condition.substr(4);
 					}
 					if (condition.length > 0) {
-						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
 					} else {
-						xsl = xsl.replace(/\(?blink-stars\((.+),\W*(\w+)\W*\)\)?/, '(false())');
+						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(false())');
 					}
 					log('generateMojoAnswer(): condition=' + condition);
 				}
@@ -584,8 +590,8 @@ function onStarClick(event)
 
 function onLinkClick(event) {
 	log('onLinkClick(): ' + $(this).tagHTML());
-	var element = this,
-		a, attributes = $(element).attr(),
+	var $element = $(this),
+		a, attributes = $element.attr(),
 		args = { },
 		id, requestUri;
 	if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
@@ -609,6 +615,11 @@ function onLinkClick(event) {
 				}
 				delete args.interaction;
 				delete args.keyword;
+				delete args.style;
+				if (attributes['data-submit-stars-type']) {
+					args._submitStarsType = $element.data('submitStarsType');
+					args._submitStarsPost = $element.data('submitStarsPost') || 'stars';
+				}
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
 				History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
 			}
@@ -1114,7 +1125,10 @@ function initialiseAnswerFeatures($view, afterPost) {
 		}
 		if ($form.length !== 0) {
 			if (typeof $form.data('objectName') === 'string' && $form.data('objectName').length > 0) {
-				promises.push(BlinkForms.initialiseForm($form));
+				$.when(MyAnswers.formsDeferred.promise())
+				.always(function() {
+					promises.push(BlinkForms.initialiseForm($form));
+				});
 			} else if (!isCameraPresent()) {
 				$form.find('input[onclick*="selectCamera"]').attr('disabled', 'disabled');
 			}
@@ -1577,6 +1591,8 @@ function displayAnswerSpace() {
 	startUp.remove();
 	$('#content').removeClass('hidden');
 	setSubmitCachedFormButton();
+	processForms();
+	MyAnswers.dfrdMoJOs = processMoJOs();
 }
 
 function requestMoJO(mojo) {
@@ -1601,14 +1617,14 @@ function requestMoJO(mojo) {
 				dataType: 'xml',
 				complete: function(jqxhr, status) {
 					if (jqxhr.status === 200) {
-						MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText);
+						$.when(MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText))
+							.fail(deferred.reject)
+							.then(deferred.resolve);
 //								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+					} else if (jqxhr.status === 304) {
+						deferred.resolve();
 					} else {
 						deferred.reject();
-					}
-					if (jqxhr.status === 200 || jqxhr.status === 304) {
-						MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
-						deferred.resolve();
 					}
 				},
 				timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
@@ -1617,15 +1633,20 @@ function requestMoJO(mojo) {
 			deferred.reject();
 		}
 	});
+	$.when(deferred.promise())
+		.then(function() {
+			MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
+		});
 	return deferred.promise();
 }
 
 function processMoJOs(interaction) {
 	var deferred = new $.Deferred(),
-		deferredFetches = {},
-		interactions = interaction ? [ interaction ] : siteVars.map.interactions,
-		i, iLength = interactions.length,
-		config;
+	deferredFetches = {},
+	interactions = interaction ? [ interaction ] : siteVars.map.interactions,
+	i, iLength = interactions.length,
+	config;
+	/* END: var */
 	for (i = 0; i < iLength; i++) {
 		config = siteVars.config['i' + interactions[i]].pertinent;
 		if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
@@ -1649,38 +1670,55 @@ function processMoJOs(interaction) {
 		return value;
 	});
 	$.whenArray(deferredFetches)
-		.fail(deferred.reject)
-		.then(deferred.resolve);
+	.fail(deferred.reject)
+	.then(deferred.resolve);
 	return deferred.promise();
 }
 
 function processForms() {
-	var validActions = [ 'add', 'delete', 'edit', 'find', 'list', 'search', 'view' ],
-		xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
-		id,
-		formActionFn = function(index, element) {
-				var $action = $(element),
-					action = $action.tag(),
-					storeKey = 'formXML:' + id + ':' + action,
-					$children = $action.children(), c, cLength = $children.length,
-					html = '';
-				if (validActions.indexOf($action.tag()) !== -1) {
-					for (c = 0; c < cLength; c++) {
-						html += xmlserializer.serializeToString($children[c]);
-					}
-					$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
-						log('processForms()->formActionFn(): failed storing ' + storeKey);
-					});
+	var ajaxDeferred = new $.Deferred(),
+	libraryDeferred = new $.Deferred(),
+	validActions = [ 'add', 'delete', 'edit', 'find', 'list', 'search', 'view' ],
+	xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
+	id,
+	formActionFn = function(index, element) {
+			var $action = $(element),
+				action = $action.tag(),
+				storeKey = 'formXML:' + id + ':' + action,
+				$children = $action.children(), c, cLength = $children.length,
+				html = '';
+			if (validActions.indexOf($action.tag()) !== -1) {
+				for (c = 0; c < cLength; c++) {
+					html += xmlserializer.serializeToString($children[c]);
 				}
-		},
-		formObjectFn = function(index, element) {
-			var $formObject = $(element);
-			id = $formObject.attr('id');
-			$formObject.children().each(formActionFn);
-			log('processForms()->formObjectFn(): formXML:' + id);
-		};
+				$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
+					log('processForms()->formActionFn(): failed storing ' + storeKey);
+				});
+			}
+	},
+	formObjectFn = function(index, element) {
+		var $formObject = $(element);
+		id = $formObject.attr('id');
+		$formObject.children().each(formActionFn);
+		log('processForms()->formObjectFn(): formXML:' + id);
+	};
+	/* END: var */
+	// load HTML5 WebForms poly-fill
+	$.getScript(siteVars.serverAppPath + '/BlinkForms2.js')
+	.always(function() {
+			setTimeout(function() {
+				if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
+					log('$.getScript: success: ' + siteVars.serverAppPath + '/BlinkForms2.js');
+					libraryDeferred.resolve();
+				} else {
+					log('$.getScript: error: ' + siteVars.serverAppPath + '/BlinkForms2.js');
+					libraryDeferred.reject();
+				}
+			}, 197);
+		});
 	if (deviceVars.isOnline) {
-		ajaxQueue.add({
+		$.ajax({
+			// TODO: send through lastChecked time when updating forms
 			url: siteVars.serverAppPath + '/xhr/GetForm.php',
 			dataType: 'xml',
 			complete: function(jqxhr, status) {
@@ -1688,17 +1726,25 @@ function processForms() {
 				if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
 					jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
 					$data = $($.parseXML(jqxhr.responseText));
-	//				log($data);
-					$data.find('formObject').each(formObjectFn);
+					// $data contains XMLDocument / <formObjects> / <formObject>s
+					$data.children().children().each(formObjectFn);
 	//			MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
 				}
 				if (jqxhr.status === 200 || jqxhr.status === 304) {
 					MyAnswers.store.set('formLastChecked:' + id, $.now());
+					ajaxDeferred.resolve();
+				} else {
+					ajaxDeferred.reject();
 				}
 			},
 			timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
 		});
+	} else {
+		ajaxDeferred.resolve();
 	}
+	$.when(ajaxDeferred.promise(), libraryDeferred.promise())
+	.fail(MyAnswers.formsDeferred.reject)
+	.then(MyAnswers.formsDeferred.resolve);
 }
 
 function processConfig(display) {
@@ -1750,8 +1796,6 @@ function processConfig(display) {
 		}
 		if (siteVars.config && siteVars.map && (display === true || MyAnswers.isEmptySpace)) {
 			displayAnswerSpace();
-			processMoJOs();
-			processForms();
 		} else {
 			requestConfig(items);
 		}
@@ -1762,7 +1806,7 @@ function processConfig(display) {
 
 function requestConfig(requestData) {
 	var now = $.now();
-	log('requestConfig(): ' + requestData);
+	/* END: var */
 	if ($.type(requestData) !== 'array' || requestData.length === 0) {
 		requestData = null;
 	}
@@ -1868,7 +1912,6 @@ function createParamsAndArgs(keywordID) {
 function showAnswerView(interaction, argsString, reverse) {
 	log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
 	var html, args,
-		config, id, i, iLength = siteVars.map.interactions.length,
 		$answerView = $('#answerView'),
 		$answerBox = $('#answerBox'),
 		answerBox = $answerBox[0],
@@ -1889,7 +1932,7 @@ function showAnswerView(interaction, argsString, reverse) {
 		currentInteraction = interaction;
 		updateCurrentConfig();
 		if (typeof currentConfig.xml === 'string' && currentConfig.xml.substring(0, 6) !== 'stars:') {
-			if (currentConfig.mojoType === 'server-hosted') {
+			if (currentConfig.mojoType === 'server-hosted' && MyAnswers.dfrdMoJOs.isResolved()) {
 				requestMoJO(currentConfig.xml);
 			}
 		}
@@ -1910,41 +1953,72 @@ function showAnswerView(interaction, argsString, reverse) {
 			insertHTML(answerBox, currentConfig.message);
 			completeFn();
 		} else if (currentConfig.type === 'xslt' && deviceVars.disableXSLT !== true) {
-			$.when(generateMojoAnswer(args))
+			$.when(MyAnswers.dfrdMoJOs)
+			.always(function() {
+				$.when(generateMojoAnswer(args))
 				.always(function(html) {
 					insertHTML(answerBox, html);
 					completeFn();
 				});
+			});
 		} else if (reverse) {
 			$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
 				insertHTML(answerBox, html);
 				completeFn();
 			});
 		} else if (currentConfig.type === 'form' && currentConfig.blinkFormObjectName && currentConfig.blinkFormAction) {
-			html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
-			html.data(args);
-			insertHTML(answerBox, html);
-			completeFn();
+			$.when(MyAnswers.dfrdMoJOs, MyAnswers.formsDeferred.promise())
+			.fail(function() {
+				html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
+			})
+			.then(function() {
+				html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
+				html.data(args);
+			})
+			.always(function() {
+				insertHTML(answerBox, html);
+				completeFn();
+			});
 		} else {
 			var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
-				requestData = {
-					asn: siteVars.answerSpace,
-					iact: currentConfig.name
-				},
-				fallbackToStorage = function() {
-					$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
-						if (typeof html === 'undefined') {
-							html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
-						}
-						insertHTML(answerBox, html);
-						completeFn();
-					});
-				};
+			requestData = {
+				asn: siteVars.answerSpace,
+				iact: currentConfig.name
+			},
+			fallbackToStorage = function() {
+				$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
+					if (typeof html === 'undefined') {
+						html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+					}
+					insertHTML(answerBox, html);
+					completeFn();
+				});
+			},
+			postData = {},
+			starsData = {},
+			method = 'GET';
+			/* END :var */
 			if (!$.isEmptyObject(args)) {
 				$.extend(requestData, args);
 			}
+			if (requestData._submitStarsType) {
+				method = 'POST';
+				if ($.type(requestData._submitStarsType) === 'string') {
+					requestData._submitStarsType = [ requestData._submitStarsType ];
+				}
+				if ($.type(requestData._submitStarsType) === 'array') {
+					$.each(requestData._submitStarsType, function(index, value) {
+						starsData[value] = starsProfile[value] || {};
+					});
+				}
+				postData[requestData._submitStarsPost || 'stars'] = starsData;
+				delete requestData._submitStarsPost;
+				delete requestData._submitStarsType;
+				answerUrl += '?' + $.param(requestData);
+				requestData = postData;
+			}
 			$.ajax({
-				type: 'GET',
+				type: method,
 				url: answerUrl,
 				data: requestData,
 				complete: function(xhr, textstatus) { // readystate === 4
@@ -2244,7 +2318,7 @@ function updateLoginButtons() {
 
 function requestLoginStatus() {
 	var deferred = new $.Deferred();
-	if (!siteVars.hasLogin) {return;}
+	if (!siteVars.hasLogin) { return null; }
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		dataType: 'json',
@@ -2610,44 +2684,44 @@ function onBrowserReady() {
 			location.assign(location.href.split('#')[0]);
 		} */
 
-		if (History.enabled) {
-			$(window).bind('statechange', function(event) {
-				var state = History.getState();
-				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
-				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
-				if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
-					$.noop(); // do we need to do something if we have fired this early?
-				} else if (state.data.storage) {
-					showPendingView();
-				} else if (siteVars.hasLogin && state.data.login) {
-					showLoginView();
-				} else if (hasInteractions && state.data.i) {
-					// TODO: inputs=true should always force the prompt to display
-					if ($.isEmptyObject(state.data.arguments)) {
-						gotoNextScreen(state.data.i);
-					} else {
-						showAnswerView(state.data.i, state.data.arguments);
-					}
-				} else if (hasCategories && state.data.c) {
-					showKeywordListView(state.data.c);
-				} else if (hasMasterCategories && state.data.m) {
-					showCategoriesView(state.data.m);
+		History.Adapter.bind(window, 'statechange', function(event) {
+			var state = History.getState();
+			// TODO: work out a way to detect Back-navigation so reverse transitions can be used
+			log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+			if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
+				$.noop(); // do we need to do something if we have fired this early?
+			} else if (state.data.storage) {
+				showPendingView();
+			} else if (siteVars.hasLogin && state.data.login) {
+				showLoginView();
+			} else if (hasInteractions && state.data.i) {
+				// TODO: inputs=true should always force the prompt to display
+				if ($.isEmptyObject(state.data.arguments)) {
+					gotoNextScreen(state.data.i);
 				} else {
-					if (hasMasterCategories) {
-						showMasterCategoriesView();
-					} else if (hasCategories) {
-						showCategoriesView();
-					} else if (answerSpaceOneKeyword) {
-						gotoNextScreen(siteVars.map.interactions[0]);
-					} else {
-						showKeywordListView();
-					}
+					showAnswerView(state.data.i, state.data.arguments);
 				}
-				event.preventDefault();
-				return false;
-			});		
-		} else {
-			warn('History.JS is not enabled');
+			} else if (hasCategories && state.data.c) {
+				showKeywordListView(state.data.c);
+			} else if (hasMasterCategories && state.data.m) {
+				showCategoriesView(state.data.m);
+			} else {
+				if (hasMasterCategories) {
+					showMasterCategoriesView();
+				} else if (hasCategories) {
+					showCategoriesView();
+				} else if (answerSpaceOneKeyword) {
+					gotoNextScreen(siteVars.map.interactions[0]);
+				} else {
+					showKeywordListView();
+				}
+			}
+			event.preventDefault();
+			return false;
+		});
+		
+		if (!History.enabled) {
+			warn('History.JS is in emulation mode');
 		}
 
 		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
@@ -2691,6 +2765,8 @@ function onBrowserReady() {
 				jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
 					'requests': ++siteVars.requestsCounter
 				}));
+				// prevent jQuery from disabling cache mechanisms
+				options.cache = 'true';
 				log('AJAX start: ' + url);
 		});
 /*		MyAnswers.$document.ajaxSuccess(function(event, jqxhr, options) {
@@ -2880,6 +2956,7 @@ function onBrowserReady() {
 	}
 
 	function init_main() {
+		var storeEngine = null; // pick automatic engine by default
 		log("init_main(): ");
 		siteVars.requestsCounter = 0;
 
@@ -2904,7 +2981,14 @@ function onBrowserReady() {
 //		MyAnswers.$window.bind('resize', onWindowResize);
 //		MyAnswers.$window.trigger('resize');
 
-		MyAnswers.store = new BlinkStorage(null, siteVars.answerSpace, 'jstore');
+		if (siteVars.serverAppBranch === 'W') {
+			storeEngine = null; // native application should always use auto-select
+		} else if (navigator.userAgent.indexOf('Android') !== -1) {
+			// Android has problems with persistent storage
+			storeEngine = 'sessionstorage';
+		}
+
+		MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
 		$.when(MyAnswers.store.ready()).then(function() {
 			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
 			$.when(MyAnswers.siteStore.ready()).then(function() {
@@ -2970,7 +3054,7 @@ function onBrowserReady() {
 		$.when(MyAnswers.mainDeferred.promise()).then(function() {
 			Modernizr.load([{
 				test: window.JSON,
-				nope: '/_c_/json2.js'
+				nope: '/_c_/json2.min.js'
 			}, {
 				test: Modernizr.xslt && Modernizr.xpath,
 				nope: [
@@ -2990,7 +3074,7 @@ function onBrowserReady() {
 					log('Modernizr.load(): XSLT supported ' + (Modernizr.xslt ? 'natively' : 'via AJAXSLT'));
 				}
 			}, {
-				test: Modernizr.history,
+				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
 				yep: '/_c_/historyjs/history-1.7.1-r2.html5.min.js',
 				nope: '/_c_/historyjs/history-1.7.1-r2.min.js',
 				callback: function(url, result) {
