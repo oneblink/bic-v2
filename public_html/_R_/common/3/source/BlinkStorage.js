@@ -30,7 +30,9 @@
 		
 		if (typeof type !== 'string') {
 			type = available[0];
-		} else if (!$.inArray(type, available)) {
+		} else if (type === 'sessionstorage' && $.inArray('sessionstorage', available) === -1) {
+			type = 'memory';
+		} else if ($.inArray(type, available) === -1) {
 			type = available[0];
 		}
 		
@@ -111,42 +113,42 @@
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			};
+			}
 			function errorHandler2(error) {
 				log('BlinkStorage error2: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			};
+			}
 			function errorHandler3(error) {
 				log('BlinkStorage error3: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			};
+			}
 			function errorHandler4(error) {
 				log('BlinkStorage error4: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			};
+			}
 			function errorHandler5(error) {
 				log('BlinkStorage error5: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			};
+			}
 			function errorHandler6(error) {
 				log('BlinkStorage error6: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			};
+			}
 
 			/* open the requested section/table and signal BlinkStorage is ready*/
 			function openSection() {
@@ -257,24 +259,37 @@
 				return deferred.promise();
 			};
 			
-			self.set = function(key, value) {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.transaction(function(tx) {
-						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ]);
-						tx.executeSql(
-							'INSERT INTO ' + section + ' (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
-								if (result.rowsAffected !== 1) {
-									dfrd.reject();
-									throw('BlinkStorage: failed INSERT');
-								}
-								dfrd.resolve();
+			self.set = function(key, value, attempts) {
+				var deferred = new $.Deferred(),
+					promise = deferred.promise();
+				attempts = typeof attempts !== 'number' ? 1 : attempts;
+				db.transaction(function(tx) {
+					tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ]);
+					tx.executeSql(
+						'INSERT INTO `' + section + '` (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
+							if (result.rowsAffected !== 1) {
+								throw('BlinkStorage: failed INSERT');
 							}
-						);
-					}, errorHandler3, successHandler);
-				});
-				return deferred.promise();
+						}
+					);
+				}, function(error) {
+					if (attempts-- > 0) {
+						$.when(self.set(key, value, attempts))
+							.fail(function(error) {
+								log('BlinkStorage error: ' + error.code + ' ' + error.message);
+								if (error.code === 3 || error.code === 4 || error.code === 7) {
+									alert('storage-error: ' + error.code + '\n' + error.message);
+								}
+								deferred.reject();
+							})
+							.then(deferred.resolve());
+					} else {
+						deferred.reject();
+					}
+				}, deferred.resolve);
+				return promise;
 			};
-			
+	
 			self.remove = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {

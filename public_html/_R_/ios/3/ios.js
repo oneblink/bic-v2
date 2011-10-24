@@ -9,7 +9,6 @@ function init_device() {
 	deviceVars.engineVersion = navigator.userAgent.match(/WebKit\/(\d+)/);
 	deviceVars.engineVersion = deviceVars.engineVersion !== null ? deviceVars.engineVersion[1] : 525;
 	deviceVars.useCSS3animations = deviceVars.engineVersion >= 532; // iOS 4 doesn't uglify forms
-	deviceVars.useCSS3buttons = deviceVars.engineVersion >= 531; // iOS 3.2 understand border-image
 	deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
 	deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
 
@@ -153,63 +152,6 @@ function onScroll() {
 			updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 		}
 	});
-}
-
-function setupParts()
-{
-	$('body').trigger('taskBegun');
-	if (deviceVars.useCSS3buttons === false)
-	{
-		$('.backButton').each(function(index, element) {
-			var thisElement = $(element);
-			var fragment = document.createDocumentFragment();
-			var left = document.createElement('div');
-			left.setAttribute('class', 'backButtonLeft');
-			fragment.appendChild(left);
-			var label = document.createElement('div');
-			label.setAttribute('class', 'buttonLabel');
-			label.appendChild(document.createTextNode(thisElement.text()));
-			fragment.appendChild(label);
-			var right = document.createElement('div');
-			right.setAttribute('class', 'backButtonRight');
-			fragment.appendChild(right);
-			emptyDOMelement(element);
-			element.appendChild(fragment);
-		});
-		$('.roundButton').each(function(index, element) {
-			var thisElement = $(element);
-			var fragment = document.createDocumentFragment();
-			var left = document.createElement('div');
-			left.setAttribute('class', 'roundButtonLeft');
-			fragment.appendChild(left);
-			var label = document.createElement('div');
-			label.setAttribute('class', 'buttonLabel');
-			label.appendChild(document.createTextNode(thisElement.text()));
-			fragment.appendChild(label);
-			var right = document.createElement('div');
-			right.setAttribute('class', 'roundButtonRight');
-			fragment.appendChild(right);
-			emptyDOMelement(element);
-			element.appendChild(fragment);
-		});
-		$('.squareButton').each(function(index, element) {
-			var thisElement = $(element);
-			var fragment = document.createDocumentFragment();
-			var left = document.createElement('div');
-			left.setAttribute('class', 'squareButtonLeft');
-			fragment.appendChild(left);
-			var label = document.createElement('div');
-			label.setAttribute('class', 'buttonLabel');
-			label.appendChild(document.createTextNode(thisElement.text()));
-			fragment.appendChild(label);
-			var right = document.createElement('div');
-			right.setAttribute('class', 'squareButtonRight');
-			fragment.appendChild(right);
-			emptyDOMelement(element);
-			element.appendChild(fragment);
-		});
-	}
-	$('body').trigger('taskComplete');
 }
 
 document.getElementById('startUp-loadDevice').className = 'working success';
