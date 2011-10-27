@@ -467,7 +467,7 @@ function setSubmitCachedFormButton() {
 				keysFn = function(index, key, $section) {
 					var version = $section.data('blinkFormVersion'),
 						$template = $section.children('.template[hidden]'),
-						$entry = $template.clone().removeAttr('hidden').removeClass('template'),
+						$entry = $template.clone(),
 						keyParts = key.split(':'),
 						interaction = siteVars.config['i' + keyParts[0]],
 						name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
@@ -495,10 +495,12 @@ function setSubmitCachedFormButton() {
 					}
 					$entry.data('interaction', keyParts[0]);
 					$entry.data('form', form);
-					$entry.appendTo($section);
+					MyAnswers.dispatch.add(function() {
+						$entry.appendTo($section);
+						$entry.removeAttr('hidden').removeClass('template');
+					});
 				};
 			log("setSubmitCachedFormButton(): " + buttonText);
-			$section.add($sectionV1).children('.bForm-pending:not(.template)').remove();
 			MyAnswers.dispatch.add(function() {
 				if (count !== 0) {
 					insertText($button[0], buttonText);
@@ -509,22 +511,28 @@ function setSubmitCachedFormButton() {
 					$button.addClass('hidden');
 				}
 			});
-			if (keys.length > 0) {
-				$.each(keys, function(index, key) {
-					keysFn(index, key, $section);
-				});
-				$section.prop('hidden', false);
-			} else {
-				$section.prop('hidden', true);
-			}
-			if (keysV1.length > 0) {
-				$.each(keysV1, function(index, key) {
-					keysFn(index, key, $sectionV1);
-				});
-				$sectionV1.prop('hidden', false);
-			} else {
-				$sectionV1.prop('hidden', true);
-			}
+			MyAnswers.dispatch.add(function() {
+			$section.children('.bForm-pending:not(.template)').remove();
+				if (keys.length > 0) {
+					$.each(keys, function(index, key) {
+						keysFn(index, key, $section);
+					});
+					$section.prop('hidden', false);
+				} else {
+					$section.prop('hidden', true);
+				}
+			});
+			MyAnswers.dispatch.add(function() {
+				$sectionV1.children('.bForm-pending:not(.template)').remove();
+				if (keysV1.length > 0) {
+					$.each(keysV1, function(index, key) {
+						keysFn(index, key, $sectionV1);
+					});
+					$sectionV1.prop('hidden', false);
+				} else {
+					$sectionV1.prop('hidden', true);
+				}
+			});
 		});
 }
 
