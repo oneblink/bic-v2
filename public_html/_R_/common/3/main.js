@@ -467,7 +467,7 @@ function setSubmitCachedFormButton() {
 				keysFn = function(index, key, $section) {
 					var version = $section.data('blinkFormVersion'),
 						$template = $section.children('.template[hidden]'),
-						$entry = $template.clone().prop('hidden', false).removeClass('template'),
+						$entry = $template.clone().removeAttr('hidden').removeClass('template'),
 						keyParts = key.split(':'),
 						interaction = siteVars.config['i' + keyParts[0]],
 						name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
@@ -504,7 +504,6 @@ function setSubmitCachedFormButton() {
 					insertText($button[0], buttonText);
 					$noMessage.addClass('hidden');
 					$button.removeClass('hidden');
-					$sectionV1.prop('hidden', true);
 				} else {
 					$noMessage.removeClass('hidden');
 					$button.addClass('hidden');
