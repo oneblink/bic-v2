@@ -788,6 +788,9 @@ function updateNavigationButtons() {
 					$navBars.addClass('hidden');
 				}
 			});
+			if(MyAnswers.dfrdMoJOs.isResolved()) {
+				processMoJOs();
+			}
 		} else {
 			$navButtons.removeClass('hidden');
 			$navButtons.removeAttr('disabled');
