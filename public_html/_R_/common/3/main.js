@@ -2708,7 +2708,61 @@ MyAnswers.updateLocalStorage = function() {
 		navigator = window.navigator,
 		$window = $(window),
 		History, _pushState, _replaceState; // defined in onBrowserReady
-		
+
+/* *** BLINKGAP FUNCTIONS *** */
+	
+	/**
+	 * @returns {jQueryPromise}
+	 */
+	function fixWebSQL() {
+		var deferred = new $.Deferred(),
+		db = null,
+		/* @inner */
+		increaseQuota_Success = function(quotaIncrease) {
+			db = null;
+			navigator.notification.alert("Storage increase requested\nPlease reopen...", 
+																	 function() {
+																		 navigator.gap_database.requestTerminate();
+																	 }, 
+																	 "Restart", 
+																	 "Close App");
+			deferred.resolve();                                                                                                                       
+			log("fixWebSQL(): quota increase: " + quotaIncrease);
+		},
+		/* @inner */
+		getDBLimits_Success = function(results) {
+			var options = { quotaIncrease: String(MyAnswers.device.storageQuota) },
+			allocatedSpace = results.allocatedSpace,
+			currentQuota = results.currentQuota;
+			/* END: var */
+			log("fixWebSQL(): allocatedSpace=" + allocatedSpace + ' currentQuota=' + currentQuota);
+			if (currentQuota < MyAnswers.device.storageQuota) {
+				navigator.gap_database.increaseQuota(increaseQuota_Success, null, options);
+			} else {
+				deferred.resolve();
+			}
+		};
+		/* END: var */
+		if (MyAnswers && MyAnswers.device && MyAnswers.device.storageQuota
+				&& $.type(MyAnswers.device.storageQuota) === 'number'
+				&& MyAnswers.device.storageQuota > 0) {
+			log('fixWebSQL(): requestedQuota=' + MyAnswers.device.storageQuota);
+			try {
+				db = openDatabase(siteVars.answerSpace, '1.0', siteVars.answerSpace, 1024 * 1024);
+				navigator.gap_database.getLimits(getDBLimits_Success, null, null);
+			} catch(error) {
+				deferred.reject();
+				log(error);
+				log("*** Open/Increase quota for database failed");
+				throw 'fixWebSQL(): ' + error;
+			}
+		} else {
+			log('fixWebSQL(): nothing to do');
+			deferred.resolve();
+		}
+		return deferred.promise();
+	}
+
 /* *** HELPER FUNCTIONS *** */
 
 	/**
@@ -2847,15 +2901,6 @@ MyAnswers.updateLocalStorage = function() {
 						siteVars.map = data;
 					}
 				})
-/*				.always(function() {
-					if (deviceVars.isOnline) {
-						$.when(requestLoginStatus()).always(requestConfig);
-					} else if (siteVars.config && siteVars.map) {
-						processConfig(true);
-					} else {
-						$startup.append('error: unable to contact server, insufficient data found in local storage');
-					}
-				}); */
 				.always(prepareConfig);
 			});
 			$.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
@@ -2876,7 +2921,10 @@ MyAnswers.updateLocalStorage = function() {
 	}
 
 	function init_main() {
-		var storeEngine = null; // pick automatic engine by default
+		var storeEngine = null, // pick automatic engine by default
+		loadedPromises = [],
+		dfrdFixWebSQL;
+		/* END: var */
 		log("init_main(): ");
 		siteVars.requestsCounter = 0;
 
@@ -2901,32 +2949,6 @@ MyAnswers.updateLocalStorage = function() {
 //		MyAnswers.$window.bind('resize', onWindowResize);
 //		MyAnswers.$window.trigger('resize');
 
-		if (siteVars.serverAppBranch === 'W') {
-			storeEngine = null; // native application should always use auto-select
-		} else if (navigator.userAgent.indexOf('Android') !== -1) {
-			// Android has problems with persistent storage
-			storeEngine = 'sessionstorage';
-		}
-
-		MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
-		$.when(MyAnswers.store.ready()).then(function() {
-			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
-			$.when(MyAnswers.siteStore.ready()).then(function() {
-				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
-				$.when(MyAnswers.pendingStore.ready()).then(function() {
-					MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
-					$.when(MyAnswers.pendingV1Store.ready()).then(function() {
-				//		MyAnswers.dumpLocalStorage();
-						$.when(MyAnswers.updateLocalStorage()).done(function() {
-							$('#startUp-initLoaded').addClass('working');
-							loaded();
-							log('loaded(): returned after call by BlinkStorage');
-						});
-					});
-				});
-			});
-		});
-
 		MyAnswers.activityIndicator = document.getElementById('activityIndicator');
 		MyAnswers.activityIndicatorTimer = null;
 
@@ -2939,7 +2961,45 @@ MyAnswers.updateLocalStorage = function() {
 		$window.bind('online', onNetworkChange);
 		$window.bind('offline', onNetworkChange);
 		onNetworkChange(); // $window.trigger('online');
-		$('#startUp-initMain').addClass('success');
+
+		if (siteVars.serverAppBranch === 'W') {
+			storeEngine = null; // native application should always use auto-select
+		} else if (navigator.userAgent.indexOf('Android') !== -1) {
+			// Android has problems with persistent storage
+			storeEngine = 'sessionstorage';
+		}
+
+		if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
+			dfrdFixWebSQL = fixWebSQL();
+		} else {
+			dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
+		}
+		
+		$.when(dfrdFixWebSQL)
+		.always(function() {
+			MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
+			loadedPromises.push(MyAnswers.store.ready());
+			MyAnswers.siteStore = new BlinkStorage(storeEngine, siteVars.answerSpace, 'site');
+			loadedPromises.push(MyAnswers.siteStore.ready());
+			MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
+			loadedPromises.push(MyAnswers.pendingStore.ready());
+			MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
+			loadedPromises.push(MyAnswers.pendingV1Store.ready());
+		});
+
+		$.whenArray(loadedPromises)
+		.fail(function() {
+			$('#startUp-initMain').addClass('error');
+			throw('initMain(): unable to initialise device storage');
+		})
+		.then(function() {
+			$.when(MyAnswers.updateLocalStorage()).done(function() {
+				$('#startUp-initMain').addClass('success');
+				$('#startUp-initLoaded').addClass('working');
+				loaded();
+				log('loaded(): returned after call by BlinkStorage');
+			});
+		});
 	}
 	
 	function onBrowserReady() {
