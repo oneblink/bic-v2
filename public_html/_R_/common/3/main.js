@@ -152,6 +152,7 @@ function getURLParameters() {
 	}
 }
 
+// TODO: deprecate this function
 function isAJAXError(status)
 {
 	switch(status) {
@@ -466,7 +467,7 @@ function setSubmitCachedFormButton() {
 				keysFn = function(index, key, $section) {
 					var version = $section.data('blinkFormVersion'),
 						$template = $section.children('.template[hidden]'),
-						$entry = $template.clone().prop('hidden', false).removeClass('template'),
+						$entry = $template.clone(),
 						keyParts = key.split(':'),
 						interaction = siteVars.config['i' + keyParts[0]],
 						name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
@@ -494,37 +495,44 @@ function setSubmitCachedFormButton() {
 					}
 					$entry.data('interaction', keyParts[0]);
 					$entry.data('form', form);
-					$entry.appendTo($section);
+					MyAnswers.dispatch.add(function() {
+						$entry.appendTo($section);
+						$entry.removeAttr('hidden').removeClass('template');
+					});
 				};
 			log("setSubmitCachedFormButton(): " + buttonText);
-			$section.add($sectionV1).children('.bForm-pending:not(.template)').remove();
 			MyAnswers.dispatch.add(function() {
 				if (count !== 0) {
 					insertText($button[0], buttonText);
 					$noMessage.addClass('hidden');
 					$button.removeClass('hidden');
-					$sectionV1.prop('hidden', true);
 				} else {
 					$noMessage.removeClass('hidden');
 					$button.addClass('hidden');
 				}
 			});
-			if (keys.length > 0) {
-				$.each(keys, function(index, key) {
-					keysFn(index, key, $section);
-				});
-				$section.prop('hidden', false);
-			} else {
-				$section.prop('hidden', true);
-			}
-			if (keysV1.length > 0) {
-				$.each(keysV1, function(index, key) {
-					keysFn(index, key, $sectionV1);
-				});
-				$sectionV1.prop('hidden', false);
-			} else {
-				$sectionV1.prop('hidden', true);
-			}
+			MyAnswers.dispatch.add(function() {
+			$section.children('.bForm-pending:not(.template)').remove();
+				if (keys.length > 0) {
+					$.each(keys, function(index, key) {
+						keysFn(index, key, $section);
+					});
+					$section.prop('hidden', false);
+				} else {
+					$section.prop('hidden', true);
+				}
+			});
+			MyAnswers.dispatch.add(function() {
+				$sectionV1.children('.bForm-pending:not(.template)').remove();
+				if (keysV1.length > 0) {
+					$.each(keysV1, function(index, key) {
+						keysFn(index, key, $sectionV1);
+					});
+					$sectionV1.prop('hidden', false);
+				} else {
+					$sectionV1.prop('hidden', true);
+				}
+			});
 		});
 }
 
@@ -780,6 +788,9 @@ function updateNavigationButtons() {
 					$navBars.addClass('hidden');
 				}
 			});
+			if(MyAnswers.dfrdMoJOs.isResolved()) {
+				processMoJOs();
+			}
 		} else {
 			$navButtons.removeClass('hidden');
 			$navButtons.removeAttr('disabled');
@@ -1580,7 +1591,7 @@ function displayAnswerSpace() {
 					History.pushState({i: interaction}, null, requestUri);
 				} else if (typeof(siteVars.queryParameters._c) === 'string') {
 					requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
-					History.pushState({m: siteVars.queryParameters._c}, null, requestUri);
+					History.pushState({c: siteVars.queryParameters._c}, null, requestUri);
 				} else if (typeof(siteVars.queryParameters._m) === 'string') {
 					requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
 					History.pushState({m: siteVars.queryParameters._m}, null, requestUri);
@@ -1648,20 +1659,23 @@ function processMoJOs(interaction) {
 	config;
 	/* END: var */
 	for (i = 0; i < iLength; i++) {
-		config = siteVars.config['i' + interactions[i]].pertinent;
-		if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
-			if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
-				if (!siteVars.mojos[config.xml]) {
-					siteVars.mojos[config.xml] = {
-						maximumAge: config.maximumAge || 0,
-						minimumAge: config.minimumAge || 0
-					};
-				} else {
-					siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
-					siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
-				}
-				if (!deferredFetches[config.xml]) {
-					deferredFetches[config.xml] = requestMoJO(config.xml);
+		config = siteVars.config['i' + interactions[i]];
+		if ($.type(config) === 'object') {
+			config = config.pertinent;
+			if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
+				if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
+					if (!siteVars.mojos[config.xml]) {
+						siteVars.mojos[config.xml] = {
+							maximumAge: config.maximumAge || 0,
+							minimumAge: config.minimumAge || 0
+						};
+					} else {
+						siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
+						siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
+					}
+					if (!deferredFetches[config.xml]) {
+						deferredFetches[config.xml] = requestMoJO(config.xml);
+					}
 				}
 			}
 		}
@@ -1748,44 +1762,28 @@ function processForms() {
 }
 
 function processConfig(display) {
-	var items = [],
-		siteStructure,
-		config;
+	var siteStructure,
+	config;
+	/* END: var */
 	log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
 		config = siteVars.config['a' + siteVars.id].pertinent;
 		siteStructure = config.siteStructure;
 		if (siteStructure === 'master categories') {
 			hasMasterCategories = siteVars.map.masterCategories.length > 0;
-			if (hasMasterCategories && typeof currentMasterCategory === 'undefined') {
-				items = items.concat($.map(siteVars.map.masterCategories, function(element, index) {
-					return 'm' + element;
-				}));
-			}
 		}
 		if (siteStructure !== 'interactions only') { // masterCategories or categories
-			// TODO: investigate whether this behaviour needs to be more like interactions and/or master categories
 			hasCategories = siteVars.map.categories.length > 0;
-			if (hasCategories && typeof currentCategory === 'undefined') {
-				items = items.concat($.map(siteVars.map.categories, function(element, index) {
-					return 'c' + element;
-				}));
-			}
 		}
 		hasInteractions = siteVars.map.interactions.length > 0;
 		answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
-		if (hasInteractions && typeof currentInteraction === 'undefined') {
-			items = items.concat($.map(siteVars.map.interactions, function(element, index) {
-				return 'i' + element;
-			}));
-		}
 		if (config.loginAccess && config.loginUseInteractions
 					&& config.loginPromptInteraction && config.loginStatusInteraction
 					&& siteVars.config['i' + config.loginPromptInteraction]
 					&& siteVars.config['i' + config.loginStatusInteraction]) {
 			MyAnswers.isCustomLogin = true;
 		}
-		if (siteVars.map.masterCategories.length === 0 && siteVars.map.categories.length === 0
+		if (siteVars.map && siteVars.map.masterCategories.length === 0 && siteVars.map.categories.length === 0
 					&& siteVars.map.interactions.length === (MyAnswers.isCustomLogin ? 2 : 0)) {
 			MyAnswers.isEmptySpace = true;
 		}
@@ -1794,58 +1792,91 @@ function processConfig(display) {
 				MyAnswers.isLoginOnly = true;
 			}
 		}
-		if (siteVars.config && siteVars.map && (display === true || MyAnswers.isEmptySpace)) {
-			displayAnswerSpace();
-		} else {
-			requestConfig(items);
-		}
 	} else {
-		log('requestConfig(): unable to retrieve answerSpace config');
+		log('processConfig(): unable to retrieve answerSpace config');
 	}
 }
 
-function requestConfig(requestData) {
-	var now = $.now();
+function requestConfig() {
+	var now = $.now(),
+	dfrd = new $.Deferred();
 	/* END: var */
-	if ($.type(requestData) !== 'array' || requestData.length === 0) {
-		requestData = null;
+	if (!deviceVars.isOnline) {
+		dfrd.reject();
+		return dfrd.promise();
 	}
 	$.ajax({
 		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
 		type: 'POST',
-		data: requestData ? {items: requestData} : null,
 		dataType: 'json',
-		complete: function(jqxhr, textStatus) {
+		timeout: computeTimeout(40 * 1024),
+		complete: function(jqxhr, status) {
 			var data,
-				id, ids, i, iLength;
-			if (isAJAXError(textStatus) || jqxhr.status !== 200) {
-				processConfig(true);
-			} else {
-				if (typeof siteVars.config === 'undefined' || !requestData) {
-					siteVars.config = {};
-				}
-				ids = ($.type(requestData) === 'array') ? requestData : [ 'a' + siteVars.id ];
-				iLength = ids.length;
+			items = ['a' + siteVars.id],
+			siteStructure;
+			/* END: var */
+			if (jqxhr.status === 200) {
 				data = $.parseJSON(jqxhr.responseText);
-				for (i = 0; i < iLength; i++) {
-					if (typeof data[ids[i]] !== 'undefined') {
-						siteVars.config[ids[i]] = data[ids[i]];
-					}
-					MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
-				}
-				deviceVars.features = data.deviceFeatures;
 				if ($.type(data.map) === 'object') {
 					siteVars.map = data.map;
 					MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
-					processConfig();
-				} else {
-					processConfig(true);
 				}
-				// TODO: store these in client-side storage somewhere
+				if ($.type(data['a' + siteVars.id]) === 'object') {
+					siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
+				}
+				if (siteVars.map) {
+					if (siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0) {
+						items = items.concat($.map(siteVars.map.masterCategories, function(element, index) {
+							return 'm' + element;
+						}));
+					}
+					if (siteStructure !== 'interactions only' && siteVars.map.categories.length > 0) { // masterCategories or categories
+						items = items.concat($.map(siteVars.map.categories, function(element, index) {
+							return 'c' + element;
+						}));
+					}
+					if (siteVars.map.interactions.length > 0) {
+						items = items.concat($.map(siteVars.map.interactions, function(element, index) {
+							return 'i' + element;
+						}));
+					}
+				}
 			}
-		},
-		timeout: computeTimeout(40 * 1024)
+			if ($.type(siteVars.config) !== 'object' || items.length > 0) {
+				siteVars.config = {};
+			}
+			$.each(items, function(index, id) {
+				if ($.type(data[id]) === 'object') {
+					siteVars.config[id] = data[id];
+				}
+			});
+			MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+			deviceVars.features = data.deviceFeatures;
+			if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
+				dfrd.resolve();
+			} else {
+				dfrd.reject();
+			}
+		}
 	});
+	return dfrd.promise();
+}
+
+function prepareConfig() {
+	var dfrd = new $.Deferred();
+	$.when(requestLoginStatus())
+	.always(function() {
+		$.when(requestConfig())
+		.always(function() {
+			if (siteVars.map && siteVars.config) {
+				processConfig();
+				displayAnswerSpace();
+			} else {
+				$startup.append('error: unable to contact server, insufficient data found in local storage');
+			}
+		});
+	});
+	return dfrd.promise();
 }
 
 if (typeof(webappCache) !== "undefined")
@@ -2318,7 +2349,10 @@ function updateLoginButtons() {
 
 function requestLoginStatus() {
 	var deferred = new $.Deferred();
-	if (!siteVars.hasLogin) { return null; }
+	if (!siteVars.hasLogin || !deviceVars.isOnline) {
+		deferred.reject();
+		return deferred.promise(); 
+	}
 	ajaxQueue.add({
 		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
 		dataType: 'json',
@@ -2663,151 +2697,6 @@ MyAnswers.updateLocalStorage = function() {
 
 // *** BEGIN APPLICATION INIT ***
 
-function onBrowserReady() {
-	var $startup = $('#startUp');
-	log("onBrowserReady: " + window.location.href);
-	try {
-		log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
-
-		siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
-		siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
-		siteVars.queryParameters = getURLParameters();
-		siteVars.answerSpace = siteVars.queryParameters.answerSpace;
-		delete siteVars.queryParameters.uid;
-		delete siteVars.queryParameters.answerSpace;
-
-		MyAnswers.$body = $('body');
-		MyAnswers.$document = $(window.document);
-		MyAnswers.$window = $(window);
-		
-/*		if (location.href.indexOf('#') === -1) {
-			location.assign(location.href.split('#')[0]);
-		} */
-
-		History.Adapter.bind(window, 'statechange', function(event) {
-			var state = History.getState();
-			// TODO: work out a way to detect Back-navigation so reverse transitions can be used
-			log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
-			if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
-				$.noop(); // do we need to do something if we have fired this early?
-			} else if (state.data.storage) {
-				showPendingView();
-			} else if (siteVars.hasLogin && state.data.login) {
-				showLoginView();
-			} else if (hasInteractions && state.data.i) {
-				// TODO: inputs=true should always force the prompt to display
-				if ($.isEmptyObject(state.data.arguments)) {
-					gotoNextScreen(state.data.i);
-				} else {
-					showAnswerView(state.data.i, state.data.arguments);
-				}
-			} else if (hasCategories && state.data.c) {
-				showKeywordListView(state.data.c);
-			} else if (hasMasterCategories && state.data.m) {
-				showCategoriesView(state.data.m);
-			} else {
-				if (hasMasterCategories) {
-					showMasterCategoriesView();
-				} else if (hasCategories) {
-					showCategoriesView();
-				} else if (answerSpaceOneKeyword) {
-					gotoNextScreen(siteVars.map.interactions[0]);
-				} else {
-					showKeywordListView();
-				}
-			}
-			event.preventDefault();
-			return false;
-		});
-		
-		if (!History.enabled) {
-			warn('History.JS is in emulation mode');
-		}
-
-		if (location.href.indexOf('index.php?answerSpace=') !== -1) {
-			History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
-		}
-		if (document.getElementById('loginButton') !== null) {
-			// TODO: get hasLogin working directly off new config field
-			siteVars.hasLogin = true;
-		}
-		
-		// TODO: finish work on HTML5 Web Worker support
-		/*
-		 * deviceVars.hasWebWorkers = typeof(window.Worker) === 'function'; if
-		 * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
-		 * Worker(siteVars.serverAppPath + '/webworker.js');
-		 * MyAnswers.webworker.onmessage = function(event) { switch
-		 * (event.data.fn) { case 'log': log(event.data.string);
-		 * break; case 'processXSLT': log('WebWorker: finished
-		 * processing XSLT'); var target =
-		 * document.getElementById(event.data.target); insertHTML(target,
-		 * event.data.html); break; case 'workBegun':
-		 * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
-		 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
-		 */
-		$.ajaxPrefilter(function(options, original, jqxhr) {
-				var url = decodeURI(options.url),
-					config = {
-						answerSpaceId: siteVars.id,
-						answerSpace: siteVars.answerSpace,
-						conditions: deviceVars.features
-					};
-				/*
-				 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
-				 * phpName; log(string + ' ' + e.position + ' ' +
-				 * e.total + ' ' + xhr + ' ' + options); }
-				 */
-				if (url.length > 100) {
-					url = url.substring(0, 100) + '...';
-				}
-				jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
-				jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
-					'requests': ++siteVars.requestsCounter
-				}));
-				// prevent jQuery from disabling cache mechanisms
-				options.cache = 'true';
-				log('AJAX start: ' + url);
-		});
-/*		MyAnswers.$document.ajaxSuccess(function(event, jqxhr, options) {
-			var status = typeof jqxhr === 'undefined' ? null : jqxhr.status,
-				readyState = typeof jqxhr === 'undefined' ? 4 : jqxhr.readyState,
-				url = decodeURI(options.url);
-			if (url.length > 100) {
-				url = url.substring(0, 100) + '...';
-			} 
-			log('AJAX complete: ' + url + ' ' + readyState + ' ' + status);
-		}); */
-
-		if (siteVars.serverAppBranch === 'W') {
-			MyAnswers.blinkgapDeferred = new $.Deferred();
-			$('#startUp-initBlinkGap').addClass('working');
-			if (window.device && window.device.ready) {
-				onDeviceReady();
-			} else {
-				if (!addEvent(document, "deviceready", onDeviceReady)) {
-					alert("Unable to add deviceready handler");
-					throw("Unable to add deviceready handler");
-				}
-			}
-			$.when(MyAnswers.blinkgapDeferred.promise())
-				.done(function() {
-					delete MyAnswers.blinkgapDeferred;
-					MyAnswers.browserDeferred.resolve();
-				});
-		} else {
-			MyAnswers.browserDeferred.resolve();
-		}
-		$('#startUp-initBrowser').addClass('success');
-  } catch(e) {
-		log("onBrowserReady: Exception");
-		log(e);
-		$startup.append('browser error: ' + e);
-		MyAnswers.browserDeferred.reject();
-		$('#startUp-initBrowser').addClass('error');
-	}
-}
-
 /* moving non-public functions into a closure for safety */
 (function(window, undefined) {
 	var document = window.document,
@@ -2817,9 +2706,92 @@ function onBrowserReady() {
 		$ = window.jQuery,
 		$startup = $('#startUp'),
 		navigator = window.navigator,
-		$window = $(window);
-		
+		$window = $(window),
+		History, _pushState, _replaceState; // defined in onBrowserReady
+
+/* *** BLINKGAP FUNCTIONS *** */
+	
+	/**
+	 * @returns {jQueryPromise}
+	 */
+	function fixWebSQL() {
+		var deferred = new $.Deferred(),
+		db = null,
+		/* @inner */
+		increaseQuota_Success = function(quotaIncrease) {
+			db = null;
+			navigator.notification.alert("Database installed, please restart the App.", 
+																	 function() {
+																		 navigator.gap_database.requestTerminate();
+																	 }, 
+																	 "First Run", 
+																	 "Close App");
+			deferred.resolve();                                                                                                                       
+			log("fixWebSQL(): quota increase: " + quotaIncrease);
+		},
+		/* @inner */
+		getDBLimits_Success = function(results) {
+			var options = { quotaIncrease: String(MyAnswers.device.storageQuota) },
+			allocatedSpace = results.allocatedSpace,
+			currentQuota = results.currentQuota;
+			/* END: var */
+			log("fixWebSQL(): allocatedSpace=" + allocatedSpace + ' currentQuota=' + currentQuota);
+			if (currentQuota < MyAnswers.device.storageQuota) {
+				navigator.gap_database.increaseQuota(increaseQuota_Success, null, options);
+			} else {
+				deferred.resolve();
+			}
+		};
+		/* END: var */
+		if (MyAnswers && MyAnswers.device && MyAnswers.device.storageQuota
+				&& $.type(MyAnswers.device.storageQuota) === 'number'
+				&& MyAnswers.device.storageQuota > 0) {
+			log('fixWebSQL(): requestedQuota=' + MyAnswers.device.storageQuota);
+			try {
+				db = openDatabase(siteVars.answerSpace, '1.0', siteVars.answerSpace, 1024 * 1024);
+				navigator.gap_database.getLimits(getDBLimits_Success, null, null);
+			} catch(error) {
+				deferred.reject();
+				log(error);
+				log("*** Open/Increase quota for database failed");
+				throw 'fixWebSQL(): ' + error;
+			}
+		} else {
+			log('fixWebSQL(): nothing to do');
+			deferred.resolve();
+		}
+		return deferred.promise();
+	}
+
 /* *** HELPER FUNCTIONS *** */
+
+	/**
+	 * remove hash / anchor / fragments from a state object destined for History
+	 */
+	function trimHistoryState(state) {
+		var index, array, object,
+		type = $.type(state);
+		/* END: var */
+		if (type === 'string' && state.length > 0) {
+			index = state.indexOf('#');
+			if (index !== -1) {
+				state = state.substring(0, index);
+			}
+		} else if (type === 'array' && state.length > 0) {
+			array = [];
+			$.each(state, function(index, value) {
+				array.push(trimHistoryState(value));
+			});
+			state = array;
+		} else if (type === 'object') {
+			object = {};
+			$.each(state, function(key, value) {
+				object[key] = trimHistoryState(value);
+			});
+			state = object;
+		}
+		return state;
+	}
 
 	function networkReachableFn(state) {
 		state = state.code || state;
@@ -2863,7 +2835,7 @@ function onBrowserReady() {
 				clearPendingForm(interaction, form, uuid);
 			} else if (action === 'resume') {
 				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
-				window.History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
+				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: interaction + ':' + form + ':' + uuid}}, null, requestUri);
 			}
 		} else if (version === 1) {
 			if (action === 'cancel' && confirm(cancelText)) {
@@ -2928,15 +2900,8 @@ function onBrowserReady() {
 					if ($.type(data) === 'object') {
 						siteVars.map = data;
 					}
-				}).always(function() {
-					if (deviceVars.isOnline) {
-						$.when(requestLoginStatus()).always(requestConfig);
-					} else if (siteVars.config && siteVars.map) {
-						processConfig(true);
-					} else {
-						$startup.append('error: unable to contact server, insufficient data found in local storage');
-					}
-				});
+				})
+				.always(prepareConfig);
 			});
 			$.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
 				if ($.type(stars) === 'string') {
@@ -2956,7 +2921,10 @@ function onBrowserReady() {
 	}
 
 	function init_main() {
-		var storeEngine = null; // pick automatic engine by default
+		var storeEngine = null, // pick automatic engine by default
+		loadedPromises = [],
+		dfrdFixWebSQL;
+		/* END: var */
 		log("init_main(): ");
 		siteVars.requestsCounter = 0;
 
@@ -2981,32 +2949,6 @@ function onBrowserReady() {
 //		MyAnswers.$window.bind('resize', onWindowResize);
 //		MyAnswers.$window.trigger('resize');
 
-		if (siteVars.serverAppBranch === 'W') {
-			storeEngine = null; // native application should always use auto-select
-		} else if (navigator.userAgent.indexOf('Android') !== -1) {
-			// Android has problems with persistent storage
-			storeEngine = 'sessionstorage';
-		}
-
-		MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
-		$.when(MyAnswers.store.ready()).then(function() {
-			MyAnswers.siteStore = new BlinkStorage(null, siteVars.answerSpace, 'site');
-			$.when(MyAnswers.siteStore.ready()).then(function() {
-				MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
-				$.when(MyAnswers.pendingStore.ready()).then(function() {
-					MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
-					$.when(MyAnswers.pendingV1Store.ready()).then(function() {
-				//		MyAnswers.dumpLocalStorage();
-						$.when(MyAnswers.updateLocalStorage()).done(function() {
-							$('#startUp-initLoaded').addClass('working');
-							loaded();
-							log('loaded(): returned after call by BlinkStorage');
-						});
-					});
-				});
-			});
-		});
-
 		MyAnswers.activityIndicator = document.getElementById('activityIndicator');
 		MyAnswers.activityIndicatorTimer = null;
 
@@ -3019,8 +2961,180 @@ function onBrowserReady() {
 		$window.bind('online', onNetworkChange);
 		$window.bind('offline', onNetworkChange);
 		onNetworkChange(); // $window.trigger('online');
-		$('#startUp-initMain').addClass('success');
+
+		if (siteVars.serverAppBranch === 'W') {
+			storeEngine = null; // native application should always use auto-select
+		} else if (navigator.userAgent.indexOf('Android') !== -1) {
+			// Android has problems with persistent storage
+			storeEngine = 'sessionstorage';
+		}
+
+		if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
+			dfrdFixWebSQL = fixWebSQL();
+		} else {
+			dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
+		}
+		
+		$.when(dfrdFixWebSQL)
+		.always(function() {
+			MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
+			loadedPromises.push(MyAnswers.store.ready());
+			MyAnswers.siteStore = new BlinkStorage(storeEngine, siteVars.answerSpace, 'site');
+			loadedPromises.push(MyAnswers.siteStore.ready());
+			MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
+			loadedPromises.push(MyAnswers.pendingStore.ready());
+			MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
+			loadedPromises.push(MyAnswers.pendingV1Store.ready());
+		});
+
+		$.whenArray(loadedPromises)
+		.fail(function() {
+			$('#startUp-initMain').addClass('error');
+			throw('initMain(): unable to initialise device storage');
+		})
+		.then(function() {
+			$.when(MyAnswers.updateLocalStorage()).done(function() {
+				$('#startUp-initMain').addClass('success');
+				$('#startUp-initLoaded').addClass('working');
+				loaded();
+				log('loaded(): returned after call by BlinkStorage');
+			});
+		});
 	}
+	
+	function onBrowserReady() {
+		var $startup = $('#startUp');
+		log("onBrowserReady: " + window.location.href);
+		try {
+			History = window.History;
+			// duck-punching some History functions to fix states early
+			_pushState = History.pushState;
+			History.pushState = function() {
+				var args = $.makeArray(arguments);
+				if (args.length >= 1) {
+					args[0] = trimHistoryState(args[0]);
+				}
+				if (args.length >= 3) {
+					args[2] = trimHistoryState(args[2]);
+				}
+				_pushState.apply(History, args);
+			};
+			_replaceState = History.replaceState;
+			History.replaceState = function() {
+				var args = $.makeArray(arguments);
+				if (args.length >= 1) {
+					args[0] = trimHistoryState(args[0]);
+				}
+				if (args.length >= 3) {
+					args[2] = trimHistoryState(args[2]);
+				}
+				_replaceState.apply(History, args);
+			};
+			
+			log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
+
+			siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
+			siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+			siteVars.queryParameters = getURLParameters();
+			siteVars.answerSpace = siteVars.queryParameters.answerSpace;
+			delete siteVars.queryParameters.uid;
+			delete siteVars.queryParameters.answerSpace;
+
+			MyAnswers.$body = $('body');
+			MyAnswers.$document = $(window.document);
+			MyAnswers.$window = $(window);
+
+			History.Adapter.bind(window, 'statechange', function(event) {
+				var state = History.getState();
+				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
+				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+				if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
+					$.noop(); // do we need to do something if we have fired this early?
+				} else if (state.data.storage) {
+					showPendingView();
+				} else if (siteVars.hasLogin && state.data.login) {
+					showLoginView();
+				} else if (hasInteractions && state.data.i) {
+					// TODO: inputs=true should always force the prompt to display
+					if ($.isEmptyObject(state.data.arguments)) {
+						gotoNextScreen(state.data.i);
+					} else {
+						showAnswerView(state.data.i, state.data.arguments);
+					}
+				} else if (hasCategories && state.data.c) {
+					showKeywordListView(state.data.c);
+				} else if (hasMasterCategories && state.data.m) {
+					showCategoriesView(state.data.m);
+				} else {
+					if (hasMasterCategories) {
+						showMasterCategoriesView();
+					} else if (hasCategories) {
+						showCategoriesView();
+					} else if (answerSpaceOneKeyword) {
+						gotoNextScreen(siteVars.map.interactions[0]);
+					} else {
+						showKeywordListView();
+					}
+				}
+				event.preventDefault();
+				return false;
+			});
+
+			if (!History.enabled) {
+				warn('History.JS is in emulation mode');
+			}
+
+			if (location.href.indexOf('index.php?answerSpace=') !== -1) {
+				History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+			}
+			if (document.getElementById('loginButton') !== null) {
+				// TODO: get hasLogin working directly off new config field
+				siteVars.hasLogin = true;
+			}
+
+			// TODO: finish work on HTML5 Web Worker support
+			/*
+			 * deviceVars.hasWebWorkers = typeof(window.Worker) === 'function'; if
+			 * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
+			 * Worker(siteVars.serverAppPath + '/webworker.js');
+			 * MyAnswers.webworker.onmessage = function(event) { switch
+			 * (event.data.fn) { case 'log': log(event.data.string);
+			 * break; case 'processXSLT': log('WebWorker: finished
+			 * processing XSLT'); var target =
+			 * document.getElementById(event.data.target); insertHTML(target,
+			 * event.data.html); break; case 'workBegun':
+			 * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
+			 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
+			 */
+
+			if (siteVars.serverAppBranch === 'W') {
+				MyAnswers.blinkgapDeferred = new $.Deferred();
+				$('#startUp-initBlinkGap').addClass('working');
+				if (window.device && window.device.ready) {
+					onDeviceReady();
+				} else {
+					if (!addEvent(document, "deviceready", onDeviceReady)) {
+						alert("Unable to add deviceready handler");
+						throw("Unable to add deviceready handler");
+					}
+				}
+				$.when(MyAnswers.blinkgapDeferred.promise())
+					.done(function() {
+						delete MyAnswers.blinkgapDeferred;
+						MyAnswers.browserDeferred.resolve();
+					});
+			} else {
+				MyAnswers.browserDeferred.resolve();
+			}
+			$('#startUp-initBrowser').addClass('success');
+		} catch(e) {
+			log("onBrowserReady: Exception");
+			log(e);
+			$startup.append('browser error: ' + e);
+			MyAnswers.browserDeferred.reject();
+			$('#startUp-initBrowser').addClass('error');
+		}
+	}	
 
 	MyAnswers.bootPromises = [
 		MyAnswers.deviceDeferred.promise(),
@@ -3051,6 +3165,31 @@ function onBrowserReady() {
 	// load in JSON and XSLT polyfills if necessary
 	$(document).ready(function() {
 		$('#startUp-loadPolyFills').addClass('working');
+		
+		$.ajaxPrefilter(function(options, original, jqxhr) {
+				var url = decodeURI(options.url),
+					config = {
+						answerSpaceId: siteVars.id,
+						answerSpace: siteVars.answerSpace,
+						conditions: deviceVars.features
+					};
+				/*
+				 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
+				 * phpName; log(string + ' ' + e.position + ' ' +
+				 * e.total + ' ' + xhr + ' ' + options); }
+				 */
+				if (url.length > 100) {
+					url = url.substring(0, 100) + '...';
+				}
+				jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
+				jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
+					'requests': ++siteVars.requestsCounter
+				}));
+				// prevent jQuery from disabling cache mechanisms
+				options.cache = 'true';
+				log('AJAX start: ' + url);
+		});
+		
 		$.when(MyAnswers.mainDeferred.promise()).then(function() {
 			Modernizr.load([{
 				test: window.JSON,

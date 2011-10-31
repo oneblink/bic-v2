@@ -104,140 +104,48 @@
 
 		} else if (type === 'websqldatabase') {
 			
-			var successHandler = typeof $ === 'function' ? $.noop : function () { },
-				estimatedSize = (window.device ? 5 : 1) * 1024 * 1024;
-			
-			function errorHandler1(error) {
+			var estimatedSize = (window.device ? 5 : 1) * 1024 * 1024,
+			/* @inner */
+			successHandler = typeof $ === 'function' ? $.noop : function () { },
+			/* @inner */
+			errorHandler = function() {
 				log('BlinkStorage error1: ' + error.code + ' ' + error.message);
 				if (error.code === 3 || error.code === 4 || error.code === 7) {
 					alert('storage-error: ' + error.code + '\n' + error.message);
 				}
 				return false;
-			}
-			function errorHandler2(error) {
-				log('BlinkStorage error2: ' + error.code + ' ' + error.message);
-				if (error.code === 3 || error.code === 4 || error.code === 7) {
-					alert('storage-error: ' + error.code + '\n' + error.message);
-				}
-				return false;
-			}
-			function errorHandler3(error) {
-				log('BlinkStorage error3: ' + error.code + ' ' + error.message);
-				if (error.code === 3 || error.code === 4 || error.code === 7) {
-					alert('storage-error: ' + error.code + '\n' + error.message);
-				}
-				return false;
-			}
-			function errorHandler4(error) {
-				log('BlinkStorage error4: ' + error.code + ' ' + error.message);
-				if (error.code === 3 || error.code === 4 || error.code === 7) {
-					alert('storage-error: ' + error.code + '\n' + error.message);
-				}
-				return false;
-			}
-			function errorHandler5(error) {
-				log('BlinkStorage error5: ' + error.code + ' ' + error.message);
-				if (error.code === 3 || error.code === 4 || error.code === 7) {
-					alert('storage-error: ' + error.code + '\n' + error.message);
-				}
-				return false;
-			}
-			function errorHandler6(error) {
-				log('BlinkStorage error6: ' + error.code + ' ' + error.message);
-				if (error.code === 3 || error.code === 4 || error.code === 7) {
-					alert('storage-error: ' + error.code + '\n' + error.message);
-				}
-				return false;
-			}
-
-			/* open the requested section/table and signal BlinkStorage is ready*/
-			function openSection() {
+			},
+			/* @inner */
+			openSection = function() {
 				db.transaction(function(tx) {
 					tx.executeSql(
 						'CREATE TABLE IF NOT EXISTS `' + section + '` (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)',
 						[],
-//						readyDeferred.resolve,
-						function() {
-							readyDeferred.resolve();
-						},
+						readyDeferred.resolve,
 						readyDeferred.reject
 					);
-				}, errorHandler1, successHandler);
-			}
-
-			/*  */
-			function fixWebSQL() {
-				var deferred = new $.Deferred();
-				var ddd = null;
-
-				log("**** fixWebSQL started ****");
-
-				(function () {
-					function getDBLimits_Success(results) {
-						var options =  {quotaIncrease:"60000000"};
-						var allocatedSpace = results.allocatedSpace;
-						var currentQuota = results.currentQuota;
-	 					log("BlinkStorage: allocated space: " + allocatedSpace);
-						if (currentQuota < 60000000) {
-							navigator.gap_database.increaseQuota(increaseQuota_Success, null, options);
-						} else {
-							deferred.resolve();
-						}
-					}
-
-					function increaseQuota_Success(quotaIncrease) {
-						delete ddd;
-						ddd = null;
-						navigator.notification.alert("Storage increase requested\nPlease reopen...", 
-																				 (function() {
-																					 navigator.gap_database.requestTerminate();
-																				 }), 
-																				 "Restart", 
-																				 "Close App");
-						deferred.resolve();
-	 					log("BlinkStorage: quota increase: " + quotaIncrease);
-					}
-
-					try {
-						ddd = openDatabase(partition, '1.0', partition, estimatedSize);
-						navigator.gap_database.getLimits(getDBLimits_Success, null, null);
-					} catch(error) {
-						deferred.reject();
-						log(error);
-						log("*** Open/Increase quota for database failed");
-						throw 'BlinkStorage: ' + error;
-					}
-				}());
-				
-				return deferred.promise();
-			}
-			
-			function finaliseWebSQL() {
+				}, errorHandler, successHandler);
+			},
+			/* @inner */
+			openWebSQL = function() {
 				try {
 					db = openDatabase(partition, '1.0', partition, estimatedSize);
 					webSqlDbs[partition] = db;
 					// fix for Android and others with incomplete WebSQL implementation
 					db.readTransaction = db.readTransaction || db.transaction;
-					openSection();
 				} catch(error) {
 					readyDeferred.reject();
 					throw 'BlinkStorage: ' + error;
 				}
-			}
-
+			};
+			/* END: var */
+			
 			if (webSqlDbs[partition]) {
 				db = webSqlDbs[partition];
-				openSection();
-			} else if (navigator.gap_database) {
-				$.when(fixWebSQL())
-					.fail(function() {
-					})
-					.then(finaliseWebSQL)
-					.always(function() {
-					});
 			} else {
-				finaliseWebSQL();
+				openWebSQL();
 			}
+			openSection();
 			
 			self.get = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
@@ -254,7 +162,7 @@
 								}
 							}
 						);
-					}, errorHandler2, successHandler);
+					}, errorHandler, successHandler);
 				});
 				return deferred.promise();
 			};
@@ -296,7 +204,7 @@
 						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
 							dfrd.resolve();
 						});
-					}, errorHandler4, successHandler);
+					}, errorHandler, successHandler);
 				});
 				return deferred.promise();
 			};
@@ -314,7 +222,7 @@
 							}
 							dfrd.resolve(found);
 						});
-					}, errorHandler5, successHandler);
+					}, errorHandler, successHandler);
 				});
 				return deferred.promise();
 			};
@@ -327,7 +235,7 @@
 								dfrd.resolve(result.rows.length);
 							}
 						);
-					}, errorHandler6, successHandler);
+					}, errorHandler, successHandler);
 				});
 				return deferred.promise();
 			};
@@ -419,5 +327,8 @@
 		available.push('sessionstorage');
 	}
 	available.push('memory');
-	log('BlinkStorage(): available=[' + available.join(',') + ']');
+	if (typeof window.log === 'function') {
+		log('BlinkStorage(): available=[' + available.join(',') + ']');
+	}
 }(this));
+  
