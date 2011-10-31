@@ -2720,11 +2720,11 @@ MyAnswers.updateLocalStorage = function() {
 		/* @inner */
 		increaseQuota_Success = function(quotaIncrease) {
 			db = null;
-			navigator.notification.alert("Storage increase requested\nPlease reopen...", 
+			navigator.notification.alert("Database installed, please restart the App.", 
 																	 function() {
 																		 navigator.gap_database.requestTerminate();
 																	 }, 
-																	 "Restart", 
+																	 "First Run", 
 																	 "Close App");
 			deferred.resolve();                                                                                                                       
 			log("fixWebSQL(): quota increase: " + quotaIncrease);
