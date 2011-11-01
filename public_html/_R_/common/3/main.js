@@ -323,10 +323,7 @@ function performXSLT(xmlString, xslString) {
 		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
 		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
 		 */
-		if (window.ActiveXObject !== undefined) {
-			log('performXSLT(): using Internet Explorer method');
-			html = xml.transformNode(xsl);
-		} else if (typeof window.xsltProcess !== 'undefined') {
+		if (typeof window.xsltProcess !== 'undefined') {
 			log('performXSLT(): performing XSLT via AJAXSLT library');
 			html = xsltProcess(xml, xsl);
 		} else if (window.XSLTProcessor !== undefined) {
@@ -3195,7 +3192,7 @@ MyAnswers.updateLocalStorage = function() {
 				test: window.JSON,
 				nope: '/_c_/json2.min.js'
 			}, {
-				test: Modernizr.xslt && Modernizr.xpath,
+				test: window.XSLTProcessor && Modernizr.xpath,
 				nope: [
 					'/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
 					'/_c_/ajaxslt/0.8.1-r61/util.min.js',
@@ -3207,10 +3204,10 @@ MyAnswers.updateLocalStorage = function() {
 					log('Modernizr.load(): XPath supported ' + (Modernizr.xpath ? 'natively' : 'via AJAXSLT'));
 				}
 			}, {
-				test: Modernizr.xslt,
+				test: window.XSLTProcessor,
 				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js',
 				complete: function() {
-					log('Modernizr.load(): XSLT supported ' + (Modernizr.xslt ? 'natively' : 'via AJAXSLT'));
+					log('Modernizr.load(): XSLT supported ' + (window.XSLTProcessor ? 'natively' : 'via AJAXSLT'));
 				}
 			}, {
 				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS

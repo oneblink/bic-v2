@@ -97,16 +97,6 @@
 		var xml = $.parseXML('<xml />');
 		return typeof window.XPathResult !== 'undefined' && typeof xml.evaluate !== 'undefined';
 	});
-	
-	Modernizr.addTest('xslt', function () {
-		var test = false;
-		if (typeof window.ActiveXObject !== 'undefined') {
-			test = true;
-		} else if (typeof window.XSLTProcessor !== 'undefined') {
-			test = true;
-		}
-		return test;
-	});
 }(this));
 
 function computeTimeout(messageLength) {
