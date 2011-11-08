@@ -596,49 +596,83 @@ function onStarClick(event)
 function onLinkClick(event) {
 	log('onLinkClick(): ' + $(this).tagHTML());
 	var $element = $(this),
-		a, attributes = $element.attr(),
-		args = { },
-		id, requestUri;
+	a, attributes = $element.attr(),
+	id,
+	isUnique = false, // true if we need to make the state unique
+	isPushState = true, // false if we should replace instead of push the state
+	data = null, title = null, url = null, // arguments for History
+	parts; // variables for working with legacy links
+	/* END: var */
+	// turn any legacy links into new format before continuing
+	if (typeof attributes.href === 'string' && attributes.href.indexOf('javascript:showSecondLevelAnswerView(') !== -1) {
+		attributes.href = attributes.href.replace(/^javascript:showSecondLevelAnswerView\(/, '').replace(/\)[\s;]*$/, '');
+		parts = explode(',', attributes.href, 2);
+		attributes.interaction = parts[0].replace(/^(?:'|")(.*)(?:'|")$/g, '$1');
+		$.each(deserialize(parts[1].replace(/^(?:'|")(.*)(?:'|")$/g, '$1')), function(key, value) {
+			attributes[key] = value;
+		});
+		delete attributes.href;
+	}
+	// process link
 	if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
 		if (typeof attributes.back !== 'undefined') {
 			History.back();
+			return false;
 		} else if (typeof attributes.home !== 'undefined') {
-			History.pushState(null, null, '/' + siteVars.answerSpace + '/');
+			url = '/' + siteVars.answerSpace + '/';
 		} else if (typeof attributes.login !== 'undefined') {
-			History.pushState({login: true});
+			data = { login: true };
 		} else if (attributes.interaction || attributes.keyword) {
 			id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
 			if (id) {
-				for (a in attributes) {
-					if (attributes.hasOwnProperty(a)) {
-						if (a.substr(0, 1) === '_') {
-							args['args[' + a.substr(1) + ']'] = attributes[a];
-						} else if (a.substr(0, 5) !== 'data-') {
-							args[a] = attributes[a];
-						}
+				$.each(attributes, function(key, value) {
+					if (key.substr(0, 1) === '_') {
+						attributes['args[' + a.substr(1) + ']'] = value;
+						delete attributes[key];
 					}
-				}
-				delete args.interaction;
-				delete args.keyword;
-				delete args.style;
+				});
+				delete attributes.interaction;
+				delete attributes.keyword;
+				delete attributes.style;
+				delete attributes['class'];
 				if (attributes['data-submit-stars-type']) {
-					args._submitStarsType = $element.data('submitStarsType');
-					args._submitStarsPost = $element.data('submitStarsPost') || 'stars';
+					attributes._submitStarsType = $element.data('submitStarsType');
+					attributes._submitStarsPost = $element.data('submitStarsPost') || 'stars';
 				}
-				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(args);
-				History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
+				url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
+				data = { m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes };
 			}
 		} else if (typeof attributes.category !== 'undefined') {
 			id = resolveItemName(attributes.category, 'categories');
 			if (id) {
-				requestUri = '/' + siteVars.answerSpace + '/?_c=' + id;
-				History.pushState({m: currentMasterCategory, c: id});
+				url = '/' + siteVars.answerSpace + '/?_c=' + id;
+				data = { m: currentMasterCategory, c: id };
 			}
 		} else if (typeof attributes.mastercategory !== 'undefined') {
 			id = resolveItemName(attributes.mastercategory, 'masterCategories');
 			if (id) {
-				requestUri = '/' + siteVars.answerSpace + '/?_m=' + id;
-				History.pushState({m: id});
+				url = '/' + siteVars.answerSpace + '/?_m=' + id;
+				data = { m: id };
+			}
+		}
+		// TODO: find a more efficient way to decide if we need to make the state unique
+		if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
+			isUnique = true;
+			isPushState = false;
+			// TODO: double-check which BlinkLive buttons need separate History states
+		}
+		if (isUnique) { // we need to make the state unique somehow
+			if ($.type(data) === 'object') {
+				data._timestamp = $.now();
+			} else {
+				data = { _timestamp: $.now() };
+			}
+		}
+		if (data || url) { // make sure we actually have a state to push
+			if (isPushState) {
+				History.pushState(data, title, url);
+			} else {
+				History.replaceState(data, title, url);
 			}
 		}
 		return false;
@@ -2233,60 +2267,6 @@ function showHelpView(event)
 	});
 }
 
-function showNewLoginView(isActivating)
-{
-	$.when(MyAnswersDevice.hideView()).always(function() {
-		var loginUrl = siteVars.serverAppPath + '/util/CreateLogin.php',
-			requestData = 'activating=' + isActivating;
-		ajaxQueue.add({
-			type: 'GET',
-			cache: "false",
-			url: loginUrl,
-			data: requestData,
-			complete: function(xhr, textstatus) { // readystate === 4
-				var newLoginBox = document.getElementById('newLoginBox');
-				if (isAJAXError(textstatus) && xhr.status !== 200)
-				{
-					insertText(newLoginBox, 'Unable to contact server. (' + textstatus + ' ' + xhr.status + ')');
-				}
-				else
-				{
-					insertHTML(newLoginBox, xhr.responseText);
-				}
-				setMainLabel('New Login');
-				MyAnswersDevice.showView($('#newLoginView'));
-			},
-			timeout: currentConfig.downloadTimeout * 1000
-		});
-	});
-}
-
-function showActivateLoginView(event)
-{
-	$.when(MyAnswersDevice.hideView()).always(function() {
-		var loginUrl = siteVars.serverAppPath + '/util/ActivateLogin.php';
-		ajaxQueue.add({
-			type: 'GET',
-			cache: "false",
-			url: loginUrl,
-			complete: function(xhr, textstatus) { // readystate === 4
-				var activateLoginBox = document.getElementById('activateLoginBox');
-				if (isAJAXError(textstatus) && xhr.status !== 200)
-				{
-					insertText(activateLoginBox, 'Unable to contact server.  (' + textstatus + ' ' + xhr.status + ')');
-				}
-				else
-				{
-					insertHTML(activateLoginBox, xhr.responseText);
-				}
-				setMainLabel('Activate Login');
-				MyAnswersDevice.showView($('#activateLoginView'));
-			},
-			timeout: currentConfig.downloadTimeout * 1000
-		});
-	});
-}
-
 function showLoginView(event) {
 	var id,
 		requestUri;
@@ -3041,7 +3021,7 @@ MyAnswers.updateLocalStorage = function() {
 			MyAnswers.$document = $(window.document);
 			MyAnswers.$window = $(window);
 
-			History.Adapter.bind(window, 'statechange', function(event) {
+			$window.bind('statechange', function(event) {
 				var state = History.getState();
 				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
 				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
@@ -3076,10 +3056,6 @@ MyAnswers.updateLocalStorage = function() {
 				event.preventDefault();
 				return false;
 			});
-
-			if (!History.enabled) {
-				warn('History.JS is in emulation mode');
-			}
 
 			if (location.href.indexOf('index.php?answerSpace=') !== -1) {
 				History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
