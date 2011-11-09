@@ -621,7 +621,7 @@ function onLinkClick(event) {
 		} else if (typeof attributes.home !== 'undefined') {
 			url = '/' + siteVars.answerSpace + '/';
 		} else if (typeof attributes.login !== 'undefined') {
-			data = { login: true };
+			data = {login: true};
 		} else if (attributes.interaction || attributes.keyword) {
 			id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
 			if (id) {
@@ -640,19 +640,19 @@ function onLinkClick(event) {
 					attributes._submitStarsPost = $element.data('submitStarsPost') || 'stars';
 				}
 				url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
-				data = { m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes };
+				data = {m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes};
 			}
 		} else if (typeof attributes.category !== 'undefined') {
 			id = resolveItemName(attributes.category, 'categories');
 			if (id) {
 				url = '/' + siteVars.answerSpace + '/?_c=' + id;
-				data = { m: currentMasterCategory, c: id };
+				data = {m: currentMasterCategory, c: id};
 			}
 		} else if (typeof attributes.mastercategory !== 'undefined') {
 			id = resolveItemName(attributes.mastercategory, 'masterCategories');
 			if (id) {
 				url = '/' + siteVars.answerSpace + '/?_m=' + id;
-				data = { m: id };
+				data = {m: id};
 			}
 		}
 		// TODO: find a more efficient way to decide if we need to make the state unique
@@ -665,7 +665,7 @@ function onLinkClick(event) {
 			if ($.type(data) === 'object') {
 				data._timestamp = $.now();
 			} else {
-				data = { _timestamp: $.now() };
+				data = {_timestamp: $.now()};
 			}
 		}
 		if (data || url) { // make sure we actually have a state to push
@@ -1748,19 +1748,23 @@ function processForms() {
 		log('processForms()->formObjectFn(): formXML:' + id);
 	};
 	/* END: var */
-	// load HTML5 WebForms poly-fill
-	$.getScript(siteVars.serverAppPath + '/BlinkForms2.js')
-	.always(function() {
+	Modernizr.load.errorTimeout = 20000;
+	Modernizr.load({
+		test: window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement,
+		nope: siteVars.serverAppPath + '/BlinkForms2.js',
+		callback: function(url, result, key) {
 			setTimeout(function() {
+				Modernizr.load.errorTimeout = 10000;
 				if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
-					log('$.getScript: success: ' + siteVars.serverAppPath + '/BlinkForms2.js');
+					log('Modernizr.load() success: ' + url);
 					libraryDeferred.resolve();
 				} else {
-					log('$.getScript: error: ' + siteVars.serverAppPath + '/BlinkForms2.js');
+					log('Modernizr.load() error: ' + url);
 					libraryDeferred.reject();
 				}
-			}, 197);
-		});
+			}, 47);
+		}
+	});
 	if (deviceVars.isOnline) {
 		$.ajax({
 			// TODO: send through lastChecked time when updating forms
@@ -2708,7 +2712,7 @@ MyAnswers.updateLocalStorage = function() {
 		},
 		/* @inner */
 		getDBLimits_Success = function(results) {
-			var options = { quotaIncrease: String(MyAnswers.device.storageQuota) },
+			var options = {quotaIncrease: String(MyAnswers.device.storageQuota)},
 			allocatedSpace = results.allocatedSpace,
 			currentQuota = results.currentQuota;
 			/* END: var */
