@@ -172,9 +172,8 @@
 					promise = deferred.promise();
 				attempts = typeof attempts !== 'number' ? 1 : attempts;
 				db.transaction(function(tx) {
-					tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ]);
 					tx.executeSql(
-						'INSERT INTO `' + section + '` (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
+						'INSERT OR REPLACE INTO `' + section + '` (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
 							if (result.rowsAffected !== 1) {
 								throw('BlinkStorage: failed INSERT');
 							}
