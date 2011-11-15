@@ -1,11 +1,12 @@
 var MyAnswers = MyAnswers || {},
-	siteVars = siteVars || {},
-	deviceVars = deviceVars || {},
-	locationTracker, latitude, longitude, webappCache,
-	hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
-	currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
-	starsProfile = {},
-	ajaxQueue;
+siteVars = siteVars || {},
+deviceVars = deviceVars || {},
+webappCache,
+hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
+currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
+starsProfile = {},
+ajaxQueue;
+/* END: var */
 
 document.getElementById('startUp-loadMain').className = 'working';
 
@@ -20,6 +21,7 @@ MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
 MyAnswers.formsDeferred = new $.Deferred();
 MyAnswers.dfrdMoJOs = null; // processMoJOs() promise
+MyAnswers.dfrdGoogleMaps = null;
 siteVars.mojos = siteVars.mojos || {};
 siteVars.forms = siteVars.forms || {};
 
@@ -107,13 +109,13 @@ function changeDOMclass(element, options) {
 	// options is { add: 'class(es)', remove: 'class(es)', toggle: 'class(es)' }
 	if ($.type(options) !== 'object') {return;}
 	MyAnswers.dispatch.add(function() {
-		if (typeof(options.add) === 'string') {
+		if (typeof options.add === 'string') {
 			$(element).addClass(options.add);
 		}
-		if (typeof(options.remove) === 'string') {
+		if (typeof options.remove === 'string') {
 			$(element).removeClass(options.remove);
 		}
-		if (typeof(options.toggle) === 'string') {
+		if (typeof options.toggle === 'string') {
 			$(element).toggleClass(options.toggle);
 		}
 	});
@@ -309,7 +311,7 @@ function resolveItemName(name, level) {
 function performXSLT(xmlString, xslString) {
 	var deferred = new $.Deferred(function(dfrd) {
 		var html, xml, xsl;
-		if (typeof(xmlString) !== 'string' || typeof(xslString) !== 'string') {
+		if (typeof xmlString !== 'string' || typeof(xslString) !== 'string') {
 			dfrd.reject('XSLT failed due to poorly formed XML or XSL.');
 			return;
 		}
@@ -804,7 +806,7 @@ function updateNavigationButtons() {
 				helpContents = siteVars.config['a' + siteVars.id];
 				break;
 		}
-		if (typeof(helpContents) === 'string') {
+		if (typeof helpContents === 'string') {
 			$helpButton.removeClass('hidden');
 			$helpButton.removeAttr('disabled');
 		} else {
@@ -835,288 +837,6 @@ function updateNavigationButtons() {
 	});
 }
 
-
-function isLocationAvailable() {
-	if (typeof navigator.geolocation !== 'undefined') {
-		return true;
-	} else if (typeof google  !== 'undefined' && typeof google.gears !== 'undefined') {
-		return google.gears.factory.getPermission(siteVars.answerSpace, 'See your location marked on maps.');
-	}
-	return false;
-}
-
-function startTrackingLocation() {
-	if (locationTracker === null)
-	{
-		if (typeof(navigator.geolocation) !== 'undefined')
-		{
-			locationTracker = navigator.geolocation.watchPosition(function(position) {
-				if (latitude !== position.coords.latitude || longitude !== position.coords.longitude)
-				{
-					latitude = position.coords.latitude;
-					longitude = position.coords.longitude;
-					log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
-					MyAnswers.$body.trigger('locationUpdated');
-				}
-			}, null, {enableHighAccuracy : true, maximumAge : 600000});
-		}
-		else if (typeof(google) !== 'undefined' && typeof(google.gears) !== 'undefined')
-		{
-			locationTracker = google.gears.factory.create('beta.geolocation').watchPosition(function(position) {
-				if (latitude !== position.latitude || longitude !== position.longitude)
-				{
-					latitude = position.latitude;
-					longitude = position.longitude;
-					log('Location Event: Updated lat=' + latitude + ' long=' + longitude);
-					MyAnswers.$body.trigger('locationUpdated');
-				}
-			}, null, {enableHighAccuracy : true, maximumAge : 600000});
-		}
-	}
-}
-
-function stopTrackingLocation()
-{
-	if (locationTracker !== null)
-	{
-		if (typeof(navigator.geolocation) !== 'undefined')
-		{
-			navigator.geolocation.clearWatch(locationTracker);
-		}
-		else if (typeof(google) !== 'undefined' && typeof(google.gears) !== 'undefined')
-		{
-			google.gears.factory.create('beta.geolocation').clearWatch(locationTracker);
-		}
-		locationTracker = null;
-	}
-}
-
-function setupGoogleMapsBasic(element, data, map)
-{
-	log('Google Maps Basic: initialising ' + $.type(data));
-	MyAnswers.$body.trigger('taskBegun');
-	var location = new google.maps.LatLng(data.latitude, data.longitude);
-	var options = {
-		zoom: parseInt(data.zoom, 10),
-		center: location,
-		mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
-	};
-	map.setOptions(options);
-	if (typeof(data.kml) === 'string')
-	{
-		var kml = new google.maps.KmlLayer(data.kml, {map: map, preserveViewport: true});
-	}
-	else if (typeof(data.marker) === 'string')
-	{
-		var marker = new google.maps.Marker({
-			position: location,
-			map: map,
-			icon: data.marker
-		});
-		if (typeof(data.markerTitle) === 'string')
-		{
-			marker.setTitle(data.markerTitle);
-			var markerInfo = new google.maps.InfoWindow();
-			google.maps.event.addListener(marker, 'click', function() {
-				markerInfo.setContent(marker.getTitle());
-				markerInfo.open(map, marker);
-			});
-		}
-	}
-	MyAnswers.$body.trigger('taskComplete');
-}
-
-function setupGoogleMapsDirections(element, data, map)
-{
-	log('Google Maps Directions: initialising ' + $.type(data));
-	var origin, destination, language, region, geocoder;
-	if (typeof(data.originAddress) === 'string')
-	{
-		origin = data.originAddress;
-	}
-	else if (typeof(data.originLatitude) !== 'undefined')
-	{
-		origin = new google.maps.LatLng(data.originLatitude, data.originLongitude);
-	}
-	if (typeof(data.destinationAddress) === 'string')
-	{
-		destination = data.destinationAddress;
-	}
-	else if (typeof(data.destinationLatitude) !== 'undefined')
-	{
-		destination = new google.maps.LatLng(data.destinationLatitude, data.destinationLongitude);
-	}
-	if (typeof(data.language) === 'string')
-	{
-		language = data.language;
-	}
-	if (typeof(data.region) === 'string')
-	{
-		region = data.region;
-	}
-	if (origin === undefined && destination !== undefined)
-	{
-		log('Google Maps Directions: missing origin, ' + destination);
-		if (isLocationAvailable())
-		{
-			insertText($(element).next('.googledirections')[0], 'Attempting to use your most recent location as the origin.');
-			setTimeout(function() {
-				data.originLatitude = latitude;
-				data.originLongitude = longitude;
-				setupGoogleMapsDirections(element, data, map);
-			}, 5000);
-			return;
-		}
-		else if (typeof(destination) === 'object')
-		{
-			insertText($(element).next('.googledirections')[0], 'Missing origin. Only the provided destination is displayed.');
-			data.latitude = destination.lat();
-			data.longitude = destination.lng();
-			setupGoogleMapsBasic(element, data, map);
-			return;
-		}
-		else
-		{
-			insertText($(element).next('.googledirections')[0], 'Missing origin. Only the provided destination is displayed.');
-			geocoder = new google.maps.Geocoder();
-			geocoder.geocode({
-					address: destination,
-					region: region,
-					language: language
-				}, function(result, status) {
-				if (status !== google.maps.GeocoderStatus.OK)
-				{
-					insertText($(element).next('.googledirections')[0], 'Missing origin and unable to locate the destination.');
-				}
-				else
-				{
-					data.zoom = 15;
-					data.latitude = result[0].geometry.location.b;
-					data.longitude = result[0].geometry.location.c;
-					setupGoogleMapsBasic(element, data, map);
-				}
-			});
-			return;
-		}
-	}
-	if (origin !== undefined && destination === undefined)
-	{
-		log('Google Maps Directions: missing destination ' + origin);
-		if (isLocationAvailable())
-		{
-			insertText($(element).next('.googledirections')[0], 'Attempting to use your most recent location as the destination.');
-			setTimeout(function() {
-				data.destinationLatitude = latitude;
-				data.destinationLongitude = longitude;
-				setupGoogleMapsDirections(element, data, map);
-			}, 5000);
-			return;
-		}
-		else if (typeof(origin) === 'object')
-		{
-			insertText($(element).next('.googledirections')[0], 'Missing destination. Only the provided origin is displayed.');
-			data.latitude = origin.lat();
-			data.longitude = origin.lng();
-			setupGoogleMapsBasic(element, data, map);
-			return;
-		}
-		else
-		{
-			insertText($(element).next('.googledirections')[0], 'Missing destination. Only the provided origin is displayed.');
-			geocoder = new google.maps.Geocoder();
-			geocoder.geocode({ 
-					address: origin,
-					region: region,
-					language: language
-				}, function(result, status) {
-				if (status !== google.maps.GeocoderStatus.OK)
-				{
-					insertText($(element).next('.googledirections')[0], 'Missing destination and unable to locate the origin.');
-				}
-				else
-				{
-					data.zoom = 15;
-					data.latitude = result[0].geometry.location.b;
-					data.longitude = result[0].geometry.location.c;
-					setupGoogleMapsBasic(element, data, map);
-				}
-			});
-			return;
-		}
-	}
-	log('Google Maps Directions: both origin and destination provided, ' + origin + ', ' + destination);
-	MyAnswers.$body.trigger('taskBegun');
-	var directionsOptions = {
-		origin: origin,
-		destination: destination,
-		travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
-		avoidHighways: data.avoidhighways,
-		avoidTolls: data.avoidtolls,
-		region: region
-	};
-	var mapOptions = {
-		mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
-	};
-	map.setOptions(mapOptions);
-	var directionsDisplay = new google.maps.DirectionsRenderer();
-	directionsDisplay.setMap(map);
-	directionsDisplay.setPanel($(element).next('.googledirections')[0]);
-	var directionsService = new google.maps.DirectionsService();
-	directionsService.route(directionsOptions, function(result, status) {
-		if (status === google.maps.DirectionsStatus.OK)
-		{
-			directionsDisplay.setDirections(result);
-		}
-		else
-		{
-			insertText($(element).next('.googledirections')[0], 'Unable to provide directions: ' + status);
-		}
-	});
-	MyAnswers.$body.trigger('taskComplete');
-}
-
-function setupGoogleMaps()
-{
-	MyAnswers.$body.trigger('taskBegun');
-	$('div.googlemap').each(function(index, element) {
-		var googleMap = new google.maps.Map(element);
-		var data = $(element).data();
-/*		if (data.sensor === true && isLocationAvailable())
-		{
-			startTrackingLocation();
-		} */
-		if ($(element).data('mapAction') === 'directions')
-		{
-			setupGoogleMapsDirections(element, data, googleMap);
-		}
-		else
-		{
-			setupGoogleMapsBasic(element, data, googleMap);
-		}
-		if (isLocationAvailable())
-		{
-			var currentMarker = new google.maps.Marker({
-				map: googleMap,
-				icon: siteVars.serverAppPath + '/images/location24.png',
-				title: 'Your current location'
-			});
-			if (latitude && longitude)
-			{
-				currentMarker.setPosition(new google.maps.LatLng(latitude, longitude));
-			}
-			MyAnswers.$body.bind('locationUpdated', function() {
-				currentMarker.setPosition(new google.maps.LatLng(latitude, longitude));
-			});
-			var currentInfo = new google.maps.InfoWindow();
-			google.maps.event.addListener(currentMarker, 'click', function() {
-				currentInfo.setContent(currentMarker.getTitle());
-				currentInfo.open(googleMap, currentMarker);
-			});
-		}
-	});
-	MyAnswers.$body.trigger('taskComplete');
-}
-
 function initialiseAnswerFeatures($view, afterPost) {
 	log('initialiseAnswerFeatures(): view=' + $view.attr('id'));
 	var deferred = new $.Deferred(),
@@ -1137,7 +857,7 @@ function initialiseAnswerFeatures($view, afterPost) {
 	MyAnswers.dispatch.add(function() {
 		var $inputs = $view.find('input, textarea, select'),
 			$form = $view.find('form').first(),
-			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof google.maps !== 'undefined';
+			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof google.maps !== 'undefined' && typeof google.maps.Maps !== 'undefined';
 		MyAnswers.$body.trigger('taskBegun');
 		$inputs.unbind('blur', triggerScroll);
 		$inputs.bind('blur', triggerScroll);
@@ -1155,15 +875,27 @@ function initialiseAnswerFeatures($view, afterPost) {
 		});
 		if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
 			if (isGoogleJSLoaded) {
-				setTimeout(setupGoogleMaps, 1000);
+				setTimeout(function() {
+					MyAnswers.setupGoogleMaps($view);
+				}, 1000);
 			} else {
-				$.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=setupGoogleMaps')
+				MyAnswers.dfrdGoogleMaps = new $.Deferred();
+				$.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
+				.fail(function() {
+					throw('unable to download Google Maps JavaScript library');
+				})
+				.then(function() {
+					$.when(MyAnswers.dfrdGoogleMaps.promise())
 					.fail(function() {
-						throw('unable to download Google Maps JavaScript library');
+						log('initialiseAnswerFeatures() error: unable to initialise Google Maps API');
+					})
+					.then(function() {
+						delete window.onGoogleMapsLoad;
+						delete MyAnswers.dfrdGoogleMaps;
+						MyAnswers.setupGoogleMaps($view);
 					});
+				});
 			}
-		} else {
-			stopTrackingLocation();
 		}
 		if ($form.length !== 0) {
 			if (typeof $form.data('objectName') === 'string' && $form.data('objectName').length > 0) {
@@ -1535,7 +1267,7 @@ function restoreSessionProfile(token) {
 				deferred.reject();
 				return deferred.promise();
 			}
-			if (typeof(data.errorMessage) !== 'string' && typeof(data.statusMessage) !== 'string')
+			if (typeof data.errorMessage !== 'string' && typeof data.statusMessage  !== 'string')
 			{
 				log('restoreSessionProfile success: no error messages, data: ' + data);
 				if (data.sessionProfile === null) {
@@ -1545,7 +1277,7 @@ function restoreSessionProfile(token) {
 				MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
 				starsProfile = data.sessionProfile.stars;
 			}
-			if (typeof(data.errorMessage) === 'string')
+			if (typeof data.errorMessage === 'string')
 			{
 				log('restoreSessionProfile error: ' + data.errorMessage);
 				deferred.reject();
@@ -1620,10 +1352,10 @@ function displayAnswerSpace() {
 				} else if (interaction) {
 					requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
 					History.pushState({i: interaction}, null, requestUri);
-				} else if (typeof(siteVars.queryParameters._c) === 'string') {
+				} else if (typeof siteVars.queryParameters._c === 'string') {
 					requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
 					History.pushState({c: siteVars.queryParameters._c}, null, requestUri);
-				} else if (typeof(siteVars.queryParameters._m) === 'string') {
+				} else if (typeof siteVars.queryParameters._m === 'string') {
 					requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
 					History.pushState({m: siteVars.queryParameters._m}, null, requestUri);
 				}
@@ -1914,8 +1646,7 @@ function prepareConfig() {
 	return dfrd.promise();
 }
 
-if (typeof(webappCache) !== "undefined")
-{
+if (typeof webappCache !== "undefined") {
   addEvent(webappCache, "updateready", updateCache);
   addEvent(webappCache, "error", errorCache);
 }
@@ -1936,7 +1667,6 @@ MyAnswers.dumpLocalStorage = function() {
 
 function goBackToHome() {
 	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
-	stopTrackingLocation();
 	MyAnswers.$body.trigger('taskComplete');
 	//	getSiteConfig();
 }
@@ -2603,10 +2333,10 @@ function submitAction(keyword, action) {
 	if ($.type(method) === 'string' && method.toLowerCase() === 'get') {
 		method = 'GET';
 		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword;
-		requestData = '&' + formData + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
+		requestData = '&' + formData + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
 	} else {
 		method = 'POST';
-		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword + (typeof(action) === 'string' && action.length > 0 ? '&' + action : '');
+		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
 		requestData = formData;
 	}
 	MyAnswers.$body.trigger('taskBegun');
@@ -2688,7 +2418,8 @@ MyAnswers.updateLocalStorage = function() {
 		$startup = $('#startUp'),
 		navigator = window.navigator,
 		$window = $(window),
-		History, _pushState, _replaceState; // defined in onBrowserReady
+		History, _pushState, _replaceState,  // defined in onBrowserReady
+		google; // defined in MyAnswers.setupGoogleMaps
 
 /* *** BLINKGAP FUNCTIONS *** */
 	
@@ -2782,6 +2513,304 @@ MyAnswers.updateLocalStorage = function() {
 		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
 	}
 
+/* *** GOOGLE MAPS *** */
+	
+	MyAnswers.onGoogleMapsLoad = function() {
+		setTimeout(function() {
+			if (typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined') {
+				MyAnswers.dfrdGoogleMaps.resolve();
+			} else {
+				MyAnswers.dfrdGoogleMaps.reject();
+			}
+		}, 197);
+	};
+
+	function getGoogleDirections(options) {
+		var dfrd = new $.Deferred(),
+		directionsService = new google.maps.DirectionsService(),
+		string;
+		/* END: var */
+		if (!$.isPlainObject(options) || !options.origin || !options.destination || !options.travelMode) {
+			dfrd.reject('GoogleDirections error: bad options');
+			return dfrd.promise();
+		}
+		directionsService.route(options, function(results, status) {
+			if (status === google.maps.DirectionsStatus.OK)	{
+				dfrd.resolve(results);
+			} else {
+				switch (status) {
+				case google.maps.DirectionsStatus.NOT_FOUND:
+					string = 'one of the waypoints could not be geocoded';
+					break;
+				case google.maps.DirectionsStatus.ZERO_RESULTS:
+					string = 'no route found, be more specific';
+					break;
+				case google.maps.DirectionsStatus.MAX_WAYPOINTS_EXCEEDED:
+					string = 'too many waypoints specified';
+					break;
+				case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
+					string = 'request quota exceeded, try again later';
+					break;
+				case google.maps.DirectionsStatus.REQUEST_DENIED:
+					string = 'request denied';
+					break;
+				case google.maps.DirectionsStatus.INVALID_REQUEST:
+					string = 'invalid request';
+					break;
+				default:
+					string = 'unknown error, please try again';
+			}
+			dfrd.reject('GoogleDirections error: ' + string);
+			}
+		});
+		return dfrd.promise();
+	}
+	
+	function getGoogleGeocoder(options) {
+		var dfrd = new $.Deferred(),
+		geocoder = new google.maps.Geocoder(),
+		string;
+		/* END: var */
+		if (!$.isPlainObject(options) || !options.address) {
+			dfrd.reject('GoogleGeocoder error: bad options');
+			return dfrd.promise();
+		}
+		geocoder.geocode(options, function(results, status) {
+			if (status === google.maps.GeocoderStatus.OK) {
+				dfrd.resolve(results);
+			} else {
+					switch (status) {
+					case google.maps.GeocoderStatus.ZERO_RESULTS:
+						string = 'zero results, be more specific';
+						break;
+					case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
+						string = 'request quota exceeded, try again later';
+						break;
+					case google.maps.GeocoderStatus.REQUEST_DENIED:
+						string = 'request denied';
+						break;
+					case google.maps.GeocoderStatus.INVALID_REQUEST:
+						string = 'invalid request';
+						break;
+					default:
+						string = 'unknown error, please try again';
+				}
+				dfrd.reject('GoogleGeocoder error: ' + string);
+			}
+		});
+		return dfrd.promise();
+	}
+	
+	MyAnswers.getGeoLocation = function(options) {
+		var dfrd = new $.Deferred(),
+		defaultOptions = {
+			enableHighAccuracy: true,
+			maximumAge: 5 * 60 * 1000, // 5 minutes
+			timeout: 5 * 1000 // 5 seconds
+		};
+		/* END: var */
+		if (!Modernizr.geolocation) {
+			dfrd.reject('GeoLocation error: unsupported in this browser / device');
+			return dfrd.promise();
+		}
+		options = $.extend({}, defaultOptions, $.isPlainObject(options) ? options : {});
+		navigator.geolocation.getCurrentPosition(
+			function(position) { // successCallback
+				coords = position.coords;
+				if ($.type(coords) === 'object') {
+					dfrd.resolve(coords);
+				} else {
+					dfrd.reject('GeoLocation error: blank location from browser / device');
+				}
+			},
+			function(error) { // errorCallback
+				var string;
+				switch (error.code) {
+					case error.PERMISSION_DENIED:
+						string = 'user has not granted permission';
+						break;
+					case error.PERMISSION_DENIED_TIMEOUT:
+						string = 'user did not grant permission in time';
+						break;
+					case error.POSITION_UNAVAILABLE:
+						string = 'unable to determine position';
+						break;
+					default:
+						string = 'unknown error';
+				}
+				dfrd.reject('GeoLocation error: ' + string);
+			},
+			options);
+		return dfrd.promise();
+	};
+
+	function setupGoogleMapsBasic(element, data, map) {
+		log('GoogleMaps basic: initialising...');
+		MyAnswers.$body.trigger('taskBegun');
+		var location = new google.maps.LatLng(data.latitude, data.longitude),
+		options = {
+			zoom: parseInt(data.zoom, 10),
+			center: location,
+			mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+		},
+		kml, marker, markerInfo;
+		/* END: var */
+		map.setOptions(options);
+		if (typeof data.kml  === 'string') {
+			kml = new google.maps.KmlLayer(data.kml, { map: map, preserveViewport: true });
+		} else if (typeof data.marker === 'string') {
+			marker = new google.maps.Marker({
+				position: location,
+				map: map,
+				icon: data.marker
+			});
+			if (typeof data.markerTitle === 'string') {
+				marker.setTitle(data.markerTitle);
+				markerInfo = new google.maps.InfoWindow();
+				google.maps.event.addListener(marker, 'click', function() {
+					markerInfo.setContent(marker.getTitle());
+					markerInfo.open(map, marker);
+				});
+			}
+		}
+		MyAnswers.$body.trigger('taskComplete');
+	}
+
+	function setupGoogleMapsDirections(element, data, map) {
+		var origin, destination, language, region, geocoder,
+		geocoderOptions = {},
+		directionsOptions = {
+			travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
+			avoidHighways: data.avoidhighways,
+			avoidTolls: data.avoidtolls
+		},
+		mapOptions = {
+			mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+		},
+		directionsDisplay, directionsService,
+		$element = $(element),
+		$status = $element.next('.googledirections').first(),
+		$directions = $status,
+		promiseOrigin = true,
+		promiseDestination = true,
+		failedFn = function(string) {
+			if (typeof string === 'string' && string.length > 0) {
+				insertText($status[0], string);
+			}
+		};
+		/* END: var */
+		log('GoogleMaps directions: initialising...');
+		// setting Geocoder options
+		if (typeof data.language === 'string') {
+			geocoderOptions.language = data.language;
+		}
+		if (typeof data.region === 'string') {
+			geocoderOptions.region = data.region;
+			directionsOptions.region = data.region;
+		}
+		// setting origin
+		if (typeof data.originAddress === 'string' && data.originAddress.length > 0) {
+			origin = data.originAddress;
+		} else if (typeof data.originLatitude !== 'undefined') {
+			origin = new google.maps.LatLng(data.originLatitude, data.originLongitude);
+		} else if (Modernizr.geolocation) {
+			log('Google Maps Directions: missing origin');
+			insertText($status[0], 'attempting to use your most recent location as the origin...');
+			promiseOrigin = MyAnswers.getGeoLocation()
+			.fail(failedFn)
+			.then(function(coords) {
+				origin = new google.maps.LatLng(coords.latitude, coords.longitude);
+			});
+		}
+		// setting destination
+		if (typeof data.destinationAddress === 'string' && data.destinationAddress.length > 0) {
+			destination = data.destinationAddress;
+		} else if (typeof data.destinationLatitude !== 'undefined') {
+			destination = new google.maps.LatLng(data.destinationLatitude, data.destinationLongitude);
+		} else if (Modernizr.geolocation) {
+			log('Google Maps Directions: missing destination');
+			insertText($status[0], 'attempting to use your most recent location as the destination...');
+			promiseDestination = MyAnswers.getGeoLocation()
+			.fail(failedFn)
+			.then(function(coords) {
+				destination = new google.maps.LatLng(coords.latitude, coords.longitude);
+			});
+		}
+		$.when(promiseOrigin, promiseDestination)
+		.always(function() {
+			if (origin && destination) {
+				if ($.type(origin) === 'object' && $.type(destination) === 'object' && origin.equals(destination)) {
+					insertText($status[0], 'origin and destination are the identical');
+					data.latitude = origin.lat();
+					data.longitude = origin.lng();
+					setupGoogleMapsBasic(element, data, map);
+				} else {
+					directionsOptions.origin = origin;
+					directionsOptions.destination = destination;
+					map.setOptions(mapOptions);
+					// setup DirectionsRenderer
+					directionsDisplay = new google.maps.DirectionsRenderer();
+					directionsDisplay.setMap(map);
+					directionsDisplay.setPanel($directions[0]);
+					$.when(getGoogleDirections(directionsOptions))
+					.fail(failedFn)
+					.then(function(result) {
+						directionsDisplay.setDirections(result);
+					});
+				}
+			} else if (!origin && !destination) {
+				insertText($status[0], 'error: neither origin or destination could be determined');
+			} else {
+				if (origin) {
+					insertText($status[0], 'missing destination, only the provided origin is displayed');
+					data.latitude = origin.lat();
+					data.longitude = origin.lng();
+					setupGoogleMapsBasic(element, data, map);
+				} else { // destination
+					insertText($status[0], 'missing origin, only the provided destination is displayed');
+					data.latitude = destination.lat();
+					data.longitude = destination.lng();
+					setupGoogleMapsBasic(element, data, map);
+				}
+			}
+		});
+	}
+
+	MyAnswers.setupGoogleMaps = function($view)	{
+		var $element = $view.find('div.googlemap').first(),
+		data = $element.data(),
+		element = $element[0],
+		googleMap,
+		currentMarker, currentInfo;
+		/* END: var */
+		MyAnswers.$body.trigger('taskBegun');
+		google = window.google;
+		googleMap = new google.maps.Map(element);
+		if (data.mapAction === 'directions') {
+			setupGoogleMapsDirections(element, data, googleMap);
+		} else {
+			setupGoogleMapsBasic(element, data, googleMap);
+		}
+		if (Modernizr.geolocation) {
+			currentMarker = new google.maps.Marker({
+				map: googleMap,
+				// TODO: use a better icon for current location
+				icon: siteVars.serverAppPath + '/images/location24.png',
+				title: 'you are here'
+			});
+			currentInfo = new google.maps.InfoWindow();
+			$.when(MyAnswers.getGeoLocation())
+			.then(function(coords) {
+				currentMarker.setPosition(new google.maps.LatLng(coords.latitude, coords.longitude));
+			});
+			google.maps.event.addListener(currentMarker, 'click', function() {
+				currentInfo.setContent(currentMarker.getTitle());
+				currentInfo.open(googleMap, currentMarker);
+			});
+		}
+		MyAnswers.$body.trigger('taskComplete');
+	};
+	
 /* *** EVENT HANDLERS *** */
 
 	function onNetworkChange() {
@@ -2837,7 +2866,7 @@ MyAnswers.updateLocalStorage = function() {
 	function onTaskBegun(event) {
 		MyAnswers.runningTasks++;
 		if ($('#startUp').size() > 0) {return true;}
-		if (typeof(MyAnswers.activityIndicatorTimer) === 'number') {return true;}
+		if (typeof MyAnswers.activityIndicatorTimer === 'number') {return true;}
 		MyAnswers.activityIndicatorTimer = setTimeout(function() {
 			clearTimeout(MyAnswers.activityIndicatorTimer);
 			MyAnswers.activityIndicatorTimer = null;
@@ -3071,7 +3100,7 @@ MyAnswers.updateLocalStorage = function() {
 
 			// TODO: finish work on HTML5 Web Worker support
 			/*
-			 * deviceVars.hasWebWorkers = typeof(window.Worker) === 'function'; if
+			 * deviceVars.hasWebWorkers = typeof window.Worker === 'function'; if
 			 * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
 			 * Worker(siteVars.serverAppPath + '/webworker.js');
 			 * MyAnswers.webworker.onmessage = function(event) { switch
