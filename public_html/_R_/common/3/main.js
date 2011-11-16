@@ -1395,10 +1395,11 @@ function requestMoJO(mojo) {
 							.fail(deferred.reject)
 							.then(deferred.resolve);
 //								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-					} else if (jqxhr.status === 304) {
-						deferred.resolve();
+//					} else if (jqxhr.status === 304) {
+//						deferred.resolve();
 					} else {
-						deferred.reject();
+//						deferred.reject();
+						deferred.resolve();
 					}
 				},
 				timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
