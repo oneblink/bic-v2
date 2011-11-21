@@ -3044,8 +3044,8 @@ MyAnswers.updateLocalStorage = function() {
 			
 			log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
 
-			siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
-			siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+			siteVars.serverAppPath = '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
+			siteVars.serverDevicePath = '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 			siteVars.queryParameters = getURLParameters();
 			siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 			delete siteVars.queryParameters.uid;
