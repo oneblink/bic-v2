@@ -682,11 +682,6 @@ function onLinkClick(event) {
 	return true;
 }
 
-function updateOrientation()
-{
-	log("orientationChanged: " + Orientation.currentOrientation);
-}
-
 // *** END EVENT HANDLERS ***
 
 // *** PENDING QUEUE HELPERS ***
@@ -919,7 +914,6 @@ function initialiseAnswerFeatures($view, afterPost) {
 
 // run after any change to current*
 function updateCurrentConfig() {
-	var $footer = MyAnswers.$body.children('footer');
 	// see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
 	// TODO: need to fold orientation-specific config into this somewhere
 	log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
@@ -949,11 +943,33 @@ function updateCurrentConfig() {
 			$banner.addClass('hidden');
 		}
 	});
-	if ($footer.html() !== currentConfig.footer) {
-		MyAnswers.dispatch.add(function() {
-			$footer.html(currentConfig.footer);
-		});
-	}
+	// fix footer
+	MyAnswers.dispatch.add(function() {
+		if (MyAnswers.$footer.html() !== currentConfig.footer) {
+			MyAnswers.$footer.html(currentConfig.footer);
+		}
+		if (currentConfig.footerPosition === 'screen-bottom') {
+			if (Modernizr.positionfixed) {
+				MyAnswers.$footer.css({
+					position: 'fixed',
+					bottom: '0px',
+					'z-index': 1
+				});
+			} else {
+				MyAnswers.$footer.css({
+					position: 'absolute',
+					top: '0px',
+					'z-index': 1
+				});
+				MyAnswers.$window.trigger('scroll');
+			}
+			// TODO: fix padding code below
+			//MyAnswers.$body.css('padding-bottom', MyAnswers.$footer.outerHeight());
+		} else {
+			MyAnswers.$footer.removeAttr('style');
+		}
+	});
+	// fix styles
 	MyAnswers.dispatch.add(function() {
 		var style = '',
 			$style = $('style[data-setting="styleSheet"]');
@@ -1304,6 +1320,7 @@ function displayAnswerSpace() {
 			$('#mainLabel').remove(); //  TODO: fix the main navigation label
 		}
 		currentConfig = siteVars.config['a' + siteVars.id].pertinent;
+		// identifying landing page
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
 			case 'interactions only':
 				$masterCategoriesView.remove();
@@ -2814,6 +2831,21 @@ MyAnswers.updateLocalStorage = function() {
 	
 /* *** EVENT HANDLERS *** */
 
+	function onOrientationChange(event) {
+		if ($.inArray('ios', deviceVars.features) !== -1
+				&& Math.abs(window.orientation || 0) === 90) {
+			MyAnswers.screenX = window.screen.height;
+			MyAnswers.screenY = window.screen.width;
+		} else {
+			MyAnswers.screenX = window.screen.width;
+			MyAnswers.screenY = window.screen.height;
+		}
+		MyAnswers.windowX = window.innerWidth;
+		MyAnswers.windowY = window.innerHeight;
+		$window.trigger('scroll');
+		log('orientationchange: ' + window.orientation);
+	}
+	
 	function onNetworkChange() {
 		var host;
 //		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
@@ -2956,10 +2988,6 @@ MyAnswers.updateLocalStorage = function() {
 		// to facilitate building regex replacements
 		RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");};
 		
-		addEvent(document, 'orientationChanged', updateOrientation);
-//		MyAnswers.$window.bind('resize', onWindowResize);
-//		MyAnswers.$window.trigger('resize');
-
 		MyAnswers.activityIndicator = document.getElementById('activityIndicator');
 		MyAnswers.activityIndicatorTimer = null;
 
@@ -3044,8 +3072,8 @@ MyAnswers.updateLocalStorage = function() {
 			
 			log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
 
-			siteVars.serverAppPath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
-			siteVars.serverDevicePath = '//' + siteVars.serverDomain + '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+			siteVars.serverAppPath = '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
+			siteVars.serverDevicePath = '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 			siteVars.queryParameters = getURLParameters();
 			siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 			delete siteVars.queryParameters.uid;
@@ -3053,8 +3081,17 @@ MyAnswers.updateLocalStorage = function() {
 
 			MyAnswers.$body = $('body');
 			MyAnswers.$document = $(window.document);
-			MyAnswers.$window = $(window);
+			MyAnswers.$window = $window;
+			MyAnswers.$footer = MyAnswers.$body.children('footer');
 
+			// hook orientation events
+			if (Modernizr.orientation) {
+				window.addEventListener('orientationchange', onOrientationChange, false);
+			} else {
+				window.addEventListener('resize', onOrientationChange, false);
+			}
+			onOrientationChange();
+			
 			$window.bind('statechange', function(event) {
 				var state = History.getState();
 				// TODO: work out a way to detect Back-navigation so reverse transitions can be used

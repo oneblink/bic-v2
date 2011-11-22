@@ -2,7 +2,8 @@ CACHE:
 /_c_/jquery-ui/1.8.16/css/cupertino/jquery-ui-1.8.16.custom.css
 /_R_/ios/3/ios.css
 /_R_/ios/3/ios.js
-/_R_/common/3/bookmark_bubble.min.js
+/_c_/cubiq-homescreen/1.0.8.201147/add2home.css
+/_c_/cubiq-homescreen/1.0.8.201147/add2home.min.js
 
 NETWORK:
 *

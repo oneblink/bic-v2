@@ -17,7 +17,7 @@ function init_device() {
 	if ($.type(matches) === 'array') {
 		Modernizr.positionfixed = matches[1] < 5 ? false : Modernizr.positionfixed; 
 	}
-
+	
 	// caching frequently-accessed selectors
 	$navBar = $('#navBoxHeader');
 	activityIndicatorTop = Math.floor($(window).height() / 3);
@@ -34,6 +34,22 @@ function init_device() {
 		MyAnswers.dispatch.add(function() {
 			$(window).trigger('scroll');
 		});
+	}
+	if (Modernizr.touch && !Modernizr.positionfixed) {
+		document.body.addEventListener('touchmove', function(event) {
+			var touch;
+			if (event.touches.length === 1) {
+				touch = event.touches[0];
+				$navBar.addClass('hidden');
+				MyAnswers.$footer.addClass('hidden');
+			}
+		}, false);
+		document.body.addEventListener('touchend', function(event) {
+			if ($navBar.children().not('.hidden').length > 0) {
+				$navBar.removeClass('hidden');
+			}
+			MyAnswers.$footer.removeClass('hidden');
+		}, false);
 	}
 	$('#startUp-initDevice').addClass('success');
 }
@@ -83,7 +99,9 @@ function onDeviceReady() {
 					deferred.resolve();
 					return deferred.promise();
 				}
-				MyAnswers.$body.children('footer').addClass('hidden');
+				if (currentConfig.footerPosition !== 'screen-bottom') {
+					MyAnswers.$body.children('footer').addClass('hidden');
+				}
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating');
@@ -143,13 +161,19 @@ function updatePartCSS(element, property, value, valueFormat) {
 
 function onScroll() {
 	MyAnswers.dispatch.add(function() {
-		var scrollTop = $(window).scrollTop();
+		var scrollTop = MyAnswers.$window.scrollTop(),
+		footerY;
+		/* END: var */
 		if (!Modernizr.positionfixed) {
 			updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 			updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
 		}
 		if ($.inArray('ios', deviceVars.features) !== -1) {
 			updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+		}
+		if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
+			footerY = scrollTop + MyAnswers.windowY - MyAnswers.$footer.outerHeight();
+			updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, footerY, deviceVars.scrollValue);
 		}
 	});
 }
