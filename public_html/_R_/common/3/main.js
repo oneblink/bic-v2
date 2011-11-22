@@ -1304,6 +1304,7 @@ function displayAnswerSpace() {
 			$('#mainLabel').remove(); //  TODO: fix the main navigation label
 		}
 		currentConfig = siteVars.config['a' + siteVars.id].pertinent;
+		// identifying landing page
 		switch (siteVars.config['a' + siteVars.id].pertinent.siteStructure) {
 			case 'interactions only':
 				$masterCategoriesView.remove();
