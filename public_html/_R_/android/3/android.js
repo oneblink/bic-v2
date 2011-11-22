@@ -27,6 +27,22 @@ function init_device() {
 			$(window).trigger('scroll');
 		});
 	}
+	if (Modernizr.touch && !Modernizr.positionfixed) {
+		document.body.addEventListener('touchmove', function(event) {
+			var touch;
+			if (event.touches.length === 1) {
+				touch = event.touches[0];
+				$navBar.addClass('hidden');
+				MyAnswers.$footer.addClass('hidden');
+			}
+		}, false);
+		document.body.addEventListener('touchend', function(event) {
+			if ($navBar.children().not('.hidden').length > 0) {
+				$navBar.removeClass('hidden');
+			}
+			MyAnswers.$footer.removeClass('hidden');
+		}, false);
+	}
 	$('#startUp-initDevice').addClass('success');
 }
 
@@ -76,7 +92,9 @@ function onDeviceReady() {
 					deferred.resolve();
 					return deferred.promise();
 				}
-				MyAnswers.$body.children('footer').addClass('hidden');
+				if (currentConfig.footerPosition !== 'screen-bottom') {
+					MyAnswers.$body.children('footer').addClass('hidden');
+				}
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating old');
@@ -162,10 +180,13 @@ function updatePartCSS(element, property, value, valueFormat) {
 }
 
 function onScroll() {
-	var scrollTop = $(window).scrollTop();
+	var scrollTop = MyAnswers.$window.scrollTop();
 	updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
+		updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, scrollTop + MyAnswers.$window.height() - MyAnswers.$footer.height(), deviceVars.scrollValue);
+	}
 }
 
 document.getElementById('startUp-loadDevice').className = 'working success';

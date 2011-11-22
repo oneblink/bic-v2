@@ -50,7 +50,9 @@ function init_device() {
 					deferred.resolve();
 					return deferred.promise();
 				}
-				MyAnswers.$body.children('footer').addClass('hidden');
+				if (currentConfig.footerPosition !== 'screen-bottom') {
+					MyAnswers.$body.children('footer').addClass('hidden');
+				}
 				MyAnswers.dispatch.pause('hideView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$view.addClass('animating old');
@@ -136,10 +138,13 @@ function updatePartCSS(element, property, value, valueFormat) {
 }
 
 function onScroll() {
-	var scrollTop = $(window).scrollTop();
+	var scrollTop = MyAnswers.$window.scrollTop();
 	updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
 	updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+	if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
+		updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, scrollTop + MyAnswers.$window.height() - MyAnswers.$footer.height(), deviceVars.scrollValue);
+	}
 }
 
 document.getElementById('startUp-loadDevice').className = 'working success';
