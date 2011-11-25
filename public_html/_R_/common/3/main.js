@@ -1471,12 +1471,16 @@ function processMoJOs(interaction) {
 }
 
 function processForms() {
-	var ajaxDeferred = new $.Deferred(),
+	var dispatch = new BlinkDispatch(31),
+	ajaxDeferred = new $.Deferred(),
 	libraryDeferred = new $.Deferred(),
+	promises = [ libraryDeferred.promise(), ajaxDeferred.promise() ],
 	validActions = [ 'add', 'delete', 'edit', 'find', 'list', 'search', 'view' ],
 	xmlserializer = new XMLSerializer(), // TODO: find a cross-browser way to do this
-	id,
-	formActionFn = function(index, element) {
+	/* @inner */
+	formActionFn = function(id, element) {
+		var dfrd = new $.Deferred();
+		dispatch.add(function() {
 			var $action = $(element),
 				action = $action.tag(),
 				storeKey = 'formXML:' + id + ':' + action,
@@ -1486,16 +1490,30 @@ function processForms() {
 				for (c = 0; c < cLength; c++) {
 					html += xmlserializer.serializeToString($children[c]);
 				}
-				$.when(MyAnswers.store.set(storeKey, html)).fail(function() {
-					log('processForms()->formActionFn(): failed storing ' + storeKey);
+				$.when(MyAnswers.store.set(storeKey, html))
+				.fail(function() {
+					warn('processForms()->formActionFn(): failed storing ' + storeKey);
+					dfrd.reject();
+				})
+				.then(function() {
+					MyAnswers.store.set('formLastChecked:' + id + ':' + action, $.now());
+					if (MyAnswers.isDebug) {
+						log('processForms()->formActionFn(): formXML=' + storeKey);
+					}
+					dfrd.resolve();
 				});
+			} else {
+				dfrd.resolve();
 			}
+		});
+		return dfrd.promise();
 	},
+	/* @inner */
 	formObjectFn = function(index, element) {
 		var $formObject = $(element);
-		id = $formObject.attr('id');
-		$formObject.children().each(formActionFn);
-		log('processForms()->formObjectFn(): formXML:' + id);
+		$formObject.children().each(function(index, element) {
+			promises.push(formActionFn($formObject.attr('id'), element));
+		});
 	};
 	/* END: var */
 	Modernizr.load.errorTimeout = 20000;
@@ -1530,7 +1548,6 @@ function processForms() {
 	//			MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
 				}
 				if (jqxhr.status === 200 || jqxhr.status === 304) {
-					MyAnswers.store.set('formLastChecked:' + id, $.now());
 					ajaxDeferred.resolve();
 				} else {
 					ajaxDeferred.reject();
@@ -1541,7 +1558,7 @@ function processForms() {
 	} else {
 		ajaxDeferred.resolve();
 	}
-	$.when(ajaxDeferred.promise(), libraryDeferred.promise())
+	$.whenArray(promises)
 	.fail(MyAnswers.formsDeferred.reject)
 	.then(MyAnswers.formsDeferred.resolve);
 }
