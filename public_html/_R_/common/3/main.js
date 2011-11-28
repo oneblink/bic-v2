@@ -629,7 +629,7 @@ function onLinkClick(event) {
 			if (id) {
 				$.each(attributes, function(key, value) {
 					if (key.substr(0, 1) === '_') {
-						attributes['args[' + a.substr(1) + ']'] = value;
+						attributes['args[' + key.substr(1) + ']'] = value;
 						delete attributes[key];
 					}
 				});
