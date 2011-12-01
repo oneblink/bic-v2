@@ -101,6 +101,10 @@ table input[type=file] { position: relative; }
 	font-weight: bold;
 }
 
+.bordered {
+	background-color: #FFF;
+}
+
 #navBoxHeader, .navBar {
 	width: 100%;
 	height: 40px;
