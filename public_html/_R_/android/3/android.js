@@ -5,12 +5,17 @@ MyAnswers.deviceDeferred = new $.Deferred();
 // ** device-specific initialisation of variables and flags **
 
 function init_device() {
-	var $activityIndicator = $('#activityIndicator');
+	var $activityIndicator = $('#activityIndicator'),
+	matches;
 	log('init_device()');
 	deviceVars.scrollProperty = '-webkit-transform';
 	deviceVars.scrollValue = 'translateY($1px)';
 
-//	deviceVars.disableXSLT = true;
+	// assume no CSS Fixed Position support for Android < 3
+	matches = navigator.userAgent.match(/Android (\d+)/);
+	if ($.type(matches) === 'array') {
+		Modernizr.positionfixed = matches[1] < 3 ? false : Modernizr.positionfixed; 
+	}
 
 	// caching frequently-accessed selectors
 	$navBar = $('#navBoxHeader');
@@ -75,97 +80,75 @@ function onDeviceReady() {
 
 (function(window, undefined) {
 	var $ = window.jQuery,
-		MyAnswersDevice = function() {
-		var MyAnswersDevice = function() {};
-		MyAnswersDevice.hideLocationBar = function() {
+	/* @inner */
+	MyAnswersDevice = function() {
+		var me = this;
+		/* END: var */
+		me.hideLocationBar = function() {
 			window.scrollTo(0, 1);
 		};
-		MyAnswersDevice.hideView = function(reverseTransition) {
-			var deferred = new $.Deferred();
+		/**
+		 * hide the current view, and prepare the new view for display
+		 * @param {jQuery} $view the jQuery-selected element that will be shown
+		 * @return {jQueryPromise}
+		 */
+		me.prepareView = function($view, reverseTransition) {
+			var deferred = new $.Deferred(),
+			$oldView = $('.view:visible').not($view[0]),
+			$navBoxHeader = $('#navBoxHeader');
+				/* END: var */
 			MyAnswers.dispatch.add(function() {
-				var entranceDirection = (reverseTransition ? 'left' : 'right'),
-					endPosition = (reverseTransition ? 'right' : 'left'),
-					startPosition = (reverseTransition ? 'left' : 'right'),
-					$view = $('.view:visible'),
-					$navBoxHeader = $('#navBoxHeader');
-				if ($view.size() < 1) {
-					deferred.resolve();
-					return deferred.promise();
-				}
-				if (currentConfig.footerPosition !== 'screen-bottom') {
+				// move the incoming $view offscreen for compositing
+				$view.hide();
+				$view.css({
+					'z-index': 0,
+					position: 'absolute'
+				});
+				$oldView.css({
+					'z-index': 50,
+					position: 'absolute'
+				});
+				$view.show();
+				if (window.currentConfig.footerPosition !== 'screen-bottom') {
 					MyAnswers.$body.children('footer').addClass('hidden');
 				}
-				MyAnswers.dispatch.pause('hideView');
-				$navBoxHeader.find('button').attr('disabled', 'disabled');
-				$view.addClass('animating old');
-				if ($view.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0) {
-					var animateClass = reverseTransition ? 'zoomingout' : 'zoomingin';
-					setTimeout(function() {
-						$view.addClass(animateClass);
-					}, 0);
-					setTimeout(function() {
-						$view.hide();
-						$view.removeClass('animating old ' + animateClass);
-						MyAnswers.dispatch.resume('hideView');
-						deferred.resolve();
-					}, 300);
-				} else {
-					var slideDirection = reverseTransition ? 'right' : 'left';
-					setTimeout(function() {
-						$view.hide('slide', { direction: slideDirection }, 300, function() {
-							$view.removeClass('animating old');
-							MyAnswers.dispatch.resume('hideView');
-							deferred.resolve();
-						});
-					}, 0);
-				}
+				$navBoxHeader.find('button').prop('disabled', true);
+				deferred.resolve();
 			});
 			return deferred.promise();
 		};
-		MyAnswersDevice.showView = function($view, reverseTransition) {
-			var deferred = new $.Deferred();
+		me.showView = function($view, reverseTransition) {
+			var deferred = new $.Deferred(),
+			$oldView = $('.view:visible').not($view[0]),
+			endPosition = (reverseTransition ? 'right' : 'left'),
+			startPosition = (reverseTransition ? 'left' : 'right');
+			/* END: var */
+			me.hideLocationBar();
 			MyAnswers.dispatch.add(function() {
-				var entranceDirection = (reverseTransition ? 'left' : 'right'),
-					endPosition = (reverseTransition ? 'right' : 'left'),
-					startPosition = (reverseTransition ? 'left' : 'right'),
-					viewId = $view.attr('id');
-				MyAnswers.dispatch.pause('showView');
-				MyAnswersDevice.hideLocationBar();
-				$view.hide();
-				if ($view.find('#keywordBox, #categoriesBox, #masterCategoriesBox').children().size() > 0) {
-					var animateClass = reverseTransition ? 'zoomingin' : 'zoomingout';
-					$view.addClass(animateClass);
-					$view.show();
-					setTimeout(function() {
-						$view.addClass('animating new');
-						$view.removeClass(animateClass);
-					}, 0);
-					setTimeout(function() {
-						$view.removeClass('animating new');
-						$(window).trigger('scroll');
-						MyAnswers.dispatch.resume('showView');
+				if ($oldView.size() !== 0) {
+					// transition the old view away
+					$oldView.hide('slide', { direction: endPosition }, 300, function() {
+						$oldView.css('z-index', '');
+						$oldView.css('position', '');
+						$view.css('z-index', '');
+						$view.css('position', '');
 						updateNavigationButtons();
 						MyAnswers.$body.children('footer').removeClass('hidden');
 						deferred.resolve();
-					}, 300);
+					});
 				} else {
-					var slideDirection = (reverseTransition ? 'left' : 'right');
-					setTimeout(function() {
-						$view.addClass('animating new');
-						$view.show('slide', { direction: slideDirection }, 300, function() {
-							$view.removeClass('animating new');
-							MyAnswers.dispatch.resume('showView');
-							updateNavigationButtons();
-							MyAnswers.$body.children('footer').removeClass('hidden');
-							deferred.resolve();
-						});
-					}, 0);
+					$view.css('z-index', '');
+					$view.css('position', '');
+					updateNavigationButtons();
+					MyAnswers.$body.children('footer').removeClass('hidden');
+					deferred.resolve();
 				}
 			});
 			return deferred.promise();
 		};
-		return MyAnswersDevice;
+		return me;
 	};
+	/* END: var */
 	window.MyAnswersDevice = new MyAnswersDevice();
 }(this));
 

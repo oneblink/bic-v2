@@ -821,7 +821,7 @@ function updateNavigationButtons() {
 			}
 		} else {
 			$navButtons.removeClass('hidden');
-			$navButtons.removeAttr('disabled');
+			$navButtons.prop('disabled', false);
 			$navBars.removeClass('hidden');
 		}
 		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
@@ -1013,7 +1013,8 @@ function updateCurrentConfig() {
 			}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
 	}
 	function onHyperlinkClick(event) {
-		window.location.assign($(this).data('hyperlink'));
+		//window.location.assign($(this).data('hyperlink'));
+		window.open($(this).data('hyperlink'));
 	}
 
 	MyAnswers.populateItemListing = function(level, $view) {
@@ -1211,7 +1212,7 @@ function updateCurrentConfig() {
 function showMasterCategoriesView(reverse) {
 	var $view = $('#masterCategoriesView');
 	log('showMasterCategoriesView()');
-	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
+	$.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
 		MyAnswers.populateItemListing('masterCategories', $view);
 		updateCurrentConfig();
 		setMainLabel('Master Categories');
@@ -1220,8 +1221,9 @@ function showMasterCategoriesView(reverse) {
 }
 
 function goBackToMasterCategoriesView() {
+	var $view = $('#masterCategoriesView');
 	log('goBackToMasterCategoriesView()');
-	$.when(MyAnswersDevice.hideView(true)).always(function() {
+	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
 		updateCurrentConfig();
 		setMainLabel('Master Categories');
 		MyAnswersDevice.showView($('#masterCategoriesView'), true);
@@ -1236,7 +1238,7 @@ function showCategoriesView(masterCategory) {
 	if (hasMasterCategories && masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
-	$.when(MyAnswersDevice.hideView()).always(function() {
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
 		updateCurrentConfig();
 		setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
 		MyAnswers.populateItemListing('categories', $view);
@@ -1245,13 +1247,14 @@ function showCategoriesView(masterCategory) {
 }
 
 function goBackToCategoriesView() {
+	var $view = $('#categoriesView');
 	currentInteraction = null;
 	currentCategory = null;
 	log('goBackToCategoriesView()');
-	$.when(MyAnswersDevice.hideView(true)).always(function() {
+	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
 		updateCurrentConfig();
 		setMainLabel(currentMasterCategory ? siteVars.config['m' + currentMasterCategory].pertinent.name : 'Categories');
-		MyAnswersDevice.showView($('#categoriesView'), true);
+		MyAnswersDevice.showView($view, true);
 	});
 }
 
@@ -1711,8 +1714,9 @@ function gotoStorageView() {
 }
 
 function showPendingView() {
-	$.when(MyAnswersDevice.hideView()).always(function() {
-		MyAnswersDevice.showView($('#pendingView'));
+	var $view = $('#pendingView');
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
+		MyAnswersDevice.showView($view);
 	});
 }
 
@@ -1743,13 +1747,13 @@ function createParamsAndArgs(keywordID) {
 function showAnswerView(interaction, argsString, reverse) {
 	log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
 	var html, args,
-		$answerView = $('#answerView'),
+		$view = $('#answerView'),
 		$answerBox = $('#answerBox'),
 		answerBox = $answerBox[0],
 		completeFn = function() {
-			$.when(initialiseAnswerFeatures($answerView)).always(function() {
+			$.when(initialiseAnswerFeatures($view)).always(function() {
 				setMainLabel(currentConfig.displayName || currentConfig.name);
-				MyAnswersDevice.showView($answerView, reverse);
+				MyAnswersDevice.showView($view, reverse);
 				MyAnswers.dispatch.add(function() {MyAnswers.$body.trigger('taskComplete');});
 			});
 		};
@@ -1759,7 +1763,7 @@ function showAnswerView(interaction, argsString, reverse) {
 		return;
 	}
 	MyAnswers.$body.trigger('taskBegun');
-	$.when(MyAnswersDevice.hideView(reverse)).always(function() {
+	$.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
 		currentInteraction = interaction;
 		updateCurrentConfig();
 		if (typeof currentConfig.xml === 'string' && currentConfig.xml.substring(0, 6) !== 'stars:') {
@@ -1931,7 +1935,8 @@ function showSecondLevelAnswerView(keyword, arg0, reverse) {
 }
 
 function showKeywordView(keyword) {
-	$.when(MyAnswersDevice.hideView()).always(function() {
+	var $view = $('#keywordView');
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
 		var config = siteVars.config['i' + keyword].pertinent,
 			argsBox = $('#argsBox')[0],
 			descriptionBox = $('#descriptionBox')[0];
@@ -1944,17 +1949,18 @@ function showKeywordView(keyword) {
 		} else {
 			$(descriptionBox).addClass('hidden');
 		}
-		MyAnswersDevice.showView($('#keywordView'));
+		MyAnswersDevice.showView($view);
 		setMainLabel(config.displayName || config.name);
 	});
 }
 
 function goBackToKeywordView(keyword) {
-	$.when(MyAnswersDevice.hideView(true)).always(function() {
+	var $view = $('#keywordView');
+	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
 		var config = siteVars.config['i' + keyword].pertinent;
 		currentInteraction = keyword;
 		updateCurrentConfig();
-		MyAnswersDevice.showView($('#keywordView'), true);
+		MyAnswersDevice.showView($view, true);
 		setMainLabel(config.displayName || config.name);
 	});
 }
@@ -1968,7 +1974,7 @@ function showKeywordListView(category, masterCategory) {
 		currentMasterCategory = masterCategory;
 	}
 	log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
-	$.when(MyAnswersDevice.hideView()).always(function() {
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
 		updateCurrentConfig();
 		if (hasCategories) {
 			if (typeof prepareHistorySideBar === 'function') {
@@ -1986,7 +1992,8 @@ function showKeywordListView(category, masterCategory) {
 
 function goBackToKeywordListView(event) {
 	var mainLabel,
-		config;
+		config,
+		$view = $('#keywordListView');
 	currentInteraction = null;
   // log('goBackToKeywordListView()');
 	if (answerSpaceOneKeyword) {
@@ -2007,9 +2014,9 @@ function goBackToKeywordListView(event) {
 	} else {
 		mainLabel = 'Interactions';
 	}
-	$.when(MyAnswersDevice.hideView(true)).always(function() {
+	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
 		updateCurrentConfig();
-		MyAnswersDevice.showView($('#keywordListView'), true);
+		MyAnswersDevice.showView($view, true);
 		setMainLabel(mainLabel);
 	});
 }
@@ -2017,8 +2024,9 @@ function goBackToKeywordListView(event) {
 function showHelpView(event)
 {
 	var helpContents,
-		helpBox = document.getElementById('helpBox');
-	$.when(MyAnswersDevice.hideView()).always(function() {
+		helpBox = document.getElementById('helpBox'),
+		$view = $('#helpView');
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
 		switch($('.view:visible').first().attr('id'))
 		{
 			case 'keywordView':
@@ -2032,13 +2040,14 @@ function showHelpView(event)
 				helpContents = siteVars.config['a' + siteVars.id].pertinent.help || "Sorry, no guidance has been prepared for this item.";
 		}
 		insertHTML(helpBox, helpContents);
-		MyAnswersDevice.showView($('#helpView'));
+		MyAnswersDevice.showView($view);
 	});
 }
 
 function showLoginView(event) {
 	var id,
-		requestUri;
+		requestUri,
+		$view = $('#loginView');
 	if (!currentConfig.loginAccess) {
 		return false;
 	}
@@ -2052,8 +2061,8 @@ function showLoginView(event) {
 		History.pushState({m: null, c: null, i: id}, null, requestUri);
 		return false;
 	}
-	$.when(MyAnswersDevice.hideView()).always(function() {
-		MyAnswersDevice.showView($('#loginView'));
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
+		MyAnswersDevice.showView($view);
 		setMainLabel('Login');
 	});
 }
@@ -2210,25 +2219,26 @@ function submitLogout(event) {
 	return false;
 }
 
-function goBackToTopLevelAnswerView(event)
-{
+function goBackToTopLevelAnswerView(event) {
+	var $view = $('#answerView');
 	log('goBackToTopLevelAnswerView()');
-	$.when(MyAnswersDevice.hideView(true)).always(function() {
-		MyAnswersDevice.showView($('#answerView'), true);
+	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+		MyAnswersDevice.showView($view, true);
 	});
 }
 
 function submitFormWithRetry(data) {
 	var str, arr, method, uuid,
-		localKeyword;
+		localKeyword,
+		answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+		$view = $('.view:visible'),
+		$box = $view.children('.box').first(),
+		requestData;;
 	if ($.type(data) === 'object') {
 		str = data.data;
 		arr = data.action.split("/");
 		method = data.method;
 		uuid = data.uuid;
-		var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
-			currentBox = $('.view:visible > .box').first(),
-			requestData;
 		if (arr[0] === '..') {
 			answerUrl += "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(arr[1]) + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
 			localKeyword = arr[1];
@@ -2257,20 +2267,11 @@ function submitFormWithRetry(data) {
 					clearPendingFormV1(data.interaction, uuid);
 					html = xhr.responseText;
 				}
-				$.when(MyAnswersDevice.hideView()).always(function() {
-					if (currentBox.attr('id').indexOf('answerBox') !== -1) {
-						insertHTML(currentBox[0], html);
-						$.when(initialiseAnswerFeatures(currentBox)).always(function() {
-							currentBox.show('slide', {direction: 'right'}, 300);
-							MyAnswersDevice.showView(currentBox.closest('.view'));
-						});
-					} else {
-						var answerBox2 = document.getElementById('answerBox2');
-						insertHTML(answerBox2, html);
-						$.when(initialiseAnswerFeatures($('#answerView2'))).always(function() {
-							MyAnswersDevice.showView($('#answerView2'));
-						});
-					}
+				$.when(MyAnswersDevice.prepareView($view)).always(function() {
+					insertHTML($box[0], html);
+					$.when(initialiseAnswerFeatures($box)).always(function() {
+						MyAnswersDevice.showView($view);
+					});
 					MyAnswers.$body.trigger('taskComplete');
 				});
 			},
@@ -2349,8 +2350,8 @@ function submitForm() {
 function submitAction(keyword, action) {
 	log('submitAction(): keyword=' + keyword + ' action=' + action);
 	var $view = $('.view:visible,'),
-		currentBox = $view.children('.box'),
-		form = currentBox.find('form').first(),
+		$box = $view.children('.box'),
+		form = $box.find('form').first(),
 		$submits = form.find('input[type=submit]'),
 		sessionInput = form.find('input[name=blink_session_data]'),
 		formData = (action === 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize(),
@@ -2381,7 +2382,6 @@ function submitAction(keyword, action) {
 		url: requestUrl,
 		data: requestData,
 		complete: function(xhr, textstatus) { // readystate === 4
-			MyAnswers.$body.trigger('taskComplete');
 			var html;
 			if (isAJAXError(textstatus) || xhr.status !== 200) {
 				html = 'Unable to contact server.';
@@ -2396,22 +2396,12 @@ function submitAction(keyword, action) {
 					processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
 				}
 			}
-			$.when(MyAnswersDevice.hideView()).always(function() {
-				if (currentBox.attr('id').indexOf('answerBox') !== -1)
-				{
-					insertHTML(currentBox[0], html);
-					$.when(initialiseAnswerFeatures(currentBox, true)).always(function() {
-						MyAnswersDevice.showView(currentBox.closest('.view'));
-					});
-				}
-				else
-				{
-					var answerBox2 = document.getElementById('answerBox2');
-					insertHTML(answerBox2, html);
-					$.when(initialiseAnswerFeatures($('#answerView2'), true)).always(function() {
-						MyAnswersDevice.showView($('#answerView2'));
-					});
-				}
+			$.when(MyAnswersDevice.prepareView($view)).always(function() {
+				insertHTML($box[0], html);
+				$.when(initialiseAnswerFeatures($box)).always(function() {
+					MyAnswersDevice.showView($view);
+				});
+				MyAnswers.$body.trigger('taskComplete');
 			});
 		},
 		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(requestUrl.length + requestData.length))
@@ -2849,6 +2839,7 @@ MyAnswers.updateLocalStorage = function() {
 /* *** EVENT HANDLERS *** */
 
 	function onOrientationChange(event) {
+		var maxHeight;
 		if ($.inArray('ios', deviceVars.features) !== -1
 				&& Math.abs(window.orientation || 0) === 90) {
 			MyAnswers.screenX = window.screen.height;
@@ -2859,6 +2850,14 @@ MyAnswers.updateLocalStorage = function() {
 		}
 		MyAnswers.windowX = window.innerWidth;
 		MyAnswers.windowY = window.innerHeight;
+		maxHeight = Math.max(MyAnswers.screenY, MyAnswers.windowY, window.outerHeight);
+		maxHeight /= window.devicePixelRatio || 0;
+		if ($.inArray('phone', deviceVars.features) !== -1
+				|| $.inArray('tablet', deviceVars.features) !== -1) {
+			MyAnswers.$html.css('min-height', maxHeight + 'px');
+		} else {
+			MyAnswers.$html.css('min-height', MyAnswers.windowY + 'px');
+		}
 		$window.trigger('scroll');
 		log('orientationchange: ' + window.orientation);
 	}
@@ -3096,7 +3095,8 @@ MyAnswers.updateLocalStorage = function() {
 			delete siteVars.queryParameters.uid;
 			delete siteVars.queryParameters.answerSpace;
 
-			MyAnswers.$body = $('body');
+			MyAnswers.$html = $('html');
+			MyAnswers.$body = MyAnswers.$html.children('body');
 			MyAnswers.$document = $(window.document);
 			MyAnswers.$window = $window;
 			MyAnswers.$footer = MyAnswers.$body.children('footer');
