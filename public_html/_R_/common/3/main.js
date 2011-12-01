@@ -2851,7 +2851,7 @@ MyAnswers.updateLocalStorage = function() {
 		MyAnswers.windowX = window.innerWidth;
 		MyAnswers.windowY = window.innerHeight;
 		maxHeight = Math.max(MyAnswers.screenY, MyAnswers.windowY, window.outerHeight);
-		maxHeight /= window.devicePixelRatio || 0;
+		maxHeight /= window.devicePixelRatio || 1;
 		if ($.inArray('phone', deviceVars.features) !== -1
 				|| $.inArray('tablet', deviceVars.features) !== -1) {
 			MyAnswers.$html.css('min-height', maxHeight + 'px');
