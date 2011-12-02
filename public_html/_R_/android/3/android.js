@@ -90,6 +90,7 @@ function onDeviceReady() {
 		/**
 		 * hide the current view, and prepare the new view for display
 		 * @param {jQuery} $view the jQuery-selected element that will be shown
+		 * @param {Boolean} reverseTransition toggle transition direction
 		 * @return {jQueryPromise}
 		 */
 		me.prepareView = function($view, reverseTransition) {
