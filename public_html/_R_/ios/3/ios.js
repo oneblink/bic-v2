@@ -92,6 +92,7 @@ function onDeviceReady() {
 		/**
 		 * hide the current view, and prepare the new view for display
 		 * @param {jQuery} $view the jQuery-selected element that will be shown
+		 * @param {Boolean} reverseTransition toggle transition direction
 		 * @return {jQueryPromise}
 		 */
 		me.prepareView = function($view, reverseTransition) {
@@ -102,23 +103,18 @@ function onDeviceReady() {
 				$oldView = $('.view:visible'),
 				$navBoxHeader = $('#navBoxHeader');
 				/* END: var */
-				// move the incoming $view offscreen for compositing
-				$view.hide();
-				$view.addClass('slid' + startPosition);
-				$view.show();
 				// transition the current view away
 				if (window.currentConfig.footerPosition !== 'screen-bottom') {
 					MyAnswers.$body.children('footer').addClass('hidden');
 				}
 				if ($oldView.size() < 1) {
 					deferred.resolve();
-					return deferred.promise();
+					return;
 				}
 				MyAnswers.dispatch.pause('prepareView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$oldView.addClass('animating');
-				$oldView.bind('webkitTransitionEnd', function(event) {
-					$oldView.unbind('webkitTransitionEnd');
+				$oldView.one('webkitTransitionEnd', function(event) {
 					$oldView.hide();
 					$oldView.removeClass('animating slid' + endPosition);
 					MyAnswers.dispatch.resume('hideView');
@@ -138,8 +134,11 @@ function onDeviceReady() {
 				/* END: var */
 				MyAnswers.dispatch.pause('showView');
 				me.hideLocationBar();
-				$view.bind('webkitTransitionEnd', function(event) {
-					$view.unbind('webkitTransitionEnd');
+				// move the incoming $view offscreen for compositing
+				$view.hide();
+				$view.addClass('slid' + startPosition);
+				$view.show();
+				$view.one('webkitTransitionEnd', function(event) {
 					$view.removeClass('animating');
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
