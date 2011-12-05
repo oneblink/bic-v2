@@ -67,52 +67,50 @@
 			db = (type === 'localstorage') ? localStorage : sessionStorage;
 
 			self.get = function(key) {
-				var deferred = new $.Deferred(function(dfrd) {
-					dfrd.resolve(db.getItem(partition + ':' + section + ':' + key));
-					// dfrd.reject(); not sure if this is needed
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				dfrd.resolve(db.getItem(partition + ':' + section + ':' + key));
+				// dfrd.reject(); not sure if this is needed
+				return dfrd.promise();
 			};
 			
 			self.set = function(key, value) {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.setItem(partition + ':' + section + ':' + key, value);
-					dfrd.resolve();
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				db.setItem(partition + ':' + section + ':' + key, value);
+				dfrd.resolve();
+				return dfrd.promise();
 			};
 			
 			self.remove = function(key) {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.removeItem(partition + ':' + section + ':' + key);
-					dfrd.resolve();
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				db.removeItem(partition + ':' + section + ':' + key);
+				dfrd.resolve();
+				return dfrd.promise();
 			};
 
 			self.keys = function() {
-				var deferred = new $.Deferred(function(dfrd) {
-					var found = [],
-						length = db.length,
-						index, parts;
-					for (index = 0; index < length; index++) {
-						parts = db.key(index).split(':');
-						if (parts[0] === partition && parts[1] === section) {
-							found.push(parts[2]);
-						}
+				var dfrd = new $.Deferred(),
+				found = [],
+				length = db.length,
+				index, parts,
+				current,
+				prefix = partition + ':' + section + ':';
+				/* END: var */
+				for (index = 0; index < length; index++) {
+					current = db.key(index);
+					if (current.indexOf(prefix) === 0) {
+						found.push(current.replace(prefix, ''));
 					}
-					dfrd.resolve(found);
-				});
-				return deferred.promise();
+				}
+				dfrd.resolve(found);
+				return dfrd.promise();
 			};
 			
 			self.count = function() {
-				var deferred = new $.Deferred(function(dfrd) {
-					$.when(self.keys()).done(function(keys) {
-						dfrd.resolve(keys.length);
-					});
+				var dfrd = new $.Deferred();
+				$.when(self.keys()).done(function(keys) {
+					dfrd.resolve(keys.length);
 				});
-				return deferred.promise();
+				return dfrd.promise();
 			};
 			
 			readyDeferred.resolve();
@@ -221,50 +219,47 @@
 			};
 	
 			self.remove = function(key) {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.transaction(function(tx) {
-						tx.executeSql(sql.remove, [ key ], function(tx, result) {
-							dfrd.resolve();
-						});
-					}, errorHandler, $.noop);
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				db.transaction(function(tx) {
+					tx.executeSql(sql.remove, [ key ], function(tx, result) {
+						dfrd.resolve();
+					});
+				}, errorHandler, $.noop);
+				return dfrd.promise();
 			};
 
 			self.keys = function() {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.readTransaction(function(tx) {
-						tx.executeSql(sql.keys, [], function(tx, result) {
-							var index, row,
-								length = result.rows.length,
-								found = [];
-							for (index = 0; index < length; index++) {
-								row = result.rows.item(index);
-								found.push(row.k);
-							}
-							dfrd.resolve(found);
-						});
-					}, errorHandler, $.noop);
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				db.readTransaction(function(tx) {
+					tx.executeSql(sql.keys, [], function(tx, result) {
+						var index, row,
+							length = result.rows.length,
+							found = [];
+						for (index = 0; index < length; index++) {
+							row = result.rows.item(index);
+							found.push(row.k);
+						}
+						dfrd.resolve(found);
+					});
+				}, errorHandler, $.noop);
+				return dfrd.promise();
 			};
 			
 			self.count = function() {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.readTransaction(function(tx) {
-						tx.executeSql(sql.count, [], function(tx, result) {
-								var count = result.rows.item(0).count;
-								if ($.isNumeric(count)) {
-									dfrd.resolve(parseInt(count, 10));
-								} else {
-									error('BlinkStorage: SELECT count(k) non-numeric');
-									dfrd.reject();
-								}
+				var dfrd = new $.Deferred();
+				db.readTransaction(function(tx) {
+					tx.executeSql(sql.count, [], function(tx, result) {
+							var count = result.rows.item(0).count;
+							if ($.isNumeric(count)) {
+								dfrd.resolve(parseInt(count, 10));
+							} else {
+								error('BlinkStorage: SELECT count(k) non-numeric');
+								dfrd.reject();
 							}
-						);
-					}, errorHandler, $.noop);
-				});
-				return deferred.promise();
+						}
+					);
+				}, errorHandler, $.noop);
+				return dfrd.promise();
 			};
 			
 		} else if (type === 'memory') {
@@ -272,53 +267,49 @@
 			memory = {};
 
 			self.get = function(key) {
-				var deferred = new $.Deferred(function(dfrd) {
-					dfrd.resolve(memory[partition + ':' + section + ':' + key]);
-					// dfrd.reject(); not sure if this is needed
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				dfrd.resolve(memory[partition + ':' + section + ':' + key]);
+				// dfrd.reject(); not sure if this is needed
+				return dfrd.promise();
 			};
 			
 			self.set = function(key, value) {
-				var deferred = new $.Deferred(function(dfrd) {
-					memory[partition + ':' + section + ':' + key] = value;
-					dfrd.resolve();
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				memory[partition + ':' + section + ':' + key] = value;
+				dfrd.resolve();
+				return dfrd.promise();
 			};
 			
 			self.remove = function(key) {
-				var deferred = new $.Deferred(function(dfrd) {
-					delete memory[partition + ':' + section + ':' + key];
-					dfrd.resolve();
-				});
-				return deferred.promise();
+				var dfrd = new $.Deferred();
+				delete memory[partition + ':' + section + ':' + key];
+				dfrd.resolve();
+				return dfrd.promise();
 			};
 
 			self.keys = function() {
-				var deferred = new $.Deferred(function(dfrd) {
-					var found = [],
-						key, parts;
-					for (key in memory) {
-						if (memory.hasOwnProperty(key)) {
-							parts = memory[key].split(':');
-							if (parts[0] === partition && parts[1] === section) {
-								found.push(parts[2]);
-							}
+				var dfrd = new $.Deferred(),
+				found = [],
+				prefix = partition + ':' + section + ':',
+				key;
+				/* END: var */
+				for (key in memory) {
+					if (memory.hasOwnProperty(key)) {
+						if (key.indexOf(prefix) === 0) {
+							found.push(key.replace(prefix, ''));
 						}
 					}
-					dfrd.resolve(found);
-				});
-				return deferred.promise();
+				}
+				dfrd.resolve(found);
+				return dfrd.promise();
 			};
 			
 			self.count = function() {
-				var deferred = new $.Deferred(function(dfrd) {
-					$.when(self.keys()).done(function(keys) {
-						dfrd.resolve(keys.length);
-					});
+				var dfrd = new $.Deferred();
+				$.when(self.keys()).done(function(keys) {
+					dfrd.resolve(keys.length);
 				});
-				return deferred.promise();
+				return dfrd.promise();
 			};
 			
 			readyDeferred.resolve();
