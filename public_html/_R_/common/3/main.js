@@ -138,20 +138,22 @@ function deserialize(argsString) {
 
 function getURLParameters() {
 	var href = window.location.href,
-		queryString;
-	if (href.indexOf('?') === -1) {
-		return [];
-	}
-	queryString = href.match(/\?([^#]*)#?.*$/)[1];
-	if (typeof queryString === 'string') {
-		var parameters = deserialize(queryString);
-		if (typeof parameters.keyword === 'string') {
-			parameters.keyword = parameters.keyword.replace('/', '');
+		matches,
+		parameters = {};
+	if (href.indexOf('?') !== -1) {
+		matches = href.match(/\?([^#]*)#?.*$/);
+		if (matches && matches.length >= 2) {
+			parameters = deserialize(matches[1]);
+			if (typeof parameters.keyword === 'string') {
+				parameters.keyword = parameters.keyword.replace('/', '');
+			}
 		}
-		return parameters;
-	} else {
-		return [];
 	}
+	matches = href.match(new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i'));
+	if (matches && matches.length >= 2) {
+		parameters.keyword = matches[1];
+	}
+	return parameters;
 }
 
 // TODO: deprecate this function
@@ -3093,7 +3095,6 @@ MyAnswers.updateLocalStorage = function() {
 			siteVars.serverAppPath = '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
 			siteVars.serverDevicePath = '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
 			siteVars.queryParameters = getURLParameters();
-			siteVars.answerSpace = siteVars.queryParameters.answerSpace;
 			delete siteVars.queryParameters.uid;
 			delete siteVars.queryParameters.answerSpace;
 
