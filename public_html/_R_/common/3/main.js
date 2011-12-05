@@ -692,10 +692,13 @@ function onLinkClick(event) {
  */
 function countPendingForms() {
 	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.size()).then(function(size) {
-		$.when(MyAnswers.pendingV1Store.size()).then(function(sizeV1) {
-			deferred.resolve(size + sizeV1);
-		});
+	$.when(MyAnswers.pendingStore.count(), MyAnswers.pendingV1Store.count())
+	.then(function(size2, size1) {
+		deferred.resolve(size2 + size1);
+	})
+	.fail(function() {
+		error('countPendingForms() unable to query storage');
+		deferred.resolve(0);
 	});
 	return deferred.promise();
 }
@@ -2859,7 +2862,6 @@ MyAnswers.updateLocalStorage = function() {
 			MyAnswers.$html.css('min-height', MyAnswers.windowY + 'px');
 		}
 		$window.trigger('scroll');
-		log('orientationchange: ' + window.orientation);
 	}
 	
 	function onNetworkChange() {

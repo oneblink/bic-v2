@@ -1,24 +1,39 @@
 /*
  * custom library to abstract access to available local storage mechanisms
- * requires: jQuery 1.5+, utilities.js
+ * requires: jQuery 1.5+, utilities.js (optional)
  * 
  * valid storage types are: localstorage, sessionstorage, websqldatabase, indexeddb
  * 
  * This has been designed with seemless operation of asynchronous storage methods,
  * via the jQuery Deferred Promises mechanism in jQuery 1.5.
  * 
- * The mechanism-specific terms "database" and "table" have been replaced with
+ * The SQL-specific terms "database" and "table" have been replaced with
  * the more neutral "partition" and "section", respectively.
  */
 
 
 (function(window, undefined) {
 	var webSqlDbs = {}, // store open handles to databases (websqldatabase)
-		navigator = window.navigator,
-		$ = window.jQuery;
+	navigator = window.navigator,
+	localStorage = window.localStorage,
+	sessionStorage = window.sessionStorage,
+	$ = window.jQuery,
+	log, error, warn, info; // logging functions
+	/* END: var */
+	
+	if (!$) {
+		alert('error: BlinkStorage.JS requires jQuery to be loaded first');
+		return;
+	}
+	log = typeof window.log === 'function' ? window.log : $.noop;
+	error = typeof window.error === 'function' ? window.error : $.noop;
+	warn = typeof window.warn === 'function' ? window.warn : $.noop;
+	info = typeof window.info === 'function' ? window.info : $.noop;
+	
 	BlinkStorage = function(type, partition, section) {
 		var self = this,
 			readyDeferred = new $.Deferred(),
+			sql, // for webslqdatabase and blinkgapsql
 			db, // for websqldatabase, localstorage or sessionstorage
 			memory; // for memory
 		if (typeof partition !== 'string' || partition.length < 1) {
@@ -91,7 +106,7 @@
 				return deferred.promise();
 			};
 			
-			self.size = function() {
+			self.count = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					$.when(self.keys()).done(function(keys) {
 						dfrd.resolve(keys.length);
@@ -104,14 +119,13 @@
 
 		} else if (type === 'websqldatabase') {
 			
-			var estimatedSize = (window.device ? 5 : 1) * 1024 * 1024,
+			var estimatedSize = (window.device ? 5 : 0.75) * 1024 * 1024,
 			/* @inner */
-			successHandler = typeof $ === 'function' ? $.noop : function () { },
-			/* @inner */
-			errorHandler = function() {
-				log('BlinkStorage error1: ' + error.code + ' ' + error.message);
-				if (error.code === 3 || error.code === 4 || error.code === 7) {
-					alert('storage-error: ' + error.code + '\n' + error.message);
+			errorHandler = function(arg1, arg2) {
+				var sqlError = arg2 && arg1.executeSql ? arg2 : arg1;
+				error('BlinkStorage error1: ' + sqlError.code + ' ' + sqlError.message);
+				if (sqlError.code === 3 || sqlError.code === 4 || sqlError.code === 7) {
+					alert('storage-error: ' + sqlError.code + '\n' + sqlError.message);
 				}
 				return false;
 			},
@@ -124,7 +138,7 @@
 						readyDeferred.resolve,
 						readyDeferred.reject
 					);
-				}, errorHandler, successHandler);
+				}, errorHandler, $.noop);
 			},
 			/* @inner */
 			openWebSQL = function() {
@@ -140,6 +154,15 @@
 			};
 			/* END: var */
 			
+			// cache SQL so each string only occupies memory once per DB
+			sql = {
+				get: 'SELECT v FROM `' + section + '` WHERE k = ?',
+				set: 'INSERT OR REPLACE INTO `' + section + '` (k, v) VALUES (?, ?)',
+				remove: 'DELETE FROM `' + section + '` WHERE k = ?',
+				keys: 'SELECT k FROM `' + section + '`',
+				count: 'SELECT count(k) AS `count` FROM ' + section
+			};
+			
 			if (webSqlDbs[partition]) {
 				db = webSqlDbs[partition];
 			} else {
@@ -148,62 +171,62 @@
 			openSection();
 			
 			self.get = function(key) {
-				var deferred = new $.Deferred(function(dfrd) {
-					db.readTransaction(function(tx) {
-						tx.executeSql(
-							'SELECT v FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
-								if (result.rows.length === 1) {
-									dfrd.resolve(result.rows.item(0).v);
-								} else {
-									dfrd.resolve(null);
-									if (result.rows.length > 1) {
-										throw('BlinkStorage: non-unique key');
-									}
+				var dfrd = new $.Deferred();
+				db.readTransaction(function(tx) {
+					tx.executeSql(sql.get, [ key ], 
+						function(tx, result) { // SQL success handler
+							if (result.rows.length === 1) {
+								dfrd.resolve(result.rows.item(0).v);
+							} else {
+								dfrd.resolve(null);
+								if (result.rows.length > 1) {
+									error('BlinkStorage: SELECT returned multiple rows');
 								}
 							}
-						);
-					}, errorHandler, successHandler);
-				});
-				return deferred.promise();
+						},
+						errorHandler // SQL error handler
+					);
+				}, errorHandler, $.noop); // transaction handlers
+				return dfrd.promise();
 			};
 			
 			self.set = function(key, value, attempts) {
 				var deferred = new $.Deferred(),
 					promise = deferred.promise();
 				attempts = typeof attempts !== 'number' ? 1 : attempts;
+				if (attempts-- <= 0) {
+					deferred.reject();
+				}
 				db.transaction(function(tx) {
-					tx.executeSql(
-						'INSERT OR REPLACE INTO `' + section + '` (k, v) VALUES (?, ?)', [ key, value ], function(tx, result) {
+					tx.executeSql(sql.set, [ key, value ], 
+						function(tx, result) { // SQL success handler
 							if (result.rowsAffected !== 1) {
-								throw('BlinkStorage: failed INSERT');
+								error('BlinkStorage: INSERT did not affect 1 row');
+								deferred.reject();
+							} else {
+								deferred.resolve();
 							}
-						}
-					);
-				}, function(error) {
-					if (attempts-- > 0) {
-						$.when(self.set(key, value, attempts))
-							.fail(function(error) {
-								log('BlinkStorage error: ' + error.code + ' ' + error.message);
-								if (error.code === 3 || error.code === 4 || error.code === 7) {
-									alert('storage-error: ' + error.code + '\n' + error.message);
-								}
+						},
+						function(tx, sqlError) { // SQL error handler
+							$.when(self.set(key, value, attempts))
+							.fail(function(sqlError) {
+								errorHandler(sqlError);
 								deferred.reject();
 							})
 							.then(deferred.resolve());
-					} else {
-						deferred.reject();
-					}
-				}, deferred.resolve);
+						}
+					);
+				}, errorHandler, $.noop); // transaction handlers
 				return promise;
 			};
 	
 			self.remove = function(key) {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.transaction(function(tx) {
-						tx.executeSql('DELETE FROM `' + section + '` WHERE k = ?', [ key ], function(tx, result) {
+						tx.executeSql(sql.remove, [ key ], function(tx, result) {
 							dfrd.resolve();
 						});
-					}, errorHandler, successHandler);
+					}, errorHandler, $.noop);
 				});
 				return deferred.promise();
 			};
@@ -211,7 +234,7 @@
 			self.keys = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
-						tx.executeSql('SELECT k FROM `' + section + '`', [], function(tx, result) {
+						tx.executeSql(sql.keys, [], function(tx, result) {
 							var index, row,
 								length = result.rows.length,
 								found = [];
@@ -221,20 +244,25 @@
 							}
 							dfrd.resolve(found);
 						});
-					}, errorHandler, successHandler);
+					}, errorHandler, $.noop);
 				});
 				return deferred.promise();
 			};
 			
-			self.size = function() {
+			self.count = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					db.readTransaction(function(tx) {
-						tx.executeSql(
-							'SELECT k FROM ' + section, [], function(tx, result) {
-								dfrd.resolve(result.rows.length);
+						tx.executeSql(sql.count, [], function(tx, result) {
+								var count = result.rows.item(0).count;
+								if ($.isNumeric(count)) {
+									dfrd.resolve(parseInt(count, 10));
+								} else {
+									error('BlinkStorage: SELECT count(k) non-numeric');
+									dfrd.reject();
+								}
 							}
 						);
-					}, errorHandler, successHandler);
+					}, errorHandler, $.noop);
 				});
 				return deferred.promise();
 			};
@@ -284,7 +312,7 @@
 				return deferred.promise();
 			};
 			
-			self.size = function() {
+			self.count = function() {
 				var deferred = new $.Deferred(function(dfrd) {
 					$.when(self.keys()).done(function(keys) {
 						dfrd.resolve(keys.length);
@@ -327,7 +355,7 @@
 	}
 	available.push('memory');
 	if (typeof window.log === 'function') {
-		log('BlinkStorage(): available=[' + available.join(',') + ']');
+		info('BlinkStorage(): available=[' + available.join(',') + ']');
 	}
 }(this));
   
