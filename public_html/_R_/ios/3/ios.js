@@ -82,55 +82,63 @@ function onDeviceReady() {
 
 (function(window, undefined) {
 	var $ = window.jQuery,
-		MyAnswersDevice = function() {
-		var MyAnswersDevice = function() {};
-		MyAnswersDevice.hideLocationBar = function() {
+	/* @inner */
+	MyAnswersDevice = function() {
+		var me = this;
+		/* END: var */
+		me.hideLocationBar = function() {
 			window.scrollTo(0, 1);
 		};
-		MyAnswersDevice.hideView = function(reverseTransition) {
+		/**
+		 * hide the current view, and prepare the new view for display
+		 * @param {jQuery} $view the jQuery-selected element that will be shown
+		 * @param {Boolean} reverseTransition toggle transition direction
+		 * @return {jQueryPromise}
+		 */
+		me.prepareView = function($view, reverseTransition) {
 			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
-				var entranceDirection = (reverseTransition ? 'left' : 'right'),
-					endPosition = (reverseTransition ? 'right' : 'left'),
-					startPosition = (reverseTransition ? 'left' : 'right'),
-					$view = $('.view:visible'),
-					$navBoxHeader = $('#navBoxHeader');
-				if ($view.size() < 1) {
-					deferred.resolve();
-					return deferred.promise();
-				}
-				if (currentConfig.footerPosition !== 'screen-bottom') {
+				var endPosition = (reverseTransition ? 'right' : 'left'),
+				startPosition = (reverseTransition ? 'left' : 'right'),
+				$oldView = $('.view:visible'),
+				$navBoxHeader = $('#navBoxHeader');
+				/* END: var */
+				// transition the current view away
+				if (window.currentConfig.footerPosition !== 'screen-bottom') {
 					MyAnswers.$body.children('footer').addClass('hidden');
 				}
-				MyAnswers.dispatch.pause('hideView');
+				if ($oldView.size() < 1) {
+					deferred.resolve();
+					return;
+				}
+				MyAnswers.dispatch.pause('prepareView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
-				$view.addClass('animating');
-				$view.bind('webkitTransitionEnd', function(event) {
-					$view.unbind('webkitTransitionEnd');
-					$view.hide();
-					$view.removeClass('animating slid' + endPosition);
+				$oldView.addClass('animating');
+				$oldView.one('webkitTransitionEnd', function(event) {
+					$oldView.hide();
+					$oldView.removeClass('animating slid' + endPosition);
 					MyAnswers.dispatch.resume('hideView');
 					deferred.resolve();
 				});
 				setTimeout(function() {
-					$view.addClass('slid' + endPosition);
+					$oldView.addClass('slid' + endPosition);
 				}, 0);
 			});
 			return deferred.promise();
 		};
-		MyAnswersDevice.showView = function($view, reverseTransition) {
+		me.showView = function($view, reverseTransition) {
 			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
-				var entranceDirection = (reverseTransition ? 'left' : 'right'),
-					endPosition = (reverseTransition ? 'right' : 'left'),
-					startPosition = (reverseTransition ? 'left' : 'right');
+				var endPosition = (reverseTransition ? 'right' : 'left'),
+				startPosition = (reverseTransition ? 'left' : 'right');
+				/* END: var */
 				MyAnswers.dispatch.pause('showView');
-				MyAnswersDevice.hideLocationBar();
+				me.hideLocationBar();
+				// move the incoming $view offscreen for compositing
 				$view.hide();
 				$view.addClass('slid' + startPosition);
 				$view.show();
-				$view.bind('webkitTransitionEnd', function(event) {
-					$view.unbind('webkitTransitionEnd');
+				$view.one('webkitTransitionEnd', function(event) {
 					$view.removeClass('animating');
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
@@ -144,8 +152,9 @@ function onDeviceReady() {
 			});
 			return deferred.promise();
 		};
-		return MyAnswersDevice;
+		return me;
 	};
+	/* END: var */
 	window.MyAnswersDevice = new MyAnswersDevice();
 }(this));
 
