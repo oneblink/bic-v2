@@ -3255,10 +3255,29 @@ MyAnswers.updateLocalStorage = function() {
 		});
 		
 		$.when(MyAnswers.mainDeferred.promise()).then(function() {
-			Modernizr.load([{
-				test: window.JSON,
-				nope: '/_c_/json2.min.js'
-			}, {
+			var dfrdJSON = new $.Deferred(),
+			dfrdXPath = new $.Deferred(),
+			dfrdXSLT = new $.Deferred(),
+			dfrdHistory = new $.Deferred();
+			/* END: var */
+			// poly-fill JSON
+			Modernizr.load({
+				test: window.JSON && window.JSON.stringify,
+				nope: '/_c_/json2.min.js',
+				callback: function(url, result, key) {
+					if (window.JSON) {
+						dfrdJSON.resolve();
+					} else {
+						dfrdJSON.reject();
+						error('Modernizr.load(): failed to poly-fill JSON');
+					}
+				}
+			});
+			if (window.JSON && window.JSON.stringify) {
+				dfrdJSON.resolve();
+			}
+			// poly-fill XPath
+			Modernizr.load({
 				test: window.XSLTProcessor && Modernizr.xpath,
 				nope: [
 					'/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
@@ -3267,29 +3286,70 @@ MyAnswers.updateLocalStorage = function() {
 					// TODO: figure out how to test if the above scripts are needed
 					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
 				],
-				complete: function() {
-					log('Modernizr.load(): XPath supported ' + (Modernizr.xpath ? 'natively' : 'via AJAXSLT'));
+				callback: function(url, result, key) {
+					if (key !== 3) {
+						return; // only run this for the last script
+					}
+					if (window.xpathParse) {
+						log('Modernizr.load(): XPath supported via AJAXSLT');
+						dfrdXPath.resolve();
+					} else {
+						error('Modernizr.load(): failed to poly-fill XPath');
+						dfrdXPath.reject();
+					}
 				}
-			}, {
-				test: window.XSLTProcessor,
-				nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js',
-				complete: function() {
-					log('Modernizr.load(): XSLT supported ' + (window.XSLTProcessor ? 'natively' : 'via AJAXSLT'));
-				}
-			}, {
+			});
+			if (window.XSLTProcessor && Modernizr.xpath) {
+				log('Modernizr.load(): XPath supported natively');
+				dfrdXPath.resolve();
+			}
+			// poly-fill XSLT, after XPath
+			$.when(dfrdXPath.promise())
+			.fail(dfrdXSLT.reject)
+			.then(function() {
+				Modernizr.load({
+					test: window.XSLTProcessor,
+					nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js',
+					callback: function(url, result, key) {
+						if (window.xsltProcess) {
+							log('Modernizr.load(): XSLT supported via AJAXSLT');
+							dfrdXSLT.resolve();
+						} else {
+							error('Modernizr.load(): failed to poly-fill XSLT');
+							dfrdXSLT.reject();
+						}
+					}
+				});
+			});
+			if (window.XSLTProcessor) {
+				log('Modernizr.load(): XSLT supported natively');
+				dfrdXSLT.resolve();
+			}
+			// load History.JS, required for all navigation and state management
+			Modernizr.load({
 				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
 				yep: '/_c_/historyjs/history-1.7.1-r2.html5.min.js',
 				nope: '/_c_/historyjs/history-1.7.1-r2.min.js',
-				callback: function(url, result) {
-					log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
+				callback: function(url, result, key) {
+					if (window.History) {
+						log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
+						dfrdHistory.resolve();
+					} else {
+						error('Modernizr.load(): failed to load History.JS');
+						dfrdHistory.reject();
+					}
 				}
-			}, {
-				complete: function() {
-					$('#startUp-loadPolyFills').addClass('success');
-					$('#startUp-initBrowser').addClass('working');
-					setTimeout(onBrowserReady, window.device ? 2000 : 193);
-				}
-			}]);
+			});
+			$.when(dfrdJSON.promise(), dfrdXPath.promise(), dfrdXSLT.promise(), dfrdHistory.promise())
+			.fail(function() {
+				$('#startUp-loadPolyFills').addClass('error');
+				$('#startUp').append('<p>error: refresh the application or clear cache and try again</p>');
+			})
+			.then(function() {
+				$('#startUp-loadPolyFills').addClass('success');
+				$('#startUp-initBrowser').addClass('working');
+				setTimeout(onBrowserReady, window.device ? 2000 : 193);
+			});
 		});
 	});
 
