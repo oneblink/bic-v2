@@ -437,9 +437,9 @@ function generateMojoAnswer(args) {
 						condition = condition.substr(4);
 					}
 					if (condition.length > 0) {
-						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+						xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
 					} else {
-						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(false())');
+						xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(false())');
 					}
 				}
 				if (typeof xml === 'string') {
