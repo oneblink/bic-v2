@@ -427,19 +427,19 @@ function generateMojoAnswer(args) {
 					type = xsl.match(/blink-stars\(([@\w.]+),\W*(\w+)\W*\)/);
 					if (!type) {
 						error('generateMojoAnswer(): null RegExp match for "blink-stars"');
-						continue;
-					}
-					condition = '';
-					variable = type[1];
-					type = type[2];
-					if ($.type(starsProfile[type]) === 'object') {
-						$.each(starsProfile[type], conditionStarFn);
-						condition = condition.substr(4);
-					}
-					if (condition.length > 0) {
-						xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
 					} else {
-						xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(false())');
+						condition = '';
+						variable = type[1];
+						type = type[2];
+						if ($.type(starsProfile[type]) === 'object') {
+							$.each(starsProfile[type], conditionStarFn);
+							condition = condition.substr(4);
+						}
+						if (condition.length > 0) {
+							xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+						} else {
+							xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(false())');
+						}
 					}
 				}
 				if (typeof xml === 'string') {
@@ -843,7 +843,7 @@ function updateNavigationButtons() {
 	});
 }
 
-function initialiseAnswerFeatures($view, afterPost) {
+function initialiseAnswerFeatures($view) {
 	log('initialiseAnswerFeatures(): view=' + $view.attr('id'));
 	var deferred = new $.Deferred(),
 		promises = [],
@@ -851,7 +851,7 @@ function initialiseAnswerFeatures($view, afterPost) {
 		current = $.type(currentInteraction) === 'string' ? currentInteraction : String(currentInteraction),
 		prompt = $.type(currentConfig.loginPromptInteraction) === 'string' ? currentConfig.loginPromptInteraction : String(currentConfig.loginPromptInteraction);
 	// loginUseInteractions
-	if (afterPost && currentConfig.loginAccess && currentConfig.loginUseInteractions && prompt === current) {
+	if (currentConfig.loginAccess && currentConfig.loginUseInteractions && prompt === current) {
 		oldLoginStatus = MyAnswers.isLoggedIn;
 		$.when(requestLoginStatus()).always(function() {
 			if (MyAnswers.isLoggedIn !== oldLoginStatus) {
@@ -2240,11 +2240,12 @@ function goBackToTopLevelAnswerView(event) {
 
 function submitFormWithRetry(data) {
 	var str, arr, method, uuid,
-		localKeyword,
-		answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
-		$view = $('.view:visible'),
-		$box = $view.children('.box').first(),
-		requestData;;
+	localKeyword,
+	answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+	$view = $('.view:visible'),
+	$box = $view.children('.box').first(),
+	requestData;
+	/* END: var */
 	if ($.type(data) === 'object') {
 		str = data.data;
 		arr = data.action.split("/");
