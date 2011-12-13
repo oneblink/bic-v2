@@ -361,7 +361,6 @@ function isHome() {
 function generateMojoAnswer(args) {
 	log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
 	var deferred = new $.Deferred(),
-		type,
 		xml,
 		xsl = currentConfig.xsl,
 		placeholders, p, pLength,
@@ -398,6 +397,7 @@ function generateMojoAnswer(args) {
 		return deferred.promise();
 	}
 	MyAnswers.dispatch.add(function() {
+		var type;
 		if (currentConfig.mojoType === 'stars' || currentConfig.xml.substr(0,6) === 'stars:') { // use starred items
 			type = currentConfig.xml.replace(/^stars:/, '');
 			xml = '';
@@ -417,12 +417,19 @@ function generateMojoAnswer(args) {
 				deferred.resolve(html);
 			});
 		} else {
-			$.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml)).always(function(xml) {
+			$.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml))
+			.always(function(xml) {
 				var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
-					hosted = '<p>Please try again in 30 seconds.</p>';
+				hosted = '<p>Please try again in 30 seconds.</p>',
+				type;
+				/* END: var */
 				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
+					type = xsl.match(/blink-stars\(([@\w.]+),\W*(\w+)\W*\)/);
+					if (!type) {
+						error('generateMojoAnswer(): null RegExp match for "blink-stars"');
+						continue;
+					}
 					condition = '';
-					type = xsl.match(/blink-stars\(([@\w]+),\W*(\w+)\W*\)/);
 					variable = type[1];
 					type = type[2];
 					if ($.type(starsProfile[type]) === 'object') {
@@ -434,7 +441,6 @@ function generateMojoAnswer(args) {
 					} else {
 						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(false())');
 					}
-					log('generateMojoAnswer(): condition=' + condition);
 				}
 				if (typeof xml === 'string') {
 					$.when(performXSLT(xml, xsl)).done(function(html) {
