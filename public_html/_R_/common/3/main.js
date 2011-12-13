@@ -361,7 +361,6 @@ function isHome() {
 function generateMojoAnswer(args) {
 	log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
 	var deferred = new $.Deferred(),
-		type,
 		xml,
 		xsl = currentConfig.xsl,
 		placeholders, p, pLength,
@@ -398,6 +397,7 @@ function generateMojoAnswer(args) {
 		return deferred.promise();
 	}
 	MyAnswers.dispatch.add(function() {
+		var type;
 		if (currentConfig.mojoType === 'stars' || currentConfig.xml.substr(0,6) === 'stars:') { // use starred items
 			type = currentConfig.xml.replace(/^stars:/, '');
 			xml = '';
@@ -417,24 +417,30 @@ function generateMojoAnswer(args) {
 				deferred.resolve(html);
 			});
 		} else {
-			$.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml)).always(function(xml) {
+			$.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml))
+			.always(function(xml) {
 				var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
-					hosted = '<p>Please try again in 30 seconds.</p>';
+				hosted = '<p>Please try again in 30 seconds.</p>',
+				type;
+				/* END: var */
 				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
-					condition = '';
-					type = xsl.match(/blink-stars\(([@\w]+),\W*(\w+)\W*\)/);
-					variable = type[1];
-					type = type[2];
-					if ($.type(starsProfile[type]) === 'object') {
-						$.each(starsProfile[type], conditionStarFn);
-						condition = condition.substr(4);
-					}
-					if (condition.length > 0) {
-						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+					type = xsl.match(/blink-stars\(([@\w.]+),\W*(\w+)\W*\)/);
+					if (!type) {
+						error('generateMojoAnswer(): null RegExp match for "blink-stars"');
 					} else {
-						xsl = xsl.replace(/\(?blink-stars\(([@\w]+),\W*(\w+)\W*\)\)?/, '(false())');
+						condition = '';
+						variable = type[1];
+						type = type[2];
+						if ($.type(starsProfile[type]) === 'object') {
+							$.each(starsProfile[type], conditionStarFn);
+							condition = condition.substr(4);
+						}
+						if (condition.length > 0) {
+							xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
+						} else {
+							xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(false())');
+						}
 					}
-					log('generateMojoAnswer(): condition=' + condition);
 				}
 				if (typeof xml === 'string') {
 					$.when(performXSLT(xml, xsl)).done(function(html) {
@@ -837,7 +843,7 @@ function updateNavigationButtons() {
 	});
 }
 
-function initialiseAnswerFeatures($view, afterPost) {
+function initialiseAnswerFeatures($view) {
 	log('initialiseAnswerFeatures(): view=' + $view.attr('id'));
 	var deferred = new $.Deferred(),
 		promises = [],
@@ -845,7 +851,7 @@ function initialiseAnswerFeatures($view, afterPost) {
 		current = $.type(currentInteraction) === 'string' ? currentInteraction : String(currentInteraction),
 		prompt = $.type(currentConfig.loginPromptInteraction) === 'string' ? currentConfig.loginPromptInteraction : String(currentConfig.loginPromptInteraction);
 	// loginUseInteractions
-	if (afterPost && currentConfig.loginAccess && currentConfig.loginUseInteractions && prompt === current) {
+	if (currentConfig.loginAccess && currentConfig.loginUseInteractions && prompt === current) {
 		oldLoginStatus = MyAnswers.isLoggedIn;
 		$.when(requestLoginStatus()).always(function() {
 			if (MyAnswers.isLoggedIn !== oldLoginStatus) {
@@ -2234,11 +2240,12 @@ function goBackToTopLevelAnswerView(event) {
 
 function submitFormWithRetry(data) {
 	var str, arr, method, uuid,
-		localKeyword,
-		answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
-		$view = $('.view:visible'),
-		$box = $view.children('.box').first(),
-		requestData;;
+	localKeyword,
+	answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+	$view = $('.view:visible'),
+	$box = $view.children('.box').first(),
+	requestData;
+	/* END: var */
 	if ($.type(data) === 'object') {
 		str = data.data;
 		arr = data.action.split("/");
