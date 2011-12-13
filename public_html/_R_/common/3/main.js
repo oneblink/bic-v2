@@ -423,23 +423,19 @@ function generateMojoAnswer(args) {
 				hosted = '<p>Please try again in 30 seconds.</p>',
 				type;
 				/* END: var */
-				while (xsl.indexOf('blink-stars(') !== -1) {// fix star lists
-					type = xsl.match(/blink-stars\(([@\w.]+),\W*(\w+)\W*\)/);
-					if (!type) {
-						error('generateMojoAnswer(): null RegExp match for "blink-stars"');
+				// fix star lists
+				while (type = xsl.match(/blink-stars\(([@\w.]+),\W*(\w+)\W*\)/)) {
+					condition = '';
+					variable = type[1];
+					type = type[2];
+					if ($.type(starsProfile[type]) === 'object') {
+						$.each(starsProfile[type], conditionStarFn);
+						condition = condition.substr(4);
+					}
+					if (condition.length > 0) {
+						xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
 					} else {
-						condition = '';
-						variable = type[1];
-						type = type[2];
-						if ($.type(starsProfile[type]) === 'object') {
-							$.each(starsProfile[type], conditionStarFn);
-							condition = condition.substr(4);
-						}
-						if (condition.length > 0) {
-							xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(' + condition + ')');
-						} else {
-							xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(false())');
-						}
+						xsl = xsl.replace(/\(?blink-stars\(([@\w.]+),\W*(\w+)\W*\)\)?/, '(false())');
 					}
 				}
 				if (typeof xml === 'string') {
