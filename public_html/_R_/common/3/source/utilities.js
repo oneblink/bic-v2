@@ -25,7 +25,7 @@
 	});
 
 	// re-route messages now that we are ready
-	$(document).ready(function() {
+	function initialise() {
 		console = window.console || window.debug || { log: $.noop };
 		$.each(fns, function(index, fn) {
 			var type = $.type(console[fn]);
@@ -54,7 +54,13 @@
 			}
 		});
 		delete early;
-	});
+	}
+
+	if (window.PhoneGap) {
+		$(document).bind('deviceready', initialise);
+	} else {
+		$(document).ready(initialise);
+	}
 }(this));
 
 /* new tests for Modernizr */
