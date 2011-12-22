@@ -293,7 +293,7 @@ function resolveItemName(name, level) {
 		return name;
 	}
 	if (typeof name !== 'string') {return false;}
-	name = name.replace(/\+/g, ' ').toLowerCase();
+	name = decodeURI(name.replace(/\+/g, ' ').toLowerCase());
 	list = siteVars.map[level];
 	lLength = list.length;
 	for (l = 0; l < lLength; l++) {
@@ -3282,15 +3282,15 @@ MyAnswers.updateLocalStorage = function() {
 			// poly-fill XPath
 			Modernizr.load({
 				test: window.XSLTProcessor && Modernizr.xpath,
-				nope: [
-					'/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
-					'/_c_/ajaxslt/0.8.1-r61/util.min.js',
-					'/_c_/ajaxslt/0.8.1-r61/dom.min.js',
+				nope: {
+					'xml': '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
+					'util': '/_c_/ajaxslt/0.8.1-r61/util.min.js',
+					'dom': '/_c_/ajaxslt/0.8.1-r61/dom.min.js',
 					// TODO: figure out how to test if the above scripts are needed
-					'/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
-				],
+					'xpath': '/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
+				},
 				callback: function(url, result, key) {
-					if (key !== 3) {
+					if (key !== 'xpath') {
 						return; // only run this for the last script
 					}
 					if (window.xpathParse) {
