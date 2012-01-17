@@ -293,7 +293,7 @@ function resolveItemName(name, level) {
 		return name;
 	}
 	if (typeof name !== 'string') {return false;}
-	name = name.replace(/\+/g, ' ').toLowerCase();
+	name = decodeURI(name.replace(/\+/g, ' ').toLowerCase());
 	list = siteVars.map[level];
 	lLength = list.length;
 	for (l = 0; l < lLength; l++) {
