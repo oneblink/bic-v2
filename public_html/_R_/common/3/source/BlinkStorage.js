@@ -11,25 +11,26 @@
  * the more neutral "partition" and "section", respectively.
  */
 
+/*jslint plusplus:true, white:true*/
 
 (function(window, undefined) {
-	var webSqlDbs = {}, // store open handles to databases (websqldatabase)
-	navigator = window.navigator,
-	localStorage = window.localStorage,
-	sessionStorage = window.sessionStorage,
+	'use strict';
+	var available,
 	$ = window.jQuery,
-	log, error, warn, info; // logging functions
-	/* END: var */
-	
-	if (!$) {
-		alert('error: BlinkStorage.JS requires jQuery to be loaded first');
-		return;
-	}
-	log = typeof window.log === 'function' ? window.log : $.noop;
-	error = typeof window.error === 'function' ? window.error : $.noop;
-	warn = typeof window.warn === 'function' ? window.warn : $.noop;
-	info = typeof window.info === 'function' ? window.info : $.noop;
-	
+	alert = window.alert,
+	// for websqldatabase
+	estimatedSize,
+	webSqlDbs = {}, // store open handles to databases (websqldatabase)
+	errorHandler,
+	openSection,
+	openWebSQL,
+	 // logging functions
+	logger = {}, 
+	log, error, warn, info,
+	/**
+	 * @inner
+	 * @construct
+	 */
 	BlinkStorage = function(type, partition, section) {
 		var self = this,
 			readyDeferred = new $.Deferred(),
@@ -64,7 +65,7 @@
 		
 		if (type === 'localstorage' || type === 'sessionstorage') {
 
-			db = (type === 'localstorage') ? localStorage : sessionStorage;
+			db = (type === 'localstorage') ? window.localStorage : window.sessionStorage;
 
 			self.get = function(key) {
 				var dfrd = new $.Deferred();
@@ -117,7 +118,7 @@
 
 		} else if (type === 'websqldatabase') {
 			
-			var estimatedSize = (window.device ? 5 : 0.75) * 1024 * 1024,
+			estimatedSize = (window.device ? 5 : 0.75) * 1024 * 1024;
 			/* @inner */
 			errorHandler = function(arg1, arg2) {
 				var sqlError = arg2 && arg1.executeSql ? arg2 : arg1;
@@ -126,7 +127,7 @@
 					alert('storage-error: ' + sqlError.code + '\n' + sqlError.message);
 				}
 				return false;
-			},
+			};
 			/* @inner */
 			openSection = function() {
 				db.transaction(function(tx) {
@@ -137,11 +138,11 @@
 						readyDeferred.reject
 					);
 				}, errorHandler, $.noop);
-			},
+			};
 			/* @inner */
 			openWebSQL = function() {
 				try {
-					db = openDatabase(partition, '1.0', partition, estimatedSize);
+					db = window.openDatabase(partition, '1.0', partition, estimatedSize);
 					webSqlDbs[partition] = db;
 					// fix for Android and others with incomplete WebSQL implementation
 					db.readTransaction = db.readTransaction || db.transaction;
@@ -150,7 +151,6 @@
 					throw 'BlinkStorage: ' + error;
 				}
 			};
-			/* END: var */
 			
 			// cache SQL so each string only occupies memory once per DB
 			sql = {
@@ -190,32 +190,53 @@
 			
 			self.set = function(key, value, attempts) {
 				var deferred = new $.Deferred(),
-					promise = deferred.promise();
-				attempts = typeof attempts !== 'number' ? 1 : attempts;
+				dfrdSQL = new $.Deferred(),
+				retryFn = function() {
+					setTimeout(function() { // retry after 2 seconds
+						$.when(self.set(key, value, attempts))
+						.fail(deferred.reject)
+						.then(deferred.resolve);
+					}, 2 * 1000);
+				};
+				/* END: var */
+				attempts = typeof attempts !== 'number' ? 2 : attempts;
 				if (attempts-- <= 0) {
 					deferred.reject();
+					return deferred.promise();
 				}
-				db.transaction(function(tx) {
-					tx.executeSql(sql.set, [ key, value ], 
-						function(tx, result) { // SQL success handler
-							if (result.rowsAffected !== 1) {
-								error('BlinkStorage: INSERT did not affect 1 row');
-								deferred.reject();
-							} else {
-								deferred.resolve();
-							}
-						},
-						function(tx, sqlError) { // SQL error handler
-							$.when(self.set(key, value, attempts))
-							.fail(function(sqlError) {
+				// perform transaction
+				setTimeout(function() {
+					db.transaction(function(tx) {
+						// execute INSERT OR REPLACE statement
+						tx.executeSql(sql.set, [ key, value ], 
+							function(tx, result) { // SQL success handler
+								if (result.rowsAffected !== 1) {
+									error('BlinkStorage: INSERT did not affect 1 row');
+									retryFn();
+								} else {
+									dfrdSQL.resolve();
+								}
+							},
+							function(tx, sqlError) { // SQL error handler
 								errorHandler(sqlError);
-								deferred.reject();
-							})
-							.then(deferred.resolve());
+								retryFn();
+							}
+						);
+					},
+					function(tx, sqlError) { // transaction error handler
+						errorHandler(tx, sqlError);
+						retryFn();
+					},
+					function() { // transaction success handler
+						if (dfrdSQL.state() === 'pending') {
+							// if TX finishes before SQL then we have a problem
+							retryFn();
+						} else {
+							deferred.resolve();
 						}
-					);
-				}, errorHandler, $.noop); // transaction handlers
-				return promise;
+					});
+				}, 0);
+				return deferred.promise();
 			};
 	
 			self.remove = function(key) {
@@ -316,8 +337,26 @@
 		}
 		return this;
 	};
-	BlinkStorage.prototype.available = [];
-	var available = BlinkStorage.prototype.available;
+	/* END: var */
+	
+	if (!$) {
+		alert('error: BlinkStorage.JS requires jQuery to be loaded first');
+		return;
+	}
+	
+	// setup loggers
+	$.each(['log', 'error', 'warn', 'info'], function(index, fn) {
+		logger[fn] = function() {
+			if (window[fn]) {
+				window[fn].apply(window, arguments);
+			}
+		};
+	});
+	log = logger.log;
+	error = logger.error;
+	warn = logger.warn;
+	info = logger.info;
+	
 	BlinkStorage.prototype.removeKeysRegExp = function(regexp) {
 		var store = this,
 			deferred = new $.Deferred(function(dfrd) {
@@ -334,6 +373,10 @@
 		});
 		return deferred.promise();
 	};
+	
+	// perform engine detection
+	BlinkStorage.prototype.available = [];
+	available = BlinkStorage.prototype.available;
 	// TODO: add detection for indexedDB
 	if (typeof window.openDatabase !== 'undefined') {
 		available.push('websqldatabase');
@@ -348,5 +391,6 @@
 	if (typeof window.log === 'function') {
 		info('BlinkStorage(): available=[' + available.join(',') + ']');
 	}
+	
+	window.BlinkStorage = BlinkStorage;
 }(this));
-  
