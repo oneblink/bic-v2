@@ -32,10 +32,9 @@ MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
 // *** BEGIN UTILS ***
 
 function isCameraPresent() {
-	if (typeof window.device === 'undefined') {
-		return false;
-	}
-	return window.device.camerapresent;
+	var test = isBlinkGapDevice();
+	info('isBlinkGapDevice(): ' + test);
+	return test && window.device.camerapresent;
 }
 
 function triggerScroll(event) {
@@ -1481,7 +1480,7 @@ function processMoJOs(interaction) {
 }
 
 function processForms() {
-	var dispatch = new BlinkDispatch(31),
+	var dispatch = new BlinkDispatch(0),
 	ajaxDeferred = new $.Deferred(),
 	libraryDeferred = new $.Deferred(),
 	promises = [ libraryDeferred.promise(), ajaxDeferred.promise() ],
@@ -2417,28 +2416,6 @@ function submitAction(keyword, action) {
 	return false;
 }
 
-MyAnswers.updateLocalStorage = function() {
-	/*
-	 * version 0 = MoJOs stored in new format, old siteConfig removed
-	 */
-	var deferred = new $.Deferred(function(dfrd) {
-		$.when(MyAnswers.store.get('storageVersion')).done(function(value) {
-			if (!value) {
-				$.when(
-					MyAnswers.store.set('storageVersion', 0),
-					MyAnswers.store.remove('siteConfigMessage'),
-					MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
-				).done(function() {
-					dfrd.resolve();
-				});
-			} else {
-				dfrd.resolve();
-			}
-		});
-	});
-	return deferred.promise();
-};
-
 // *** BEGIN APPLICATION INIT ***
 
 /* moving non-public functions into a closure for safety */
@@ -2471,7 +2448,7 @@ MyAnswers.updateLocalStorage = function() {
 																	 }, 
 																	 "First Run", 
 																	 "Close App");
-			deferred.resolve();                                                                                                                       
+			// we do not resolve here, the only way out is to terminate
 			log("fixWebSQL(): quota increase: " + quotaIncrease);
 		},
 		/* @inner */
@@ -2482,7 +2459,7 @@ MyAnswers.updateLocalStorage = function() {
 			/* END: var */
 			log("fixWebSQL(): allocatedSpace=" + allocatedSpace + ' currentQuota=' + currentQuota);
 			if (currentQuota < MyAnswers.device.storageQuota) {
-				navigator.gap_database.increaseQuota(increaseQuota_Success, null, options);
+				navigator.gap_database.increaseQuota(increaseQuota_Success, deferred.reject, options);
 			} else {
 				deferred.resolve();
 			}
@@ -2494,7 +2471,7 @@ MyAnswers.updateLocalStorage = function() {
 			log('fixWebSQL(): requestedQuota=' + MyAnswers.device.storageQuota);
 			try {
 				db = openDatabase(siteVars.answerSpace, '1.0', siteVars.answerSpace, 1024 * 1024);
-				navigator.gap_database.getLimits(getDBLimits_Success, null, null);
+				navigator.gap_database.getLimits(getDBLimits_Success, deferred.reject, null);
 			} catch(error) {
 				deferred.reject();
 				log(error);
@@ -2509,6 +2486,28 @@ MyAnswers.updateLocalStorage = function() {
 	}
 
 /* *** HELPER FUNCTIONS *** */
+
+	function updateLocalStorage() {
+		/*
+		 * version 0 = MoJOs stored in new format, old siteConfig removed
+		 */
+		var dfrd = new $.Deferred();
+		$.when(MyAnswers.store.get('storageVersion'))
+		.always(function(value) {
+			if (!value) {
+				$.when(
+					MyAnswers.store.set('storageVersion', 0),
+					MyAnswers.store.remove('siteConfigMessage'),
+					MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
+				).always(function() {
+					dfrd.resolve();
+				});
+			} else {
+				dfrd.resolve();
+			}
+		});
+		return dfrd.promise();
+	}
 
 	/**
 	 * remove hash / anchor / fragments from a state object destined for History
@@ -3004,7 +3003,7 @@ MyAnswers.updateLocalStorage = function() {
 		log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
 
 		ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
-		MyAnswers.dispatch = new BlinkDispatch(siteVars.serverAppBranch === 'W' ? 149 : 47);
+		MyAnswers.dispatch = new BlinkDispatch(isBlinkGapDevice() ? 149 : 47);
 
 		MyAnswers.runningTasks = 0; // track the number of tasks in progress
 
@@ -3024,17 +3023,16 @@ MyAnswers.updateLocalStorage = function() {
 		$window.bind('offline', onNetworkChange);
 		onNetworkChange(); // $window.trigger('online');
 
-		if (siteVars.serverAppBranch === 'W') {
+		if (isBlinkGapDevice()) {
 			storeEngine = null; // native application should always use auto-select
+			if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
+				dfrdFixWebSQL = fixWebSQL();
+			} else {
+				dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
+			}
 		} else if (navigator.userAgent.indexOf('Android') !== -1) {
 			// Android has problems with persistent storage
 			storeEngine = 'sessionstorage';
-		}
-
-		if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
-			dfrdFixWebSQL = fixWebSQL();
-		} else {
-			dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
 		}
 		
 		$.when(dfrdFixWebSQL)
@@ -3047,20 +3045,22 @@ MyAnswers.updateLocalStorage = function() {
 			loadedPromises.push(MyAnswers.pendingStore.ready());
 			MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
 			loadedPromises.push(MyAnswers.pendingV1Store.ready());
-		});
-
-		$.whenArray(loadedPromises)
-		.fail(function() {
-			$('#startUp-initMain').addClass('error');
-			throw('initMain(): unable to initialise device storage');
-		})
-		.then(function() {
-			$.when(MyAnswers.updateLocalStorage()).done(function() {
-				$('#startUp-initMain').addClass('success');
-				$('#startUp-initLoaded').addClass('working');
-				loaded();
-				log('loaded(): returned after call by BlinkStorage');
+			
+			$.whenArray(loadedPromises)
+			.fail(function() {
+				$('#startUp-initMain').addClass('error');
+				throw('initMain(): unable to initialise device storage');
+			})
+			.then(function() {
+				$.when(updateLocalStorage())
+				.always(function() {
+					$('#startUp-initMain').addClass('success');
+					$('#startUp-initLoaded').addClass('working');
+					loaded();
+					log('loaded(): returned after call by BlinkStorage');
+				});
 			});
+			log('init_main(): finished...');
 		});
 	}
 	
@@ -3174,10 +3174,10 @@ MyAnswers.updateLocalStorage = function() {
 			 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
 			 */
 
-			if (siteVars.serverAppBranch === 'W') {
+			if (isBlinkGapDevice()) {
 				MyAnswers.blinkgapDeferred = new $.Deferred();
 				$('#startUp-initBlinkGap').addClass('working');
-				if (window.device && window.device.ready) {
+				if (window.PhoneGap.available) {
 					onDeviceReady();
 				} else {
 					if (!addEvent(document, "deviceready", onDeviceReady)) {
@@ -3229,7 +3229,8 @@ MyAnswers.updateLocalStorage = function() {
 		log('init failed, not all promises kept');
 	});
 
-	// load in JSON and XSLT polyfills if necessary
+	// *** DOM DOCUMENT READY ***
+
 	$(document).ready(function() {
 		$('#startUp-loadPolyFills').addClass('working');
 		
@@ -3257,7 +3258,8 @@ MyAnswers.updateLocalStorage = function() {
 				log('AJAX start: ' + url);
 		});
 		
-		$.when(MyAnswers.mainDeferred.promise()).then(function() {
+		$.when(MyAnswers.mainDeferred.promise())
+		.then(function() { // load in JSON and XSLT polyfills if necessary
 			var dfrdJSON = new $.Deferred(),
 			dfrdXPath = new $.Deferred(),
 			dfrdXSLT = new $.Deferred(),
