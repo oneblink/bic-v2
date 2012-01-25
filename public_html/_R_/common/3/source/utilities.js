@@ -3,80 +3,17 @@
  * if Modernizr is being used, please include this after Modernizr
  */
 
-/*jslint browser: true, plusplus: true, white: true */
-
-(function(window, undefined) {
-	'use strict';
-	var $ = window.jQuery,
-	Math = window.Math;
-	/* END: var */
-	
-	// detect BlinkGap / PhoneGap / Callback
-	window.isBlinkGapDevice = function() {
-		return window.PhoneGap && $.type(window.device) === 'object' && window.device instanceof window.Device;
-	};
-
-	window.computeTimeout = function(messageLength) {
-		var lowestTransferRateConst = 1000 / (4800 / 8);
-			// maxTransactionTimeout = 180 * 1000;
-		return Math.floor((messageLength * lowestTransferRateConst) + 15000);
-	};
-
-}(this));
-
 /* logging functions 
  * initialises log(), error(), warn(), info() in the global context
  */
 (function(window, undefined) {
-	'use strict';
 	var $ = window.jQuery,
-	$document = $(window.document),
-	early = { // catch messages from before we are ready
-		history: []
-	},
-	console,
-	fns = ['log', 'error', 'warn', 'info'],
-	/**
-	 * re-route messages now that we are ready
-	 * @inner
-	 */
-	initialise = function() {
-		$document.off('ready deviceready', initialise);
-		setTimeout(function() { // force thread-switch for PhoneGap
-			console = window.console || window.debug || { log: $.noop };
-			$.each(fns, function(index, fn) {
-				var type = $.type(console[fn]);
-				if (type === 'function') {
-					window[fn] = function() {
-						console[fn].apply(console, arguments);
-					};
-				} else if (type === 'object') {
-					window[fn] = function(message) {
-						console[fn](message);
-					};
-				} else if (fn !== 'log') {
-					window[fn] = window.log;
-				} else {
-					window[fn] = $.noop;
-				}
-			});
-			// playback early messages
-			$.each(early.history, function(index, message) {
-				var fn = window[message.fn],
-					type = $.type(fn);
-				if (type === 'function') {
-					fn.apply(console, message.arguments);
-				} else if (type === 'object') {
-					fn(message.arguments[0]);
-				}
-			});
-			// discard unused objects
-			delete early.history;
-			$.each(fns, function(index, fn) {
-				delete early[fn];
-			});
-		}, 0);
-	};
+		document = window.document,
+		early = { // catch messages from before we are ready
+			history: []
+		},
+		console,
+		fns = ['log', 'error', 'warn', 'info'];
 
 	// setup routing for early messages
 	console = early;
@@ -87,42 +24,63 @@
 		window[fn] = console[fn];
 	});
 
-	// wait until we are ready to start real routing
-	if (window.PhoneGap && !window.PhoneGap.available) {
-		$document.on('deviceready', initialise);
-		setTimeout(function() {
-			if (early) {
-				initialise();
+	// re-route messages now that we are ready
+	function initialise() {
+		console = window.console || window.debug || { log: $.noop };
+		$.each(fns, function(index, fn) {
+			var type = $.type(console[fn]);
+			if (type === 'function') {
+				window[fn] = function() {
+					console[fn].apply(console, arguments);
+				}
+			} else if (type === 'object') {
+				window[fn] = function() {
+					console[fn](arguments[0]);
+				}
+			} else if (fn !== 'log') {
+				window[fn] = window.log;
+			} else {
+				window[fn] = $.noop;
 			}
-		}, 5 * 1000);
+		});
+		// playback early messages
+		$.each(early.history, function(index, message) {
+			var fn = window[message.fn],
+				type = $.type(fn);
+			if (type === 'function') {
+				fn.apply(console, message.arguments);
+			} else if (type === 'object') {
+				fn(message.arguments[0]);
+			}
+		});
+		delete early;
+	}
+
+	if (window.PhoneGap) {
+		$(document).bind('deviceready', initialise);
 	} else {
-		$document.on('ready', initialise);
+		$(document).ready(initialise);
 	}
 }(this));
 
 /* new tests for Modernizr */
 (function(window, undefined) {
-	'use strict';
 	var Modernizr = window.Modernizr,
-	document = window.document,
-	$ = window.jQuery;
-	/* END: var */
+		document = window.document;
 	
 	if (!Modernizr) {
-		window.warn('Blink tests for Modernizr cannot run without Modernizr loaded first');
 		return;
 	}
 	
 	Modernizr.addTest('positionfixed', function () {
-		var test = document.createElement('div'),
-		fake = false,
-		root = document.body || (function () {
-			fake = true;
-			return document.documentElement.appendChild(document.createElement('body'));
-		}()),
-		oldCssText = root.style.cssText,
+		var test  = document.createElement('div'),
+			fake = false,
+			root = document.body || (function () {
+				fake = true;
+				return document.documentElement.appendChild(document.createElement('body'));
+			}());
+		var oldCssText = root.style.cssText,
 		ret, offset;
-		/* END: var */
 		root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
 		test.style.cssText = 'position: fixed; top: 100px';
 		root.appendChild(test);
@@ -147,14 +105,16 @@
 	});
 }(this));
 
-/* minor improvements to Math */
+function computeTimeout(messageLength) {
+  var lowestTransferRateConst = 1000 / (4800 / 8);
+		// maxTransactionTimeout = 180 * 1000;
+  return Math.floor((messageLength * lowestTransferRateConst) + 15000);
+}
+
+/* duck-punching Math.round() so it accepts a 2nd parameter */
 (function(window, undefined) {
-	'use strict';
 	var Math = window.Math,
-	oldRound = Math.round;
-	/* END: var */
-		
-	/* duck-punching Math.round() so it accepts a 2nd parameter */
+		oldRound = Math.round;
 	Math.round = function(value, decimals) {
 		if (!decimals || decimals === 0) {
 			return oldRound(value);
@@ -164,46 +124,12 @@
 		}
 		return value;
 	};
-
-	/*
-	* Math.uuid.js, minimalistic uuid generator. Original script from Robert
-	* Kieffer, http://www.broofa.com Dual licensed under the MIT and GPL licenses.
-	* example: >>> Math.uuid(); // returns RFC4122, version 4 ID
-	* "92329D39-6F5C-4520-ABFC-AAB64544E172"
-	*/
-	/*jslint bitwise: true*/
-	if (typeof Math.uuid !== 'function') {
-		Math.uuid = function() {
-			var chars = Math.uuid.CHARS, uuid = [],
-				r, i = 36;
-
-			// rfc4122 requires these characters
-			uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
-			uuid[14] = '4';
-
-			// Fill in random data. At i==19 set the high bits of clock sequence as
-			// per rfc4122, sec. 4.1.5
-			while (i--) {
-				if (!uuid[i]) {
-					r = Math.random()*16|0;
-					uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
-				}
-			}
-			return uuid.join('');
-		};
-		Math.uuid.CHARS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
-			'B', 'C', 'D', 'E', 'F'];
-	}
-	/*jslint bitwise: false*/
 }(this));
 
 /* minor improvements to jQuery */
 (function(window, undefined) {
-	'use strict';
-	/*jslint nomen: true*/
 	var $ = window.jQuery,
-	_oldAttr = $.fn.attr;
-	/* END: var */
+		_oldAttr = $.fn.attr;
 	
 	// duck-punching to make attr() return a map
 	$.fn.attr = function() {
@@ -269,12 +195,9 @@
 	 * @param {Number} [lastIndex] only used internally
 	 * @returns {jQueryPromise}
 	 */
-	/*jslint regexp: true*/
 	$.fn.appendWithCheck = function(string, attempts, needle, lastIndex) {
 		var $element = $(this),
-		deferred = new $.Deferred(),
-		MyAnswers = window.MyAnswers;
-		/* END: var */
+			deferred = new $.Deferred();
 		if ($.type(needle) !== 'string') {
 			needle = string.match(/>([^<>\0\n\f\r\t\v]+)</);
 			if (!needle) {
@@ -304,9 +227,60 @@
 		});
 		return deferred.promise();
 	};
-	/*jslint regexp: false*/
-
 	
-	/*jslint nomen: false*/
+	/*
+	 * @param {Array} urls array of URL strings to request
+	 * @returns {jQueryPromise}
+	 */
+	$.getScripts = function(urls) {
+		var type = $.type(urls),
+		dfrd = new $.Deferred();
+		/* END: var */
+		if (type === 'string') {
+			urls = [ urls ];
+		} else if (type !== 'array' || urls.length === 0) {
+			setTimeout(dfrd.resolve, 47); // TODO: maybe this should reject instead?
+			return dfrd.promise();
+		}
+		$.getScript(urls[0])
+		.always(function(data, status, jqxhr) {
+			if (jqxhr.status === 304 || jqxhr.status === 200 || jqxhr.status === 0) {
+				urls.splice(0, 1);
+				$.when($.getScripts(urls))
+				.fail(dfrd.reject)
+				.then(dfrd.resolve);
+			} else {
+				dfrd.reject();
+			}
+		});
+		return dfrd.promise();
+	};
 }(this));
 
+/*
+ * Math.uuid.js, minimalistic uuid generator. Original script from Robert
+ * Kieffer, http://www.broofa.com Dual licensed under the MIT and GPL licenses.
+ * example: >>> Math.uuid(); // returns RFC4122, version 4 ID
+ * "92329D39-6F5C-4520-ABFC-AAB64544E172"
+ */
+if (typeof Math.uuid !== 'function') {
+	Math.uuid = function() {
+		var chars = Math.uuid.CHARS, uuid = [],
+			r, i = 36;
+ 
+		// rfc4122 requires these characters
+		uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+		uuid[14] = '4';
+ 
+		// Fill in random data. At i==19 set the high bits of clock sequence as
+		// per rfc4122, sec. 4.1.5
+		while (i--) {
+			if (!uuid[i]) {
+				r = Math.random()*16|0;
+				uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
+			}
+		}
+		return uuid.join('');
+	};
+	Math.uuid.CHARS = '0123456789ABCDEFG'.split('');
+}
