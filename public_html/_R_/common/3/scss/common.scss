@@ -90,17 +90,40 @@ img.v3col { width: 33%; }
 img.v4col { width: 25%; }
 
 
+#startUpLoading {
+  margin: 10em 0;
+  text-align: center;
+}
+
 #startUp {
 	@include min-height(100%);
 	@include min-width(100%);
 	position: fixed;
 	top: 0;
-	padding-top: 20%;
 	background-color: white;
 	color: black;
-	text-align: center;
 	z-index: 50;
 	
+  output {
+    text-align: center;
+    display: none;
+    font-family: monospace;
+  }
+  article {
+    display: none;
+    margin: 0 auto;
+    max-width: 30em;
+  }
+
+  &.s-error {
+    #startUpLoading {
+      margin: 2em 0;
+    }
+    output {
+      display: block;
+    }
+  }
+  
 	span {
 		&.working { font-weight: bolder; }
 		&.error { color: #a00; }
