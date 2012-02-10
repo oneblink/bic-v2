@@ -1388,7 +1388,7 @@ function displayAnswerSpace() {
 				delete siteVars.queryParameters;
 			});
 	}
-	//startUp.remove();
+	startUp.remove();
 	$('#content').removeClass('hidden');
 	setSubmitCachedFormButton();
 	processForms();
