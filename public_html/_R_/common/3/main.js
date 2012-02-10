@@ -199,10 +199,10 @@ function processBlinkAnswerMessage(message) {
 	}
 	if (typeof message.mojotarget === 'string') {
 		if (typeof message.mojoxml === 'string') {
-			log('blinkAnswerMessage: populating MoJO: ' + message.mojotarget);
+			log('blinkAnswerMessage: populating Data Suitcase: ' + message.mojotarget);
 			MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
 		} else if (typeof message.mojodelete !== 'undefined') {
-			log('blinkAnswerMessage: deleting MoJO: ' + message.mojotarget);
+			log('blinkAnswerMessage: deleting Data Suitcase: ' + message.mojotarget);
 			MyAnswers.store.remove('mojoXML:' + message.mojotarget);
 		}
 	}
@@ -335,7 +335,7 @@ function performXSLT(xmlString, xslString) {
 			xsltProcessor.importStylesheet(xsl);
 			html = xsltProcessor.transformToFragment(xml, document);
 		} else {
-			html = '<p>Your browser does not support MoJO keywords.</p>'; 
+			html = '<p>Your browser does not support Data Suitcase keywords.</p>'; 
 		}
 		dfrd.resolve(html);
 	});
@@ -356,7 +356,7 @@ function isHome() {
 	}
 }
 
-// perform all steps necessary to populate element with MoJO result
+// perform all steps necessary to populate element with Data Suitcase result
 function generateMojoAnswer(args) {
 	log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
 	var deferred = new $.Deferred(),
