@@ -3,7 +3,7 @@
 
 /*global info:true, log:true, warn:true, error:true*/
 /*global computeTimeout:true, isBlinkGapDevice:true, MyAnswersDevice:true*/
-/*global init_device:true, onDeviceReady:true*/
+/*global init_device:true, onDeviceReady:true, prepareHistorySideBar:true*/
 /*global BlinkDispatch:true, BlinkForms:true, BlinkStorage:true*/
 
 /*global $:true, Hashtable:true, History:true, Modernizr:true*/
@@ -785,6 +785,290 @@ function clearPendingFormV1(interaction, uuid) {
 
 // *** END PENDING QUEUE HELPERS ***
 
+function requestMoJO(mojo) {
+	var deferred = new $.Deferred();
+	if ($.type(mojo) !== 'string' || mojo.length === 0) {
+		deferred.resolve();
+		return deferred.promise();
+	}
+	$.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
+		var requestData = {
+				_id: siteVars.id,
+				_m: mojo
+			};
+		value = parseInt(value, 10);
+		if (typeof value === 'number' && !isNaN(value)) {
+			requestData._lc = value;
+		}
+		if (deviceVars.isOnline) {
+			ajaxQueue.add({
+				url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+				data: requestData,
+				dataType: 'xml',
+				complete: function(jqxhr, status) {
+					if (jqxhr.status === 200) {
+						$.when(MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText))
+							.fail(deferred.reject)
+							.then(deferred.resolve);
+//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+//					} else if (jqxhr.status === 304) {
+//						deferred.resolve();
+					} else {
+//						deferred.reject();
+						deferred.resolve();
+					}
+				},
+				timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+			});
+		} else {
+			deferred.reject();
+		}
+	});
+	$.when(deferred.promise())
+		.then(function() {
+			MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
+		});
+	return deferred.promise();
+}
+
+function processMoJOs(interaction) {
+	var deferred = new $.Deferred(),
+	deferredFetches = {},
+	interactions = interaction ? [ interaction ] : siteVars.map.interactions,
+	i, iLength = interactions.length,
+	config;
+	/* END: var */
+	for (i = 0; i < iLength; i++) {
+		config = siteVars.config['i' + interactions[i]];
+		if ($.type(config) === 'object') {
+			config = config.pertinent;
+			if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
+				if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
+					if (!siteVars.mojos[config.xml]) {
+						siteVars.mojos[config.xml] = {
+							maximumAge: config.maximumAge || 0,
+							minimumAge: config.minimumAge || 0
+						};
+					} else {
+						siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
+						siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
+					}
+					if (!deferredFetches[config.xml]) {
+						deferredFetches[config.xml] = requestMoJO(config.xml);
+					}
+				}
+			}
+		}
+	}
+	deferredFetches = $.map(deferredFetches, function(value, key) {
+		return value;
+	});
+	$.whenArray(deferredFetches)
+	.fail(deferred.reject)
+	.then(deferred.resolve);
+	return deferred.promise();
+}
+
+function goBackToHome() {
+	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+	MyAnswers.$body.trigger('taskComplete');
+	//	getSiteConfig();
+}
+
+function showLoginView(event) {
+	var id,
+		requestUri,
+		$view = $('#loginView');
+	if (!currentConfig.loginAccess) {
+		return false;
+	}
+	if (MyAnswers.isCustomLogin) {
+		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
+		if (!id) {
+			alert('error: interaction used for login prompt is inaccessible or misconfigured');
+			return false;
+		}
+		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
+		History.pushState({m: null, c: null, i: id}, null, requestUri);
+		return false;
+	}
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
+		MyAnswersDevice.showView($view);
+		setMainLabel('Login');
+	});
+}
+
+function updateLoginButtons() {
+  var loginStatus = document.getElementById('loginStatus'),
+  loginButton = document.getElementById('loginButton'),
+  logoutButton = document.getElementById('logoutButton'),
+  /** @inner */
+  submitLogoutFn = function(event) {
+    var id, requestUri;
+    log('submitLogout();');
+    if (!currentConfig.loginAccess) {
+      return false;
+    }
+    if (currentConfig.loginUseInteractions) {
+      id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
+      if (!id) {
+        alert('error: interaction used for login prompt is inaccessible or misconfigured');
+        return false;
+      }
+      requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
+      History.pushState({
+        m: null, 
+        c: null, 
+        i: id
+      }, null, requestUri);
+      return false;
+    }
+    if (confirm('Log out?')) {
+      ajaxQueue.add({
+        type: 'GET',
+        cache: "false",
+        url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+        data: {
+          '_a': 'logout'
+        },
+        complete: function(xhr, textstatus) {
+          if (xhr.status === 200) {
+            var data = $.parseJSON(xhr.responseText);
+            if (data) {
+              if (data.status === 'LOGGED IN') {
+                if (data.account) {
+                  MyAnswers.loginAccount = data.account;
+                }
+                MyAnswers.isLoggedIn = true;
+              } else {
+                MyAnswers.isLoggedIn = false;
+                delete MyAnswers.loginAccount;
+                window.location.reload();
+              }
+            }
+            updateLoginButtons();
+            //					getSiteConfig();
+            goBackToHome();
+          }
+        },
+        timeout: currentConfig.downloadTimeout * 1000
+      });
+    }
+    return false;
+  };
+  /* END: var */
+  if (!siteVars.hasLogin) {
+    return;
+  }
+  if (MyAnswers.isLoggedIn) {
+    if (typeof MyAnswers.loginAccount !== 'undefined' && typeof MyAnswers.loginAccount !== 'boolean') {
+      MyAnswers.dispatch.add(function() {
+        var $loginStatus = $(loginStatus),
+        text = 'logged in as<br />';
+        if ($.type(MyAnswers.loginAccount) === 'object') {
+          text += '<span class="loginAccount">' + MyAnswers.loginAccount.name || MyAnswers.loginAccount.username + '</span>';
+        } else {
+          text += '<span class="loginAccount">' + MyAnswers.loginAccount + '</span>';
+        }
+        $loginStatus.empty();
+        $loginStatus.append(text);
+        $loginStatus.unbind();
+        $loginStatus.bind('click', submitLogoutFn);
+      });
+      changeDOMclass(loginStatus, {
+        remove: 'hidden'
+      });
+    } else {
+      changeDOMclass(logoutButton, {
+        remove: 'hidden'
+      });
+    }
+    changeDOMclass(loginButton, {
+      add: 'hidden'
+    });
+  } else {
+    changeDOMclass(loginStatus, {
+      add: 'hidden'
+    });
+    changeDOMclass(logoutButton, {
+      add: 'hidden'
+    });
+    changeDOMclass(loginButton, {
+      remove: 'hidden'
+    });
+  }
+  if (currentCategory !== undefined) {
+    MyAnswers.populateItemListing('interactions', $('#keywordListView'));
+  }
+}
+
+function requestLoginStatus() {
+	var deferred = new $.Deferred();
+	if (!siteVars.hasLogin || !deviceVars.isOnline) {
+		deferred.reject();
+		return deferred.promise(); 
+	}
+	ajaxQueue.add({
+		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+		dataType: 'json',
+		complete: function(xhr, xhrStatus) {
+			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
+				deferred.reject();
+				return;
+			}
+			var data = $.parseJSON(xhr.responseText);
+			if (data) {
+				if (data.status === 'LOGGED IN') {
+					if (data.account) {
+						MyAnswers.loginAccount = data.account;
+					}
+					MyAnswers.isLoggedIn = true;
+				} else {
+					MyAnswers.isLoggedIn = false;
+					delete MyAnswers.loginAccount;
+				}
+			}
+			updateLoginButtons();
+			deferred.resolve();
+		},
+		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
+	});
+	return deferred.promise();
+}
+
+function submitLogin() {
+	log('submitLogin();');
+	ajaxQueue.add({
+		type: 'GET',
+		cache: "false",
+		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+		data: $('#loginView').find('form').serializeArray(),
+		complete: function(xhr, textstatus) {
+			$('#loginView').find('input[type=password]').val('');
+			if (xhr.status === 200) {
+				var data = $.parseJSON(xhr.responseText);
+				if (data) {
+					if (data.status === 'LOGGED IN') {
+						if (data.account) {
+							MyAnswers.loginAccount = data.account;
+						}
+						MyAnswers.isLoggedIn = true;
+						window.location.reload();
+					} else {
+						MyAnswers.isLoggedIn = false;
+						delete MyAnswers.loginAccount;
+					}
+				}
+				updateLoginButtons();
+//				getSiteConfig();
+			} else {
+				alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
+			}
+		},
+		timeout: currentConfig.downloadTimeout * 1000
+  });
+}
+
 function updateNavigationButtons() {
 	MyAnswers.dispatch.add(function() {
 		var $navBars = $('.navBar'),
@@ -1316,90 +1600,6 @@ function restoreSessionProfile(token) {
 	return deferred.promise();
 }
 
-function requestMoJO(mojo) {
-	var deferred = new $.Deferred();
-	if ($.type(mojo) !== 'string' || mojo.length === 0) {
-		deferred.resolve();
-		return deferred.promise();
-	}
-	$.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
-		var requestData = {
-				_id: siteVars.id,
-				_m: mojo
-			};
-		value = parseInt(value, 10);
-		if (typeof value === 'number' && !isNaN(value)) {
-			requestData._lc = value;
-		}
-		if (deviceVars.isOnline) {
-			ajaxQueue.add({
-				url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
-				data: requestData,
-				dataType: 'xml',
-				complete: function(jqxhr, status) {
-					if (jqxhr.status === 200) {
-						$.when(MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText))
-							.fail(deferred.reject)
-							.then(deferred.resolve);
-//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-//					} else if (jqxhr.status === 304) {
-//						deferred.resolve();
-					} else {
-//						deferred.reject();
-						deferred.resolve();
-					}
-				},
-				timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-			});
-		} else {
-			deferred.reject();
-		}
-	});
-	$.when(deferred.promise())
-		.then(function() {
-			MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
-		});
-	return deferred.promise();
-}
-
-function processMoJOs(interaction) {
-	var deferred = new $.Deferred(),
-	deferredFetches = {},
-	interactions = interaction ? [ interaction ] : siteVars.map.interactions,
-	i, iLength = interactions.length,
-	config;
-	/* END: var */
-	for (i = 0; i < iLength; i++) {
-		config = siteVars.config['i' + interactions[i]];
-		if ($.type(config) === 'object') {
-			config = config.pertinent;
-			if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
-				if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
-					if (!siteVars.mojos[config.xml]) {
-						siteVars.mojos[config.xml] = {
-							maximumAge: config.maximumAge || 0,
-							minimumAge: config.minimumAge || 0
-						};
-					} else {
-						siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
-						siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
-					}
-					if (!deferredFetches[config.xml]) {
-						deferredFetches[config.xml] = requestMoJO(config.xml);
-					}
-				}
-			}
-		}
-	}
-	deferredFetches = $.map(deferredFetches, function(value, key) {
-		return value;
-	});
-	$.whenArray(deferredFetches)
-	.fail(deferred.reject)
-	.then(deferred.resolve);
-	return deferred.promise();
-}
-
 function processForms() {
 	var dispatch = new BlinkDispatch(0),
 	ajaxDeferred = new $.Deferred(),
@@ -1613,12 +1813,6 @@ MyAnswers.dumpLocalStorage = function() {
 	});
 };
 
-function goBackToHome() {
-	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
-	MyAnswers.$body.trigger('taskComplete');
-	//	getSiteConfig();
-}
-
 function gotoStorageView() {
 	History.pushState({storage: true}, null, '/' + siteVars.answerSpace + '/?_storage=true');
 }
@@ -1810,6 +2004,37 @@ function getAnswer(event) {
 	}
 }
 
+function showKeywordView(keyword) {
+	var $view = $('#keywordView');
+	$.when(MyAnswersDevice.prepareView($view)).always(function() {
+		var config = siteVars.config['i' + keyword].pertinent,
+			argsBox = $('#argsBox')[0],
+			descriptionBox = $('#descriptionBox')[0];
+		currentInteraction = keyword;
+		updateCurrentConfig();
+		insertHTML(argsBox, config.inputPrompt);
+		if (config.description) {
+			insertHTML(descriptionBox, config.description);
+			$(descriptionBox).removeClass('hidden');
+		} else {
+			$(descriptionBox).addClass('hidden');
+		}
+		MyAnswersDevice.showView($view);
+		setMainLabel(config.displayName || config.name);
+	});
+}
+
+function goBackToKeywordView(keyword) {
+	var $view = $('#keywordView');
+	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+		var config = siteVars.config['i' + keyword].pertinent;
+		currentInteraction = keyword;
+		updateCurrentConfig();
+		MyAnswersDevice.showView($view, true);
+		setMainLabel(config.displayName || config.name);
+	});
+}
+
 function gotoNextScreen(keyword, category, masterCategory) {
 	var config,
 		i, iLength = siteVars.map.interactions.length;
@@ -1842,37 +2067,6 @@ function showSecondLevelAnswerView(keyword, arg0, reverse) {
 		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + arg0;
 		History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': deserialize(arg0)}, null, requestUri);
 	}
-}
-
-function showKeywordView(keyword) {
-	var $view = $('#keywordView');
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		var config = siteVars.config['i' + keyword].pertinent,
-			argsBox = $('#argsBox')[0],
-			descriptionBox = $('#descriptionBox')[0];
-		currentInteraction = keyword;
-		updateCurrentConfig();
-		insertHTML(argsBox, config.inputPrompt);
-		if (config.description) {
-			insertHTML(descriptionBox, config.description);
-			$(descriptionBox).removeClass('hidden');
-		} else {
-			$(descriptionBox).addClass('hidden');
-		}
-		MyAnswersDevice.showView($view);
-		setMainLabel(config.displayName || config.name);
-	});
-}
-
-function goBackToKeywordView(keyword) {
-	var $view = $('#keywordView');
-	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
-		var config = siteVars.config['i' + keyword].pertinent;
-		currentInteraction = keyword;
-		updateCurrentConfig();
-		MyAnswersDevice.showView($view, true);
-		setMainLabel(config.displayName || config.name);
-	});
 }
 
 function showKeywordListView(category, masterCategory) {
@@ -1952,181 +2146,6 @@ function showHelpView(event)
 		insertHTML(helpBox, helpContents);
 		MyAnswersDevice.showView($view);
 	});
-}
-
-function showLoginView(event) {
-	var id,
-		requestUri,
-		$view = $('#loginView');
-	if (!currentConfig.loginAccess) {
-		return false;
-	}
-	if (MyAnswers.isCustomLogin) {
-		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
-		if (!id) {
-			alert('error: interaction used for login prompt is inaccessible or misconfigured');
-			return false;
-		}
-		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
-		History.pushState({m: null, c: null, i: id}, null, requestUri);
-		return false;
-	}
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		MyAnswersDevice.showView($view);
-		setMainLabel('Login');
-	});
-}
-
-function updateLoginButtons() {
-	var loginStatus = document.getElementById('loginStatus'),
-		loginButton = document.getElementById('loginButton'),
-		logoutButton = document.getElementById('logoutButton');
-	if (!siteVars.hasLogin) {return;}
-	if (MyAnswers.isLoggedIn) {
-		if (typeof MyAnswers.loginAccount !== 'undefined' && typeof MyAnswers.loginAccount !== 'boolean') {
-			MyAnswers.dispatch.add(function() {
-				var $loginStatus = $(loginStatus),
-					text = 'logged in as<br />';
-				if ($.type(MyAnswers.loginAccount) === 'object') {
-					text += '<span class="loginAccount">' + MyAnswers.loginAccount.name || MyAnswers.loginAccount.username + '</span>';
-				} else {
-					text += '<span class="loginAccount">' + MyAnswers.loginAccount + '</span>';
-				}
-				$loginStatus.empty();
-				$loginStatus.append(text);
-				$loginStatus.unbind();
-				$loginStatus.bind('click', submitLogout);
-			});
-			changeDOMclass(loginStatus, {remove: 'hidden'});
-		} else {
-			changeDOMclass(logoutButton, {remove: 'hidden'});
-		}
-		changeDOMclass(loginButton, {add: 'hidden'});
-	} else {
-		changeDOMclass(loginStatus, {add: 'hidden'});
-		changeDOMclass(logoutButton, {add: 'hidden'});
-		changeDOMclass(loginButton, {remove: 'hidden'});
-	}
-	if (currentCategory !== undefined) {
-		MyAnswers.populateItemListing('interactions', $('#keywordListView'));
-	}
-}
-
-function requestLoginStatus() {
-	var deferred = new $.Deferred();
-	if (!siteVars.hasLogin || !deviceVars.isOnline) {
-		deferred.reject();
-		return deferred.promise(); 
-	}
-	ajaxQueue.add({
-		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-		dataType: 'json',
-		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
-				deferred.reject();
-				return;
-			}
-			var data = $.parseJSON(xhr.responseText);
-			if (data) {
-				if (data.status === 'LOGGED IN') {
-					if (data.account) {
-						MyAnswers.loginAccount = data.account;
-					}
-					MyAnswers.isLoggedIn = true;
-				} else {
-					MyAnswers.isLoggedIn = false;
-					delete MyAnswers.loginAccount;
-				}
-			}
-			updateLoginButtons();
-			deferred.resolve();
-		},
-		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
-	});
-	return deferred.promise();
-}
-
-function submitLogin() {
-	log('submitLogin();');
-	ajaxQueue.add({
-		type: 'GET',
-		cache: "false",
-		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-		data: $('#loginView').find('form').serializeArray(),
-		complete: function(xhr, textstatus) {
-			$('#loginView').find('input[type=password]').val('');
-			if (xhr.status === 200) {
-				var data = $.parseJSON(xhr.responseText);
-				if (data) {
-					if (data.status === 'LOGGED IN') {
-						if (data.account) {
-							MyAnswers.loginAccount = data.account;
-						}
-						MyAnswers.isLoggedIn = true;
-						window.location.reload();
-					} else {
-						MyAnswers.isLoggedIn = false;
-						delete MyAnswers.loginAccount;
-					}
-				}
-				updateLoginButtons();
-//				getSiteConfig();
-			} else {
-				alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
-			}
-		},
-		timeout: currentConfig.downloadTimeout * 1000
-  });
-}
-
-function submitLogout(event) {
-	var id, requestUri;
-	log('submitLogout();');
-	if (!currentConfig.loginAccess) {
-		return false;
-	}
-	if (currentConfig.loginUseInteractions) {
-		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
-		if (!id) {
-			alert('error: interaction used for login prompt is inaccessible or misconfigured');
-			return false;
-		}
-		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
-		History.pushState({m: null, c: null, i: id}, null, requestUri);
-		return false;
-	}
-	if (confirm('Log out?')) {
-		ajaxQueue.add({
-			type: 'GET',
-			cache: "false",
-			url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-			data: {
-				'_a': 'logout'
-			},
-			complete: function(xhr, textstatus) {
-				if (xhr.status === 200) {
-					var data = $.parseJSON(xhr.responseText);
-					if (data) {
-						if (data.status === 'LOGGED IN') {
-							if (data.account) {
-								MyAnswers.loginAccount = data.account;
-							}
-							MyAnswers.isLoggedIn = true;
-						} else {
-							MyAnswers.isLoggedIn = false;
-							delete MyAnswers.loginAccount;
-							window.location.reload();
-						}
-					}
-					updateLoginButtons();
-					//					getSiteConfig();
-					goBackToHome();
-				}
-			},
-			timeout: currentConfig.downloadTimeout * 1000
-		});
-	}
-	return false;
 }
 
 function goBackToTopLevelAnswerView(event) {
@@ -3148,7 +3167,7 @@ function submitAction(keyword, action) {
 			
 			$window.bind('statechange', function(event) {
 				var state = History.getState(),
-        args = state.data.arguments;
+        args = state.data['arguments'];
 				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
 				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
 				if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
@@ -3161,7 +3180,7 @@ function submitAction(keyword, action) {
 					if ($.isEmptyObject(args) || args.inputs) {
 						gotoNextScreen(state.data.i);
 					} else {
-						showAnswerView(state.data.i, state.data.arguments);
+						showAnswerView(state.data.i, args);
 					}
 				} else if (hasCategories && state.data.c) {
 					showKeywordListView(state.data.c);
