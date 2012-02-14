@@ -199,10 +199,10 @@ function processBlinkAnswerMessage(message) {
 	}
 	if (typeof message.mojotarget === 'string') {
 		if (typeof message.mojoxml === 'string') {
-			log('blinkAnswerMessage: populating MoJO: ' + message.mojotarget);
+			log('blinkAnswerMessage: populating Data Suitcase: ' + message.mojotarget);
 			MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
 		} else if (typeof message.mojodelete !== 'undefined') {
-			log('blinkAnswerMessage: deleting MoJO: ' + message.mojotarget);
+			log('blinkAnswerMessage: deleting Data Suitcase: ' + message.mojotarget);
 			MyAnswers.store.remove('mojoXML:' + message.mojotarget);
 		}
 	}
@@ -335,7 +335,7 @@ function performXSLT(xmlString, xslString) {
 			xsltProcessor.importStylesheet(xsl);
 			html = xsltProcessor.transformToFragment(xml, document);
 		} else {
-			html = '<p>Your browser does not support MoJO keywords.</p>'; 
+			html = '<p>Your browser does not support Data Suitcase keywords.</p>'; 
 		}
 		dfrd.resolve(html);
 	});
@@ -356,7 +356,7 @@ function isHome() {
 	}
 }
 
-// perform all steps necessary to populate element with MoJO result
+// perform all steps necessary to populate element with Data Suitcase result
 function generateMojoAnswer(args) {
 	log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
 	var deferred = new $.Deferred(),
@@ -2988,8 +2988,10 @@ function submitAction(keyword, action) {
 	function init_main() {
 		var storeEngine = null, // pick automatic engine by default
 		loadedPromises = [],
-		dfrdFixWebSQL;
+		dfrdFixWebSQL,
+    userAgent = navigator.userAgent;
 		/* END: var */
+    
 		log("init_main(): ");
 		siteVars.requestsCounter = 0;
 
@@ -3030,21 +3032,33 @@ function submitAction(keyword, action) {
 			} else {
 				dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
 			}
-		} else if (navigator.userAgent.indexOf('Android') !== -1) {
+		} else if (userAgent.indexOf('Android') !== -1) {
 			// Android has problems with persistent storage
 			storeEngine = 'sessionstorage';
 		}
-		
+    
+    // fix the WebSQL quota is necessary and open required persistent stores
 		$.when(dfrdFixWebSQL)
 		.always(function() {
-			MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
-			loadedPromises.push(MyAnswers.store.ready());
-			MyAnswers.siteStore = new BlinkStorage(storeEngine, siteVars.answerSpace, 'site');
-			loadedPromises.push(MyAnswers.siteStore.ready());
-			MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
-			loadedPromises.push(MyAnswers.pendingStore.ready());
-			MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
-			loadedPromises.push(MyAnswers.pendingV1Store.ready());
+      
+      try {
+        MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
+        loadedPromises.push(MyAnswers.store.ready());
+        MyAnswers.siteStore = new BlinkStorage(storeEngine, siteVars.answerSpace, 'site');
+        loadedPromises.push(MyAnswers.siteStore.ready());
+        MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
+        loadedPromises.push(MyAnswers.pendingStore.ready());
+        MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
+        loadedPromises.push(MyAnswers.pendingV1Store.ready());
+      } catch (e) {
+        $startup.addClass('s-error');
+        $('#startUp-initMain').addClass('error');
+        if ('toString' in e) {
+          $startup.children('output').text(e.toString());
+        }
+        $startup.children('article[data-name="persistentfull"]').show();
+        return;
+      }
 			
 			$.whenArray(loadedPromises)
 			.fail(function() {
@@ -3232,8 +3246,29 @@ function submitAction(keyword, action) {
 	// *** DOM DOCUMENT READY ***
 
 	$(document).ready(function() {
+    var userAgent = navigator.userAgent,
+    safariTest;
+    /* END: var */
+    
+    // check if Safari's Private Browsing is enabled
+    if (userAgent.indexOf('Safari') !== -1 && 'localStorage' in window) {
+      safariTest = 'SafariTest-' + (Math.random() * Math.pow(10, 16));
+      try {
+        window.localStorage.setItem(safariTest, safariTest);
+        window.localStorage.removeItem(safariTest);
+      } catch(e) {
+        $startup.addClass('s-error');
+        if ('toString' in e) {
+          $startup.children('output').text(e.toString());
+        }
+        $startup.children('article[data-name="privatesafari"]').show();
+        return;
+      }
+    }
+
 		$('#startUp-loadPolyFills').addClass('working');
-		
+
+    // set default options / headers for $.ajax()
 		$.ajaxPrefilter(function(options, original, jqxhr) {
 				var url = decodeURI(options.url),
 					config = {
