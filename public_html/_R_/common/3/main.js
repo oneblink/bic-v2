@@ -9,7 +9,6 @@
 /*global $:true, Hashtable:true, History:true, Modernizr:true*/
 /*global explode:true, implode:true*/
 
-
 var MyAnswers = MyAnswers || {},
 siteVars = siteVars || {},
 deviceVars = deviceVars || {},
@@ -2381,7 +2380,7 @@ function submitAction(keyword, action) {
       }
     };
     /* END: var */
-    if (navigator.userAgent.indexOf('BlinkGap') === -1) {
+    if (window.isBlinkGap) {
       log('waitForBlinkGap(): native application not detected');
       $progressDot.remove();
       dfrd.resolve();
@@ -2390,7 +2389,7 @@ function submitAction(keyword, action) {
     log('waitForBlinkGap(): native application detected');
     $progressDot.addClass('working');
     checkFn();
-    $.when(dfrd)
+    $.when(dfrd.promise())
     .fail(function() {
       $progressDot.addClass('error');
     })
@@ -3266,7 +3265,7 @@ function submitAction(keyword, action) {
 			 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
 			 */
 
-      $.when(waitForBlinkGap)
+      $.when(waitForBlinkGap())
       .then(function() {
         if (isBlinkGapDevice() && $.type(onDeviceReady) === 'function') {
           onDeviceReady();
