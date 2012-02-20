@@ -2357,7 +2357,49 @@ function submitAction(keyword, action) {
 		google; // defined in MyAnswers.setupGoogleMaps
 
 /* *** BLINKGAP FUNCTIONS *** */
-	
+
+  /**
+   * @returns {jQueryPromise}
+   */
+  function waitForBlinkGap() {
+    var dfrd = new $.Deferred(),
+    start = $.now(),
+    $progressDot = $('#startUp-initBlinkGap'),
+    /** @inner */
+    checkFn = function() {
+      if (window.PhoneGap) {
+        if (window.PhoneGap.available) {
+          dfrd.resolve();
+        } else {
+          document.addEventListener("deviceready", dfrd.resolve, false);
+        }
+      } else if (($.now() - start) > 10 * 1000) {
+        warn('waitForBlinkGap(): still no PhoneGap after 10 seconds');
+        dfrd.reject();
+      } else {
+        setTimeout(checkFn, 197);
+      }
+    };
+    /* END: var */
+    if (navigator.userAgent.indexOf('BlinkGap') === -1) {
+      log('waitForBlinkGap(): native application not detected');
+      $progressDot.remove();
+      dfrd.resolve();
+      return dfrd.promise();
+    }
+    log('waitForBlinkGap(): native application detected');
+    $progressDot.addClass('working');
+    checkFn();
+    $.when(dfrd)
+    .fail(function() {
+      $progressDot.addClass('error');
+    })
+    .then(function() {
+      $progressDot.addClass('success');
+    });
+    return dfrd.promise();
+  }
+  
 	/**
 	 * @returns {jQueryPromise}
 	 */
@@ -3224,31 +3266,21 @@ function submitAction(keyword, action) {
 			 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
 			 */
 
-			if (isBlinkGapDevice()) {
-				MyAnswers.blinkgapDeferred = new $.Deferred();
-				$('#startUp-initBlinkGap').addClass('working');
-				if (window.PhoneGap.available) {
-					onDeviceReady();
-				} else {
-					if (!addEvent(document, "deviceready", onDeviceReady)) {
-						alert("Unable to add deviceready handler");
-						throw("Unable to add deviceready handler");
-					}
-				}
-				$.when(MyAnswers.blinkgapDeferred.promise())
-					.done(function() {
-						delete MyAnswers.blinkgapDeferred;
-						MyAnswers.browserDeferred.resolve();
-					});
-			} else {
-				MyAnswers.browserDeferred.resolve();
-			}
+      $.when(waitForBlinkGap)
+      .then(function() {
+        if (isBlinkGapDevice() && $.type(onDeviceReady) === 'function') {
+          onDeviceReady();
+        }
+      })
+      .always(function() {
+        MyAnswers.browserDeferred.resolve();
+      });
+
 			$('#startUp-initBrowser').addClass('success');
 		} catch(e) {
 			log("onBrowserReady: Exception");
 			log(e);
 			$startup.append('browser error: ' + e);
-			MyAnswers.browserDeferred.reject();
 			$('#startUp-initBrowser').addClass('error');
 		}
 	}	

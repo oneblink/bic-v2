@@ -88,8 +88,7 @@
 	});
 
 	// wait until we are ready to start real routing
-	if (window.PhoneGap && !window.PhoneGap.available) {
-		$document.on('deviceready', initialise);
+	if (window.navigator.userAgent.indexOf('BlinkGap') !== -1) {
 		setTimeout(function() {
 			if (early) {
 				initialise();

@@ -75,8 +75,6 @@ function onDeviceReady() {
 	} catch(e) {
 		log("onDeviceReady exception: ");
 		log(e);
-		MyAnswers.blinkgapDeferred.reject();
-		$('#startUp-initBlinkGap').addClass('error');
 	}
 }
 
