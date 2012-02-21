@@ -70,13 +70,9 @@ function onDeviceReady() {
 		deviceVars.deviceFileName = '/ios.js';
 		log("AppDevicePath: " + siteVars.serverDevicePath);
 		log("AppPath: " + siteVars.serverAppPath);
-		MyAnswers.blinkgapDeferred.resolve();
-		$('#startUp-initBlinkGap').addClass('success');
 	} catch(e) {
 		log("onDeviceReady exception: ");
 		log(e);
-		MyAnswers.blinkgapDeferred.reject();
-		$('#startUp-initBlinkGap').addClass('error');
 	}
 }
 

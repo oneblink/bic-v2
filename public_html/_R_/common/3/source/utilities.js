@@ -65,9 +65,9 @@
 				var fn = window[message.fn],
 					type = $.type(fn);
 				if (type === 'function') {
-					fn.apply(console, message.arguments);
+					fn.apply(console, message.args);
 				} else if (type === 'object') {
-					fn(message.arguments[0]);
+					fn(message.args[0]);
 				}
 			});
 			// discard unused objects
@@ -76,25 +76,30 @@
 				delete early[fn];
 			});
 		}, 0);
-	};
+	},
+  /** @inner */
+  waitForBlinkGap = function() {
+    if (window.PhoneGap && window.PhoneGap.available) {
+      if (early.history) {
+        initialise();
+      }
+    } else {
+      setTimeout(waitForBlinkGap, 197);
+    }
+  };
 
 	// setup routing for early messages
 	console = early;
 	$.each(fns, function(index, fn) {
 		early[fn] = function() {
-			early.history.push({ 'fn': fn, 'arguments': $.makeArray(arguments) });
+			early.history.push({ 'fn': fn, 'args': $.makeArray(arguments) });
 		};
 		window[fn] = console[fn];
 	});
 
 	// wait until we are ready to start real routing
-	if (window.PhoneGap && !window.PhoneGap.available) {
-		$document.on('deviceready', initialise);
-		setTimeout(function() {
-			if (early) {
-				initialise();
-			}
-		}, 5 * 1000);
+	if (window.isBlinkGap) {
+		waitForBlinkGap();
 	} else {
 		$document.on('ready', initialise);
 	}
