@@ -68,7 +68,6 @@ function onDeviceReady() {
 		deviceVars.deviceFileName = '/android.js';
 		log("AppDevicePath: " + siteVars.serverDevicePath);
 		log("AppPath: " + siteVars.serverAppPath);
-		MyAnswers.blinkgapDeferred.resolve();
   } catch(e) {
 		log("onDeviceReady exception: ");
 		log(e);
