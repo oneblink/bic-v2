@@ -2380,7 +2380,7 @@ function submitAction(keyword, action) {
       }
     };
     /* END: var */
-    if (window.isBlinkGap) {
+    if (!window.isBlinkGap) {
       log('waitForBlinkGap(): native application not detected');
       $progressDot.remove();
       dfrd.resolve();
