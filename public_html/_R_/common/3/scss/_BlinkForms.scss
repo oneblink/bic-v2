@@ -64,7 +64,43 @@ form {
 		> span {
 			display: inline-block;
 		}
+    
+    .stars {
+      font-size: xx-large;
+
+      > span {
+        content: '\2606'; /* hex for &#9734; */
+      
+        &:hover, &.filled {
+          content: '\2605'; /* hex for &#9733; */
+          color: #EC0;
+          text-shadow: 0px 0px .3em #FF0;
+        }
+        &:hover {
+          opacity: .5;
+        }
+      }
+    }
 	}
+  
+  .bForm-list {
+    .stars {
+      font-size: large;
+
+      > span {
+        content: '\2606'; /* hex for &#9734; */
+      
+        &:hover, &.filled {
+          content: '\2605'; /* hex for &#9733; */
+          color: #EC0;
+          text-shadow: 0px 0px .3em #FF0;
+        }
+        &:hover {
+          opacity: .5;
+        }
+      }
+    }
+  }
 
 	@media only screen and (max-width: 720px) {
 		tr.bField-labelAbove {
