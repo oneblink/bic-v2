@@ -67,12 +67,13 @@ form {
     
     .stars {
       font-size: xx-large;
+      font-weight: bold;
 
       > span {
-        content: '\2606'; /* hex for &#9734; */
+        color: #DDD;
+        text-shadow: 0px 0px .2em #000;
       
         &:hover, &.filled {
-          content: '\2605'; /* hex for &#9733; */
           color: #EC0;
           text-shadow: 0px 0px .3em #FF0;
         }
@@ -88,15 +89,12 @@ form {
       font-size: large;
 
       > span {
-        content: '\2606'; /* hex for &#9734; */
+        color: #EEE;
+        text-shadow: 0px 0px .3em #000;
       
-        &:hover, &.filled {
-          content: '\2605'; /* hex for &#9733; */
+        &.filled {
           color: #EC0;
           text-shadow: 0px 0px .3em #FF0;
-        }
-        &:hover {
-          opacity: .5;
         }
       }
     }
