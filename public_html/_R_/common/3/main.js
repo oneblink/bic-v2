@@ -3385,7 +3385,7 @@ function submitAction(keyword, action) {
 			}
 			// poly-fill XPath
 			Modernizr.load({
-				test: window.XSLTProcessor && Modernizr.xpath,
+				test: (window.XSLTProcessor && Modernizr.xpath) || window.xpathParse,
 				nope: {
 					'xml': '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
 					'util': '/_c_/ajaxslt/0.8.1-r61/util.min.js',
@@ -3410,12 +3410,16 @@ function submitAction(keyword, action) {
 				log('Modernizr.load(): XPath supported natively');
 				dfrdXPath.resolve();
 			}
+      if (window.xpathParse) {
+        log('Modernizr.load(): XPath supported via AJAXSLT');
+        dfrdXPath.resolve();
+			}
 			// poly-fill XSLT, after XPath
 			$.when(dfrdXPath.promise())
 			.fail(dfrdXSLT.reject)
 			.then(function() {
 				Modernizr.load({
-					test: window.XSLTProcessor,
+					test: window.XSLTProcessor || window.xsltProcess,
 					nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js',
 					callback: function(url, result, key) {
 						if (window.xsltProcess) {
@@ -3432,6 +3436,10 @@ function submitAction(keyword, action) {
 				log('Modernizr.load(): XSLT supported natively');
 				dfrdXSLT.resolve();
 			}
+      if (window.xsltProcess) {
+        log('Modernizr.load(): XSLT supported via AJAXSLT');
+        dfrdXSLT.resolve();
+      }
 			// load History.JS, required for all navigation and state management
 			Modernizr.load({
 				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
