@@ -2827,9 +2827,9 @@ function submitAction(keyword, action) {
 		maxHeight /= window.devicePixelRatio || 1;
 		if ($.inArray('phone', deviceVars.features) !== -1
 				|| $.inArray('tablet', deviceVars.features) !== -1) {
-			MyAnswers.$html.css('min-height', maxHeight + 'px');
+			MyAnswers.$body.css('min-height', maxHeight + 'px');
 		} else {
-			MyAnswers.$html.css('min-height', MyAnswers.windowY + 'px');
+			MyAnswers.$body.css('min-height', MyAnswers.windowY + 'px');
 		}
 		$window.trigger('scroll');
 	}
