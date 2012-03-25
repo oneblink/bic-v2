@@ -134,12 +134,12 @@ form {
 
 .bForm-label, .bForm-value { font-size: smaller; }
 
-td.bForm-tooltip > a {
+td.bForm-tooltip > span {
 	font-size: larger;
 	font-weight: bolder;
-	color: #FFF;
+	color: #000;
 	text-outline: 1px 1px #000;
-	text-shadow: 0 0 .5em #000;
+	
 	cursor: help;
 }
 
@@ -167,3 +167,13 @@ td.bForm-tooltip > a {
 }
 
 /* END: pending form styles */
+
+/* pending form styles */
+.cluetip{
+  margin-left:10px;
+
+  .ui-cluetip-content{
+    padding:15px;
+    font-size:smaller;
+  }
+}
