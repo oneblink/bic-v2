@@ -2823,13 +2823,10 @@ function submitAction(keyword, action) {
 		}
 		MyAnswers.windowX = window.innerWidth;
 		MyAnswers.windowY = window.innerHeight;
-		maxHeight = Math.max(MyAnswers.screenY, MyAnswers.windowY, window.outerHeight);
-		maxHeight /= window.devicePixelRatio || 1;
-		if ($.inArray('phone', deviceVars.features) !== -1
-				|| $.inArray('tablet', deviceVars.features) !== -1) {
+		if ($.inArray('phone', deviceVars.features) !== -1) {
+      maxHeight = Math.max(MyAnswers.screenY, MyAnswers.windowY, window.outerHeight);
+      maxHeight /= window.devicePixelRatio || 1;
 			MyAnswers.$body.css('min-height', maxHeight + 'px');
-		} else {
-			MyAnswers.$body.css('min-height', MyAnswers.windowY + 'px');
 		}
 		$window.trigger('scroll');
 	}
