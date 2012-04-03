@@ -3067,10 +3067,14 @@ function submitAction(keyword, action) {
           $entry.addClass('s-working');
           $.when(BlinkForms.submitData(interactionName, form, formData))
           .always(function(response, status, jqxhr) {
-            var html, json;
+            var swap;
+            if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
+              swap = jqxhr;
+              jqxhr = response;
+              response = swap;
+            }
             $button.prop('disabled', false);
             if (jqxhr.status === 200 && response) {
-              html = jqxhr.responseText;
               if (MyAnswers.store) {
                 clearPendingForm(interaction, form, uuid);
                 $entry.remove();
