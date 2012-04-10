@@ -1292,7 +1292,7 @@ function updateCurrentConfig() {
 	MyAnswers.dispatch.add(function() {
 		var $banner = $('#bannerBox'),
 			$image = $banner.find('img'),
-			imageSrc = '/images/' + siteVars.id + '/' + currentConfig.logoBanner; 
+			imageSrc = currentConfig.logoBanner; 
 		if (typeof currentConfig.logoBanner === 'string') {
 			if (imageSrc !== $image.attr('src')) {
 				$image.attr('src', imageSrc);
@@ -1468,7 +1468,7 @@ function updateCurrentConfig() {
 						$item = $('<img />');
 						$item.attr({
 							'class': 'v' + columns + 'col',
-							'src': '/images/' + siteVars.id + '/' + itemConfig.pertinent.icon,
+							'src': itemConfig.pertinent.icon,
 							'alt': name
 						});
 						$visualBox.append($item);
