@@ -3013,18 +3013,110 @@ function submitAction(keyword, action) {
 	function onPendingClick(event) {
 		var $button = $(event.target),
     action = $button.data('action'),
-    $entry = $button.closest('[data-blink="active-form"]'),
-    version = $entry.data('version'),
-    id = $entry.data('id'),
-    idParts = id.split(':'),
-    interaction = idParts[0],
-    interactionName,
-    form = idParts[1],
-    uuid = idParts[2],
     requestUri,
-    cancelText = 'Are you sure you wish to discard this pending record?';
+    $box,
+    dispatch,
+    networkText = 'Check your network connectivity and try again.',
+    cancelText = 'Are you sure you wish to discard this pending record?',
+    submitAllText = 'Submitting all records may take some time, continue?',
+    // variables needed for record-specific actions
+    $entry,
+    version,
+    id,
+    idParts,
+    interaction,    
+    form,
+    uuid,
+    /**
+     * @inner
+     */
+    submitFn = function($entry) {
+      var dfrd = new $.Deferred(),
+      id = $entry.data('id'),
+      idParts = id.split(':'),
+      interaction = idParts[0],
+      interactionName,
+      form = idParts[1],
+      uuid = idParts[2];
+      /* END: var */
+      if (siteVars.config['i' + interaction]) {
+        interactionName = siteVars.config['i' + interaction].pertinent.name;
+      } else {
+        alert('Error: this record requires an Interaction that not currently available');
+        return;
+      }
+      $button.prop('disabled', true);
+      $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
+      .fail(function() {
+        alert('Error: unable to retrieve this form');
+        $button.prop('disabled', false);
+      })
+      .then(function(json) {
+        var formData;
+        if (typeof json !== 'string' || json.length === 0) {
+          $button.prop('disabled', false);
+          return;
+        } else if ($.type(json) !== 'object') {
+          json = $.parseJSON(json);
+        }
+        switch($.type(json)) {
+          case 'array':
+            formData = json[0];
+            break;
+          case 'object':
+            formData = json;
+            break;
+        }
+        $entry.addClass('s-working');
+        $.when(BlinkForms.submitData(interactionName, form, formData))
+        .always(function(response, status, jqxhr) {
+          var swap;
+          if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
+            swap = jqxhr;
+            jqxhr = response;
+            response = swap;
+          }
+          $button.prop('disabled', false);
+          if (jqxhr.status === 200 && response) {
+            if (MyAnswers.store) {
+              clearPendingForm(interaction, form, uuid);
+              $entry.remove();
+            }
+          } else {
+            $entry.toggleClass('s-working s-error');
+          }
+          dfrd.resolve();
+        });
+      });
+      return dfrd.promise();
+    };
     /* END: var */
-		if (version === 2) {
+    if (action === 'submit-all') {
+      if (!deviceVars.isOnline) {
+        alert(networkText);
+        return;
+      }
+      if (!window.confirm(submitAllText)) {
+        return;
+      }
+      dispatch = new BlinkDispatch(197);
+      $box = $button.closest('.box, .view');      
+      $box.find('[data-blink="active-form"][data-id]')
+      .each(function(index, element) {
+        dispatch.add(function() {
+          return submitFn($(element));
+        });
+      });
+      return;
+    }
+    $entry = $button.closest('[data-blink="active-form"]');
+    version = $entry.data('version');
+    id = $entry.data('id');
+    idParts = id.split(':');
+    interaction = idParts[0];    
+    form = idParts[1];
+    uuid = idParts[2];
+    if (version === 2) {
 			if (action === 'clear' && confirm(cancelText)) {
         $.when(clearPendingForm(interaction, form, uuid))
         .then(function() {
@@ -3036,54 +3128,7 @@ function submitAction(keyword, action) {
 				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
         
 			} else if (action === 'submit') {
-        if (siteVars.config['i' + interaction]) {
-          interactionName = siteVars.config['i' + interaction].pertinent.name;
-        } else {
-          alert('Error: this record requires an Interaction that not currently available');
-          return;
-        }
-        $button.prop('disabled', true);
-        $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
-        .fail(function() {
-          alert('Error: unable to retrieve this form');
-          $button.prop('disabled', false);
-        })
-        .then(function(json) {
-          var formData;
-          if (typeof json !== 'string' || json.length === 0) {
-            $button.prop('disabled', false);
-            return;
-          } else if ($.type(json) !== 'object') {
-            json = $.parseJSON(json);
-          }
-          switch($.type(json)) {
-            case 'array':
-              formData = json[0];
-              break;
-            case 'object':
-              formData = json;
-              break;
-          }
-          $entry.addClass('s-working');
-          $.when(BlinkForms.submitData(interactionName, form, formData))
-          .always(function(response, status, jqxhr) {
-            var swap;
-            if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
-              swap = jqxhr;
-              jqxhr = response;
-              response = swap;
-            }
-            $button.prop('disabled', false);
-            if (jqxhr.status === 200 && response) {
-              if (MyAnswers.store) {
-                clearPendingForm(interaction, form, uuid);
-                $entry.remove();
-              }
-            } else {
-              $entry.toggleClass('s-working s-error');
-            }
-          });
-        });
+        submitFn($entry);
         
       }
 		} else if (version === 1) {
