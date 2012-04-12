@@ -13,8 +13,10 @@ CACHE:
 /_c_/jquery-ui/1.8.18/js/jquery.effects.min.js
 /_c_/modernizr/modernizr-2.5.3-2012W08.min.js
 /_c_/phpjs/phpjs-2011-09.min.js
+#/_c_/underscorejs/1.3.1/underscore-min.js 
 /_c_/signaturepad/jquery.signaturepad-2.1.1.min.js
-/_c_/webshims/polyfiller-1.7.2.min.js
+#/_c_/webshims/polyfiller-1.7.2.min.js
+/_c_/webshims/1.8.9min/polyfiller.js
 /_c_/css/blink2010reset.css
 /_c_/css/blink2011reset.css
 /_c_/ajaxslt/0.8.1-r61/xmltoken.min.js
