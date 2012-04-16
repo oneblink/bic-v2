@@ -132,18 +132,18 @@ button, [type=button], [type=submit], [type=reset] {
 	-webkit-background-origin: padding-box;
 	border-style: none;
 }
-.squareButton, .roundButton, .backButton { background-image: url(Images/button.png); }
+.squareButton, .roundButton, .backButton { background-image: url(/_R_/ios/3/Images/button.png); }
 .squareButton {
 	border-width: 0px 5px;
-	-webkit-border-image: url(Images/squareButton.png) 0 5 0 5 repeat stretch;
+	-webkit-border-image: url(/_R_/ios/3/Images/squareButton.png) 0 5 0 5 repeat stretch;
 }
 .roundButton {
 	border-width: 0px 15px;
-	-webkit-border-image: url(Images/roundButton.png) 0 15 0 15 repeat stretch;
+	-webkit-border-image: url(/_R_/ios/3/Images/roundButton.png) 0 15 0 15 repeat stretch;
 }
 .backButton {
 	border-width: 0px 5px 0px 16px;
-	-webkit-border-image: url(Images/backButton.png) 0 5 0 16 repeat stretch;
+	-webkit-border-image: url(/_R_/ios/3/Images/backButton.png) 0 5 0 16 repeat stretch;
 }
 
 #homeButton {
@@ -187,7 +187,7 @@ ul.box > li {
 	border-left: 1px solid #B7B7BC;
 	border-right: 1px solid #B7B7BC;
 	background-color: #FFF;
-	background-image: url(Images/chevron.png);
+	background-image: url(/_R_/ios/3/Images/chevron.png);
 	background-repeat: no-repeat;
 	background-position: 95% center;
 }
