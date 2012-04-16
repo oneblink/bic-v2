@@ -1,9 +1,3 @@
-@media (max-device-height: 640px) {
-	html {
-		min-height: 416px;
-	}
-}
-
 body {
 	font-family: Helvetica;
 	padding-bottom: 44px;

@@ -2975,7 +2975,6 @@ function submitAction(keyword, action) {
 /* *** EVENT HANDLERS *** */
 
 	function onOrientationChange(event) {
-		var maxHeight;
 		if ($.inArray('ios', deviceVars.features) !== -1
 				&& Math.abs(window.orientation || 0) === 90) {
 			MyAnswers.screenX = window.screen.height;
@@ -2986,11 +2985,6 @@ function submitAction(keyword, action) {
 		}
 		MyAnswers.windowX = window.innerWidth;
 		MyAnswers.windowY = window.innerHeight;
-		if ($.inArray('phone', deviceVars.features) !== -1) {
-      maxHeight = Math.max(MyAnswers.screenY, MyAnswers.windowY, window.outerHeight);
-      maxHeight /= window.devicePixelRatio || 1;
-			MyAnswers.$body.css('min-height', maxHeight + 'px');
-		}
 		$window.trigger('scroll');
 	}
 	
