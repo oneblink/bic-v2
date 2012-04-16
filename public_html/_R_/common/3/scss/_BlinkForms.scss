@@ -11,8 +11,12 @@ figure {
 
 form {
 	img {
+    display: none;
 		max-width: 100%;
 		max-height: $formImgMaxHeight;
+    &[src] {
+      display: block;
+    }
 		&[name] {
 			@include img-center;
 		}
