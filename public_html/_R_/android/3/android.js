@@ -74,7 +74,7 @@ function onDeviceReady() {
 	}
 }
 
-(function(window, undefined) {
+(function(window) {
 	var $ = window.jQuery,
 	/* @inner */
 	MyAnswersDevice = function() {

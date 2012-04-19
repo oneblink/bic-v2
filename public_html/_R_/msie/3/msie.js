@@ -31,7 +31,7 @@ function init_device() {
 	$('#startUp-initDevice').addClass('success');
 }
 
-(function(window, undefined) {
+(function(window) {
 	var $ = window.jQuery,
 	/* @inner */
 	MyAnswersDevice = function() {

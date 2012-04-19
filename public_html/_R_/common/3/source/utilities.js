@@ -5,7 +5,7 @@
 
 /*jslint browser: true, plusplus: true, white: true */
 
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	var $ = window.jQuery,
 	Math = window.Math;
@@ -27,7 +27,7 @@
 /* logging functions 
  * initialises log(), error(), warn(), info() in the global context
  */
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	var $ = window.jQuery,
 	$document = $(window.document),
@@ -106,7 +106,7 @@
 }(this));
 
 /* new tests for Modernizr */
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	var Modernizr = window.Modernizr,
 	document = window.document,
@@ -153,7 +153,7 @@
 }(this));
 
 /* minor improvements to Math */
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	var Math = window.Math,
 	oldRound = Math.round;
@@ -203,7 +203,7 @@
 }(this));
 
 /* minor improvements to jQuery */
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	/*jslint nomen: true*/
 	var $ = window.jQuery,

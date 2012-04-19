@@ -5,7 +5,7 @@
 
 /*jslint white:true*/
 
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	var $ = window.jQuery,
 	BlinkDispatch = function(interval) {

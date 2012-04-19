@@ -1350,7 +1350,7 @@ function updateCurrentConfig() {
 	});
 }
 
-(function(window, undefined) {
+(function(window) {
 	var MyAnswers = window.MyAnswers;
 	
 	function onMasterCategoryClick(event) {
@@ -1517,7 +1517,7 @@ function updateCurrentConfig() {
 	
 }(this));
 
-(function(window, undefined) {
+(function(window) {
 	var $ = window.jQuery,
 		MyAnswers = window.MyAnswers,
 		deviceVars = window.deviceVars,
@@ -2506,7 +2506,7 @@ function submitAction(keyword, action) {
 // *** BEGIN APPLICATION INIT ***
 
 /* moving non-public functions into a closure for safety */
-(function(window, undefined) {
+(function(window) {
 	var document = window.document,
 		siteVars = window.siteVars,
 		deviceVars = window.deviceVars,

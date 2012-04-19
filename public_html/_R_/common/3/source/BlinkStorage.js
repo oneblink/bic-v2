@@ -13,7 +13,7 @@
 
 /*jslint plusplus:true, white:true*/
 
-(function(window, undefined) {
+(function(window) {
 	'use strict';
 	var available,
 	$ = window.jQuery,
