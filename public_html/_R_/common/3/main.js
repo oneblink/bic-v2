@@ -323,14 +323,14 @@ function performXSLT(xmlString, xslString) {
 		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
 		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
 		 */
-		if (typeof window.xsltProcess !== 'undefined') {
-			log('performXSLT(): performing XSLT via AJAXSLT library');
-			html = window.xsltProcess(xml, xsl);
-		} else if (window.XSLTProcessor !== undefined) {
+		if (window.XSLTProcessor) {
 			log('performXSLT(): performing XSLT via XSLTProcessor()');
 			xsltProcessor = new window.XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);
 			html = xsltProcessor.transformToFragment(xml, document);
+		} else if (window.xsltProcess) {
+			log('performXSLT(): performing XSLT via AJAXSLT library');
+			html = window.xsltProcess(xml, xsl);
 		} else {
 			html = '<p>Your browser does not support Data Suitcase keywords.</p>'; 
 		}
@@ -3327,7 +3327,8 @@ function submitAction(keyword, action) {
 		var storeEngine = null, // pick automatic engine by default
 		loadedPromises = [],
 		dfrdFixWebSQL,
-    userAgent = navigator.userAgent;
+    userAgent = navigator.userAgent,
+    domainWhitelist;
 		/* END: var */
     
 		log("init_main(): ");
@@ -3367,6 +3368,7 @@ function submitAction(keyword, action) {
 		$window.bind('offline', onNetworkChange);
 		onNetworkChange(); // $window.trigger('online');
 
+    // pre-configure storage system for BlinkGap if necessary
 		if (isBlinkGapDevice()) {
 			storeEngine = null; // native application should always use auto-select
 			if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
@@ -3378,6 +3380,24 @@ function submitAction(keyword, action) {
 			// Android has problems with persistent storage
 			storeEngine = 'sessionstorage';
 		}
+    
+    // pre-configure domain whitelist for BlinkGap if necessary
+    if (isBlinkGapDevice() && MyAnswers.device.domainWhitelist
+        && window.navigator.gap_managewhitelist) {
+      domainWhitelist = MyAnswers.device.domainWhitelist;
+      if ($.type(domainWhitelist) === 'array') {
+        log('BlinkGap: replacing domain whitelist...');
+        try {
+          navigator.gap_managewhitelist.appendToWhitelist($.noop, $.noop, {
+            externalHosts: domainWhitelist
+          });
+        } catch (e) {
+          log('BlinkGap: domain whitelist error...');
+          error(e);
+        }
+        log('BlinkGap: domain whitelist replaced!');
+      }
+    }
     
     // fix the WebSQL quota is necessary and open required persistent stores
 		$.when(dfrdFixWebSQL)
