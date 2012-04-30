@@ -323,14 +323,14 @@ function performXSLT(xmlString, xslString) {
 		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
 		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
 		 */
-		if (typeof window.xsltProcess !== 'undefined') {
-			log('performXSLT(): performing XSLT via AJAXSLT library');
-			html = window.xsltProcess(xml, xsl);
-		} else if (window.XSLTProcessor !== undefined) {
+		if (window.XSLTProcessor) {
 			log('performXSLT(): performing XSLT via XSLTProcessor()');
 			xsltProcessor = new window.XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);
 			html = xsltProcessor.transformToFragment(xml, document);
+		} else if (window.xsltProcess) {
+			log('performXSLT(): performing XSLT via AJAXSLT library');
+			html = window.xsltProcess(xml, xsl);
 		} else {
 			html = '<p>Your browser does not support Data Suitcase keywords.</p>'; 
 		}
@@ -1292,7 +1292,7 @@ function updateCurrentConfig() {
 	MyAnswers.dispatch.add(function() {
 		var $banner = $('#bannerBox'),
 			$image = $banner.find('img'),
-			imageSrc = '/images/' + siteVars.id + '/' + currentConfig.logoBanner; 
+			imageSrc = currentConfig.logoBanner; 
 		if (typeof currentConfig.logoBanner === 'string') {
 			if (imageSrc !== $image.attr('src')) {
 				$image.attr('src', imageSrc);
@@ -1350,7 +1350,7 @@ function updateCurrentConfig() {
 	});
 }
 
-(function(window, undefined) {
+(function(window) {
 	var MyAnswers = window.MyAnswers;
 	
 	function onMasterCategoryClick(event) {
@@ -1468,7 +1468,7 @@ function updateCurrentConfig() {
 						$item = $('<img />');
 						$item.attr({
 							'class': 'v' + columns + 'col',
-							'src': '/images/' + siteVars.id + '/' + itemConfig.pertinent.icon,
+							'src': itemConfig.pertinent.icon,
 							'alt': name
 						});
 						$visualBox.append($item);
@@ -1517,7 +1517,7 @@ function updateCurrentConfig() {
 	
 }(this));
 
-(function(window, undefined) {
+(function(window) {
 	var $ = window.jQuery,
 		MyAnswers = window.MyAnswers,
 		deviceVars = window.deviceVars,
@@ -2506,7 +2506,7 @@ function submitAction(keyword, action) {
 // *** BEGIN APPLICATION INIT ***
 
 /* moving non-public functions into a closure for safety */
-(function(window, undefined) {
+(function(window) {
 	var document = window.document,
 		siteVars = window.siteVars,
 		deviceVars = window.deviceVars,
@@ -2975,7 +2975,6 @@ function submitAction(keyword, action) {
 /* *** EVENT HANDLERS *** */
 
 	function onOrientationChange(event) {
-		var maxHeight;
 		if ($.inArray('ios', deviceVars.features) !== -1
 				&& Math.abs(window.orientation || 0) === 90) {
 			MyAnswers.screenX = window.screen.height;
@@ -2986,11 +2985,6 @@ function submitAction(keyword, action) {
 		}
 		MyAnswers.windowX = window.innerWidth;
 		MyAnswers.windowY = window.innerHeight;
-		if ($.inArray('phone', deviceVars.features) !== -1) {
-      maxHeight = Math.max(MyAnswers.screenY, MyAnswers.windowY, window.outerHeight);
-      maxHeight /= window.devicePixelRatio || 1;
-			MyAnswers.$body.css('min-height', maxHeight + 'px');
-		}
 		$window.trigger('scroll');
 	}
 	
@@ -3013,18 +3007,110 @@ function submitAction(keyword, action) {
 	function onPendingClick(event) {
 		var $button = $(event.target),
     action = $button.data('action'),
-    $entry = $button.closest('[data-blink="active-form"]'),
-    version = $entry.data('version'),
-    id = $entry.data('id'),
-    idParts = id.split(':'),
-    interaction = idParts[0],
-    interactionName,
-    form = idParts[1],
-    uuid = idParts[2],
     requestUri,
-    cancelText = 'Are you sure you wish to discard this pending record?';
+    $box,
+    dispatch,
+    networkText = 'Check your network connectivity and try again.',
+    cancelText = 'Are you sure you wish to discard this pending record?',
+    submitAllText = 'Submitting all records may take some time, continue?',
+    // variables needed for record-specific actions
+    $entry,
+    version,
+    id,
+    idParts,
+    interaction,    
+    form,
+    uuid,
+    /**
+     * @inner
+     */
+    submitFn = function($entry) {
+      var dfrd = new $.Deferred(),
+      id = $entry.data('id'),
+      idParts = id.split(':'),
+      interaction = idParts[0],
+      interactionName,
+      form = idParts[1],
+      uuid = idParts[2];
+      /* END: var */
+      if (siteVars.config['i' + interaction]) {
+        interactionName = siteVars.config['i' + interaction].pertinent.name;
+      } else {
+        alert('Error: this record requires an Interaction that not currently available');
+        return;
+      }
+      $button.prop('disabled', true);
+      $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
+      .fail(function() {
+        alert('Error: unable to retrieve this form');
+        $button.prop('disabled', false);
+      })
+      .then(function(json) {
+        var formData;
+        if (typeof json !== 'string' || json.length === 0) {
+          $button.prop('disabled', false);
+          return;
+        } else if ($.type(json) !== 'object') {
+          json = $.parseJSON(json);
+        }
+        switch($.type(json)) {
+          case 'array':
+            formData = json[0];
+            break;
+          case 'object':
+            formData = json;
+            break;
+        }
+        $entry.addClass('s-working');
+        $.when(BlinkForms.submitData(interactionName, form, formData))
+        .always(function(response, status, jqxhr) {
+          var swap;
+          if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
+            swap = jqxhr;
+            jqxhr = response;
+            response = swap;
+          }
+          $button.prop('disabled', false);
+          if (jqxhr.status === 200 && response) {
+            if (MyAnswers.store) {
+              clearPendingForm(interaction, form, uuid);
+              $entry.remove();
+            }
+          } else {
+            $entry.toggleClass('s-working s-error');
+          }
+          dfrd.resolve();
+        });
+      });
+      return dfrd.promise();
+    };
     /* END: var */
-		if (version === 2) {
+    if (action === 'submit-all') {
+      if (!deviceVars.isOnline) {
+        alert(networkText);
+        return;
+      }
+      if (!window.confirm(submitAllText)) {
+        return;
+      }
+      dispatch = new BlinkDispatch(197);
+      $box = $button.closest('.box, .view');      
+      $box.find('[data-blink="active-form"][data-id]')
+      .each(function(index, element) {
+        dispatch.add(function() {
+          return submitFn($(element));
+        });
+      });
+      return;
+    }
+    $entry = $button.closest('[data-blink="active-form"]');
+    version = $entry.data('version');
+    id = $entry.data('id');
+    idParts = id.split(':');
+    interaction = idParts[0];    
+    form = idParts[1];
+    uuid = idParts[2];
+    if (version === 2) {
 			if (action === 'clear' && confirm(cancelText)) {
         $.when(clearPendingForm(interaction, form, uuid))
         .then(function() {
@@ -3036,54 +3122,7 @@ function submitAction(keyword, action) {
 				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
         
 			} else if (action === 'submit') {
-        if (siteVars.config['i' + interaction]) {
-          interactionName = siteVars.config['i' + interaction].pertinent.name;
-        } else {
-          alert('Error: this record requires an Interaction that not currently available');
-          return;
-        }
-        $button.prop('disabled', true);
-        $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
-        .fail(function() {
-          alert('Error: unable to retrieve this form');
-          $button.prop('disabled', false);
-        })
-        .then(function(json) {
-          var formData;
-          if (typeof json !== 'string' || json.length === 0) {
-            $button.prop('disabled', false);
-            return;
-          } else if ($.type(json) !== 'object') {
-            json = $.parseJSON(json);
-          }
-          switch($.type(json)) {
-            case 'array':
-              formData = json[0];
-              break;
-            case 'object':
-              formData = json;
-              break;
-          }
-          $entry.addClass('s-working');
-          $.when(BlinkForms.submitData(interactionName, form, formData))
-          .always(function(response, status, jqxhr) {
-            var swap;
-            if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
-              swap = jqxhr;
-              jqxhr = response;
-              response = swap;
-            }
-            $button.prop('disabled', false);
-            if (jqxhr.status === 200 && response) {
-              if (MyAnswers.store) {
-                clearPendingForm(interaction, form, uuid);
-                $entry.remove();
-              }
-            } else {
-              $entry.toggleClass('s-working s-error');
-            }
-          });
-        });
+        submitFn($entry);
         
       }
 		} else if (version === 1) {
@@ -3288,7 +3327,8 @@ function submitAction(keyword, action) {
 		var storeEngine = null, // pick automatic engine by default
 		loadedPromises = [],
 		dfrdFixWebSQL,
-    userAgent = navigator.userAgent;
+    userAgent = navigator.userAgent,
+    domainWhitelist;
 		/* END: var */
     
 		log("init_main(): ");
@@ -3328,6 +3368,7 @@ function submitAction(keyword, action) {
 		$window.bind('offline', onNetworkChange);
 		onNetworkChange(); // $window.trigger('online');
 
+    // pre-configure storage system for BlinkGap if necessary
 		if (isBlinkGapDevice()) {
 			storeEngine = null; // native application should always use auto-select
 			if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
@@ -3339,6 +3380,24 @@ function submitAction(keyword, action) {
 			// Android has problems with persistent storage
 			storeEngine = 'sessionstorage';
 		}
+    
+    // pre-configure domain whitelist for BlinkGap if necessary
+    if (isBlinkGapDevice() && MyAnswers.device.domainWhitelist
+        && window.navigator.gap_managewhitelist) {
+      domainWhitelist = MyAnswers.device.domainWhitelist;
+      if ($.type(domainWhitelist) === 'array') {
+        log('BlinkGap: replacing domain whitelist...');
+        try {
+          navigator.gap_managewhitelist.appendToWhitelist($.noop, $.noop, {
+            externalHosts: domainWhitelist
+          });
+        } catch (e) {
+          log('BlinkGap: domain whitelist error...');
+          error(e);
+        }
+        log('BlinkGap: domain whitelist replaced!');
+      }
+    }
     
     // fix the WebSQL quota is necessary and open required persistent stores
 		$.when(dfrdFixWebSQL)

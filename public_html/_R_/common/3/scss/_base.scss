@@ -10,4 +10,7 @@ $experimental-support-for-khtml: false;
 @import "compass/css3/transition";
 @import "compass/utilities/general/min";
 
-
+[hidden], .hidden {
+	display: none !important;
+	z-index: -1 !important;
+}
