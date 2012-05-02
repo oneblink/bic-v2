@@ -1572,6 +1572,9 @@ function updateCurrentConfig() {
 function showMasterCategoriesView(reverse) {
 	var $view = $('#masterCategoriesView');
 	log('showMasterCategoriesView()');
+  currentInteraction = null;
+	currentCategory = null;
+  currentMasterCategory = null;
 	$.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
 		MyAnswers.populateItemListing('masterCategories', $view);
 		updateCurrentConfig();
