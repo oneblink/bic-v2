@@ -1,3 +1,6 @@
+/*jslint browser:true, sloppy:true, white:true*/
+/*global MyAnswers:true, deviceVars:true, Modernizr:true*/
+
 var activityIndicatorTop, $navBar;
 document.getElementById('startUp-loadDevice').className = 'working';
 MyAnswers.deviceDeferred = new $.Deferred();
@@ -97,7 +100,8 @@ function onDeviceReady() {
 				var endPosition = (reverseTransition ? 'right' : 'left'),
 				startPosition = (reverseTransition ? 'left' : 'right'),
 				$oldView = $('.view:visible'),
-				$navBoxHeader = $('#navBoxHeader');
+				$navBoxHeader = $('#navBoxHeader'),
+        safetyTimer;
 				/* END: var */
 				// transition the current view away
 				if (window.currentConfig.footerPosition !== 'screen-bottom') {
@@ -110,7 +114,13 @@ function onDeviceReady() {
 				MyAnswers.dispatch.pause('prepareView');
 				$navBoxHeader.find('button').attr('disabled', 'disabled');
 				$oldView.addClass('animating');
+        // force the event to trigger if the DOM forgets it
+        safetyTimer = setTimeout(function() {
+          $oldView.trigger('webkitTransitionEnd');
+        }, 1000);
 				$oldView.one('webkitTransitionEnd', function(event) {
+          clearTimeout(safetyTimer);
+          safetyTimer = null;
 					$oldView.hide();
 					$oldView.removeClass('animating slid' + endPosition);
 					MyAnswers.dispatch.resume('hideView');
@@ -126,7 +136,8 @@ function onDeviceReady() {
 			var deferred = new $.Deferred();
 			MyAnswers.dispatch.add(function() {
 				var endPosition = (reverseTransition ? 'right' : 'left'),
-				startPosition = (reverseTransition ? 'left' : 'right');
+				startPosition = (reverseTransition ? 'left' : 'right'),
+        safetyTimer;
 				/* END: var */
 				MyAnswers.dispatch.pause('showView');
 				me.hideLocationBar();
@@ -134,7 +145,13 @@ function onDeviceReady() {
 				$view.hide();
 				$view.addClass('slid' + startPosition);
 				$view.show();
+        // force the event to trigger if the DOM forgets it
+        safetyTimer = setTimeout(function() {
+          $view.trigger('webkitTransitionEnd');
+        }, 1000);
 				$view.one('webkitTransitionEnd', function(event) {
+          clearTimeout(safetyTimer);
+          safetyTimer = null;
 					$view.removeClass('animating');
 					MyAnswers.dispatch.resume('showView');
 					updateNavigationButtons();
