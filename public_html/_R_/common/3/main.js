@@ -1212,7 +1212,7 @@ function initialiseAnswerFeatures($view) {
 	MyAnswers.dispatch.add(function() {
 		var $inputs = $view.find('input, textarea, select'),
 			$form = $view.find('form').first(),
-			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Maps !== 'undefined';
+			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined';
 		MyAnswers.$body.trigger('taskBegun');
 		$inputs.unbind('blur', triggerScroll);
 		$inputs.bind('blur', triggerScroll);
