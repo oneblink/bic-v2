@@ -3658,7 +3658,7 @@ function submitAction(keyword, action) {
 			// poly-fill JSON
 			Modernizr.load({
 				test: window.JSON && window.JSON.stringify,
-				nope: '/_c_/json2.min.js',
+				nope: '//d1c6dfkb81l78v.cloudfront.net/json2.min.js',
 				callback: function(url, result, key) {
 					if (window.JSON) {
 						dfrdJSON.resolve();
@@ -3675,11 +3675,11 @@ function submitAction(keyword, action) {
 			Modernizr.load({
 				test: (window.XSLTProcessor && Modernizr.xpath) || window.xpathParse,
 				nope: {
-					'xml': '/_c_/ajaxslt/0.8.1-r61/xmltoken.min.js',
-					'util': '/_c_/ajaxslt/0.8.1-r61/util.min.js',
-					'dom': '/_c_/ajaxslt/0.8.1-r61/dom.min.js',
+					'xml': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xmltoken.min.js',
+					'util': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/util.min.js',
+					'dom': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/dom.min.js',
 					// TODO: figure out how to test if the above scripts are needed
-					'xpath': '/_c_/ajaxslt/0.8.1-r61/xpath.min.js'
+					'xpath': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xpath.min.js'
 				},
 				callback: function(url, result, key) {
 					if (key !== 'xpath') {
@@ -3708,7 +3708,7 @@ function submitAction(keyword, action) {
 			.then(function() {
 				Modernizr.load({
 					test: window.XSLTProcessor || window.xsltProcess,
-					nope: '/_c_/ajaxslt/0.8.1-r61/xslt.min.js',
+					nope: '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xslt.min.js',
 					callback: function(url, result, key) {
 						if (window.xsltProcess) {
 							log('Modernizr.load(): XSLT supported via AJAXSLT');
@@ -3731,8 +3731,8 @@ function submitAction(keyword, action) {
 			// load History.JS, required for all navigation and state management
 			Modernizr.load({
 				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
-				yep: '/_c_/historyjs/history-1.7.1-r2.html5.min.js',
-				nope: '/_c_/historyjs/history-1.7.1-r2.min.js',
+				yep: '//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.html5.min.js',
+				nope: '//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.min.js',
 				callback: function(url, result, key) {
 					if (window.History) {
 						log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
