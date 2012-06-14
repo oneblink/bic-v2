@@ -961,7 +961,7 @@ function updateLoginButtons() {
     if (currentConfig.loginUseInteractions) {
       id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
       if (!id) {
-        alert('error: interaction used for login prompt is inaccessible or misconfigured');
+        alert('error: login interaction is inaccessible or misconfigured');
         return false;
       }
       requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
@@ -1102,7 +1102,16 @@ function submitLogin() {
 							MyAnswers.loginAccount = data.account;
 						}
 						MyAnswers.isLoggedIn = true;
-						window.location.reload();
+//						window.location.reload();
+						$.when(window.requestConfig()).always(function() {
+						  if (siteVars.map && siteVars.config) {
+						    window.processConfig();
+						    window.updateNavigationButtons();
+						    // explicity do not implement loginToDefaultScreen here
+						  } else {
+						    alert('error: insufficient data, check network and reload / refresh');
+						  }
+						});
 					} else {
 						MyAnswers.isLoggedIn = false;
 						delete MyAnswers.loginAccount;
@@ -1117,6 +1126,37 @@ function submitLogin() {
 		timeout: currentConfig.downloadTimeout * 1000
   });
 }
+
+MyAnswers.gotoDefaultScreen = function() {
+  var History = window.History,
+      requestUri;
+
+  if (currentConfig.defaultScreen === 'login' || MyAnswers.isLoginOnly) {
+    showLoginView();
+    /*History.pushState({
+      login: true
+    });*/
+  } else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
+    requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
+    History.pushState({
+      i: currentConfig.defaultInteraction
+      }, null, requestUri);
+  } else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
+    requestUri = '/' + siteVars.answerSpace + '/?_c=' + currentConfig.defaultCategory;
+    History.pushState({
+      c: currentConfig.defaultCategory
+      }, null, requestUri);
+  } else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
+    requestUri = '/' + siteVars.answerSpace + '/?_m=' + currentConfig.defaultMasterCategory;
+    History.pushState({
+      m: currentConfig.defaultMasterCategory
+      }, null, requestUri);
+  } else { // default "home"
+    History.replaceState({
+      _now: $.now()
+    }, null, '/' + siteVars.answerSpace + '/');
+  }
+};
 
 function updateNavigationButtons() {
 	MyAnswers.dispatch.add(function() {
@@ -1204,7 +1244,21 @@ function initialiseAnswerFeatures($view) {
 		oldLoginStatus = MyAnswers.isLoggedIn;
 		$.when(requestLoginStatus()).always(function() {
 			if (MyAnswers.isLoggedIn !== oldLoginStatus) {
-				window.location.reload();
+			  if (MyAnswers.isLoggedIn) {
+				  $.when(window.requestConfig()).always(function() {
+					  if (siteVars.map && siteVars.config) {
+						  window.processConfig();
+						  window.updateNavigationButtons();
+						  if (currentConfig.loginToDefaultScreen) {
+						    MyAnswers.gotoDefaultScreen();
+						  }
+					  } else {
+						  alert('error: insufficient data, check network and reload / refresh');
+					  }
+				  });
+			  } else {
+          window.location.reload();
+			  }
 			}
 		});
 	}
@@ -1766,10 +1820,12 @@ function processForms() {
 	.then(MyAnswers.formsDeferred.resolve);
 }
 
-function processConfig(display) {
+function processConfig() {
 	var siteStructure,
 	config;
 	/* END: var */
+	MyAnswers.isEmptySpace = false;
+	MyAnswers.isLoginOnly = false;
 	log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
 	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
 		config = siteVars.config['a' + siteVars.id].pertinent;
@@ -3181,7 +3237,6 @@ function submitAction(keyword, action) {
     $masterCategoriesView = $('#masterCategoriesView'),
     $categoriesView = $('#categoriesView'),
     $keywordListView = $('#keywordListView'),
-    requestUri,
     token = siteVars.queryParameters._t;
     /* END: var */
     delete siteVars.queryParameters._t;
@@ -3206,36 +3261,7 @@ function submitAction(keyword, action) {
           break;
       }
       $('#answerSpacesListView').remove();
-      if (currentConfig.defaultScreen === 'login' || MyAnswers.isLoginOnly) {
-        History.pushState({
-          login: true
-        });
-      } else if (currentConfig.defaultScreen === 'interaction' && hasInteractions && typeof siteVars.config['i' + currentConfig.defaultInteraction] !== undefined) {
-        requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
-        History.pushState({
-          i: currentConfig.defaultInteraction
-          }, null, requestUri);
-      } else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
-        requestUri = '/' + siteVars.answerSpace + '/?_c=' + currentConfig.defaultCategory;
-        History.pushState({
-          c: currentConfig.defaultCategory
-          }, null, requestUri);
-      } else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
-        requestUri = '/' + siteVars.answerSpace + '/?_m=' + currentConfig.defaultMasterCategory;
-        History.pushState({
-          m: currentConfig.defaultMasterCategory
-          }, null, requestUri);
-      } else { // default "home"
-        if (hasMasterCategories) {
-          showMasterCategoriesView();
-        } else if (hasCategories) {
-          showCategoriesView();
-        } else if (answerSpaceOneKeyword) {
-          gotoNextScreen(siteVars.map.interactions[0]);
-        } else {
-          showKeywordListView();
-        }
-      }
+      MyAnswers.gotoDefaultScreen();
       $.when(restoreSessionProfile(token))
       .always(function() {
         var interaction = resolveItemName(siteVars.queryParameters.keyword),
