@@ -55,6 +55,9 @@ input {
 		height: auto;
 		@include scale(1.5);
 	}
+  &[type=file] {
+    color: inherit;
+  }
 }
 
 fieldset.options {

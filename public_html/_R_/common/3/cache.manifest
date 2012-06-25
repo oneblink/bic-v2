@@ -1,9 +1,10 @@
 CACHE MANIFEST 
-# svn revision 3600
+# svn revision 4000
 
 CACHE:
 /_R_/common/3/common.css
 /_R_/common/3/common.min.js
+/_c_/blink/iframeUpload-1.js
 //d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.min.js
 //d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.html5.min.js
 //d1c6dfkb81l78v.cloudfront.net/json2.js
@@ -13,7 +14,7 @@ CACHE:
 //d1c6dfkb81l78v.cloudfront.net/jquery-ui/1.8.21/js/effects.min.js
 //d1c6dfkb81l78v.cloudfront.net/modernizr/modernizr-2.5.3-2012W08.min.js
 //d1c6dfkb81l78v.cloudfront.net/phpjs/phpjs-2011-09.min.js
-#//d1c6dfkb81l78v.cloudfront.net/underscorejs/1.3.1/underscore-min.js 
+//d1c6dfkb81l78v.cloudfront.net/underscorejs/1.3.3/underscore-min.js 
 //d1c6dfkb81l78v.cloudfront.net/signaturepad/jquery.signaturepad-2.1.1.min.js
 #//d1c6dfkb81l78v.cloudfront.net/webshims/polyfiller-1.7.2.min.js
 //d1c6dfkb81l78v.cloudfront.net/webshims/1.8.9min/polyfiller.js

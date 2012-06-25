@@ -1,10 +1,10 @@
 @mixin img-center {
-	display: block;
 	margin: .5em auto;
 }
 
 figure {
 	img {
+  	display: block;
 		@include img-center;
 	}
 }
