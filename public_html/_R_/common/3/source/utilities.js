@@ -452,7 +452,7 @@
   };
 
   // export singleton to global namespace
-  window._Blink.PlatformCDN = new PlatformCDN();
+  window._Blink.cdnp = new PlatformCDN();
 
 }(this));
 
