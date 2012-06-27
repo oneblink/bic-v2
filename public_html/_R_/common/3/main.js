@@ -10,14 +10,13 @@
 /*global explode:true, implode:true*/
 
 var MyAnswers = MyAnswers || {},
-siteVars = siteVars || {},
-deviceVars = deviceVars || {},
-hasCategories = false, hasMasterCategories = false,
-              hasVisualCategories = false, hasInteractions = false,
-              answerSpaceOneKeyword = false,
-currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
-starsProfile = {},
-ajaxQueue;
+    siteVars = siteVars || {},
+    deviceVars = deviceVars || {},
+    hasCategories = false, hasMasterCategories = false,
+    hasVisualCategories = false, hasInteractions = false,
+    answerSpaceOneKeyword = false,
+    currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
+    starsProfile = {};
 /* END: var */
 
 document.getElementById('startUp-loadMain').className = 'working';
@@ -27,7 +26,7 @@ currentConfig.uploadTimeout = 45;
 deviceVars.isOnline = true;
 
 function PictureSourceType() {}
-function lastPictureTaken () {}
+function lastPictureTaken() {}
 
 MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
@@ -44,140 +43,140 @@ MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
 // *** BEGIN UTILS ***
 
 function isCameraPresent() {
-	var test = isBlinkGapDevice();
-	info('isBlinkGapDevice(): ' + test);
-	return test && window.device.camerapresent;
+  var test = isBlinkGapDevice();
+  info('isBlinkGapDevice(): ' + test);
+  return test && window.device.camerapresent;
 }
 
 function triggerScroll(event) {
-	$(window).trigger('scroll');
+  $(window).trigger('scroll');
 }
 
 function insertHTML(element, html) {
-	if ($.type(element) === 'object') {
-//		MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
-		MyAnswers.dispatch.add(function() {$(element).html(html);});
-//		MyAnswers.dispatch.add($.noop);
-	}
+  if ($.type(element) === 'object') {
+    //    MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
+    MyAnswers.dispatch.add(function() {$(element).html(html);});
+    //    MyAnswers.dispatch.add($.noop);
+  }
 }
 
 function insertText(element, text) {
-	if ($.type(element) === 'object' && typeof text === 'string') {
-		MyAnswers.dispatch.add(function() {$(element).text(text);});
-	}
+  if ($.type(element) === 'object' && typeof text === 'string') {
+    MyAnswers.dispatch.add(function() {$(element).text(text);});
+  }
 }
 
 function setMainLabel(label) {
-	var mainLabel = document.getElementById('mainLabel');
-	insertText(mainLabel, label);
+  var mainLabel = document.getElementById('mainLabel');
+  insertText(mainLabel, label);
 }
 
-function changeDOMclass(element, options) { 
-	// options is { add: 'class(es)', remove: 'class(es)', toggle: 'class(es)' }
-	if ($.type(options) !== 'object') {return;}
-	MyAnswers.dispatch.add(function() {
-		if (typeof options.add === 'string') {
-			$(element).addClass(options.add);
-		}
-		if (typeof options.remove === 'string') {
-			$(element).removeClass(options.remove);
-		}
-		if (typeof options.toggle === 'string') {
-			$(element).toggleClass(options.toggle);
-		}
-	});
+function changeDOMclass(element, options) {
+  // options is { add: 'class(es)', remove: 'class(es)', toggle: 'class(es)' }
+  if ($.type(options) !== 'object') {return;}
+  MyAnswers.dispatch.add(function() {
+    if (typeof options.add === 'string') {
+      $(element).addClass(options.add);
+    }
+    if (typeof options.remove === 'string') {
+      $(element).removeClass(options.remove);
+    }
+    if (typeof options.toggle === 'string') {
+      $(element).toggleClass(options.toggle);
+    }
+  });
 }
 
 //convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
 function deserialize(argsString) {
-	var args = argsString.split('&'),
-		result = { };
-	$.each(args, function(index, string) {
-		var equalIndex, name, value;
-		if (string.length !== 0 && (equalIndex = string.indexOf('=')) !== -1) {
-			name = string.substring(0, equalIndex);
-			value = string.substring(equalIndex + 1);
-			result[decodeURIComponent(name)] = decodeURIComponent(value);
-		}
-	});
-	return result;
+  var args = argsString.split('&'),
+    result = { };
+  $.each(args, function(index, string) {
+    var equalIndex, name, value;
+    if (string.length !== 0 && (equalIndex = string.indexOf('=')) !== -1) {
+      name = string.substring(0, equalIndex);
+      value = string.substring(equalIndex + 1);
+      result[decodeURIComponent(name)] = decodeURIComponent(value);
+    }
+  });
+  return result;
 }
 
 function getURLParameters() {
-	var href = window.location.href,
-		matches,
-		parameters = {};
-	if (href.indexOf('?') !== -1) {
-		matches = href.match(/\?([^#]*)#?.*$/);
-		if (matches && matches.length >= 2) {
-			parameters = deserialize(matches[1]);
-			if (typeof parameters.keyword === 'string') {
-				parameters.keyword = parameters.keyword.replace('/', '');
-			}
-		}
-	}
-	matches = href.match(new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i'));
-	if (matches && matches.length >= 2) {
-		parameters.keyword = matches[1];
-	}
-	return parameters;
+  var href = window.location.href,
+    matches,
+    parameters = {};
+  if (href.indexOf('?') !== -1) {
+    matches = href.match(/\?([^#]*)#?.*$/);
+    if (matches && matches.length >= 2) {
+      parameters = deserialize(matches[1]);
+      if (typeof parameters.keyword === 'string') {
+        parameters.keyword = parameters.keyword.replace('/', '');
+      }
+    }
+  }
+  matches = href.match(new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i'));
+  if (matches && matches.length >= 2) {
+    parameters.keyword = matches[1];
+  }
+  return parameters;
 }
 
 // TODO: deprecate this function
 function isAJAXError(status)
 {
-	switch(status) {
-		case null:
-		case 'timeout':
-		case 'error':
-		case 'notmodified':
-		case 'parseerror':
-			return true;
-		default:
-			return false;
-	}
+  switch (status) {
+    case null:
+    case 'timeout':
+    case 'error':
+    case 'notmodified':
+    case 'parseerror':
+      return true;
+    default:
+      return false;
+  }
 }
 
 function populateDataTags($element, data) {
-	var d;
-	for (d in data) {
-		if (data.hasOwnProperty(d)) {
-			$element.attr('data-' + d, data[d]);
-		}
-	}
+  var d;
+  for (d in data) {
+    if (data.hasOwnProperty(d)) {
+      $element.attr('data-' + d, data[d]);
+    }
+  }
 }
 
 function processBlinkAnswerMessage(message) {
   var i, iLength;
-	message = $.parseJSON(message);
-	if (typeof message.mojotarget === 'string') {
-		if (typeof message.mojoxml === 'string') {
-			log('blinkAnswerMessage: populating Data Suitcase: ' + message.mojotarget);
-			MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
-		} else if (typeof message.mojodelete !== 'undefined') {
-			log('blinkAnswerMessage: deleting Data Suitcase: ' + message.mojotarget);
-			MyAnswers.store.remove('mojoXML:' + message.mojotarget);
-		}
-	}
-	if (message.startype) {
-		starsProfile[message.startype] = starsProfile[message.startype] || {};
-		if (message.clearstars) {
-			delete starsProfile[message.startype];
-		}
-		if ($.type(message.staroff) === 'array') {
-			iLength = message.staroff.length;
-			for (i = 0; i < iLength; i++) {
-				delete starsProfile[message.startype][message.staroff[i]];
-			}
-		}
-		if ($.type(message.staron) === 'array') {
-			iLength = message.staron.length;
-			for (i = 0; i < iLength; i++) {
-				starsProfile[message.startype][message.staron[i]] = starsProfile[message.startype][message.staron[i]] || {};
-			}
-		}
-		MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
-	}
+  message = $.parseJSON(message);
+  if (typeof message.mojotarget === 'string') {
+    if (typeof message.mojoxml === 'string') {
+      log('blinkAnswerMessage: populating Data Suitcase: ' + message.mojotarget);
+      MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
+    } else if (typeof message.mojodelete !== 'undefined') {
+      log('blinkAnswerMessage: deleting Data Suitcase: ' + message.mojotarget);
+      MyAnswers.store.remove('mojoXML:' + message.mojotarget);
+    }
+  }
+  if (message.startype) {
+    starsProfile[message.startype] = starsProfile[message.startype] || {};
+    if (message.clearstars) {
+      delete starsProfile[message.startype];
+    }
+    if ($.type(message.staroff) === 'array') {
+      iLength = message.staroff.length;
+      for (i = 0; i < iLength; i++) {
+        delete starsProfile[message.startype][message.staroff[i]];
+      }
+    }
+    if ($.type(message.staron) === 'array') {
+      iLength = message.staron.length;
+      for (i = 0; i < iLength; i++) {
+        starsProfile[message.startype][message.staron[i]] = starsProfile[message.startype][message.staron[i]] || {};
+      }
+    }
+    MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
+  }
 }
 
 // *** END OF UTILS ***
@@ -185,45 +184,45 @@ function processBlinkAnswerMessage(message) {
 // *** BEGIN PHONEGAP UTILS ***
 
 function getPicture_Success(imageData) {
-	var i, thisElement;
-//	log("getPicture_Success: " + imageData);
+  var i, thisElement;
+  //  log("getPicture_Success: " + imageData);
   lastPictureTaken.image.put(lastPictureTaken.currentName, imageData);
   for (i in document.forms[0].elements) {
-		if (document.forms[0].elements.hasOwnProperty(i)) {
-			thisElement = document.forms[0].elements[i];
-			if (thisElement.name) {
-				if(thisElement.type && (thisElement.type.toLowerCase() === "radio" || thisElement.type.toLowerCase() === "checkbox") && thisElement.checked === false) {
-					$.noop(); // do nothing for unchecked radio or checkbox
-				} else {
-					if (thisElement.type && (thisElement.type.toLowerCase() === "button") && (lastPictureTaken.image.size() > 0)) {
-						if (lastPictureTaken.currentName === thisElement.name) {
-							thisElement.style.backgroundColor = "red";
-						} 
-					}
-				}
-			}
-		}
+    if (document.forms[0].elements.hasOwnProperty(i)) {
+      thisElement = document.forms[0].elements[i];
+      if (thisElement.name) {
+        if (thisElement.type && (thisElement.type.toLowerCase() === 'radio' || thisElement.type.toLowerCase() === 'checkbox') && thisElement.checked === false) {
+          $.noop(); // do nothing for unchecked radio or checkbox
+        } else {
+          if (thisElement.type && (thisElement.type.toLowerCase() === 'button') && (lastPictureTaken.image.size() > 0)) {
+            if (lastPictureTaken.currentName === thisElement.name) {
+              thisElement.style.backgroundColor = 'red';
+            }
+          }
+        }
+      }
+    }
   }
-  log("getpic success " + imageData.length);
+  log('getpic success ' + imageData.length);
 }
 
 function getPicture(sourceType) {
-	var options = {quality: currentConfig.imageCaptureQuality, imageScale: currentConfig.imageCaptureScale};
-	if (sourceType !== undefined) {
-		options.sourceType = sourceType;
-	}
-	// if no sourceType specified, the default is CAMERA
-	navigator.camera.getPicture(getPicture_Success, null, options);
+  var options = {quality: currentConfig.imageCaptureQuality, imageScale: currentConfig.imageCaptureScale};
+  if (sourceType !== undefined) {
+    options.sourceType = sourceType;
+  }
+  // if no sourceType specified, the default is CAMERA
+  navigator.camera.getPicture(getPicture_Success, null, options);
 }
 
 function selectCamera(nameStr) {
-	log("selectCamera: ");
+  log('selectCamera: ');
   lastPictureTaken.currentName = nameStr;
   getPicture(PictureSourceType.CAMERA);
 }
 
 function selectLibrary(nameStr) {
-	log("selectLibrary: ");
+  log('selectLibrary: ');
   lastPictureTaken.currentName = nameStr;
   getPicture(PictureSourceType.PHOTO_LIBRARY);
 }
@@ -232,119 +231,120 @@ function selectLibrary(nameStr) {
 
 // *** BEGIN BLINK UTILS ***
 
+
 /**
  * @param name
- * @param level "interactions" or "categories" or "masterCategories"
- * @returns numeric identifier, or boolean false if not found
+ * @param level "interactions" or "categories" or "masterCategories".
+ * @return numeric identifier, or boolean false if not found
  */
 function resolveItemName(name, level) {
-	var prefix, list, l, lLength, id;
-	level = (typeof level === 'string' && level) || 'interactions';
-	prefix = level.substring(0, 1);
-	if (typeof name === 'number' && !isNaN(name) && $.type(siteVars.config[prefix + name]) === 'object') {
-		return name;
-	}
-	if (typeof name !== 'string') {return false;}
-	name = decodeURI(name.replace(/\+/g, ' ').toLowerCase());
-	list = siteVars.map[level];
-	lLength = list.length;
-	for (l = 0; l < lLength; l++) {
-		id = prefix + list[l];
-		if ($.type(siteVars.config[id]) === 'object' && name === siteVars.config[id].pertinent.name.toLowerCase()) {
-			return list[l];
-		}
-	}
-	if ($.type(siteVars.config[prefix + name]) === 'object') {
-		return name;
-	}
-	return false;
+  var prefix, list, l, lLength, id;
+  level = (typeof level === 'string' && level) || 'interactions';
+  prefix = level.substring(0, 1);
+  if (typeof name === 'number' && !isNaN(name) && $.type(siteVars.config[prefix + name]) === 'object') {
+    return name;
+  }
+  if (typeof name !== 'string') {return false;}
+  name = decodeURI(name.replace(/\+/g, ' ').toLowerCase());
+  list = siteVars.map[level];
+  lLength = list.length;
+  for (l = 0; l < lLength; l++) {
+    id = prefix + list[l];
+    if ($.type(siteVars.config[id]) === 'object' && name === siteVars.config[id].pertinent.name.toLowerCase()) {
+      return list[l];
+    }
+  }
+  if ($.type(siteVars.config[prefix + name]) === 'object') {
+    return name;
+  }
+  return false;
 }
 
 //take 2 plain XML strings, then transform the first using the second (XSL)
 //insert the result into element
 function performXSLT(xmlString, xslString) {
-	var deferred = new $.Deferred(function(dfrd) {
-		var html, xml, xsl,
-    xsltProcessor;
-		if (typeof xmlString !== 'string' || typeof(xslString) !== 'string') {
-			dfrd.reject('XSLT failed due to poorly formed XML or XSL.');
-			return;
-		}
-		xml = $.parseXML(xmlString);
-		xsl = $.parseXML(xslString);
-		/*
-		 * if (deviceVars.hasWebWorkers === true) {
-		 * log('performXSLT(): enlisting Web Worker to perform
-		 * XSLT'); var message = { }; message.fn = 'processXSLT'; message.xml =
-		 * xmlString; message.xsl = xslString; message.target = target;
-		 * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
-		 * being constructed entirely on your device.</p><p>Please wait...</p>'; }
-		 */
-		if (window.XSLTProcessor) {
-			log('performXSLT(): performing XSLT via XSLTProcessor()');
-			xsltProcessor = new window.XSLTProcessor();
-			xsltProcessor.importStylesheet(xsl);
-			html = xsltProcessor.transformToFragment(xml, document);
-		} else if (window.xsltProcess) {
-			log('performXSLT(): performing XSLT via AJAXSLT library');
-			html = window.xsltProcess(xml, xsl);
-		} else {
-			html = '<p>Your browser does not support Data Suitcase keywords.</p>'; 
-		}
-		dfrd.resolve(html);
-	});
-	return deferred.promise();
+  var deferred = new $.Deferred(function(dfrd) {
+    var html, xml, xsl,
+        xsltProcessor;
+    if (typeof xmlString !== 'string' || typeof(xslString) !== 'string') {
+      dfrd.reject('XSLT failed due to poorly formed XML or XSL.');
+      return;
+    }
+    xml = $.parseXML(xmlString);
+    xsl = $.parseXML(xslString);
+    /*
+     * if (deviceVars.hasWebWorkers === true) {
+     * log('performXSLT(): enlisting Web Worker to perform
+     * XSLT'); var message = { }; message.fn = 'processXSLT'; message.xml =
+     * xmlString; message.xsl = xslString; message.target = target;
+     * MyAnswers.webworker.postMessage(message); return '<p>This keyword is
+     * being constructed entirely on your device.</p><p>Please wait...</p>'; }
+     */
+    if (window.XSLTProcessor) {
+      log('performXSLT(): performing XSLT via XSLTProcessor()');
+      xsltProcessor = new window.XSLTProcessor();
+      xsltProcessor.importStylesheet(xsl);
+      html = xsltProcessor.transformToFragment(xml, document);
+    } else if (window.xsltProcess) {
+      log('performXSLT(): performing XSLT via AJAXSLT library');
+      html = window.xsltProcess(xml, xsl);
+    } else {
+      html = '<p>Your browser does not support Data Suitcase keywords.</p>';
+    }
+    dfrd.resolve(html);
+  });
+  return deferred.promise();
 }
 
 //test to see if the user it viewing the highest level screen
 function isHome() {
-	var siteStructure = siteVars.config['a' + siteVars.id].pertinent.siteStructure,
-		currentView = $('.view:visible').first().attr('id');
-	switch (siteStructure) {
-		case 'master categories':
-			return currentView === 'masterCategoriesView';
-		case 'categories':
-			return currentView === 'categoriesView';
-		default:
-			return currentView === 'keywordListView';
-	}
+  var siteStructure = siteVars.config['a' + siteVars.id].pertinent.siteStructure,
+    currentView = $('.view:visible').first().attr('id');
+  switch (siteStructure) {
+    case 'master categories':
+      return currentView === 'masterCategoriesView';
+    case 'categories':
+      return currentView === 'categoriesView';
+    default:
+      return currentView === 'keywordListView';
+  }
 }
 
 // perform all steps necessary to populate element with Data Suitcase result
 function generateMojoAnswer(args) {
-	log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
-	var deferred = new $.Deferred(),
-  dfrdXml = new $.Deferred(), // promise for when we have XML
-  xml,
-  xsl = currentConfig.xsl,
-  placeholders, p, pLength,
-  value,
-  variable, condition,
-  starType,
-  starDetailFn = function(d, detail) {
-    xml += '<' + d + '>' + detail + '</' + d + '>';
-  },
-  conditionStarFn = function(star, details) {
-    condition += ' or ' + variable + '=\'' + star + '\'';
-  };
+  log('generateMojoAnswer(): currentConfig=' + currentConfig.name);
+  var deferred = new $.Deferred(),
+      dfrdXml = new $.Deferred(), // promise for when we have XML
+      xml,
+      xsl = currentConfig.xsl,
+      placeholders, p, pLength,
+      value,
+      variable, condition,
+      starType,
+      starDetailFn = function(d, detail) {
+        xml += '<' + d + '>' + detail + '</' + d + '>';
+      },
+      conditionStarFn = function(star, details) {
+        condition += ' or ' + variable + '=\'' + star + '\'';
+      };
   /* END: var */
-	if ($.type(xsl) !== 'string' || xsl.length === 0) {
-		deferred.reject('<p>Error: this Interaction does not have any XSL to transform.</p>');
-		return deferred.promise();
-	}
+  if ($.type(xsl) !== 'string' || xsl.length === 0) {
+    deferred.reject('<p>Error: this Interaction does not have any XSL to transform.</p>');
+    return deferred.promise();
+  }
   // adjust XSL for arguments
-	if (args) {
-		placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
-		pLength = placeholders ? placeholders.length : 0;
-		for (p = 0; p < pLength; p++) {
-			value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
-			// TODO: find a better solution upstream for having to decode this here
-			value = value.replace('"', '');
-			value = value.replace("'", '');
-			value = decodeURIComponent(value);
-			xsl = xsl.replace(placeholders[p], value);
-		}
-	}
+  if (args) {
+    placeholders = xsl.match(/\$args\[[\w\:][\w\:\-\.]*\]/g);
+    pLength = placeholders ? placeholders.length : 0;
+    for (p = 0; p < pLength; p++) {
+      value = typeof args[placeholders[p].substring(1)] === 'string' ? args[placeholders[p].substring(1)] : '';
+      // TODO: find a better solution upstream for having to decode this here
+      value = value.replace('"', '');
+      value = value.replace("'", '');
+      value = decodeURIComponent(value);
+      xsl = xsl.replace(placeholders[p], value);
+    }
+  }
   // adjust XSL for Stars
   starType = xsl.match(/blink-stars\(([@\w.]+),\W*(\w+)\W*\)/);
   while (starType) {
@@ -383,30 +383,30 @@ function generateMojoAnswer(args) {
       xml = '<stars>' + xml + '</stars>';
     }
     setTimeout(dfrdXml.resolve, 0);
-    
+
   } else if (currentConfig.mojoType === 'active-forms') {
     $.when(window.getActiveFormsXML())
     .always(function(formsXml) {
-      xml = formsXml;
-      setTimeout(dfrdXml.resolve, 0);
-    });
-    
+          xml = formsXml;
+          setTimeout(dfrdXml.resolve, 0);
+        });
+
   } else if ($.type(currentConfig.xml) === 'string' && !!currentConfig.xml) {
     $.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml))
     .always(function(data) {
-      var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
-      hosted = '<p>Please try again in 30 seconds.</p>';
-      /* END: var */
-      xml = data;
-      if (typeof xml === 'string' && xml.length > 0) {
-        setTimeout(dfrdXml.resolve, 0);
-      } else if (currentConfig.mojoType === 'server-hosted') {
-        deferred.reject(general + hosted);
-      } else {
-        deferred.reject(general);
-      }
-    });
-    
+          var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
+              hosted = '<p>Please try again in 30 seconds.</p>';
+          /* END: var */
+          xml = data;
+          if (typeof xml === 'string' && xml.length > 0) {
+            setTimeout(dfrdXml.resolve, 0);
+          } else if (currentConfig.mojoType === 'server-hosted') {
+            deferred.reject(general + hosted);
+          } else {
+            deferred.reject(general);
+          }
+        });
+
   } else {
     xml = '<xml />';
     setTimeout(dfrdXml.resolve, 0);
@@ -418,129 +418,130 @@ function generateMojoAnswer(args) {
   // continue with processing
   $.when(dfrdXml)
   .always(function() {
-    $.when(performXSLT(xml, xsl)).done(function(html) {
-      deferred.resolve(html);
-    }).fail(function(html) {
-      deferred.resolve(html);
-    });
-  });
-	return deferred.promise();
+        $.when(performXSLT(xml, xsl)).done(function(html) {
+          deferred.resolve(html);
+        }).fail(function(html) {
+          deferred.resolve(html);
+        });
+      });
+  return deferred.promise();
 }
 
 function getActiveFormsXML() {
   var dfrd = new $.Deferred(),
-  xml = '';
+      xml = '';
   /* END: var */
   $.when(MyAnswers.pendingStore.keys(), MyAnswers.pendingV1Store.keys())
   .fail(function() {
-    xml = '<type>error</type>';
-    xml += '<message>Unable to list active form records.</message>';
-    xml = '<status>' + xml + '</status>';
-    dfrd.resolve('<?xml version="1.0"?>\n<records>' + xml + '</records>');
-  })
+        xml = '<type>error</type>';
+        xml += '<message>Unable to list active form records.</message>';
+        xml = '<status>' + xml + '</status>';
+        dfrd.resolve('<?xml version="1.0"?>\n<records>' + xml + '</records>');
+      })
   .then(function(keys, keysV1) {
-    var promises = [],
-    /**
+        var promises = [],
+            /**
      * @inner
      */
-    keysFn = function(index, key, version) {
-      var keyParts = key.split(':'),
-      interaction = siteVars.config['i' + keyParts[0]],
-      name = interaction ? interaction.pertinent.name : '* unknown *',
-      label = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
-      form = keyParts[1],
-      uuid = keyParts[2],
-      record = '',
-      dfrdSummary;
-      /* END: var */
-      record += '<id>' + key + '</id>\n';
-      record += '<interaction>' + name + '</interaction>\n';
-      record += '<interactionLabel>' + label + '</interactionLabel>\n';
-      record += '<uuid>' + uuid + '</uuid>\n';
-      record += '<form>' + form + '</form>\n';
-      record += '<blinkFormsVersion>' + version + '</blinkFormsVersion>\n';
-      if (version === 2) {
-        // relying on deferred callbacks running in attach-order
-        dfrdSummary = MyAnswers.pendingStore.get(key);
-        promises.push(dfrdSummary.promise());
-        $.when(dfrdSummary)
+            keysFn = function(index, key, version) {
+              var keyParts = key.split(':'),
+                  interaction = siteVars.config['i' + keyParts[0]],
+                  name = interaction ? interaction.pertinent.name : '* unknown *',
+                  label = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
+                  form = keyParts[1],
+                  uuid = keyParts[2],
+                  record = '',
+                  dfrdSummary;
+              /* END: var */
+              record += '<id>' + key + '</id>\n';
+              record += '<interaction>' + name + '</interaction>\n';
+              record += '<interactionLabel>' + label + '</interactionLabel>\n';
+              record += '<uuid>' + uuid + '</uuid>\n';
+              record += '<form>' + form + '</form>\n';
+              record += '<blinkFormsVersion>' + version + '</blinkFormsVersion>\n';
+              if (version === 2) {
+                // relying on deferred callbacks running in attach-order
+                dfrdSummary = MyAnswers.pendingStore.get(key);
+                promises.push(dfrdSummary.promise());
+                $.when(dfrdSummary)
         .fail(function() {
-          xml += '<record>' + record + '</record>\n';
-        })
+                      xml += '<record>' + record + '</record>\n';
+                    })
         .then(function(json) {
-          var fields = '',
-          metadata;
-          /* END: var */
-          if (typeof json !== 'string' || json.length === 0) {
-            return;
-          } else if ($.type(json) !== 'object') {
-            json = $.parseJSON(json);
-          }
-          if ($.type(json) === 'array') {
-            if (json.length >= 3) {
-              // TODO: actually store this metadata so it can be retrieved here
-              metadata = json[2];
-              if (metadata.status) {
-                record += '<status>' + metadata.status + '</status>\n';
+                      var fields = '',
+                          metadata;
+                      /* END: var */
+                      if (typeof json !== 'string' || json.length === 0) {
+                        return;
+                      }
+                      if ($.type(json) !== 'object') {
+                        json = $.parseJSON(json);
+                      }
+                      if ($.type(json) === 'array') {
+                        if (json.length >= 3) {
+                          // TODO: actually store this metadata so it can be retrieved here
+                          metadata = json[2];
+                          if (metadata.status) {
+                            record += '<status>' + metadata.status + '</status>\n';
+                          }
+                        }
+                        $.each(json[1], function(name, value) {
+                          var field = '';
+                          field += '<name>' + name + '</name>\n';
+                          field += '<value>' + value + '</value>\n';
+                          // TODO: provide access to field type and label
+                          fields += '<field>' + field + '</field>\n';
+                        });
+                        record += '<fields>' + fields + '</fields>\n';
+                      }
+                      xml += '<record>' + record + '</record>\n';
+                    });
+              } else { // version === 1
+                xml += '<record>' + record + '</record>\n';
               }
-            }
-            $.each(json[1], function(name, value) {
-              var field = '';
-              field += '<name>' + name + '</name>\n';
-              field += '<value>' + value + '</value>\n';
-              // TODO: provide access to field type and label
-              fields += '<field>' + field + '</field>\n';
-            });
-            record += '<fields>' + fields + '</fields>\n';
-          }
-          xml += '<record>' + record + '</record>\n';
+            };
+        $.each(keys, function(index, key) {
+          keysFn(index, key, 2);
         });
-      } else { // version === 1
-        xml += '<record>' + record + '</record>\n';
-      }
-    };
-    $.each(keys, function(index, key) {
-      keysFn(index, key, 2);
-    });
-    $.each(keysV1, function(index, key) {
-      keysFn(index, key, 1);
-    });
-    $.whenArray(promises)
+        $.each(keysV1, function(index, key) {
+          keysFn(index, key, 1);
+        });
+        $.whenArray(promises)
     .fail(function() {
-      xml = '<type>error</type>';
-      xml += '<message>Unable to list active form records.</message>';
-      xml = '<status>' + xml + '</status>';
-      dfrd.resolve('<?xml version="1.0"?>\n<records>' + xml + '</records>');
-    })
+              xml = '<type>error</type>';
+              xml += '<message>Unable to list active form records.</message>';
+              xml = '<status>' + xml + '</status>';
+              dfrd.resolve('<?xml version="1.0"?>\n<records>' + xml + '</records>');
+            })
     .then(function() {
-      dfrd.resolve('<?xml version="1.0"?>\n<records>' + xml + '</records>');
-    });
-  });
+              dfrd.resolve('<?xml version="1.0"?>\n<records>' + xml + '</records>');
+            });
+      });
   return dfrd.promise();
 }
 
 function setSubmitCachedFormButton() {
-	var $button = $('#pendingButton'),
-  count = 0;
+  var $button = $('#pendingButton'),
+      count = 0;
   /* END: var */
   // update pending forms button if necessary
   if ($button.length > 0) {
     $.when(window.countPendingForms())
     .fail(function() {
-      $button.addClass('hidden');
-    })
-    .then(function(count) {
-      var buttonText = count + ' Pending';
-      MyAnswers.dispatch.add(function() {
-        if (typeof count === 'number' && count > 0) {
-          insertText($button[0], buttonText);
-          $button.removeClass('hidden');
-        } else {
           $button.addClass('hidden');
-        }
-        log("setSubmitCachedFormButton(): " + buttonText);
-      });
-    });
+        })
+    .then(function(count) {
+          var buttonText = count + ' Pending';
+          MyAnswers.dispatch.add(function() {
+            if (typeof count === 'number' && count > 0) {
+              insertText($button[0], buttonText);
+              $button.removeClass('hidden');
+            } else {
+              $button.addClass('hidden');
+            }
+            log('setSubmitCachedFormButton(): ' + buttonText);
+          });
+        });
   }
 }
 
@@ -549,418 +550,424 @@ function setSubmitCachedFormButton() {
 // *** BEGIN EVENT HANDLERS ***
 
 if (window.applicationCache) {
-    $(window.applicationCache).on({
-        'updateready': function(event) {
-            if (this.status !== this.IDLE) {
-                this.swapCache();
-                log('Application Cache: manifest change triggered update');
-            } else {
-                this.update();
-                log('Application Cache: update requested');
-            }
-        },
-        'error': function(event) {
-            error('Application Cache: ' + this.status);
-        }
-    });
+  $(window.applicationCache).on({
+    'updateready': function(event) {
+      if (this.status !== this.IDLE) {
+        this.swapCache();
+        log('Application Cache: manifest change triggered update');
+      } else {
+        this.update();
+        log('Application Cache: update requested');
+      }
+    },
+    'error': function(event) {
+      error('Application Cache: ' + this.status);
+    }
+  });
 }
 
 function onStarClick(event)
 {
-	var id = $(this).data('id'),
-		type = $(this).data('type'),
-		data = $(this).data(),
-		k,
-		date = new Date();
-	delete data.id;
-	delete data.type;
-	if ($(this).hasClass('blink-star-on'))
-	{
-		$(this).addClass('blink-star-off');
-		$(this).removeClass('blink-star-on');
-		delete starsProfile[type][id];
-		if ($.isEmptyObject(starsProfile[type])) {
-			delete starsProfile[type];
-		}
-	}
-	else if ($(this).hasClass('blink-star-off'))
-	{
-		$(this).addClass('blink-star-on');
-		$(this).removeClass('blink-star-off');
-		if ($.type(starsProfile[type]) !== 'object') {
-			starsProfile[type] = { };
-		}
-		starsProfile[type][id] = { };
-		for (k in data)	{
-			if (data.hasOwnProperty(k)) {
-				starsProfile[type][id][k.toUpperCase()] = data[k];
-			}
-		}
-		starsProfile[type][id].time = date.getTime();
-		starsProfile[type][id].type = type;
-		starsProfile[type][id].id = id;
-	}
-	MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
+  var id = $(this).data('id'),
+    type = $(this).data('type'),
+    data = $(this).data(),
+    k,
+    date = new Date();
+  delete data.id;
+  delete data.type;
+  if ($(this).hasClass('blink-star-on'))
+  {
+    $(this).addClass('blink-star-off');
+    $(this).removeClass('blink-star-on');
+    delete starsProfile[type][id];
+    if ($.isEmptyObject(starsProfile[type])) {
+      delete starsProfile[type];
+    }
+  }
+  else if ($(this).hasClass('blink-star-off'))
+  {
+    $(this).addClass('blink-star-on');
+    $(this).removeClass('blink-star-off');
+    if ($.type(starsProfile[type]) !== 'object') {
+      starsProfile[type] = { };
+    }
+    starsProfile[type][id] = { };
+    for (k in data)  {
+      if (data.hasOwnProperty(k)) {
+        starsProfile[type][id][k.toUpperCase()] = data[k];
+      }
+    }
+    starsProfile[type][id].time = date.getTime();
+    starsProfile[type][id].type = type;
+    starsProfile[type][id].id = id;
+  }
+  MyAnswers.store.set('starsProfile', JSON.stringify(starsProfile));
 }
 
 function onLinkClick(event) {
-	log('onLinkClick(): ' + $(this).tagHTML());
-	var $element = $(this),
-	a, attributes = $element.attr(),
-	id,
-	isUnique = false, // true if we need to make the state unique
-	isPushState = true, // false if we should replace instead of push the state
-	data = null, title = null, url = null, // arguments for History
-	parts; // variables for working with legacy links
-	/* END: var */
-	// turn any legacy links into new format before continuing
-	if (typeof attributes.href === 'string' && attributes.href.indexOf('showSecondLevelAnswerView(') !== -1) {
-		attributes.href = attributes.href.replace(/^javascript:showSecondLevelAnswerView\(/, '').replace(/\)[\s;]*$/, '');
-		parts = explode(',', attributes.href, 2);
-		attributes.interaction = parts[0].replace(/^(?:'|")(.*)(?:'|")$/g, '$1');
-		$.each(deserialize(parts[1].replace(/^(?:'|")(.*)(?:'|")$/g, '$1')), function(key, value) {
-			attributes[key] = value;
-		});
-		delete attributes.href;
-	}
-	// process link
-	if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
-		if (typeof attributes.back !== 'undefined') {
-			History.back();
-			return false;
-		} else if (typeof attributes.home !== 'undefined') {
-			url = '/' + siteVars.answerSpace + '/';
-		} else if (typeof attributes.login !== 'undefined') {
-			data = {login: true};
-		} else if (attributes.interaction || attributes.keyword) {
-			id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
-			if (id) {
-				$.each(attributes, function(key, value) {
-					if (key.substr(0, 1) === '_') {
-						attributes['args[' + key.substr(1) + ']'] = value;
-						delete attributes[key];
-					}
-				});
-				delete attributes.interaction;
-				delete attributes.keyword;
-				delete attributes.style;
-				delete attributes['class'];
-				if (attributes['data-submit-stars-type']) {
-					attributes._submitStarsType = $element.data('submitStarsType');
-					attributes._submitStarsPost = $element.data('submitStarsPost') || 'stars';
-				}
-				url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
-				data = {m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes};
-			}
-		} else if (typeof attributes.category !== 'undefined') {
-			id = resolveItemName(attributes.category, 'categories');
-			if (id) {
-				url = '/' + siteVars.answerSpace + '/?_c=' + id;
-				data = {m: currentMasterCategory, c: id};
-			}
-		} else if (typeof attributes.mastercategory !== 'undefined') {
-			id = resolveItemName(attributes.mastercategory, 'masterCategories');
-			if (id) {
-				url = '/' + siteVars.answerSpace + '/?_m=' + id;
-				data = {m: id};
-			}
-		}
-		// TODO: find a more efficient way to decide if we need to make the state unique
-		if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
-			isUnique = true;
-			isPushState = false;
-			// TODO: double-check which BlinkLive buttons need separate History states
-		}
-		if (isUnique) { // we need to make the state unique somehow
-			if ($.type(data) === 'object') {
-				data._timestamp = $.now();
-			} else {
-				data = {_timestamp: $.now()};
-			}
-		}
-		if (data || url) { // make sure we actually have a state to push
-			if (isPushState) {
-				History.pushState(data, title, url);
-			} else {
-				History.replaceState(data, title, url);
-			}
-		}
-		return false;
-	}
-	return true;
+  log('onLinkClick(): ' + $(this).tagHTML());
+  var $element = $(this),
+  a, attributes = $element.attr(),
+  id,
+  isUnique = false, // true if we need to make the state unique
+  isPushState = true, // false if we should replace instead of push the state
+  data = null, title = null, url = null, // arguments for History
+  parts; // variables for working with legacy links
+  /* END: var */
+  // turn any legacy links into new format before continuing
+  if (typeof attributes.href === 'string' && attributes.href.indexOf('showSecondLevelAnswerView(') !== -1) {
+    attributes.href = attributes.href.replace(/^javascript:showSecondLevelAnswerView\(/, '').replace(/\)[\s;]*$/, '');
+    parts = explode(',', attributes.href, 2);
+    attributes.interaction = parts[0].replace(/^(?:'|")(.*)(?:'|")$/g, '$1');
+    $.each(deserialize(parts[1].replace(/^(?:'|")(.*)(?:'|")$/g, '$1')), function(key, value) {
+      attributes[key] = value;
+    });
+    delete attributes.href;
+  }
+  // process link
+  if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
+    if (typeof attributes.back !== 'undefined') {
+      History.back();
+      return false;
+    }
+    if (typeof attributes.home !== 'undefined') {
+      url = '/' + siteVars.answerSpace + '/';
+    } else if (typeof attributes.login !== 'undefined') {
+      data = {login: true};
+    } else if (attributes.interaction || attributes.keyword) {
+      id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
+      if (id) {
+        $.each(attributes, function(key, value) {
+          if (key.substr(0, 1) === '_') {
+            attributes['args[' + key.substr(1) + ']'] = value;
+            delete attributes[key];
+          }
+        });
+        delete attributes.interaction;
+        delete attributes.keyword;
+        delete attributes.style;
+        delete attributes['class'];
+        if (attributes['data-submit-stars-type']) {
+          attributes._submitStarsType = $element.data('submitStarsType');
+          attributes._submitStarsPost = $element.data('submitStarsPost') || 'stars';
+        }
+        url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
+        data = {m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes};
+      }
+    } else if (typeof attributes.category !== 'undefined') {
+      id = resolveItemName(attributes.category, 'categories');
+      if (id) {
+        url = '/' + siteVars.answerSpace + '/?_c=' + id;
+        data = {m: currentMasterCategory, c: id};
+      }
+    } else if (typeof attributes.mastercategory !== 'undefined') {
+      id = resolveItemName(attributes.mastercategory, 'masterCategories');
+      if (id) {
+        url = '/' + siteVars.answerSpace + '/?_m=' + id;
+        data = {m: id};
+      }
+    }
+    // TODO: find a more efficient way to decide if we need to make the state unique
+    if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
+      isUnique = true;
+      isPushState = false;
+      // TODO: double-check which BlinkLive buttons need separate History states
+    }
+    if (isUnique) { // we need to make the state unique somehow
+      if ($.type(data) === 'object') {
+        data._timestamp = $.now();
+      } else {
+        data = {_timestamp: $.now()};
+      }
+    }
+    if (data || url) { // make sure we actually have a state to push
+      if (isPushState) {
+        History.pushState(data, title, url);
+      } else {
+        History.replaceState(data, title, url);
+      }
+    }
+    return false;
+  }
+  return true;
 }
 
 // *** END EVENT HANDLERS ***
 
 // *** PENDING QUEUE HELPERS ***
 
+
 /**
  * Count the number of stored submissions for both BlinkForms v1 and v2.
- * @returns {jQueryPromise} number of stored forms
+ * @return {jQueryPromise} number of stored forms
  */
 function countPendingForms() {
-	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.count(), MyAnswers.pendingV1Store.count())
-	.then(function(size2, size1) {
-		deferred.resolve(size2 + size1);
-	})
-	.fail(function() {
-		error('countPendingForms() unable to query storage');
-		deferred.resolve(0);
-	});
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  $.when(MyAnswers.pendingStore.count(), MyAnswers.pendingV1Store.count())
+  .then(function(size2, size1) {
+    deferred.resolve(size2 + size1);
+  })
+  .fail(function() {
+    error('countPendingForms() unable to query storage');
+    deferred.resolve(0);
+  });
+  return deferred.promise();
 }
+
 
 /**
  * Add a BlinkForms v2 submission to the queue.
- * @param {String} interaction ID
- * @param {String} form name of the form object
- * @param {String} uuid UUID
- * @param {Object} data key=>value pairs to be JSON-encoded
- * @param {Object} summary key=>value pairs to be JSON-encoded
- * @returns {jQueryPromise}
+ * @param {String} interaction ID.
+ * @param {String} form name of the form object.
+ * @param {String} uuid UUID.
+ * @param {Object} data key=>value pairs to be JSON-encoded.
+ * @param {Object} summary key=>value pairs to be JSON-encoded.
+ * @return {jQueryPromise}
  */
 function pushPendingForm(interaction, form, uuid, data, summary) {
-	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.set(interaction + ':' + form + ':' + uuid, JSON.stringify(data)))
-		.then(function() {
-			deferred.resolve();
-		})
-		.fail(function() {
-			deferred.reject();
-		})
-		.always(setSubmitCachedFormButton);
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  $.when(MyAnswers.pendingStore.set(interaction + ':' + form + ':' + uuid, JSON.stringify(data)))
+    .then(function() {
+      deferred.resolve();
+    })
+    .fail(function() {
+      deferred.reject();
+    })
+    .always(setSubmitCachedFormButton);
+  return deferred.promise();
 }
+
 
 /**
  * Remove a BlinkForms v2 submission from the queue.
- * @param {String} interaction ID
- * @param {String} form name of the form object
- * @param {String} uuid UUID
- * @returns {jQueryPromise}
+ * @param {String} interaction ID.
+ * @param {String} form name of the form object.
+ * @param {String} uuid UUID.
+ * @return {jQueryPromise}
  */
 function clearPendingForm(interaction, form, uuid) {
-	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid))
-		.then(function() {
-			deferred.resolve();
-		})
-		.fail(function() {
-			deferred.reject();
-		})
-		.always(setSubmitCachedFormButton);
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  $.when(MyAnswers.pendingStore.remove(interaction + ':' + form + ':' + uuid))
+    .then(function() {
+      deferred.resolve();
+    })
+    .fail(function() {
+      deferred.reject();
+    })
+    .always(setSubmitCachedFormButton);
+  return deferred.promise();
 }
+
 
 /**
  * Add a BlinkForms v1 submission to the queue.
- * @param {String} interaction ID
- * @param {String} form name of the form object
- * @param {String} uuid UUID
- * @param {Object} data key=>value pairs to be JSON-encoded
- * @returns {jQueryPromise}
+ * @param {String} interaction ID.
+ * @param {String} form name of the form object.
+ * @param {String} uuid UUID.
+ * @param {Object} data key=>value pairs to be JSON-encoded.
+ * @return {jQueryPromise}
  */
 function pushPendingFormV1(interaction, uuid, data) {
-	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingV1Store.set(interaction + ':' + uuid, JSON.stringify(data))).then(function() {
-		deferred.resolve(data);
-	}).fail(function() {
-		deferred.reject();
-	}).always(setSubmitCachedFormButton);
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  $.when(MyAnswers.pendingV1Store.set(interaction + ':' + uuid, JSON.stringify(data))).then(function() {
+    deferred.resolve(data);
+  }).fail(function() {
+    deferred.reject();
+  }).always(setSubmitCachedFormButton);
+  return deferred.promise();
 }
+
 
 /**
  * Remove a BlinkForms v2 submission from the queue.
- * @param {String} interaction ID
- * @param {String} form name of the form object
- * @param {String} uuid UUID
- * @returns {jQueryPromise}
+ * @param {String} interaction ID.
+ * @param {String} form name of the form object.
+ * @param {String} uuid UUID.
+ * @return {jQueryPromise}
  */
 function clearPendingFormV1(interaction, uuid) {
-	var deferred = new $.Deferred();
-	$.when(MyAnswers.pendingV1Store.remove(interaction + ':' + uuid)).then(function() {
-		deferred.resolve();
-	}).fail(function() {
-		deferred.reject();
-	}).always(setSubmitCachedFormButton);
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  $.when(MyAnswers.pendingV1Store.remove(interaction + ':' + uuid)).then(function() {
+    deferred.resolve();
+  }).fail(function() {
+    deferred.reject();
+  }).always(setSubmitCachedFormButton);
+  return deferred.promise();
 }
 
 // *** END PENDING QUEUE HELPERS ***
 
 function requestMoJO(mojo) {
-	var deferred = new $.Deferred();
-	if ($.type(mojo) !== 'string' || mojo.length === 0) {
-		deferred.resolve();
-		return deferred.promise();
-	}
-	$.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
-		var requestData = {
-				_id: siteVars.id,
-				_m: mojo
-			};
-		value = parseInt(value, 10);
-		if (typeof value === 'number' && !isNaN(value)) {
-			requestData._lc = value;
-		}
-		if (deviceVars.isOnline) {
-			ajaxQueue.add({
-				url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
-				data: requestData,
-				dataType: 'xml',
-				complete: function(jqxhr, status) {
-					if (jqxhr.status === 200) {
-						$.when(MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText))
-							.fail(deferred.reject)
-							.then(deferred.resolve);
-//								MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-//					} else if (jqxhr.status === 304) {
-//						deferred.resolve();
-					} else {
-//						deferred.reject();
-						deferred.resolve();
-					}
-				},
-				timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-			});
-		} else {
-			deferred.reject();
-		}
-	});
-	$.when(deferred.promise())
-		.then(function() {
-			MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
-		});
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  if ($.type(mojo) !== 'string' || mojo.length === 0) {
+    deferred.resolve();
+    return deferred.promise();
+  }
+  $.when(MyAnswers.store.get('mojoLastChecked:' + mojo)).done(function(value) {
+    var requestData = {
+        _id: siteVars.id,
+        _m: mojo
+      };
+    value = parseInt(value, 10);
+    if (typeof value === 'number' && !isNaN(value)) {
+      requestData._lc = value;
+    }
+    if (deviceVars.isOnline) {
+      $.ajax({
+        url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+        data: requestData,
+        dataType: 'xml',
+        complete: function(jqxhr, status) {
+          if (jqxhr.status === 200) {
+            $.when(MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText))
+              .fail(deferred.reject)
+              .then(deferred.resolve);
+          //                MyAnswers.store.set('mojoLastUpdated:' + mojo, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+          //          } else if (jqxhr.status === 304) {
+          //            deferred.resolve();
+          } else {
+            //            deferred.reject();
+            deferred.resolve();
+          }
+        },
+        timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+      });
+    } else {
+      deferred.reject();
+    }
+  });
+  $.when(deferred.promise())
+    .then(function() {
+      MyAnswers.store.set('mojoLastChecked:' + mojo, $.now());
+    });
+  return deferred.promise();
 }
 
 function processMoJOs(interaction) {
-	var deferred = new $.Deferred(),
-	deferredFetches = {},
-	interactions = interaction ? [ interaction ] : siteVars.map.interactions,
-	i, iLength = interactions.length,
-	config;
-	/* END: var */
-	for (i = 0; i < iLength; i++) {
-		config = siteVars.config['i' + interactions[i]];
-		if ($.type(config) === 'object') {
-			config = config.pertinent;
-			if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
-				if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
-					if (!siteVars.mojos[config.xml]) {
-						siteVars.mojos[config.xml] = {
-							maximumAge: config.maximumAge || 0,
-							minimumAge: config.minimumAge || 0
-						};
-					} else {
-						siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
-						siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
-					}
-					if (!deferredFetches[config.xml]) {
-						deferredFetches[config.xml] = requestMoJO(config.xml);
-					}
-				}
-			}
-		}
-	}
-	deferredFetches = $.map(deferredFetches, function(value, key) {
-		return value;
-	});
-	$.whenArray(deferredFetches)
-	.fail(deferred.reject)
-	.then(deferred.resolve);
-	return deferred.promise();
+  var deferred = new $.Deferred(),
+  deferredFetches = {},
+  interactions = interaction ? [interaction] : siteVars.map.interactions,
+  i, iLength = interactions.length,
+  config;
+  /* END: var */
+  for (i = 0; i < iLength; i++) {
+    config = siteVars.config['i' + interactions[i]];
+    if ($.type(config) === 'object') {
+      config = config.pertinent;
+      if ($.type(config) === 'object' && config.type === 'xslt' && config.mojoType === 'server-hosted') {
+        if (typeof config.xml === 'string' && config.xml.substring(0, 6) !== 'stars:') {
+          if (!siteVars.mojos[config.xml]) {
+            siteVars.mojos[config.xml] = {
+              maximumAge: config.maximumAge || 0,
+              minimumAge: config.minimumAge || 0
+            };
+          } else {
+            siteVars.mojos[config.xml].maximumAge = config.maximumAge ? Math.min(config.maximumAge, siteVars.mojos[config.xml].maximumAge) : siteVars.mojos[config.xml].maximumAge;
+            siteVars.mojos[config.xml].minimumAge = config.minimumAge ? Math.max(config.minimumAge, siteVars.mojos[config.xml].minimumAge) : siteVars.mojos[config.xml].minimumAge;
+          }
+          if (!deferredFetches[config.xml]) {
+            deferredFetches[config.xml] = requestMoJO(config.xml);
+          }
+        }
+      }
+    }
+  }
+  deferredFetches = $.map(deferredFetches, function(value, key) {
+    return value;
+  });
+  $.whenArray(deferredFetches)
+  .fail(deferred.reject)
+  .then(deferred.resolve);
+  return deferred.promise();
 }
 
 function goBackToHome() {
-	History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
-	MyAnswers.$body.trigger('taskComplete');
-	//	getSiteConfig();
+  History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+  MyAnswers.$body.trigger('taskComplete');
+  //  getSiteConfig();
 }
 
 function showLoginView(event) {
-	var id,
-		requestUri,
-		$view = $('#loginView');
-	if (!currentConfig.loginAccess) {
-		return false;
-	}
-	if (MyAnswers.isCustomLogin) {
-		id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
-		if (!id) {
-			alert('error: interaction used for login prompt is inaccessible or misconfigured');
-			return false;
-		}
-		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
-		History.pushState({m: null, c: null, i: id}, null, requestUri);
-		return false;
-	}
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		MyAnswersDevice.showView($view);
-		setMainLabel('Login');
-	});
+  var id,
+    requestUri,
+    $view = $('#loginView');
+  if (!currentConfig.loginAccess) {
+    return false;
+  }
+  if (MyAnswers.isCustomLogin) {
+    id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
+    if (!id) {
+      alert('error: interaction used for login prompt is inaccessible or misconfigured');
+      return false;
+    }
+    requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
+    History.pushState({m: null, c: null, i: id}, null, requestUri);
+    return false;
+  }
+  $.when(MyAnswersDevice.prepareView($view)).always(function() {
+    MyAnswersDevice.showView($view);
+    setMainLabel('Login');
+  });
 }
 
 function updateLoginButtons() {
   var loginStatus = document.getElementById('loginStatus'),
-  loginButton = document.getElementById('loginButton'),
-  logoutButton = document.getElementById('logoutButton'),
-  /** @inner */
-  submitLogoutFn = function(event) {
-    var id, requestUri;
-    log('submitLogout();');
-    if (!currentConfig.loginAccess) {
-      return false;
-    }
-    if (currentConfig.loginUseInteractions) {
-      id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
-      if (!id) {
-        alert('error: login interaction is inaccessible or misconfigured');
-        return false;
-      }
-      requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
-      History.pushState({
-        m: null, 
-        c: null, 
-        i: id
-      }, null, requestUri);
-      return false;
-    }
-    if (confirm('Log out?')) {
-      ajaxQueue.add({
-        type: 'GET',
-        cache: "false",
-        url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-        data: {
-          '_a': 'logout'
-        },
-        complete: function(xhr, textstatus) {
-          if (xhr.status === 200) {
-            var data = $.parseJSON(xhr.responseText);
-            if (data) {
-              if (data.status === 'LOGGED IN') {
-                if (data.account) {
-                  MyAnswers.loginAccount = data.account;
-                }
-                MyAnswers.isLoggedIn = true;
-              } else {
-                MyAnswers.isLoggedIn = false;
-                delete MyAnswers.loginAccount;
-                window.location.reload();
-              }
-            }
-            updateLoginButtons();
-            //					getSiteConfig();
-            goBackToHome();
+      loginButton = document.getElementById('loginButton'),
+      logoutButton = document.getElementById('logoutButton'),
+      /** @inner */
+      submitLogoutFn = function(event) {
+        var id, requestUri;
+        log('submitLogout();');
+        if (!currentConfig.loginAccess) {
+          return false;
+        }
+        if (currentConfig.loginUseInteractions) {
+          id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
+          if (!id) {
+            alert('error: login interaction is inaccessible or misconfigured');
+            return false;
           }
-        },
-        timeout: currentConfig.downloadTimeout * 1000
-      });
-    }
-    return false;
-  };
+          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
+          History.pushState({
+            m: null,
+            c: null,
+            i: id
+          }, null, requestUri);
+          return false;
+        }
+        if (confirm('Log out?')) {
+          $.ajax({
+            type: 'GET',
+            cache: 'false',
+            url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+            data: {
+              '_a': 'logout'
+            },
+            complete: function(xhr, textstatus) {
+              if (xhr.status === 200) {
+                var data = $.parseJSON(xhr.responseText);
+                if (data) {
+                  if (data.status === 'LOGGED IN') {
+                    if (data.account) {
+                      MyAnswers.loginAccount = data.account;
+                    }
+                    MyAnswers.isLoggedIn = true;
+                  } else {
+                    MyAnswers.isLoggedIn = false;
+                    delete MyAnswers.loginAccount;
+                    window.location.reload();
+                  }
+                }
+                updateLoginButtons();
+                //          getSiteConfig();
+                goBackToHome();
+              }
+            },
+            timeout: currentConfig.downloadTimeout * 1000
+          });
+        }
+        return false;
+      };
   /* END: var */
   if (!siteVars.hasLogin) {
     return;
@@ -969,7 +976,7 @@ function updateLoginButtons() {
     if (typeof MyAnswers.loginAccount !== 'undefined' && typeof MyAnswers.loginAccount !== 'boolean') {
       MyAnswers.dispatch.add(function() {
         var $loginStatus = $(loginStatus),
-        text = 'logged in as<br />';
+            text = 'logged in as<br />';
         if ($.type(MyAnswers.loginAccount) === 'object') {
           text += '<span class="loginAccount">' + MyAnswers.loginAccount.name || MyAnswers.loginAccount.username + '</span>';
         } else {
@@ -1008,78 +1015,78 @@ function updateLoginButtons() {
 }
 
 function requestLoginStatus() {
-	var deferred = new $.Deferred();
-	if (!siteVars.hasLogin || !deviceVars.isOnline) {
-		deferred.reject();
-		return deferred.promise(); 
-	}
-	ajaxQueue.add({
-		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-		dataType: 'json',
-		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200) {
-				deferred.reject();
-				return;
-			}
-			var data = $.parseJSON(xhr.responseText);
-			if (data) {
-				if (data.status === 'LOGGED IN') {
-					if (data.account) {
-						MyAnswers.loginAccount = data.account;
-					}
-					MyAnswers.isLoggedIn = true;
-				} else {
-					MyAnswers.isLoggedIn = false;
-					delete MyAnswers.loginAccount;
-				}
-			}
-			updateLoginButtons();
-			deferred.resolve();
-		},
-		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
-	});
-	return deferred.promise();
+  var deferred = new $.Deferred();
+  if (!siteVars.hasLogin || !deviceVars.isOnline) {
+    deferred.reject();
+    return deferred.promise();
+  }
+  $.ajax({
+    url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+    dataType: 'json',
+    complete: function(xhr, xhrStatus) {
+      if (isAJAXError(xhrStatus) || xhr.status !== 200) {
+        deferred.reject();
+        return;
+      }
+      var data = $.parseJSON(xhr.responseText);
+      if (data) {
+        if (data.status === 'LOGGED IN') {
+          if (data.account) {
+            MyAnswers.loginAccount = data.account;
+          }
+          MyAnswers.isLoggedIn = true;
+        } else {
+          MyAnswers.isLoggedIn = false;
+          delete MyAnswers.loginAccount;
+        }
+      }
+      updateLoginButtons();
+      deferred.resolve();
+    },
+    timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500))
+  });
+  return deferred.promise();
 }
 
 function submitLogin() {
-	log('submitLogin();');
-	ajaxQueue.add({
-		type: 'GET',
-		cache: "false",
-		url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-		data: $('#loginView').find('form').serializeArray(),
-		complete: function(xhr, textstatus) {
-			$('#loginView').find('input[type=password]').val('');
-			if (xhr.status === 200) {
-				var data = $.parseJSON(xhr.responseText);
-				if (data) {
-					if (data.status === 'LOGGED IN') {
-						if (data.account) {
-							MyAnswers.loginAccount = data.account;
-						}
-						MyAnswers.isLoggedIn = true;
-//						window.location.reload();
-						$.when(window.requestConfig()).always(function() {
-						  if (siteVars.map && siteVars.config) {
-						    window.processConfig();
-						    window.updateNavigationButtons();
-						    // explicity do not implement loginToDefaultScreen here
-						  } else {
-						    alert('error: insufficient data, check network and reload / refresh');
-						  }
-						});
-					} else {
-						MyAnswers.isLoggedIn = false;
-						delete MyAnswers.loginAccount;
-					}
-				}
-				updateLoginButtons();
-//				getSiteConfig();
-			} else {
-				alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
-			}
-		},
-		timeout: currentConfig.downloadTimeout * 1000
+  log('submitLogin();');
+  $.ajax({
+    type: 'GET',
+    cache: 'false',
+    url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+    data: $('#loginView').find('form').serializeArray(),
+    complete: function(xhr, textstatus) {
+      $('#loginView').find('input[type=password]').val('');
+      if (xhr.status === 200) {
+        var data = $.parseJSON(xhr.responseText);
+        if (data) {
+          if (data.status === 'LOGGED IN') {
+            if (data.account) {
+              MyAnswers.loginAccount = data.account;
+            }
+            MyAnswers.isLoggedIn = true;
+            //            window.location.reload();
+            $.when(window.requestConfig()).always(function() {
+              if (siteVars.map && siteVars.config) {
+                window.processConfig();
+                window.updateNavigationButtons();
+                // explicity do not implement loginToDefaultScreen here
+              } else {
+                alert('error: insufficient data, check network and reload / refresh');
+              }
+            });
+          } else {
+            MyAnswers.isLoggedIn = false;
+            delete MyAnswers.loginAccount;
+          }
+        }
+        updateLoginButtons();
+      //        getSiteConfig();
+      } else {
+        alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
+      }
+    },
+    timeout: currentConfig.downloadTimeout * 1000
   });
 }
 
@@ -1096,17 +1103,17 @@ MyAnswers.gotoDefaultScreen = function() {
     requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + currentConfig.defaultInteraction].pertinent.name + '/?';
     History.pushState({
       i: currentConfig.defaultInteraction
-      }, null, requestUri);
+    }, null, requestUri);
   } else if (currentConfig.defaultScreen === 'category' && hasCategories && typeof siteVars.config['c' + currentConfig.defaultCategory] !== undefined) {
     requestUri = '/' + siteVars.answerSpace + '/?_c=' + currentConfig.defaultCategory;
     History.pushState({
       c: currentConfig.defaultCategory
-      }, null, requestUri);
+    }, null, requestUri);
   } else if (currentConfig.defaultScreen === 'master category' && hasMasterCategories && typeof siteVars.config['m' + currentConfig.defaultMasterCategory] !== undefined) {
     requestUri = '/' + siteVars.answerSpace + '/?_m=' + currentConfig.defaultMasterCategory;
     History.pushState({
       m: currentConfig.defaultMasterCategory
-      }, null, requestUri);
+    }, null, requestUri);
   } else { // default "home"
     History.replaceState({
       _now: $.now()
@@ -1115,21 +1122,21 @@ MyAnswers.gotoDefaultScreen = function() {
 };
 
 function updateNavigationButtons() {
-	MyAnswers.dispatch.add(function() {
-		var $navBars = $('.navBar'),
-    $navButtons = $("#homeButton, #backButton"),
-    $helpButton = $('#helpButton'),
-    $formsButton = $('#pendingButton'),
-    helpContents,
-    isHelp,
-    isLogin = siteVars.hasLogin,
-    isHome = window.isHome(),
-    isNoNavButtons = isHome || MyAnswers.isEmptySpace || MyAnswers.isLoginOnly,
-    isNoNavBar,
-    dfrdForms;
+  MyAnswers.dispatch.add(function() {
+    var $navBars = $('.navBar'),
+        $navButtons = $('#homeButton, #backButton'),
+        $helpButton = $('#helpButton'),
+        $formsButton = $('#pendingButton'),
+        helpContents,
+        isHelp,
+        isLogin = siteVars.hasLogin,
+        isHome = window.isHome(),
+        isNoNavButtons = isHome || MyAnswers.isEmptySpace || MyAnswers.isLoginOnly,
+        isNoNavBar,
+        dfrdForms;
     /* END: var */
     // determine if we need the help button
-    switch($('.view:visible').first().attr('id'))
+    switch ($('.view:visible').first().attr('id'))
     {
       case 'keywordView':
       case 'answerView':
@@ -1153,749 +1160,750 @@ function updateNavigationButtons() {
       $helpButton.addClass('hidden');
     }
     // determine if we need to count the active forms in the queue
-		if ($formsButton.length > 0 && isNoNavButtons) {
+    if ($formsButton.length > 0 && isNoNavButtons) {
       dfrdForms = countPendingForms();
-		} else {
+    } else {
       dfrdForms = true;
-		}
+    }
     $.when(dfrdForms) // after we've counted the forms (if necessary), ...
     .always(function(formsCount) {
-      if (typeof formsCount !== 'number') {
-        formsCount = 0;
-      }
-      isNoNavBar = isNoNavButtons && !isLogin && !isHelp && !formsCount;
-      if (isNoNavBar) {
-        $navBars.addClass('hidden');
-      } else if (isNoNavButtons) {
-        $navBars.removeClass('hidden');
-        $navButtons.addClass('hidden');
-      } else {
-        $navButtons.removeClass('hidden');
-        $navButtons.prop('disabled', false);
-        $navBars.removeClass('hidden');
-      }
-    });
-		$('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
+          if (typeof formsCount !== 'number') {
+            formsCount = 0;
+          }
+          isNoNavBar = isNoNavButtons && !isLogin && !isHelp && !formsCount;
+          if (isNoNavBar) {
+            $navBars.addClass('hidden');
+          } else if (isNoNavButtons) {
+            $navBars.removeClass('hidden');
+            $navButtons.addClass('hidden');
+          } else {
+            $navButtons.removeClass('hidden');
+            $navButtons.prop('disabled', false);
+            $navBars.removeClass('hidden');
+          }
+        });
+    $('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
     // update data suitcases if necessary
-    if(isHome && MyAnswers.dfrdMoJOs.isResolved()) {
+    if (isHome && MyAnswers.dfrdMoJOs.isResolved()) {
       processMoJOs();
     }
     // update the sidebar
-		MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
-		if (MyAnswers.sideBar) {
-			MyAnswers.sideBar.update();
-		}
-	});
+    MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
+    if (MyAnswers.sideBar) {
+      MyAnswers.sideBar.update();
+    }
+  });
 }
 
 function initialiseAnswerFeatures($view) {
-	log('initialiseAnswerFeatures(): view=' + $view.attr('id'));
-	var deferred = new $.Deferred(),
-		promises = [],
-		oldLoginStatus,
-		current = $.type(currentInteraction) === 'string' ? currentInteraction : String(currentInteraction),
-		prompt = $.type(currentConfig.loginPromptInteraction) === 'string' ? currentConfig.loginPromptInteraction : String(currentConfig.loginPromptInteraction);
-	// loginUseInteractions
-	if (currentConfig.loginAccess && currentConfig.loginUseInteractions && prompt === current) {
-		oldLoginStatus = MyAnswers.isLoggedIn;
-		$.when(requestLoginStatus()).always(function() {
-			if (MyAnswers.isLoggedIn !== oldLoginStatus) {
-			  if (MyAnswers.isLoggedIn) {
-				  $.when(window.requestConfig()).always(function() {
-					  if (siteVars.map && siteVars.config) {
-						  window.processConfig();
-						  window.updateNavigationButtons();
-						  if (currentConfig.loginToDefaultScreen) {
-						    MyAnswers.gotoDefaultScreen();
-						  }
-					  } else {
-						  alert('error: insufficient data, check network and reload / refresh');
-					  }
-				  });
-			  } else {
+  log('initialiseAnswerFeatures(): view=' + $view.attr('id'));
+  var deferred = new $.Deferred(),
+    promises = [],
+    oldLoginStatus,
+    current = $.type(currentInteraction) === 'string' ? currentInteraction : String(currentInteraction),
+    prompt = $.type(currentConfig.loginPromptInteraction) === 'string' ? currentConfig.loginPromptInteraction : String(currentConfig.loginPromptInteraction);
+  // loginUseInteractions
+  if (currentConfig.loginAccess && currentConfig.loginUseInteractions && prompt === current) {
+    oldLoginStatus = MyAnswers.isLoggedIn;
+    $.when(requestLoginStatus()).always(function() {
+      if (MyAnswers.isLoggedIn !== oldLoginStatus) {
+        if (MyAnswers.isLoggedIn) {
+          $.when(window.requestConfig()).always(function() {
+            if (siteVars.map && siteVars.config) {
+              window.processConfig();
+              window.updateNavigationButtons();
+              if (currentConfig.loginToDefaultScreen) {
+                MyAnswers.gotoDefaultScreen();
+              }
+            } else {
+              alert('error: insufficient data, check network and reload / refresh');
+            }
+          });
+        } else {
           window.location.reload();
-			  }
-			}
-		});
-	}
-	// END: loginUseInteractions
-	MyAnswers.dispatch.add(function() {
-		var $inputs = $view.find('input, textarea, select'),
-			$form = $view.find('form').first(),
-			isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined';
-		MyAnswers.$body.trigger('taskBegun');
-		$inputs.unbind('blur', triggerScroll);
-		$inputs.bind('blur', triggerScroll);
-		$view.find('.blink-starrable').each(function(index, element) {
-			var $div = $('<div class="blink-starrable" />'),
-				data = $(element).data();
-			populateDataTags($div, data);
-			$div.bind('click', onStarClick);
-			if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object') {
-				$div.addClass('blink-star-off');
-			} else {
-				$div.addClass('blink-star-on');
-			}
-			$(element).replaceWith($div);
-		});
-		if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
-			if (isGoogleJSLoaded) {
-				setTimeout(function() {
-					MyAnswers.setupGoogleMaps($view);
-				}, 1000);
-			} else {
-				MyAnswers.dfrdGoogleMaps = new $.Deferred();
-				$.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
-				.fail(function() {
-					throw('unable to download Google Maps JavaScript library');
-				})
-				.then(function() {
-					$.when(MyAnswers.dfrdGoogleMaps.promise())
-					.fail(function() {
-						log('initialiseAnswerFeatures() error: unable to initialise Google Maps API');
-					})
-					.then(function() {
-						delete window.onGoogleMapsLoad;
-						delete MyAnswers.dfrdGoogleMaps;
-						MyAnswers.setupGoogleMaps($view);
-					});
-				});
-			}
-		}
-		if ($form.length !== 0) {
-			if (typeof $form.data('objectName') === 'string' && $form.data('objectName').length > 0) {
-				$.when(MyAnswers.formsDeferred.promise())
-				.always(function() {
-					promises.push(BlinkForms.initialiseForm($form));
-				});
-			} else if (!isCameraPresent()) {
-				$form.find('input[onclick*="selectCamera"]').attr('disabled', 'disabled');
-			}
-		}
-	});
-	MyAnswers.dispatch.add(function() {
-		$.when.apply($, promises).always(function() {
-			MyAnswers.$body.trigger('taskComplete');
-			deferred.resolve();
-		});
-	});
-	return deferred.promise();
+        }
+      }
+    });
+  }
+  // END: loginUseInteractions
+  MyAnswers.dispatch.add(function() {
+    var $inputs = $view.find('input, textarea, select'),
+      $form = $view.find('form').first(),
+      isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined';
+    MyAnswers.$body.trigger('taskBegun');
+    $inputs.unbind('blur', triggerScroll);
+    $inputs.bind('blur', triggerScroll);
+    $view.find('.blink-starrable').each(function(index, element) {
+      var $div = $('<div class="blink-starrable" />'),
+        data = $(element).data();
+      populateDataTags($div, data);
+      $div.bind('click', onStarClick);
+      if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object') {
+        $div.addClass('blink-star-off');
+      } else {
+        $div.addClass('blink-star-on');
+      }
+      $(element).replaceWith($div);
+    });
+    if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
+      if (isGoogleJSLoaded) {
+        setTimeout(function() {
+          MyAnswers.setupGoogleMaps($view);
+        }, 1000);
+      } else {
+        MyAnswers.dfrdGoogleMaps = new $.Deferred();
+        $.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
+        .fail(function() {
+          throw ('unable to download Google Maps JavaScript library');
+        })
+        .then(function() {
+          $.when(MyAnswers.dfrdGoogleMaps.promise())
+          .fail(function() {
+            log('initialiseAnswerFeatures() error: unable to initialise Google Maps API');
+          })
+          .then(function() {
+            delete window.onGoogleMapsLoad;
+            delete MyAnswers.dfrdGoogleMaps;
+            MyAnswers.setupGoogleMaps($view);
+          });
+        });
+      }
+    }
+    if ($form.length !== 0) {
+      if (typeof $form.data('objectName') === 'string' && $form.data('objectName').length > 0) {
+        $.when(MyAnswers.formsDeferred.promise())
+        .always(function() {
+          promises.push(BlinkForms.initialiseForm($form));
+        });
+      } else if (!isCameraPresent()) {
+        $form.find('input[onclick*="selectCamera"]').attr('disabled', 'disabled');
+      }
+    }
+  });
+  MyAnswers.dispatch.add(function() {
+    $.when.apply($, promises).always(function() {
+      MyAnswers.$body.trigger('taskComplete');
+      deferred.resolve();
+    });
+  });
+  return deferred.promise();
 }
 
 // run after any change to current*
 function updateCurrentConfig() {
-	// see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
-	// TODO: need to fold orientation-specific config into this somewhere
-	log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
-	currentConfig = {};
-	$.extend(currentConfig, siteVars.config['a' + siteVars.id].pertinent);
-	if (typeof currentMasterCategory !== 'undefined' && currentMasterCategory !== null) {
-		$.extend(currentConfig, siteVars.config['m' + currentMasterCategory].pertinent);
-	}
-	if (typeof currentCategory !== 'undefined' && currentCategory !== null) {
-		$.extend(currentConfig, siteVars.config['c' + currentCategory].pertinent);
-	}
-	if (typeof currentInteraction !== 'undefined' && currentInteraction !== null) {
-		$.extend(currentConfig, siteVars.config['i' + currentInteraction].pertinent);
-	}
-	// perform inherited changes
-	MyAnswers.dispatch.add(function() {
-		var $banner = $('#bannerBox'),
-			$image = $banner.find('img'),
-			imageSrc = currentConfig.logoBanner; 
-		if (typeof currentConfig.logoBanner === 'string') {
-			if (imageSrc !== $image.attr('src')) {
-				$image.attr('src', imageSrc);
-			}
-			$banner.removeClass('hidden');
-		} else {
-			$image.removeAttr('src');
-			$banner.addClass('hidden');
-		}
-	});
-	// fix footer
-	MyAnswers.dispatch.add(function() {
-		if (MyAnswers.$footer.html() !== currentConfig.footer) {
-			MyAnswers.$footer.html(currentConfig.footer);
-		}
-		if (currentConfig.footerPosition === 'screen-bottom') {
-			if (Modernizr.positionfixed) {
-				MyAnswers.$footer.css({
-					position: 'fixed',
-					bottom: '0px',
-					'z-index': 1
-				});
-			} else {
-				MyAnswers.$footer.css({
-					position: 'absolute',
-					top: '0px',
-					'z-index': 1
-				});
-				MyAnswers.$window.trigger('scroll');
-			}
-			// TODO: fix padding code below
-			//MyAnswers.$body.css('padding-bottom', MyAnswers.$footer.outerHeight());
-		} else {
-			MyAnswers.$footer.removeAttr('style');
-		}
-	});
-	// fix styles
-	MyAnswers.dispatch.add(function() {
-		var style = '',
-			$style = $('style[data-setting="styleSheet"]');
-		style += currentConfig.styleSheet || '';
-		style += currentConfig.interfaceStyle ? 'body { ' + currentConfig.interfaceStyle + ' }\n' : '';
-		style += currentConfig.backgroundStyle ? '.box { ' + currentConfig.backgroundStyle + ' }\n' : '';
-		style += currentConfig.inputPromptStyle ? '#argsBox { ' + currentConfig.inputPromptStyle + ' }\n' : '';
-		style += currentConfig.evenRowStyle ? 'ul.box > li:nth-child(even), tr.even { ' + currentConfig.evenRowStyle + ' }\n' : '';
-		style += currentConfig.oddRowStyle ? 'ul.box > li:nth-child(odd), tr.odd { ' + currentConfig.oddRowStyle + ' }\n' : '';
-		style += currentConfig.headerStyle ? 'body > header { ' + currentConfig.headerStyle + ' }\n' : '';
-		style += currentConfig.footerStyle ? 'body > footer { ' + currentConfig.footerStyle + ' }\n' : '';
-		style += currentConfig.masterCategoriesStyle ? '#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }\n' : '';
-		style += currentConfig.categoriesStyle ? '#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }\n' : '';
-		style += currentConfig.interactionsStyle ? '#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }\n' : '';
-		if (style !== $style.text()) {
-			$style.text(style);
-		}
-	});
+  // see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
+  // TODO: need to fold orientation-specific config into this somewhere
+  log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
+  currentConfig = {};
+  $.extend(currentConfig, siteVars.config['a' + siteVars.id].pertinent);
+  if (typeof currentMasterCategory !== 'undefined' && currentMasterCategory !== null) {
+    $.extend(currentConfig, siteVars.config['m' + currentMasterCategory].pertinent);
+  }
+  if (typeof currentCategory !== 'undefined' && currentCategory !== null) {
+    $.extend(currentConfig, siteVars.config['c' + currentCategory].pertinent);
+  }
+  if (typeof currentInteraction !== 'undefined' && currentInteraction !== null) {
+    $.extend(currentConfig, siteVars.config['i' + currentInteraction].pertinent);
+  }
+  // perform inherited changes
+  MyAnswers.dispatch.add(function() {
+    var $banner = $('#bannerBox'),
+      $image = $banner.find('img'),
+      imageSrc = currentConfig.logoBanner;
+    if (typeof currentConfig.logoBanner === 'string') {
+      if (imageSrc !== $image.attr('src')) {
+        $image.attr('src', imageSrc);
+      }
+      $banner.removeClass('hidden');
+    } else {
+      $image.removeAttr('src');
+      $banner.addClass('hidden');
+    }
+  });
+  // fix footer
+  MyAnswers.dispatch.add(function() {
+    if (MyAnswers.$footer.html() !== currentConfig.footer) {
+      MyAnswers.$footer.html(currentConfig.footer);
+    }
+    if (currentConfig.footerPosition === 'screen-bottom') {
+      if (Modernizr.positionfixed) {
+        MyAnswers.$footer.css({
+          position: 'fixed',
+          bottom: '0px',
+          'z-index': 1
+        });
+      } else {
+        MyAnswers.$footer.css({
+          position: 'absolute',
+          top: '0px',
+          'z-index': 1
+        });
+        MyAnswers.$window.trigger('scroll');
+      }
+      // TODO: fix padding code below
+      //MyAnswers.$body.css('padding-bottom', MyAnswers.$footer.outerHeight());
+    } else {
+      MyAnswers.$footer.removeAttr('style');
+    }
+  });
+  // fix styles
+  MyAnswers.dispatch.add(function() {
+    var style = '',
+      $style = $('style[data-setting="styleSheet"]');
+    style += currentConfig.styleSheet || '';
+    style += currentConfig.interfaceStyle ? 'body { ' + currentConfig.interfaceStyle + ' }\n' : '';
+    style += currentConfig.backgroundStyle ? '.box { ' + currentConfig.backgroundStyle + ' }\n' : '';
+    style += currentConfig.inputPromptStyle ? '#argsBox { ' + currentConfig.inputPromptStyle + ' }\n' : '';
+    style += currentConfig.evenRowStyle ? 'ul.box > li:nth-child(even), tr.even { ' + currentConfig.evenRowStyle + ' }\n' : '';
+    style += currentConfig.oddRowStyle ? 'ul.box > li:nth-child(odd), tr.odd { ' + currentConfig.oddRowStyle + ' }\n' : '';
+    style += currentConfig.headerStyle ? 'body > header { ' + currentConfig.headerStyle + ' }\n' : '';
+    style += currentConfig.footerStyle ? 'body > footer { ' + currentConfig.footerStyle + ' }\n' : '';
+    style += currentConfig.masterCategoriesStyle ? '#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }\n' : '';
+    style += currentConfig.categoriesStyle ? '#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }\n' : '';
+    style += currentConfig.interactionsStyle ? '#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }\n' : '';
+    if (style !== $style.text()) {
+      $style.text(style);
+    }
+  });
 }
 
 (function(window) {
-	var MyAnswers = window.MyAnswers;
-	
-	function onMasterCategoryClick(event) {
-		History.pushState({
-			m: $(this).data('id')
-			} , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
-	}
-	function onCategoryClick(event) {
-		History.pushState({
-			m: $(this).data('masterCategory'), 
-			c: $(this).data('id')
-			}, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
-	}
-	function onKeywordClick(event) {
-		var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
-		History.pushState({
-			m: $(this).data('masterCategory'), 
-			c: $(this).data('category'), 
-			i: $(this).data('id')
-			}, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
-	}
-	function onHyperlinkClick(event) {
-		//window.location.assign($(this).data('hyperlink'));
-		window.open($(this).data('hyperlink'));
-	}
+  var MyAnswers = window.MyAnswers;
 
-	MyAnswers.populateItemListing = function(level, $view) {
-		var arrangement, display, order, list, $visualBox, $listBox, type,
-			name, $item, $label, $description,
-			hook = {},
-			o, oLength,
-			category, columns, $images,
-			itemConfig;
-		hook.interactions = function($item) {
-			var id = $item.attr('data-id');
-			if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
-				$item.attr('data-hyperlink', siteVars.config['i' + id].pertinent.hyperlink);
-				$item.bind('click', onHyperlinkClick);
-			} else {
-				$item.bind('click', onKeywordClick);
-			}
-		};
-		hook.categories = function($item) {
-			var id = $item.attr('data-id');
-			if (siteVars.map['c' + id].length === 1) {
-				$item.attr('data-category', id);
-				$item.attr('data-id', siteVars.map['c' + id][0]);
-				hook.interactions($item);
-			} else if (siteVars.map['c' + id].length > 0) {
-				$item.bind('click', onCategoryClick);
-			}
-		};
-		hook.masterCategories = function($item) {
-			var id = $item.attr('data-id');
-			if (siteVars.map['m' + id].length === 1) {
-				$item.attr('data-master-category', id);
-				$item.attr('data-id', siteVars.map['m' + id][0]);
-				hook.categories($item);
-			} else if (siteVars.map['m' + id].length > 0) {
-				$item.bind('click', onMasterCategoryClick);
-			}
-		};
-		$view.children('.box:not(.welcomeBox)').remove();
-		$visualBox = $('<div class="box bordered" />');
-		$listBox = $('<ul class="box" />');
-		switch (level) {
-			case 'masterCategories':
-				arrangement = currentConfig.masterCategoriesArrangement;
-				display = currentConfig.masterCategoriesDisplay;
-				order = siteVars.map.masterCategories;
-				list = order;
-				type = 'm';
-				break;
-			case 'categories':
-				arrangement = currentConfig.categoriesArrangement;
-				display = currentConfig.categoriesDisplay;
-				order = siteVars.map.categories;
-				list = siteVars.map['m' + currentMasterCategory] || order;
-				type = 'c';
-				break;
-			case 'interactions':
-				arrangement = currentConfig.interactionsArrangement;
-				display = currentConfig.interactionsDisplay;
-				order = siteVars.map.interactions;
-				list = siteVars.map['c' + currentCategory] || order;
-				type = 'i';
-				break;
-		}
-		if ($view.attr('id') === 'BlinkSideBar') {
-			arrangement = 'list';
-			display = currentConfig.sidebarDisplay;
-		}
-		log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
-		switch (arrangement) {
-			case "list":
-				columns = 1;
-				break;
-			case "2 column":
-				columns = 2;
-				break;
-			case "3 column":
-				columns = 3;
-				break;
-			case "4 column":
-				columns = 4;
-				break;
-		}
-		oLength = order.length;
-		MyAnswers.dispatch.add(function() {
-			for (o = 0; o < oLength; o++) {
-				itemConfig = siteVars.config[type + order[o]];
-				if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
-					name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
-					if (display !== 'text only' && itemConfig.pertinent.icon) {
-						$item = $('<img />');
-						$item.attr({
-							'class': 'v' + columns + 'col',
-							'src': itemConfig.pertinent.icon,
-							'alt': name
-						});
-						$visualBox.append($item);
-					} else {
-						$item = $('<li />');
-						$label = $('<div class="label" />');
-						$label.text(name);
-						$item.append($label);
-						if (typeof itemConfig.pertinent.description === 'string') {
-							$description = $('<div class="description" />');
-							$description.text(itemConfig.pertinent.description);
-							$item.append($description);
-						}
-						$listBox.append($item);
-					}
-					$item.attr('data-id', order[o]);
-					hook[level]($item);
-				}
-			}
-		});
-		MyAnswers.dispatch.add(function() {
-			if ($visualBox.children().size() > 0) {
-				$images = $visualBox.find('img');
-				if (columns === 1) {
-					$images.first().addClass('topLeft topRight');
-					$images.last().addClass('bottomLeft bottomRight');
-				} else {
-					$images.first().addClass('topLeft');
-					if ($images.size() >= columns) {
-						$images.eq(columns - 1).addClass('topRight');
-					}
-					if ($images.size() % columns === 0) {
-						$images.eq(columns * -1).addClass('bottomLeft');
-						$images.last().addClass('bottomRight');
-					}
-				}
-				$visualBox.appendTo($view);
-			}
-		});
-		MyAnswers.dispatch.add(function() {
-			if ($listBox.children().size() > 0) {
-				$listBox.appendTo($view);
-			}
-		});
-	};
-	
+  function onMasterCategoryClick(event) {
+    History.pushState({
+      m: $(this).data('id')
+      } , null, '/' + siteVars.answerSpace + '/?_m=' + $(this).data('id'));
+  }
+  function onCategoryClick(event) {
+    History.pushState({
+      m: $(this).data('masterCategory'),
+      c: $(this).data('id')
+      }, null, '/' + siteVars.answerSpace + '/?_c=' + $(this).data('id'));
+  }
+  function onKeywordClick(event) {
+    var interaction = siteVars.config['i' + $(this).data('id')].pertinent.name;
+    History.pushState({
+      m: $(this).data('masterCategory'),
+      c: $(this).data('category'),
+      i: $(this).data('id')
+      }, null, '/' + siteVars.answerSpace + '/' + interaction + '/');
+  }
+  function onHyperlinkClick(event) {
+    //window.location.assign($(this).data('hyperlink'));
+    window.open($(this).data('hyperlink'));
+  }
+
+  MyAnswers.populateItemListing = function(level, $view) {
+    var arrangement, display, order, list, $visualBox, $listBox, type,
+      name, $item, $label, $description,
+      hook = {},
+      o, oLength,
+      category, columns, $images,
+      itemConfig;
+    hook.interactions = function($item) {
+      var id = $item.attr('data-id');
+      if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
+        $item.attr('data-hyperlink', siteVars.config['i' + id].pertinent.hyperlink);
+        $item.bind('click', onHyperlinkClick);
+      } else {
+        $item.bind('click', onKeywordClick);
+      }
+    };
+    hook.categories = function($item) {
+      var id = $item.attr('data-id');
+      if (siteVars.map['c' + id].length === 1) {
+        $item.attr('data-category', id);
+        $item.attr('data-id', siteVars.map['c' + id][0]);
+        hook.interactions($item);
+      } else if (siteVars.map['c' + id].length > 0) {
+        $item.bind('click', onCategoryClick);
+      }
+    };
+    hook.masterCategories = function($item) {
+      var id = $item.attr('data-id');
+      if (siteVars.map['m' + id].length === 1) {
+        $item.attr('data-master-category', id);
+        $item.attr('data-id', siteVars.map['m' + id][0]);
+        hook.categories($item);
+      } else if (siteVars.map['m' + id].length > 0) {
+        $item.bind('click', onMasterCategoryClick);
+      }
+    };
+    $view.children('.box:not(.welcomeBox)').remove();
+    $visualBox = $('<div class="box bordered" />');
+    $listBox = $('<ul class="box" />');
+    switch (level) {
+      case 'masterCategories':
+        arrangement = currentConfig.masterCategoriesArrangement;
+        display = currentConfig.masterCategoriesDisplay;
+        order = siteVars.map.masterCategories;
+        list = order;
+        type = 'm';
+        break;
+      case 'categories':
+        arrangement = currentConfig.categoriesArrangement;
+        display = currentConfig.categoriesDisplay;
+        order = siteVars.map.categories;
+        list = siteVars.map['m' + currentMasterCategory] || order;
+        type = 'c';
+        break;
+      case 'interactions':
+        arrangement = currentConfig.interactionsArrangement;
+        display = currentConfig.interactionsDisplay;
+        order = siteVars.map.interactions;
+        list = siteVars.map['c' + currentCategory] || order;
+        type = 'i';
+        break;
+    }
+    if ($view.attr('id') === 'BlinkSideBar') {
+      arrangement = 'list';
+      display = currentConfig.sidebarDisplay;
+    }
+    log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
+    switch (arrangement) {
+      case 'list':
+        columns = 1;
+        break;
+      case '2 column':
+        columns = 2;
+        break;
+      case '3 column':
+        columns = 3;
+        break;
+      case '4 column':
+        columns = 4;
+        break;
+    }
+    oLength = order.length;
+    MyAnswers.dispatch.add(function() {
+      for (o = 0; o < oLength; o++) {
+        itemConfig = siteVars.config[type + order[o]];
+        if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
+          name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
+          if (display !== 'text only' && itemConfig.pertinent.icon) {
+            $item = $('<img />');
+            $item.attr({
+              'class': 'v' + columns + 'col',
+              'src': itemConfig.pertinent.icon,
+              'alt': name
+            });
+            $visualBox.append($item);
+          } else {
+            $item = $('<li />');
+            $label = $('<div class="label" />');
+            $label.text(name);
+            $item.append($label);
+            if (typeof itemConfig.pertinent.description === 'string') {
+              $description = $('<div class="description" />');
+              $description.text(itemConfig.pertinent.description);
+              $item.append($description);
+            }
+            $listBox.append($item);
+          }
+          $item.attr('data-id', order[o]);
+          hook[level]($item);
+        }
+      }
+    });
+    MyAnswers.dispatch.add(function() {
+      if ($visualBox.children().size() > 0) {
+        $images = $visualBox.find('img');
+        if (columns === 1) {
+          $images.first().addClass('topLeft topRight');
+          $images.last().addClass('bottomLeft bottomRight');
+        } else {
+          $images.first().addClass('topLeft');
+          if ($images.size() >= columns) {
+            $images.eq(columns - 1).addClass('topRight');
+          }
+          if ($images.size() % columns === 0) {
+            $images.eq(columns * -1).addClass('bottomLeft');
+            $images.last().addClass('bottomRight');
+          }
+        }
+        $visualBox.appendTo($view);
+      }
+    });
+    MyAnswers.dispatch.add(function() {
+      if ($listBox.children().size() > 0) {
+        $listBox.appendTo($view);
+      }
+    });
+  };
+
 }(this));
 
 (function(window) {
-	var $ = window.jQuery,
-		MyAnswers = window.MyAnswers,
-		deviceVars = window.deviceVars,
-		BlinkSideBar = {},
-		$sideBar = $('#BlinkSideBar'),
-		$stack = $('#stackLayout'),
-		currentLevel, oldLevel,
-		currentItem, oldItem;
+  var $ = window.jQuery,
+    MyAnswers = window.MyAnswers,
+    deviceVars = window.deviceVars,
+    BlinkSideBar = {},
+    $sideBar = $('#BlinkSideBar'),
+    $stack = $('#stackLayout'),
+    currentLevel, oldLevel,
+    currentItem, oldItem;
 
-	BlinkSideBar.show = function() {
-		MyAnswers.dispatch.add(function() {
-			$stack.addClass('bSideBar-on');
-			$stack.find('.selected').removeClass('selected');
-			$stack.find('[data-id=' + currentCategory + ']').addClass('selected');
-		});
-	};
-	BlinkSideBar.hide = function() {
-		MyAnswers.dispatch.add(function() {
-			$stack.removeClass('bSideBar-on');
-		});
-	};
-	BlinkSideBar.update = function() {
-		var config = siteVars.config['a' + siteVars.id].pertinent;
-		if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768 || config.sidebarDisplay === 'disabled') {
-			this.hide();
-			return;
-		} else if (hasMasterCategories && currentMasterCategory) {
-			currentLevel = 'masterCategories';
-			currentItem = currentMasterCategory;
-		} else if (hasCategories && currentCategory) {
-			currentLevel = 'categories';
-			currentItem = currentCategory;
-		} else if (hasInteractions && currentCategory) {
-			currentLevel = 'interactions';
-			currentItem = currentInteraction;
-		} else {
-			this.hide();
-			return;
-		}
-		if (oldLevel !== currentLevel) {
-			MyAnswers.populateItemListing(currentLevel, $sideBar);
-		}
-		oldLevel = currentLevel;
-		oldItem = currentItem;
-		this.show();
-	};
-		
-	MyAnswers.sideBar = BlinkSideBar;
+  BlinkSideBar.show = function() {
+    MyAnswers.dispatch.add(function() {
+      $stack.addClass('bSideBar-on');
+      $stack.find('.selected').removeClass('selected');
+      $stack.find('[data-id=' + currentCategory + ']').addClass('selected');
+    });
+  };
+  BlinkSideBar.hide = function() {
+    MyAnswers.dispatch.add(function() {
+      $stack.removeClass('bSideBar-on');
+    });
+  };
+  BlinkSideBar.update = function() {
+    var config = siteVars.config['a' + siteVars.id].pertinent;
+    if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768 || config.sidebarDisplay === 'disabled') {
+      this.hide();
+      return;
+    }
+    if (hasMasterCategories && currentMasterCategory) {
+      currentLevel = 'masterCategories';
+      currentItem = currentMasterCategory;
+    } else if (hasCategories && currentCategory) {
+      currentLevel = 'categories';
+      currentItem = currentCategory;
+    } else if (hasInteractions && currentCategory) {
+      currentLevel = 'interactions';
+      currentItem = currentInteraction;
+    } else {
+      this.hide();
+      return;
+    }
+    if (oldLevel !== currentLevel) {
+      MyAnswers.populateItemListing(currentLevel, $sideBar);
+    }
+    oldLevel = currentLevel;
+    oldItem = currentItem;
+    this.show();
+  };
+
+  MyAnswers.sideBar = BlinkSideBar;
 }(this));
 
 
 function showMasterCategoriesView(reverse) {
-	var $view = $('#masterCategoriesView');
-	log('showMasterCategoriesView()');
+  var $view = $('#masterCategoriesView');
+  log('showMasterCategoriesView()');
   currentInteraction = null;
-	currentCategory = null;
+  currentCategory = null;
   currentMasterCategory = null;
-	$.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
-		MyAnswers.populateItemListing('masterCategories', $view);
-		updateCurrentConfig();
-		setMainLabel('Master Categories');
-		MyAnswersDevice.showView($view, reverse);
-	});
+  $.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
+    MyAnswers.populateItemListing('masterCategories', $view);
+    updateCurrentConfig();
+    setMainLabel('Master Categories');
+    MyAnswersDevice.showView($view, reverse);
+  });
 }
 
 function goBackToMasterCategoriesView() {
-	var $view = $('#masterCategoriesView');
-	log('goBackToMasterCategoriesView()');
-	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
-		updateCurrentConfig();
-		setMainLabel('Master Categories');
-		MyAnswersDevice.showView($('#masterCategoriesView'), true);
-	});
+  var $view = $('#masterCategoriesView');
+  log('goBackToMasterCategoriesView()');
+  $.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+    updateCurrentConfig();
+    setMainLabel('Master Categories');
+    MyAnswersDevice.showView($('#masterCategoriesView'), true);
+  });
 }
 
 function showCategoriesView(masterCategory) {
-	var $view = $('#categoriesView');
-	log('showCategoriesView(): ' + masterCategory);
-	currentInteraction = null;
-	currentCategory = null;
-	if (hasMasterCategories && masterCategory) {
-		currentMasterCategory = masterCategory;
-	}
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		updateCurrentConfig();
-		setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
-		MyAnswers.populateItemListing('categories', $view);
-		MyAnswersDevice.showView($view);
-	});
+  var $view = $('#categoriesView');
+  log('showCategoriesView(): ' + masterCategory);
+  currentInteraction = null;
+  currentCategory = null;
+  if (hasMasterCategories && masterCategory) {
+    currentMasterCategory = masterCategory;
+  }
+  $.when(MyAnswersDevice.prepareView($view)).always(function() {
+    updateCurrentConfig();
+    setMainLabel(masterCategory ? siteVars.config['m' + masterCategory].pertinent.name : 'Categories');
+    MyAnswers.populateItemListing('categories', $view);
+    MyAnswersDevice.showView($view);
+  });
 }
 
 function goBackToCategoriesView() {
-	var $view = $('#categoriesView');
-	currentInteraction = null;
-	currentCategory = null;
-	log('goBackToCategoriesView()');
-	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
-		updateCurrentConfig();
-		setMainLabel(currentMasterCategory ? siteVars.config['m' + currentMasterCategory].pertinent.name : 'Categories');
-		MyAnswersDevice.showView($view, true);
-	});
+  var $view = $('#categoriesView');
+  currentInteraction = null;
+  currentCategory = null;
+  log('goBackToCategoriesView()');
+  $.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+    updateCurrentConfig();
+    setMainLabel(currentMasterCategory ? siteVars.config['m' + currentMasterCategory].pertinent.name : 'Categories');
+    MyAnswersDevice.showView($view, true);
+  });
 }
 
 function restoreSessionProfile(token) {
-	log('restoreSessionProfile():');
-	var requestData, requestUrl = siteVars.serverAppPath + '/util/GetSession.php',
-		deferred = new $.Deferred();
-	if ($.type(token) !== 'string' || token.length === 0) {
-		deferred.reject();
-		return deferred.promise();
-	}
-	requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
-	ajaxQueue.add({
-		url: requestUrl,
-		data: requestData,
-		dataType: 'json',
-		complete: function(xhr, xhrStatus) {
-			if (isAJAXError(xhrStatus) || xhr.status !== 200)
-			{
-				alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
-				deferred.reject();
-				return deferred.promise();
-			}
-			var data = $.parseJSON(xhr.responseText);
-			if (data === null)
-			{
-				log('restoreSessionProfile error: null data');
-				alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
-				deferred.reject();
-				return deferred.promise();
-			}
-			if (typeof data.errorMessage !== 'string' && typeof data.statusMessage  !== 'string')
-			{
-				log('restoreSessionProfile success: no error messages, data: ' + data);
-				if (data.sessionProfile === null) {
-					deferred.reject();
-					return deferred.promise();
-				}
-				MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
-				starsProfile = data.sessionProfile.stars;
-			}
-			if (typeof data.errorMessage === 'string')
-			{
-				log('restoreSessionProfile error: ' + data.errorMessage);
-				deferred.reject();
-			}
-			setTimeout(function() {
-				deferred.resolve();
-			}, 100);
-		},
-		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(10 * 1024))
-	});
-	return deferred.promise();
+  log('restoreSessionProfile():');
+  var requestData, requestUrl = siteVars.serverAppPath + '/util/GetSession.php',
+    deferred = new $.Deferred();
+  if ($.type(token) !== 'string' || token.length === 0) {
+    deferred.reject();
+    return deferred.promise();
+  }
+  requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
+  $.ajax({
+    url: requestUrl,
+    data: requestData,
+    dataType: 'json',
+    complete: function(xhr, xhrStatus) {
+      if (isAJAXError(xhrStatus) || xhr.status !== 200)
+      {
+        alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
+        deferred.reject();
+        return deferred.promise();
+      }
+      var data = $.parseJSON(xhr.responseText);
+      if (data === null)
+      {
+        log('restoreSessionProfile error: null data');
+        alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
+        deferred.reject();
+        return deferred.promise();
+      }
+      if (typeof data.errorMessage !== 'string' && typeof data.statusMessage !== 'string')
+      {
+        log('restoreSessionProfile success: no error messages, data: ' + data);
+        if (data.sessionProfile === null) {
+          deferred.reject();
+          return deferred.promise();
+        }
+        MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
+        starsProfile = data.sessionProfile.stars;
+      }
+      if (typeof data.errorMessage === 'string')
+      {
+        log('restoreSessionProfile error: ' + data.errorMessage);
+        deferred.reject();
+      }
+      setTimeout(function() {
+        deferred.resolve();
+      }, 100);
+    },
+    timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(10 * 1024))
+  });
+  return deferred.promise();
 }
 
 function processForms() {
-	var dispatch = new BlinkDispatch(0),
-	ajaxDeferred = new $.Deferred(),
-	libraryDeferred = new $.Deferred(),
-	promises = [ libraryDeferred.promise(), ajaxDeferred.promise() ],
-	validActions = [ 'add', 'delete', 'edit', 'find', 'list', 'search', 'view' ],
-	xmlserializer = new window.XMLSerializer(), // TODO: find a cross-browser way to do this
-	/* @inner */
-	formActionFn = function(id, element) {
-		var dfrd = new $.Deferred();
-		dispatch.add(function() {
-			var $action = $(element),
-				action = $action.tag(),
-				storeKey = 'formXML:' + id + ':' + action,
-				$children = $action.children(), c, cLength = $children.length,
-				html = '';
-			if (validActions.indexOf($action.tag()) !== -1) {
-				for (c = 0; c < cLength; c++) {
-					html += xmlserializer.serializeToString($children[c]);
-				}
-				$.when(MyAnswers.store.set(storeKey, html))
-				.fail(function() {
-					warn('processForms()->formActionFn(): failed storing ' + storeKey);
-					dfrd.reject();
-				})
-				.then(function() {
-					MyAnswers.store.set('formLastChecked:' + id + ':' + action, $.now());
-					if (MyAnswers.isDebug) {
-						log('processForms()->formActionFn(): formXML=' + storeKey);
-					}
-					dfrd.resolve();
-				});
-			} else {
-				dfrd.resolve();
-			}
-		});
-		return dfrd.promise();
-	},
-	/* @inner */
-	formObjectFn = function(index, element) {
-		var $formObject = $(element);
-		$formObject.children().each(function(index, element) {
-			promises.push(formActionFn($formObject.attr('id'), element));
-		});
-	};
-	/* END: var */
-	Modernizr.load.errorTimeout = 20000;
-	Modernizr.load({
-		test: window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement,
-		nope: siteVars.serverAppPath + '/BlinkForms2.js',
-		callback: function(url, result, key) {
-			setTimeout(function() {
-				Modernizr.load.errorTimeout = 10000;
-				if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
-					log('Modernizr.load() success: ' + url);
-					libraryDeferred.resolve();
-				} else {
-					log('Modernizr.load() error: ' + url);
-					libraryDeferred.reject();
-				}
-			}, 47);
-		}
-	});
-	if (deviceVars.isOnline) {
-		$.ajax({
-			// TODO: send through lastChecked time when updating forms
-			url: siteVars.serverAppPath + '/xhr/GetForm.php',
-			dataType: 'xml',
-			complete: function(jqxhr, status) {
-				var $data;
-				if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
-					jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
-					$data = $($.parseXML(jqxhr.responseText));
-					// $data contains XMLDocument / <formObjects> / <formObject>s
-					$data.children().children().each(formObjectFn);
-	//			MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-				}
-				if (jqxhr.status === 200 || jqxhr.status === 304) {
-					ajaxDeferred.resolve();
-				} else {
-					ajaxDeferred.reject();
-				}
-			},
-			timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-		});
-	} else {
-		ajaxDeferred.resolve();
-	}
-	$.whenArray(promises)
-	.fail(MyAnswers.formsDeferred.reject)
-	.then(MyAnswers.formsDeferred.resolve);
+  var dispatch = new BlinkDispatch(0),
+  ajaxDeferred = new $.Deferred(),
+  libraryDeferred = new $.Deferred(),
+  promises = [libraryDeferred.promise(), ajaxDeferred.promise()],
+  validActions = ['add', 'delete', 'edit', 'find', 'list', 'search', 'view'],
+  xmlserializer = new window.XMLSerializer(), // TODO: find a cross-browser way to do this
+  /* @inner */
+  formActionFn = function(id, element) {
+    var dfrd = new $.Deferred();
+    dispatch.add(function() {
+      var $action = $(element),
+        action = $action.tag(),
+        storeKey = 'formXML:' + id + ':' + action,
+        $children = $action.children(), c, cLength = $children.length,
+        html = '';
+      if (validActions.indexOf($action.tag()) !== -1) {
+        for (c = 0; c < cLength; c++) {
+          html += xmlserializer.serializeToString($children[c]);
+        }
+        $.when(MyAnswers.store.set(storeKey, html))
+        .fail(function() {
+          warn('processForms()->formActionFn(): failed storing ' + storeKey);
+          dfrd.reject();
+        })
+        .then(function() {
+          MyAnswers.store.set('formLastChecked:' + id + ':' + action, $.now());
+          if (MyAnswers.isDebug) {
+            log('processForms()->formActionFn(): formXML=' + storeKey);
+          }
+          dfrd.resolve();
+        });
+      } else {
+        dfrd.resolve();
+      }
+    });
+    return dfrd.promise();
+  },
+  /* @inner */
+  formObjectFn = function(index, element) {
+    var $formObject = $(element);
+    $formObject.children().each(function(index, element) {
+      promises.push(formActionFn($formObject.attr('id'), element));
+    });
+  };
+  /* END: var */
+  Modernizr.load.errorTimeout = 20000;
+  Modernizr.load({
+    test: window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement,
+    nope: siteVars.serverAppPath + '/BlinkForms2.js',
+    callback: function(url, result, key) {
+      setTimeout(function() {
+        Modernizr.load.errorTimeout = 10000;
+        if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
+          log('Modernizr.load() success: ' + url);
+          libraryDeferred.resolve();
+        } else {
+          log('Modernizr.load() error: ' + url);
+          libraryDeferred.reject();
+        }
+      }, 47);
+    }
+  });
+  if (deviceVars.isOnline) {
+    $.ajax({
+      // TODO: send through lastChecked time when updating forms
+      url: siteVars.serverAppPath + '/xhr/GetForm.php',
+      dataType: 'xml',
+      complete: function(jqxhr, status) {
+        var $data;
+        if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
+          jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
+          $data = $($.parseXML(jqxhr.responseText));
+          // $data contains XMLDocument / <formObjects> / <formObject>s
+          $data.children().children().each(formObjectFn);
+  //      MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+        }
+        if (jqxhr.status === 200 || jqxhr.status === 304) {
+          ajaxDeferred.resolve();
+        } else {
+          ajaxDeferred.reject();
+        }
+      },
+      timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+    });
+  } else {
+    ajaxDeferred.resolve();
+  }
+  $.whenArray(promises)
+  .fail(MyAnswers.formsDeferred.reject)
+  .then(MyAnswers.formsDeferred.resolve);
 }
 
 function processConfig() {
-	var siteStructure,
-	config;
-	/* END: var */
-	MyAnswers.isEmptySpace = false;
-	MyAnswers.isLoginOnly = false;
-	log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
-	if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
-		config = siteVars.config['a' + siteVars.id].pertinent;
-		siteStructure = config.siteStructure;
-		if (siteStructure === 'master categories') {
-			hasMasterCategories = siteVars.map.masterCategories.length > 0;
-		}
-		if (siteStructure !== 'interactions only') { // masterCategories or categories
-			hasCategories = siteVars.map.categories.length > 0;
-		}
-		hasInteractions = siteVars.map.interactions.length > 0;
-		answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
-		if (config.loginAccess && config.loginUseInteractions
-					&& config.loginPromptInteraction && config.loginStatusInteraction
-					&& siteVars.config['i' + config.loginPromptInteraction]
-					&& siteVars.config['i' + config.loginStatusInteraction]) {
-			MyAnswers.isCustomLogin = true;
-		}
-		if (siteVars.map && siteVars.map.masterCategories.length === 0 && siteVars.map.categories.length === 0
-					&& siteVars.map.interactions.length === (MyAnswers.isCustomLogin ? 2 : 0)) {
-			MyAnswers.isEmptySpace = true;
-		}
-		if (config.loginAccess && !MyAnswers.isLoggedIn){
-			if (config.registeredOnly === 'deny anonymous' || MyAnswers.isEmptySpace) {
-				MyAnswers.isLoginOnly = true;
-			}
-		}
-	} else {
-		log('processConfig(): unable to retrieve answerSpace config');
-	}
+  var siteStructure,
+  config;
+  /* END: var */
+  MyAnswers.isEmptySpace = false;
+  MyAnswers.isLoginOnly = false;
+  log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
+  if ($.type(siteVars.config['a' + siteVars.id]) === 'object') {
+    config = siteVars.config['a' + siteVars.id].pertinent;
+    siteStructure = config.siteStructure;
+    if (siteStructure === 'master categories') {
+      hasMasterCategories = siteVars.map.masterCategories.length > 0;
+    }
+    if (siteStructure !== 'interactions only') { // masterCategories or categories
+      hasCategories = siteVars.map.categories.length > 0;
+    }
+    hasInteractions = siteVars.map.interactions.length > 0;
+    answerSpaceOneKeyword = siteVars.map.interactions.length === 1;
+    if (config.loginAccess && config.loginUseInteractions
+          && config.loginPromptInteraction && config.loginStatusInteraction
+          && siteVars.config['i' + config.loginPromptInteraction]
+          && siteVars.config['i' + config.loginStatusInteraction]) {
+      MyAnswers.isCustomLogin = true;
+    }
+    if (siteVars.map && siteVars.map.masterCategories.length === 0 && siteVars.map.categories.length === 0
+          && siteVars.map.interactions.length === (MyAnswers.isCustomLogin ? 2 : 0)) {
+      MyAnswers.isEmptySpace = true;
+    }
+    if (config.loginAccess && !MyAnswers.isLoggedIn) {
+      if (config.registeredOnly === 'deny anonymous' || MyAnswers.isEmptySpace) {
+        MyAnswers.isLoginOnly = true;
+      }
+    }
+  } else {
+    log('processConfig(): unable to retrieve answerSpace config');
+  }
 }
 
 function requestConfig() {
-	var now = $.now(),
-	dfrd = new $.Deferred();
-	/* END: var */
-	if (!deviceVars.isOnline) {
-		dfrd.reject();
-		return dfrd.promise();
-	}
-	$.ajax({
-		url: siteVars.serverAppPath + '/xhr/GetConfig.php',
-		type: 'POST',
-		dataType: 'json',
-		timeout: computeTimeout(40 * 1024),
-		complete: function(jqxhr, status) {
-			var data,
-			items = ['a' + siteVars.id],
-			siteStructure;
-			/* END: var */
-			if (jqxhr.status === 200) {
-				data = $.parseJSON(jqxhr.responseText);
-				if ($.type(data.map) === 'object') {
-					siteVars.map = data.map;
-					MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
-				}
-				if ($.type(data['a' + siteVars.id]) === 'object') {
-					siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
-				}
-				if (siteVars.map) {
-					if (siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0) {
-						items = items.concat($.map(siteVars.map.masterCategories, function(element, index) {
-							return 'm' + element;
-						}));
-					}
-					if (siteStructure !== 'interactions only' && siteVars.map.categories.length > 0) { // masterCategories or categories
-						items = items.concat($.map(siteVars.map.categories, function(element, index) {
-							return 'c' + element;
-						}));
-					}
-					if (siteVars.map.interactions.length > 0) {
-						items = items.concat($.map(siteVars.map.interactions, function(element, index) {
-							return 'i' + element;
-						}));
-					}
-				}
-			}
-			if ($.type(siteVars.config) !== 'object' || items.length > 0) {
-				siteVars.config = {};
-			}
-			$.each(items, function(index, id) {
-				if ($.type(data[id]) === 'object') {
-					siteVars.config[id] = data[id];
-				}
-			});
-			MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
-			deviceVars.features = data.deviceFeatures;
-			if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
-				dfrd.resolve();
-			} else {
-				dfrd.reject();
-			}
-		}
-	});
-	return dfrd.promise();
+  var now = $.now(),
+  dfrd = new $.Deferred();
+  /* END: var */
+  if (!deviceVars.isOnline) {
+    dfrd.reject();
+    return dfrd.promise();
+  }
+  $.ajax({
+    url: siteVars.serverAppPath + '/xhr/GetConfig.php',
+    type: 'POST',
+    dataType: 'json',
+    timeout: computeTimeout(40 * 1024),
+    complete: function(jqxhr, status) {
+      var data,
+      items = ['a' + siteVars.id],
+      siteStructure;
+      /* END: var */
+      if (jqxhr.status === 200) {
+        data = $.parseJSON(jqxhr.responseText);
+        if ($.type(data.map) === 'object') {
+          siteVars.map = data.map;
+          MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
+        }
+        if ($.type(data['a' + siteVars.id]) === 'object') {
+          siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
+        }
+        if (siteVars.map) {
+          if (siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0) {
+            items = items.concat($.map(siteVars.map.masterCategories, function(element, index) {
+              return 'm' + element;
+            }));
+          }
+          if (siteStructure !== 'interactions only' && siteVars.map.categories.length > 0) { // masterCategories or categories
+            items = items.concat($.map(siteVars.map.categories, function(element, index) {
+              return 'c' + element;
+            }));
+          }
+          if (siteVars.map.interactions.length > 0) {
+            items = items.concat($.map(siteVars.map.interactions, function(element, index) {
+              return 'i' + element;
+            }));
+          }
+        }
+      }
+      if ($.type(siteVars.config) !== 'object' || items.length > 0) {
+        siteVars.config = {};
+      }
+      $.each(items, function(index, id) {
+        if ($.type(data[id]) === 'object') {
+          siteVars.config[id] = data[id];
+        }
+      });
+      MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+      deviceVars.features = data.deviceFeatures;
+      if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
+        dfrd.resolve();
+      } else {
+        dfrd.reject();
+      }
+    }
+  });
+  return dfrd.promise();
 }
 
 MyAnswers.dumpLocalStorage = function() {
-	$.when(MyAnswers.store.keys()).done(function(keys) {
-		var k, kLength = keys.length,
-			getFn = function(value) {
-				value = value.length > 20 ? value.substring(0, 20) + "..." : value;
-				log('dumpLocalStorage(): found value: ' + value);
-			};
-		for (k = 0; k < kLength; k++) {
-			log('dumpLocalStorage(): found key: ' + keys[k]);
-			$.when(MyAnswers.store.get(keys[k])).done(getFn);
-		}
-	});
+  $.when(MyAnswers.store.keys()).done(function(keys) {
+    var k, kLength = keys.length,
+      getFn = function(value) {
+        value = value.length > 20 ? value.substring(0, 20) + '...' : value;
+        log('dumpLocalStorage(): found value: ' + value);
+      };
+    for (k = 0; k < kLength; k++) {
+      log('dumpLocalStorage(): found key: ' + keys[k]);
+      $.when(MyAnswers.store.get(keys[k])).done(getFn);
+    }
+  });
 };
 
 function gotoStorageView() {
   var interaction,
-  url;
+      url;
   /* END: var */
   if (currentConfig.activeFormsUseInteraction) {
     interaction = siteVars.config['i' + currentConfig.activeFormsInteraction];
@@ -1913,484 +1921,485 @@ function gotoStorageView() {
 }
 
 function showPendingView() {
-	var $view = $('#pendingView'),
-  $box = $('#pendingBox'),
-  $section = $box.children('[data-blink-form-version=2]'),
-  $sectionV1 = $box.children('[data-blink-form-version=1]'),
-  $noMessage = $box.children('.bForm-noPending');
+  var $view = $('#pendingView'),
+      $box = $('#pendingBox'),
+      $section = $box.children('[data-blink-form-version=2]'),
+      $sectionV1 = $box.children('[data-blink-form-version=1]'),
+      $noMessage = $box.children('.bForm-noPending');
   /* END: var */
   // update pending forms listing if necessary
   $.when(MyAnswers.pendingStore.keys(), MyAnswers.pendingV1Store.keys())
   .then(function(keys, keysV1) {
-    var count = keys.length + keysV1.length,
-    buttonText = count + ' Pending',
-    /**
+        var count = keys.length + keysV1.length,
+            buttonText = count + ' Pending',
+            /**
       * @inner
       */
-    keysFn = function(index, key, $section) {
-      var version = $section.data('blinkFormVersion'),
-      $template = $section.children('.template[hidden]'),
-      $entry = $template.clone(),
-      keyParts = key.split(':'),
-      interaction = siteVars.config['i' + keyParts[0]],
-      name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
-      form = keyParts[1],
-      uuid = keyParts[2],
-      $summary;
-      /* END: var */
-      $entry.children('h3').text(name);
-      $entry.children('pre.uuid').text(uuid);
-      $entry.attr('data-id', key);
-      // populate summary "list" fields in the <dl />
-      if (version === 2) {
-        $.when(MyAnswers.pendingStore.get(key))
+            keysFn = function(index, key, $section) {
+              var version = $section.data('blinkFormVersion'),
+                  $template = $section.children('.template[hidden]'),
+                  $entry = $template.clone(),
+                  keyParts = key.split(':'),
+                  interaction = siteVars.config['i' + keyParts[0]],
+                  name = interaction ? (interaction.pertinent.displayName || interaction.pertinent.name) : '* unknown *',
+                  form = keyParts[1],
+                  uuid = keyParts[2],
+                  $summary;
+              /* END: var */
+              $entry.children('h3').text(name);
+              $entry.children('pre.uuid').text(uuid);
+              $entry.attr('data-id', key);
+              // populate summary "list" fields in the <dl />
+              if (version === 2) {
+                $.when(MyAnswers.pendingStore.get(key))
           .then(function(json) {
-            if (typeof json !== 'string' || json.length === 0) {
-              return;
-            } else if ($.type(json) !== 'object') {
-              json = $.parseJSON(json);
-            }
-            if ($.type(json) === 'array') {
-              $summary = $entry.children('dl');
-              $.each(json[1], function(name, value) {
-                $summary.append('<dt>' + name + '</dt><dd>' + value + '</dd>');
+                      if (typeof json !== 'string' || json.length === 0) {
+                        return;
+                      }
+                      if ($.type(json) !== 'object') {
+                        json = $.parseJSON(json);
+                      }
+                      if ($.type(json) === 'array') {
+                        $summary = $entry.children('dl');
+                        $.each(json[1], function(name, value) {
+                          $summary.append('<dt>' + name + '</dt><dd>' + value + '</dd>');
+                        });
+                      }
+                    });
+              }
+              $entry.data('interaction', keyParts[0]);
+              $entry.data('form', form);
+              MyAnswers.dispatch.add(function() {
+                $entry.appendTo($section);
+                $entry.removeAttr('hidden').removeClass('template');
               });
-            }
+            };
+        /* END: var */
+        MyAnswers.dispatch.add(function() {
+          $section.children('.bForm-pending:not(.template)').remove();
+          if (keys.length > 0) {
+            $.each(keys, function(index, key) {
+              keysFn(index, key, $section);
+            });
+            $section.prop('hidden', false);
+          } else {
+            $section.prop('hidden', true);
+          }
+        });
+        MyAnswers.dispatch.add(function() {
+          $sectionV1.children('.bForm-pending:not(.template)').remove();
+          if (keysV1.length > 0) {
+            $.each(keysV1, function(index, key) {
+              keysFn(index, key, $sectionV1);
+            });
+            $sectionV1.prop('hidden', false);
+          } else {
+            $sectionV1.prop('hidden', true);
+          }
+        });
+        MyAnswers.dispatch.add(function() {
+          $.when(MyAnswersDevice.prepareView($view)).always(function() {
+            MyAnswersDevice.showView($view);
           });
-      }
-      $entry.data('interaction', keyParts[0]);
-      $entry.data('form', form);
-      MyAnswers.dispatch.add(function() {
-        $entry.appendTo($section);
-        $entry.removeAttr('hidden').removeClass('template');
-      });
-    };
-    /* END: var */
-    MyAnswers.dispatch.add(function() {
-      $section.children('.bForm-pending:not(.template)').remove();
-      if (keys.length > 0) {
-        $.each(keys, function(index, key) {
-          keysFn(index, key, $section);
         });
-        $section.prop('hidden', false);
-      } else {
-        $section.prop('hidden', true);
-      }
-    });
-    MyAnswers.dispatch.add(function() {
-      $sectionV1.children('.bForm-pending:not(.template)').remove();
-      if (keysV1.length > 0) {
-        $.each(keysV1, function(index, key) {
-          keysFn(index, key, $sectionV1);
-        });
-        $sectionV1.prop('hidden', false);
-      } else {
-        $sectionV1.prop('hidden', true);
-      }
-    });
-    MyAnswers.dispatch.add(function() {
-      $.when(MyAnswersDevice.prepareView($view)).always(function() {
-        MyAnswersDevice.showView($view);
       });
-    });
-  });
 }
 
 function createParamsAndArgs(keywordID) {
-	var config = siteVars.config['i' + keywordID],
-		returnValue = "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(config.pertinent.name),
-		args = '',
-		argElements = $('#argsBox').find('input, textarea, select');
-	if (typeof config === 'undefined' || !config.pertinent.inputPrompt) {return returnValue;}	
-	args = '';
-	argElements.each(function(index, element) {
-		if (this.type && (this.type.toLowerCase() === "radio" || this.type.toLowerCase() === "checkbox") && !this.checked) {
-			$.noop(); // do nothing if not checked
-		} else if (this.name) {
-			args += "&" + this.name + "=" + (this.value ? encodeURIComponent(this.value) : "");
-		} else if (this.id && this.id.match(/\d+/g)) {
-			args += "&args[" + this.id.match(/\d+/g) + "]=" + (this.value ? encodeURIComponent(this.value) : "");
-		}
-	});
-	if (args.length > 0) {
-		returnValue += encodeURI(args);
-	} else if (argElements.size() === 1 && this.value) {
-		returnValue += "&args=" + encodeURIComponent(this.value);
-	}
-	return returnValue;
+  var config = siteVars.config['i' + keywordID],
+    returnValue = 'asn=' + siteVars.answerSpace + '&iact=' + encodeURIComponent(config.pertinent.name),
+    args = '',
+    argElements = $('#argsBox').find('input, textarea, select');
+  if (typeof config === 'undefined' || !config.pertinent.inputPrompt) {return returnValue;}
+  args = '';
+  argElements.each(function(index, element) {
+    if (this.type && (this.type.toLowerCase() === 'radio' || this.type.toLowerCase() === 'checkbox') && !this.checked) {
+      $.noop(); // do nothing if not checked
+    } else if (this.name) {
+      args += '&' + this.name + '=' + (this.value ? encodeURIComponent(this.value) : '');
+    } else if (this.id && this.id.match(/\d+/g)) {
+      args += '&args[' + this.id.match(/\d+/g) + ']=' + (this.value ? encodeURIComponent(this.value) : '');
+    }
+  });
+  if (args.length > 0) {
+    returnValue += encodeURI(args);
+  } else if (argElements.size() === 1 && this.value) {
+    returnValue += '&args=' + encodeURIComponent(this.value);
+  }
+  return returnValue;
 }
 
 function showAnswerView(interaction, argsString, reverse) {
-	log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
-	var html, args,
-		$view = $('#answerView'),
-		$answerBox = $('#answerBox'),
-		answerBox = $answerBox[0],
-		completeFn = function() {
-			$.when(initialiseAnswerFeatures($view)).always(function() {
-				setMainLabel(currentConfig.displayName || currentConfig.name);
-				MyAnswersDevice.showView($view, reverse);
-				MyAnswers.dispatch.add(function() {MyAnswers.$body.trigger('taskComplete');});
-			});
-		};
-	interaction = resolveItemName(interaction);
-	if (interaction === false) {
-		alert('The requested Interaction could not be found.');
-		return;
-	}
-	MyAnswers.$body.trigger('taskBegun');
-	$.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
-		currentInteraction = interaction;
-		updateCurrentConfig();
-		if (typeof currentConfig.xml === 'string' && currentConfig.xml.substring(0, 6) !== 'stars:') {
-			if (currentConfig.mojoType === 'server-hosted' && MyAnswers.dfrdMoJOs.isResolved()) {
-				requestMoJO(currentConfig.xml);
-			}
-		}
-		if (typeof argsString === 'string' && argsString.length > 0) {
-			args = {};
-			$.extend(args, deserialize(argsString));
-		} else if ($.type(argsString) === 'object') {
-			args = argsString;
-		} else {
-			args = {};
-		}
-		if (currentConfig.inputPrompt && !argsString) {
-			$.extend(args, deserialize(createParamsAndArgs(interaction)));
-			delete args.answerSpace;
-			delete args.interaction;
-		}
-		if (currentConfig.type === 'message') {
-			insertHTML(answerBox, currentConfig.message);
-			completeFn();
-		} else if (currentConfig.type === 'xslt' && deviceVars.disableXSLT !== true) {
-			$.when(MyAnswers.dfrdMoJOs)
-			.always(function() {
-				$.when(generateMojoAnswer(args))
-				.always(function(html) {
-					insertHTML(answerBox, html);
-					completeFn();
-				});
-			});
-		} else if (reverse) {
-			$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
-				insertHTML(answerBox, html);
-				completeFn();
-			});
-		} else if (currentConfig.type === 'form' && currentConfig.blinkFormObjectName && currentConfig.blinkFormAction) {
-			$.when(MyAnswers.dfrdMoJOs, MyAnswers.formsDeferred.promise())
-			.fail(function() {
-				html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
-			})
-			.then(function() {
-				html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
-				html.data(args);
-			})
-			.always(function() {
-				insertHTML(answerBox, html);
-				completeFn();
-			});
-		} else {
-			var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
-			requestData = {
-				asn: siteVars.answerSpace,
-				iact: currentConfig.name
-			},
-			fallbackToStorage = function() {
-				$.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
-					if (typeof html === 'undefined') {
-						html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
-					}
-					insertHTML(answerBox, html);
-					completeFn();
-				});
-			},
-			postData = {},
-			starsData = {},
-			method = 'GET';
-			/* END :var */
-			if (!$.isEmptyObject(args)) {
-				$.extend(requestData, args);
-			}
-			if (requestData._submitStarsType) {
-				method = 'POST';
-				if ($.type(requestData._submitStarsType) === 'string') {
-					requestData._submitStarsType = [ requestData._submitStarsType ];
-				}
-				if ($.type(requestData._submitStarsType) === 'array') {
-					$.each(requestData._submitStarsType, function(index, value) {
-						starsData[value] = starsProfile[value] || {};
-					});
-				}
-				postData[requestData._submitStarsPost || 'stars'] = starsData;
-				delete requestData._submitStarsPost;
-				delete requestData._submitStarsType;
-				answerUrl += '?' + $.param(requestData);
-				requestData = postData;
-			}
-			$.ajax({
-				type: method,
-				url: answerUrl,
-				data: requestData,
-				complete: function(xhr, textstatus) { // readystate === 4
-					if (textstatus === 'timeout') {
-						insertHTML(answerBox, 'Error: the server has taken too long to respond.  (' + textstatus + ' ' + xhr.status + ')');
-						completeFn();
-					} else if (isAJAXError(textstatus) || xhr.status !== 200) {fallbackToStorage();}
-					else {
-						log('GetAnswer: storing server response');
-						html = xhr.responseText;
-						var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g),
-							b, bLength;
-						if ($.type(blinkAnswerMessage) === 'array') {
-							bLength = blinkAnswerMessage.length;
-							for (b = 0; b < bLength; b++) {
-								processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
-							}
-						}
-						MyAnswers.store.set('answer___' + interaction, html);
-						insertHTML(answerBox, html);
-						completeFn();
-					}
-				},
-				timeout: Math.max(currentConfig.downloadTimeout * 1000, 60 * 1000)
-			});
-		}
-	});
+  log('showAnswerView(): interaction=' + interaction + ' args=' + argsString);
+  var html, args,
+    $view = $('#answerView'),
+    $answerBox = $('#answerBox'),
+    answerBox = $answerBox[0],
+    completeFn = function() {
+      $.when(initialiseAnswerFeatures($view)).always(function() {
+        setMainLabel(currentConfig.displayName || currentConfig.name);
+        MyAnswersDevice.showView($view, reverse);
+        MyAnswers.dispatch.add(function() {MyAnswers.$body.trigger('taskComplete');});
+      });
+    };
+  interaction = resolveItemName(interaction);
+  if (interaction === false) {
+    alert('The requested Interaction could not be found.');
+    return;
+  }
+  MyAnswers.$body.trigger('taskBegun');
+  $.when(MyAnswersDevice.prepareView($view, reverse)).always(function() {
+    currentInteraction = interaction;
+    updateCurrentConfig();
+    if (typeof currentConfig.xml === 'string' && currentConfig.xml.substring(0, 6) !== 'stars:') {
+      if (currentConfig.mojoType === 'server-hosted' && MyAnswers.dfrdMoJOs.isResolved()) {
+        requestMoJO(currentConfig.xml);
+      }
+    }
+    if (typeof argsString === 'string' && argsString.length > 0) {
+      args = {};
+      $.extend(args, deserialize(argsString));
+    } else if ($.type(argsString) === 'object') {
+      args = argsString;
+    } else {
+      args = {};
+    }
+    if (currentConfig.inputPrompt && !argsString) {
+      $.extend(args, deserialize(createParamsAndArgs(interaction)));
+      delete args.answerSpace;
+      delete args.interaction;
+    }
+    if (currentConfig.type === 'message') {
+      insertHTML(answerBox, currentConfig.message);
+      completeFn();
+    } else if (currentConfig.type === 'xslt' && deviceVars.disableXSLT !== true) {
+      $.when(MyAnswers.dfrdMoJOs)
+      .always(function() {
+        $.when(generateMojoAnswer(args))
+        .always(function(html) {
+          insertHTML(answerBox, html);
+          completeFn();
+        });
+      });
+    } else if (reverse) {
+      $.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
+        insertHTML(answerBox, html);
+        completeFn();
+      });
+    } else if (currentConfig.type === 'form' && currentConfig.blinkFormObjectName && currentConfig.blinkFormAction) {
+      $.when(MyAnswers.dfrdMoJOs, MyAnswers.formsDeferred.promise())
+      .fail(function() {
+        html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
+      })
+      .then(function() {
+        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
+        html.data(args);
+      })
+      .always(function() {
+        insertHTML(answerBox, html);
+        completeFn();
+      });
+    } else {
+      var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
+      requestData = {
+        asn: siteVars.answerSpace,
+        iact: currentConfig.name
+      },
+      fallbackToStorage = function() {
+        $.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
+          if (typeof html === 'undefined') {
+            html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+          }
+          insertHTML(answerBox, html);
+          completeFn();
+        });
+      },
+      postData = {},
+      starsData = {},
+      method = 'GET';
+      /* END :var */
+      if (!$.isEmptyObject(args)) {
+        $.extend(requestData, args);
+      }
+      if (requestData._submitStarsType) {
+        method = 'POST';
+        if ($.type(requestData._submitStarsType) === 'string') {
+          requestData._submitStarsType = [requestData._submitStarsType];
+        }
+        if ($.type(requestData._submitStarsType) === 'array') {
+          $.each(requestData._submitStarsType, function(index, value) {
+            starsData[value] = starsProfile[value] || {};
+          });
+        }
+        postData[requestData._submitStarsPost || 'stars'] = starsData;
+        delete requestData._submitStarsPost;
+        delete requestData._submitStarsType;
+        answerUrl += '?' + $.param(requestData);
+        requestData = postData;
+      }
+      $.ajax({
+        type: method,
+        url: answerUrl,
+        data: requestData,
+        complete: function(xhr, textstatus) { // readystate === 4
+          if (textstatus === 'timeout') {
+            insertHTML(answerBox, 'Error: the server has taken too long to respond.  (' + textstatus + ' ' + xhr.status + ')');
+            completeFn();
+          } else if (isAJAXError(textstatus) || xhr.status !== 200) {fallbackToStorage();}
+          else {
+            log('GetAnswer: storing server response');
+            html = xhr.responseText;
+            var blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g),
+              b, bLength;
+            if ($.type(blinkAnswerMessage) === 'array') {
+              bLength = blinkAnswerMessage.length;
+              for (b = 0; b < bLength; b++) {
+                processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
+              }
+            }
+            MyAnswers.store.set('answer___' + interaction, html);
+            insertHTML(answerBox, html);
+            completeFn();
+          }
+        },
+        timeout: Math.max(currentConfig.downloadTimeout * 1000, 60 * 1000)
+      });
+    }
+  });
 }
 
 /*
  * event handler for the "go" button on inputPrompt screens
  */
 function getAnswer(event) {
-	var id = resolveItemName(currentInteraction, 'interactions'),
-		requestUri,
-		args, argsString;
-	if (id) {
-		args = deserialize(createParamsAndArgs(currentInteraction));
-		delete args.asn;
-		delete args.iact;
-		argsString = $.param(args);
-		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + argsString;
-		History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
-	}
+  var id = resolveItemName(currentInteraction, 'interactions'),
+    requestUri,
+    args, argsString;
+  if (id) {
+    args = deserialize(createParamsAndArgs(currentInteraction));
+    delete args.asn;
+    delete args.iact;
+    argsString = $.param(args);
+    requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + argsString;
+    History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': args}, null, requestUri);
+  }
 }
 
 function showKeywordView(keyword) {
-	var $view = $('#keywordView');
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		var config = siteVars.config['i' + keyword].pertinent,
-			argsBox = $('#argsBox')[0],
-			descriptionBox = $('#descriptionBox')[0];
-		currentInteraction = keyword;
-		updateCurrentConfig();
-		insertHTML(argsBox, config.inputPrompt);
-		if (config.description) {
-			insertHTML(descriptionBox, config.description);
-			$(descriptionBox).removeClass('hidden');
-		} else {
-			$(descriptionBox).addClass('hidden');
-		}
-		MyAnswersDevice.showView($view);
-		setMainLabel(config.displayName || config.name);
-	});
+  var $view = $('#keywordView');
+  $.when(MyAnswersDevice.prepareView($view)).always(function() {
+    var config = siteVars.config['i' + keyword].pertinent,
+      argsBox = $('#argsBox')[0],
+      descriptionBox = $('#descriptionBox')[0];
+    currentInteraction = keyword;
+    updateCurrentConfig();
+    insertHTML(argsBox, config.inputPrompt);
+    if (config.description) {
+      insertHTML(descriptionBox, config.description);
+      $(descriptionBox).removeClass('hidden');
+    } else {
+      $(descriptionBox).addClass('hidden');
+    }
+    MyAnswersDevice.showView($view);
+    setMainLabel(config.displayName || config.name);
+  });
 }
 
 function goBackToKeywordView(keyword) {
-	var $view = $('#keywordView');
-	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
-		var config = siteVars.config['i' + keyword].pertinent;
-		currentInteraction = keyword;
-		updateCurrentConfig();
-		MyAnswersDevice.showView($view, true);
-		setMainLabel(config.displayName || config.name);
-	});
+  var $view = $('#keywordView');
+  $.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+    var config = siteVars.config['i' + keyword].pertinent;
+    currentInteraction = keyword;
+    updateCurrentConfig();
+    MyAnswersDevice.showView($view, true);
+    setMainLabel(config.displayName || config.name);
+  });
 }
 
 function gotoNextScreen(keyword, category, masterCategory) {
-	var config,
-		i, iLength = siteVars.map.interactions.length;
-	log("gotoNextScreen(): " + keyword);
-	keyword = resolveItemName(keyword);
-	if (keyword === false) {
-		alert('The requested Interaction could not be found.');
-		return;
-	}
-	config = siteVars.config['i' + keyword];
-	if (hasMasterCategories && masterCategory) {
-		currentMasterCategory = masterCategory;
-	}
-	if (hasCategories && category) {
-		currentCategory = category;
-	}
-	currentInteraction = keyword;
-	if (config.pertinent.inputPrompt) {
-		showKeywordView(keyword);
-	} else {
-		showAnswerView(keyword);
-	}
+  var config,
+    i, iLength = siteVars.map.interactions.length;
+  log('gotoNextScreen(): ' + keyword);
+  keyword = resolveItemName(keyword);
+  if (keyword === false) {
+    alert('The requested Interaction could not be found.');
+    return;
+  }
+  config = siteVars.config['i' + keyword];
+  if (hasMasterCategories && masterCategory) {
+    currentMasterCategory = masterCategory;
+  }
+  if (hasCategories && category) {
+    currentCategory = category;
+  }
+  currentInteraction = keyword;
+  if (config.pertinent.inputPrompt) {
+    showKeywordView(keyword);
+  } else {
+    showAnswerView(keyword);
+  }
 }
 
 function showSecondLevelAnswerView(keyword, arg0, reverse) {
-	var id = resolveItemName(keyword, 'interactions'),
-		requestUri;
-	log('showSecondLevelAnswerView(): keyword=' + keyword + ' args=' + arg0);
-	if (id) {
-		requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + arg0;
-		History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': deserialize(arg0)}, null, requestUri);
-	}
+  var id = resolveItemName(keyword, 'interactions'),
+    requestUri;
+  log('showSecondLevelAnswerView(): keyword=' + keyword + ' args=' + arg0);
+  if (id) {
+    requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + arg0;
+    History.pushState({m: currentMasterCategory, c: currentCategory, i: id, 'arguments': deserialize(arg0)}, null, requestUri);
+  }
 }
 
 function showKeywordListView(category, masterCategory) {
-	var mainLabel,
-		$view = $('#keywordListView');
-	currentInteraction = null;
-	currentCategory = category;
-	if (hasMasterCategories && masterCategory) {
-		currentMasterCategory = masterCategory;
-	}
-	log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		updateCurrentConfig();
-		if (hasCategories) {
-			if (typeof prepareHistorySideBar === 'function') {
-				prepareHistorySideBar();
-			}
-			mainLabel = currentConfig.displayName || currentConfig.name;
-		} else {
-			mainLabel = 'Interactions';
-		}
-		MyAnswers.populateItemListing('interactions', $view);
-		MyAnswersDevice.showView($view);
-		setMainLabel(mainLabel);
-	});
+  var mainLabel,
+    $view = $('#keywordListView');
+  currentInteraction = null;
+  currentCategory = category;
+  if (hasMasterCategories && masterCategory) {
+    currentMasterCategory = masterCategory;
+  }
+  log('showKeywordListView(): hasCategories=' + hasCategories + ' currentCategory=' + currentCategory);
+  $.when(MyAnswersDevice.prepareView($view)).always(function() {
+    updateCurrentConfig();
+    if (hasCategories) {
+      if (typeof prepareHistorySideBar === 'function') {
+        prepareHistorySideBar();
+      }
+      mainLabel = currentConfig.displayName || currentConfig.name;
+    } else {
+      mainLabel = 'Interactions';
+    }
+    MyAnswers.populateItemListing('interactions', $view);
+    MyAnswersDevice.showView($view);
+    setMainLabel(mainLabel);
+  });
 }
 
 function goBackToKeywordListView(event) {
-	var mainLabel,
-		config,
-		$view = $('#keywordListView');
-	currentInteraction = null;
+  var mainLabel,
+    config,
+    $view = $('#keywordListView');
+  currentInteraction = null;
   // log('goBackToKeywordListView()');
-	if (answerSpaceOneKeyword) {
-		showKeywordView(0);
-		return;
-	}
-	if (hasMasterCategories && currentMasterCategory === null) {
-		goBackToMasterCategoriesView();
-		return;
-	}
-	if (hasCategories && currentCategory === null) {
-		goBackToCategoriesView(hasMasterCategories ? currentCategory : null);
-		return;
-	}
-	if (hasCategories) {
-		config = siteVars.config['c' + currentCategory].pertinent;
-		mainLabel = config.displayName || config.name;
-	} else {
-		mainLabel = 'Interactions';
-	}
-	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
-		updateCurrentConfig();
-		MyAnswersDevice.showView($view, true);
-		setMainLabel(mainLabel);
-	});
+  if (answerSpaceOneKeyword) {
+    showKeywordView(0);
+    return;
+  }
+  if (hasMasterCategories && currentMasterCategory === null) {
+    goBackToMasterCategoriesView();
+    return;
+  }
+  if (hasCategories && currentCategory === null) {
+    goBackToCategoriesView(hasMasterCategories ? currentCategory : null);
+    return;
+  }
+  if (hasCategories) {
+    config = siteVars.config['c' + currentCategory].pertinent;
+    mainLabel = config.displayName || config.name;
+  } else {
+    mainLabel = 'Interactions';
+  }
+  $.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+    updateCurrentConfig();
+    MyAnswersDevice.showView($view, true);
+    setMainLabel(mainLabel);
+  });
 }
 
 function showHelpView(event)
 {
-	var helpContents,
-		helpBox = document.getElementById('helpBox'),
-		$view = $('#helpView');
-	$.when(MyAnswersDevice.prepareView($view)).always(function() {
-		switch($('.view:visible').first().attr('id'))
-		{
-			case 'keywordView':
-			case 'answerView':
-			case 'answerView2':
-				if (currentInteraction) {
-					helpContents = siteVars.config['i' + currentInteraction].pertinent.help || "Sorry, no guidance has been prepared for this item.";
-				}
-				break;
-			default:
-				helpContents = siteVars.config['a' + siteVars.id].pertinent.help || "Sorry, no guidance has been prepared for this item.";
-		}
-		insertHTML(helpBox, helpContents);
-		MyAnswersDevice.showView($view);
-	});
+  var helpContents,
+    helpBox = document.getElementById('helpBox'),
+    $view = $('#helpView');
+  $.when(MyAnswersDevice.prepareView($view)).always(function() {
+    switch ($('.view:visible').first().attr('id'))
+    {
+      case 'keywordView':
+      case 'answerView':
+      case 'answerView2':
+        if (currentInteraction) {
+          helpContents = siteVars.config['i' + currentInteraction].pertinent.help || 'Sorry, no guidance has been prepared for this item.';
+        }
+        break;
+      default:
+        helpContents = siteVars.config['a' + siteVars.id].pertinent.help || 'Sorry, no guidance has been prepared for this item.';
+    }
+    insertHTML(helpBox, helpContents);
+    MyAnswersDevice.showView($view);
+  });
 }
 
 function goBackToTopLevelAnswerView(event) {
-	var $view = $('#answerView');
-	log('goBackToTopLevelAnswerView()');
-	$.when(MyAnswersDevice.prepareView($view, true)).always(function() {
-		MyAnswersDevice.showView($view, true);
-	});
+  var $view = $('#answerView');
+  log('goBackToTopLevelAnswerView()');
+  $.when(MyAnswersDevice.prepareView($view, true)).always(function() {
+    MyAnswersDevice.showView($view, true);
+  });
 }
 
 function submitFormWithRetry(data) {
-	var str, arr, method, uuid,
-	localKeyword,
-	answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
-	$view = $('.view:visible'),
-	$box = $view.children('.box').first(),
-	requestData;
-	/* END: var */
-	if ($.type(data) === 'object') {
-		str = data.data;
-		arr = data.action.split("/");
-		method = data.method;
-		uuid = data.uuid;
-		if (arr[0] === '..') {
-			answerUrl += "asn=" + siteVars.answerSpace + "&iact=" + encodeURIComponent(arr[1]) + (arr[2].length > 1 ? "&" + arr[2].substring(1) : "");
-			localKeyword = arr[1];
-		} else {
-			answerUrl += "asn=" + arr[1] + "&iact=" + encodeURIComponent(arr[2]);
-			localKeyword = arr[2];
-		}
-		if (method === 'GET') {
-			requestData = '&' + str;
-		} else {
-			method = 'POST';
-			requestData = str;
-		}
+  var str, arr, method, uuid,
+  localKeyword,
+  answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+  $view = $('.view:visible'),
+  $box = $view.children('.box').first(),
+  requestData;
+  /* END: var */
+  if ($.type(data) === 'object') {
+    str = data.data;
+    arr = data.action.split('/');
+    method = data.method;
+    uuid = data.uuid;
+    if (arr[0] === '..') {
+      answerUrl += 'asn=' + siteVars.answerSpace + '&iact=' + encodeURIComponent(arr[1]) + (arr[2].length > 1 ? '&' + arr[2].substring(1) : '');
+      localKeyword = arr[1];
+    } else {
+      answerUrl += 'asn=' + arr[1] + '&iact=' + encodeURIComponent(arr[2]);
+      localKeyword = arr[2];
+    }
+    if (method === 'GET') {
+      requestData = '&' + str;
+    } else {
+      method = 'POST';
+      requestData = str;
+    }
 
-		MyAnswers.$body.trigger('taskBegun');
-		$.ajax({
-			type: method,
-			cache: 'false',
-			url: answerUrl,
-			data: requestData,
-			complete: function(xhr, textstatus) { // readystate === 4
-				var html;
-				if (isAJAXError(textstatus) || xhr.status !== 200) {
-					html = 'Unable to contact server. Your submission has been stored for future attempts.  (' + textstatus + ' ' + xhr.status + ')';
-				} else {
-					clearPendingFormV1(data.interaction, uuid);
-					html = xhr.responseText;
-				}
-				$.when(MyAnswersDevice.prepareView($view)).always(function() {
-					insertHTML($box[0], html);
-					$.when(initialiseAnswerFeatures($box)).always(function() {
-						MyAnswersDevice.showView($view);
-					});
-					MyAnswers.$body.trigger('taskComplete');
-				});
-			},
-			timeout: Math.max(currentConfig.uploadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
-		});
-	} else {
-		log('submitFormWithRetry(): error: no forms in the queue');
-	}
+    MyAnswers.$body.trigger('taskBegun');
+    $.ajax({
+      type: method,
+      cache: 'false',
+      url: answerUrl,
+      data: requestData,
+      complete: function(xhr, textstatus) { // readystate === 4
+        var html;
+        if (isAJAXError(textstatus) || xhr.status !== 200) {
+          html = 'Unable to contact server. Your submission has been stored for future attempts.  (' + textstatus + ' ' + xhr.status + ')';
+        } else {
+          clearPendingFormV1(data.interaction, uuid);
+          html = xhr.responseText;
+        }
+        $.when(MyAnswersDevice.prepareView($view)).always(function() {
+          insertHTML($box[0], html);
+          $.when(initialiseAnswerFeatures($box)).always(function() {
+            MyAnswersDevice.showView($view);
+          });
+          MyAnswers.$body.trigger('taskComplete');
+        });
+      },
+      timeout: Math.max(currentConfig.uploadTimeout * 1000, computeTimeout(answerUrl.length + requestData.length))
+    });
+  } else {
+    log('submitFormWithRetry(): error: no forms in the queue');
+  }
 }
 
 function submitForm() {
-	var str = '',
-		$form = $('.view:visible').find('form').first(),
-		action = $form.attr('action'),
-		method = $form.attr('method'),
-		uuid = Math.uuid();
-	$form.find('input, textarea, select').each(function(index, element) {
+  var str = '',
+    $form = $('.view:visible').find('form').first(),
+    action = $form.attr('action'),
+    method = $form.attr('method'),
+    uuid = Math.uuid();
+  $form.find('input, textarea, select').each(function(index, element) {
     if (element.name)
     {
       if (element.type && (element.type.toLowerCase() === 'radio' || element.type.toLowerCase() === 'checkbox') && element.checked === false)
@@ -2403,155 +2412,155 @@ function submitForm() {
         {
           if (lastPictureTaken.image.containsKey(element.name))
           {
-            str += "&" + element.name + "=" + encodeURIComponent(lastPictureTaken.image.get(element.name));
+            str += '&' + element.name + '=' + encodeURIComponent(lastPictureTaken.image.get(element.name));
             // log("if: " + str);
           }
         }
         else
         {
           if (element.type && (element.type.toLowerCase() === 'button')) {
-            if ((element.value !== "Gallery") && (element.value !== "Camera"))
-            { 
-              str += "&" + element.name + "=" + encodeURIComponent(element.value);
+            if ((element.value !== 'Gallery') && (element.value !== 'Camera'))
+            {
+              str += '&' + element.name + '=' + encodeURIComponent(element.value);
             }
             else
             {
-              str += "&" + element.name + "=";
+              str += '&' + element.name + '=';
             }
           }
           else
           {
-						str += "&" + element.name + "=" + encodeURIComponent(element.value);
+            str += '&' + element.name + '=' + encodeURIComponent(element.value);
           }
           // log("else: " + str);
         }
       }
     }
   });
-  log("lastPictureTaken.image.size() = " + lastPictureTaken.image.size());
+  log('lastPictureTaken.image.size() = ' + lastPictureTaken.image.size());
   lastPictureTaken.image.clear();
 
   // var str = $('form').first().find('input, textarea, select').serialize();
-  log("submitForm(2): " + document.forms[0].action);
+  log('submitForm(2): ' + document.forms[0].action);
   // log("submitForm(2a): " + str);
-	$.when(pushPendingFormV1(currentInteraction, uuid, {
-			data: str,
-			'action': action,
-			'method': $.type(method) === 'string' ? method.toUpperCase() : 'post',
-			'uuid': uuid,
-			interaction: currentInteraction
-		}))
-		.fail(function() {
-			alert('Error: unable to feed submission through queue.');
-		})
-		.then(submitFormWithRetry);
-	// queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
+  $.when(pushPendingFormV1(currentInteraction, uuid, {
+      data: str,
+      'action': action,
+      'method': $.type(method) === 'string' ? method.toUpperCase() : 'post',
+      'uuid': uuid,
+      interaction: currentInteraction
+    }))
+    .fail(function() {
+      alert('Error: unable to feed submission through queue.');
+    })
+    .then(submitFormWithRetry);
+  // queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
   return false;
 }
 
 function submitAction(keyword, action) {
-	log('submitAction(): keyword=' + keyword + ' action=' + action);
-	var $view = $('.view:visible,'),
-		$box = $view.children('.box'),
-		form = $box.find('form').first(),
-		$submits = form.find('input[type=submit]'),
-		sessionInput = form.find('input[name=blink_session_data]'),
-		formData = (action === 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize(),
-		method = form.attr('method'),
-		requestData, requestUrl,
-		serializedProfile;
-	if ($submits.length === 1 && $submits.attr('name') && $submits.val()) {
-		formData += '&' + $submits.attr('name') + '=' + $submits.val();
-	}
-	if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile)) {
-		serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
-		formData = formData.replace('blink_session_data=', 'blink_session_data=' + encodeURIComponent(serializedProfile));
-		method = 'post';
-	}
-	if ($.type(method) === 'string' && method.toLowerCase() === 'get') {
-		method = 'GET';
-		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword;
-		requestData = '&' + formData + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
-	} else {
-		method = 'POST';
-		requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + "&iact=" + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
-		requestData = formData;
-	}
-	MyAnswers.$body.trigger('taskBegun');
-	$.ajax({
-		type: method,
-		cache: 'false',
-		url: requestUrl,
-		data: requestData,
-		complete: function(xhr, textstatus) { // readystate === 4
-			var html,
-      b, bLength,
-      blinkAnswerMessage;
+  log('submitAction(): keyword=' + keyword + ' action=' + action);
+  var $view = $('.view:visible,'),
+    $box = $view.children('.box'),
+    form = $box.find('form').first(),
+    $submits = form.find('input[type=submit]'),
+    sessionInput = form.find('input[name=blink_session_data]'),
+    formData = (action === 'cancel=Cancel') ? '' : form.find('input, textarea, select').serialize(),
+    method = form.attr('method'),
+    requestData, requestUrl,
+    serializedProfile;
+  if ($submits.length === 1 && $submits.attr('name') && $submits.val()) {
+    formData += '&' + $submits.attr('name') + '=' + $submits.val();
+  }
+  if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile)) {
+    serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
+    formData = formData.replace('blink_session_data=', 'blink_session_data=' + encodeURIComponent(serializedProfile));
+    method = 'post';
+  }
+  if ($.type(method) === 'string' && method.toLowerCase() === 'get') {
+    method = 'GET';
+    requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword;
+    requestData = '&' + formData + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
+  } else {
+    method = 'POST';
+    requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
+    requestData = formData;
+  }
+  MyAnswers.$body.trigger('taskBegun');
+  $.ajax({
+    type: method,
+    cache: 'false',
+    url: requestUrl,
+    data: requestData,
+    complete: function(xhr, textstatus) { // readystate === 4
+      var html,
+          b, bLength,
+          blinkAnswerMessage;
       /* END: var */
-			if (isAJAXError(textstatus) || xhr.status !== 200) {
-				html = 'Unable to contact server.';
-			} else {
-				html = xhr.responseText;
-			}
-			blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g);
-			if ($.type(blinkAnswerMessage) === 'array') {
-				bLength = blinkAnswerMessage.length;
-				for (b = 0; b < bLength; b++) {
-					processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
-				}
-			}
-			$.when(MyAnswersDevice.prepareView($view)).always(function() {
-				insertHTML($box[0], html);
-				$.when(initialiseAnswerFeatures($box)).always(function() {
-					MyAnswersDevice.showView($view);
-				});
-				MyAnswers.$body.trigger('taskComplete');
-			});
-		},
-		timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(requestUrl.length + requestData.length))
-	});
-	return false;
+      if (isAJAXError(textstatus) || xhr.status !== 200) {
+        html = 'Unable to contact server.';
+      } else {
+        html = xhr.responseText;
+      }
+      blinkAnswerMessage = html.match(/<!-- blinkAnswerMessage:\{.*\} -->/g);
+      if ($.type(blinkAnswerMessage) === 'array') {
+        bLength = blinkAnswerMessage.length;
+        for (b = 0; b < bLength; b++) {
+          processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
+        }
+      }
+      $.when(MyAnswersDevice.prepareView($view)).always(function() {
+        insertHTML($box[0], html);
+        $.when(initialiseAnswerFeatures($box)).always(function() {
+          MyAnswersDevice.showView($view);
+        });
+        MyAnswers.$body.trigger('taskComplete');
+      });
+    },
+    timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(requestUrl.length + requestData.length))
+  });
+  return false;
 }
 
 // *** BEGIN APPLICATION INIT ***
 
 /* moving non-public functions into a closure for safety */
 (function(window) {
-	var document = window.document,
-		siteVars = window.siteVars,
-		deviceVars = window.deviceVars,
-		MyAnswers = window.MyAnswers,
-		$ = window.jQuery,
-		$startup = $('#startUp'),
-		navigator = window.navigator,
-		$window = $(window),
-		History, _pushState, _replaceState,  // defined in onBrowserReady
-		google; // defined in MyAnswers.setupGoogleMaps
+  var document = window.document,
+    siteVars = window.siteVars,
+    deviceVars = window.deviceVars,
+    MyAnswers = window.MyAnswers,
+    $ = window.jQuery,
+    $startup = $('#startUp'),
+    navigator = window.navigator,
+    $window = $(window),
+    History, _pushState, _replaceState,  // defined in onBrowserReady
+    google; // defined in MyAnswers.setupGoogleMaps
 
-/* *** BLINKGAP FUNCTIONS *** */
+  /* *** BLINKGAP FUNCTIONS *** */
 
   /**
-   * @returns {jQueryPromise}
+   * @return {jQueryPromise}
    */
   function waitForBlinkGap() {
     var dfrd = new $.Deferred(),
-    start = $.now(),
-    $progressDot = $('#startUp-initBlinkGap'),
-    /** @inner */
-    checkFn = function() {
-      if (window.PhoneGap) {
-        if (window.PhoneGap.available) {
-          dfrd.resolve();
-        } else {
-          $(document).on('deviceready', dfrd.resolve);
-        }
-      } else if (($.now() - start) > 10 * 1000) {
-        warn('waitForBlinkGap(): still no PhoneGap after 10 seconds');
-        dfrd.reject();
-      } else {
-        setTimeout(checkFn, 197);
-      }
-    };
+        start = $.now(),
+        $progressDot = $('#startUp-initBlinkGap'),
+        /** @inner */
+        checkFn = function() {
+          if (window.PhoneGap) {
+            if (window.PhoneGap.available) {
+              dfrd.resolve();
+            } else {
+              $(document).on('deviceready', dfrd.resolve);
+            }
+          } else if (($.now() - start) > 10 * 1000) {
+            warn('waitForBlinkGap(): still no PhoneGap after 10 seconds');
+            dfrd.reject();
+          } else {
+            setTimeout(checkFn, 197);
+          }
+        };
     /* END: var */
     if (!window.isBlinkGap) {
       log('waitForBlinkGap(): native application not detected');
@@ -2564,536 +2573,537 @@ function submitAction(keyword, action) {
     checkFn();
     $.when(dfrd.promise())
     .fail(function() {
-      $progressDot.addClass('error');
-    })
+          $progressDot.addClass('error');
+        })
     .then(function() {
-      $progressDot.addClass('success');
+          $progressDot.addClass('success');
+        });
+    return dfrd.promise();
+  }
+
+  /**
+   * @return {jQueryPromise}
+   */
+  function fixWebSQL() {
+    var deferred = new $.Deferred(),
+    db = null,
+    /* @inner */
+    increaseQuota_Success = function(quotaIncrease) {
+      db = null;
+      navigator.notification.alert('Database installed, please restart the App.',
+                                   function() {
+                                     navigator.gap_database.requestTerminate();
+                                   },
+                                   'First Run',
+                                   'Close App');
+      // we do not resolve here, the only way out is to terminate
+      log('fixWebSQL(): quota increase: ' + quotaIncrease);
+    },
+    /* @inner */
+    getDBLimits_Success = function(results) {
+      var options = {quotaIncrease: String(MyAnswers.device.storageQuota)},
+      allocatedSpace = results.allocatedSpace,
+      currentQuota = results.currentQuota;
+      /* END: var */
+      log('fixWebSQL(): allocatedSpace=' + allocatedSpace + ' currentQuota=' + currentQuota);
+      if (currentQuota < MyAnswers.device.storageQuota) {
+        navigator.gap_database.increaseQuota(increaseQuota_Success, deferred.reject, options);
+      } else {
+        deferred.resolve();
+      }
+    };
+    /* END: var */
+    if (MyAnswers && MyAnswers.device && MyAnswers.device.storageQuota
+        && $.type(MyAnswers.device.storageQuota) === 'number'
+        && MyAnswers.device.storageQuota > 0) {
+      log('fixWebSQL(): requestedQuota=' + MyAnswers.device.storageQuota);
+      try {
+        db = window.openDatabase(siteVars.answerSpace, '1.0', siteVars.answerSpace, 1024 * 1024);
+        navigator.gap_database.getLimits(getDBLimits_Success, deferred.reject, null);
+      } catch (error) {
+        deferred.reject();
+        log(error);
+        log('*** Open/Increase quota for database failed');
+        throw 'fixWebSQL(): ' + error;
+      }
+    } else {
+      log('fixWebSQL(): nothing to do');
+      deferred.resolve();
+    }
+    return deferred.promise();
+  }
+
+  /* *** HELPER FUNCTIONS *** */
+
+  function updateLocalStorage() {
+    /*
+     * version 0 = MoJOs stored in new format, old siteConfig removed
+     */
+    var dfrd = new $.Deferred();
+    $.when(MyAnswers.store.get('storageVersion'))
+    .always(function(value) {
+      if (!value) {
+        $.when(
+          MyAnswers.store.set('storageVersion', 0),
+          MyAnswers.store.remove('siteConfigMessage'),
+          MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
+        ).always(function() {
+          dfrd.resolve();
+        });
+      } else {
+        dfrd.resolve();
+      }
     });
     return dfrd.promise();
   }
-  
-	/**
-	 * @returns {jQueryPromise}
-	 */
-	function fixWebSQL() {
-		var deferred = new $.Deferred(),
-		db = null,
-		/* @inner */
-		increaseQuota_Success = function(quotaIncrease) {
-			db = null;
-			navigator.notification.alert("Database installed, please restart the App.", 
-																	 function() {
-																		 navigator.gap_database.requestTerminate();
-																	 }, 
-																	 "First Run", 
-																	 "Close App");
-			// we do not resolve here, the only way out is to terminate
-			log("fixWebSQL(): quota increase: " + quotaIncrease);
-		},
-		/* @inner */
-		getDBLimits_Success = function(results) {
-			var options = {quotaIncrease: String(MyAnswers.device.storageQuota)},
-			allocatedSpace = results.allocatedSpace,
-			currentQuota = results.currentQuota;
-			/* END: var */
-			log("fixWebSQL(): allocatedSpace=" + allocatedSpace + ' currentQuota=' + currentQuota);
-			if (currentQuota < MyAnswers.device.storageQuota) {
-				navigator.gap_database.increaseQuota(increaseQuota_Success, deferred.reject, options);
-			} else {
-				deferred.resolve();
-			}
-		};
-		/* END: var */
-		if (MyAnswers && MyAnswers.device && MyAnswers.device.storageQuota
-				&& $.type(MyAnswers.device.storageQuota) === 'number'
-				&& MyAnswers.device.storageQuota > 0) {
-			log('fixWebSQL(): requestedQuota=' + MyAnswers.device.storageQuota);
-			try {
-				db = window.openDatabase(siteVars.answerSpace, '1.0', siteVars.answerSpace, 1024 * 1024);
-				navigator.gap_database.getLimits(getDBLimits_Success, deferred.reject, null);
-			} catch(error) {
-				deferred.reject();
-				log(error);
-				log("*** Open/Increase quota for database failed");
-				throw 'fixWebSQL(): ' + error;
-			}
-		} else {
-			log('fixWebSQL(): nothing to do');
-			deferred.resolve();
-		}
-		return deferred.promise();
-	}
 
-/* *** HELPER FUNCTIONS *** */
+  /**
+   * remove hash / anchor / fragments from a state object destined for History
+   */
+  function trimHistoryState(state) {
+    var index, array, object,
+    type = $.type(state);
+    /* END: var */
+    if (type === 'string' && state.length > 0) {
+      index = state.indexOf('#');
+      if (index !== -1) {
+        state = state.substring(0, index);
+      }
+    } else if (type === 'array' && state.length > 0) {
+      array = [];
+      $.each(state, function(index, value) {
+        array.push(trimHistoryState(value));
+      });
+      state = array;
+    } else if (type === 'object') {
+      object = {};
+      $.each(state, function(key, value) {
+        object[key] = trimHistoryState(value);
+      });
+      state = object;
+    }
+    return state;
+  }
 
-	function updateLocalStorage() {
-		/*
-		 * version 0 = MoJOs stored in new format, old siteConfig removed
-		 */
-		var dfrd = new $.Deferred();
-		$.when(MyAnswers.store.get('storageVersion'))
-		.always(function(value) {
-			if (!value) {
-				$.when(
-					MyAnswers.store.set('storageVersion', 0),
-					MyAnswers.store.remove('siteConfigMessage'),
-					MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
-				).always(function() {
-					dfrd.resolve();
-				});
-			} else {
-				dfrd.resolve();
-			}
-		});
-		return dfrd.promise();
-	}
+  function networkReachableFn(state) {
+    state = state.code || state;
+    deviceVars.isOnline = state > 0;
+    deviceVars.isOnlineCell = state === 1;
+    deviceVars.isOnlineWiFi = state === 2;
+    log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell=' + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
+  }
 
-	/**
-	 * remove hash / anchor / fragments from a state object destined for History
-	 */
-	function trimHistoryState(state) {
-		var index, array, object,
-		type = $.type(state);
-		/* END: var */
-		if (type === 'string' && state.length > 0) {
-			index = state.indexOf('#');
-			if (index !== -1) {
-				state = state.substring(0, index);
-			}
-		} else if (type === 'array' && state.length > 0) {
-			array = [];
-			$.each(state, function(index, value) {
-				array.push(trimHistoryState(value));
-			});
-			state = array;
-		} else if (type === 'object') {
-			object = {};
-			$.each(state, function(key, value) {
-				object[key] = trimHistoryState(value);
-			});
-			state = object;
-		}
-		return state;
-	}
+  /* *** GOOGLE MAPS *** */
 
-	function networkReachableFn(state) {
-		state = state.code || state;
-		deviceVars.isOnline = state > 0;
-		deviceVars.isOnlineCell = state === 1;
-		deviceVars.isOnlineWiFi = state === 2;
-		log('BlinkGap.networkReachable(): online=' + deviceVars.isOnline + ' cell='  + deviceVars.isOnlineCell + ' wifi=' + deviceVars.isOnlineWiFi);
-	}
+  MyAnswers.onGoogleMapsLoad = function() {
+    setTimeout(function() {
+      if (typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined') {
+        MyAnswers.dfrdGoogleMaps.resolve();
+      } else {
+        MyAnswers.dfrdGoogleMaps.reject();
+      }
+    }, 197);
+  };
 
-/* *** GOOGLE MAPS *** */
-	
-	MyAnswers.onGoogleMapsLoad = function() {
-		setTimeout(function() {
-			if (typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined') {
-				MyAnswers.dfrdGoogleMaps.resolve();
-			} else {
-				MyAnswers.dfrdGoogleMaps.reject();
-			}
-		}, 197);
-	};
+  function getGoogleDirections(options) {
+    var dfrd = new $.Deferred(),
+    directionsService = new google.maps.DirectionsService(),
+    string;
+    /* END: var */
+    if (!$.isPlainObject(options) || !options.origin || !options.destination || !options.travelMode) {
+      dfrd.reject('GoogleDirections error: bad options');
+      return dfrd.promise();
+    }
+    directionsService.route(options, function(results, status) {
+      if (status === google.maps.DirectionsStatus.OK)  {
+        dfrd.resolve(results);
+      } else {
+        switch (status) {
+        case google.maps.DirectionsStatus.NOT_FOUND:
+          string = 'one of the waypoints could not be geocoded';
+          break;
+        case google.maps.DirectionsStatus.ZERO_RESULTS:
+          string = 'no route found, be more specific';
+          break;
+        case google.maps.DirectionsStatus.MAX_WAYPOINTS_EXCEEDED:
+          string = 'too many waypoints specified';
+          break;
+        case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
+          string = 'request quota exceeded, try again later';
+          break;
+        case google.maps.DirectionsStatus.REQUEST_DENIED:
+          string = 'request denied';
+          break;
+        case google.maps.DirectionsStatus.INVALID_REQUEST:
+          string = 'invalid request';
+          break;
+        default:
+          string = 'unknown error, please try again';
+      }
+      dfrd.reject('GoogleDirections error: ' + string);
+      }
+    });
+    return dfrd.promise();
+  }
 
-	function getGoogleDirections(options) {
-		var dfrd = new $.Deferred(),
-		directionsService = new google.maps.DirectionsService(),
-		string;
-		/* END: var */
-		if (!$.isPlainObject(options) || !options.origin || !options.destination || !options.travelMode) {
-			dfrd.reject('GoogleDirections error: bad options');
-			return dfrd.promise();
-		}
-		directionsService.route(options, function(results, status) {
-			if (status === google.maps.DirectionsStatus.OK)	{
-				dfrd.resolve(results);
-			} else {
-				switch (status) {
-				case google.maps.DirectionsStatus.NOT_FOUND:
-					string = 'one of the waypoints could not be geocoded';
-					break;
-				case google.maps.DirectionsStatus.ZERO_RESULTS:
-					string = 'no route found, be more specific';
-					break;
-				case google.maps.DirectionsStatus.MAX_WAYPOINTS_EXCEEDED:
-					string = 'too many waypoints specified';
-					break;
-				case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
-					string = 'request quota exceeded, try again later';
-					break;
-				case google.maps.DirectionsStatus.REQUEST_DENIED:
-					string = 'request denied';
-					break;
-				case google.maps.DirectionsStatus.INVALID_REQUEST:
-					string = 'invalid request';
-					break;
-				default:
-					string = 'unknown error, please try again';
-			}
-			dfrd.reject('GoogleDirections error: ' + string);
-			}
-		});
-		return dfrd.promise();
-	}
-	
-	function getGoogleGeocoder(options) {
-		var dfrd = new $.Deferred(),
-		geocoder = new google.maps.Geocoder(),
-		string;
-		/* END: var */
-		if (!$.isPlainObject(options) || !options.address) {
-			dfrd.reject('GoogleGeocoder error: bad options');
-			return dfrd.promise();
-		}
-		geocoder.geocode(options, function(results, status) {
-			if (status === google.maps.GeocoderStatus.OK) {
-				dfrd.resolve(results);
-			} else {
-					switch (status) {
-					case google.maps.GeocoderStatus.ZERO_RESULTS:
-						string = 'zero results, be more specific';
-						break;
-					case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
-						string = 'request quota exceeded, try again later';
-						break;
-					case google.maps.GeocoderStatus.REQUEST_DENIED:
-						string = 'request denied';
-						break;
-					case google.maps.GeocoderStatus.INVALID_REQUEST:
-						string = 'invalid request';
-						break;
-					default:
-						string = 'unknown error, please try again';
-				}
-				dfrd.reject('GoogleGeocoder error: ' + string);
-			}
-		});
-		return dfrd.promise();
-	}
-	
-	MyAnswers.getGeoLocation = function(options) {
-		var dfrd = new $.Deferred(),
-		defaultOptions = {
-			enableHighAccuracy: true,
-			maximumAge: 5 * 60 * 1000, // 5 minutes
-			timeout: 5 * 1000 // 5 seconds
-		};
-		/* END: var */
-		if (!Modernizr.geolocation) {
-			dfrd.reject('GeoLocation error: unsupported in this browser / device');
-			return dfrd.promise();
-		}
-		options = $.extend({}, defaultOptions, $.isPlainObject(options) ? options : {});
-		navigator.geolocation.getCurrentPosition(
-			function(position) { // successCallback
-				var coords = position.coords;
-				if ($.type(coords) === 'object') {
-					dfrd.resolve(coords);
-				} else {
-					dfrd.reject('GeoLocation error: blank location from browser / device');
-				}
-			},
-			function(error) { // errorCallback
-				var string;
-				switch (error.code) {
-					case error.PERMISSION_DENIED:
-						string = 'user has not granted permission';
-						break;
-					case error.PERMISSION_DENIED_TIMEOUT:
-						string = 'user did not grant permission in time';
-						break;
-					case error.POSITION_UNAVAILABLE:
-						string = 'unable to determine position';
-						break;
-					default:
-						string = 'unknown error';
-				}
-				dfrd.reject('GeoLocation error: ' + string);
-			},
-			options);
-		return dfrd.promise();
-	};
+  function getGoogleGeocoder(options) {
+    var dfrd = new $.Deferred(),
+    geocoder = new google.maps.Geocoder(),
+    string;
+    /* END: var */
+    if (!$.isPlainObject(options) || !options.address) {
+      dfrd.reject('GoogleGeocoder error: bad options');
+      return dfrd.promise();
+    }
+    geocoder.geocode(options, function(results, status) {
+      if (status === google.maps.GeocoderStatus.OK) {
+        dfrd.resolve(results);
+      } else {
+          switch (status) {
+          case google.maps.GeocoderStatus.ZERO_RESULTS:
+            string = 'zero results, be more specific';
+            break;
+          case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
+            string = 'request quota exceeded, try again later';
+            break;
+          case google.maps.GeocoderStatus.REQUEST_DENIED:
+            string = 'request denied';
+            break;
+          case google.maps.GeocoderStatus.INVALID_REQUEST:
+            string = 'invalid request';
+            break;
+          default:
+            string = 'unknown error, please try again';
+        }
+        dfrd.reject('GoogleGeocoder error: ' + string);
+      }
+    });
+    return dfrd.promise();
+  }
 
-	function setupGoogleMapsBasic(element, data, map) {
-		log('GoogleMaps basic: initialising...');
-		MyAnswers.$body.trigger('taskBegun');
-		var location = new google.maps.LatLng(data.latitude, data.longitude),
-		options = {
-			zoom: parseInt(data.zoom, 10),
-			center: location,
-			mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
-		},
-		kml, marker, markerInfo;
-		/* END: var */
-		map.setOptions(options);
-		if (typeof data.kml  === 'string') {
-			kml = new google.maps.KmlLayer(data.kml, {map: map, preserveViewport: true});
-		} else if (typeof data.marker === 'string') {
-			marker = new google.maps.Marker({
-				position: location,
-				map: map,
-				icon: data.marker
-			});
-			if (typeof data.markerTitle === 'string') {
-				marker.setTitle(data.markerTitle);
-				markerInfo = new google.maps.InfoWindow();
-				google.maps.event.addListener(marker, 'click', function() {
-					markerInfo.setContent(marker.getTitle());
-					markerInfo.open(map, marker);
-				});
-			}
-		}
-		MyAnswers.$body.trigger('taskComplete');
-	}
+  MyAnswers.getGeoLocation = function(options) {
+    var dfrd = new $.Deferred(),
+    defaultOptions = {
+      enableHighAccuracy: true,
+      maximumAge: 5 * 60 * 1000, // 5 minutes
+      timeout: 5 * 1000 // 5 seconds
+    };
+    /* END: var */
+    if (!Modernizr.geolocation) {
+      dfrd.reject('GeoLocation error: unsupported in this browser / device');
+      return dfrd.promise();
+    }
+    options = $.extend({}, defaultOptions, $.isPlainObject(options) ? options : {});
+    navigator.geolocation.getCurrentPosition(
+      function(position) { // successCallback
+        var coords = position.coords;
+        if ($.type(coords) === 'object') {
+          dfrd.resolve(coords);
+        } else {
+          dfrd.reject('GeoLocation error: blank location from browser / device');
+        }
+      },
+      function(error) { // errorCallback
+        var string;
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            string = 'user has not granted permission';
+            break;
+          case error.PERMISSION_DENIED_TIMEOUT:
+            string = 'user did not grant permission in time';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            string = 'unable to determine position';
+            break;
+          default:
+            string = 'unknown error';
+        }
+        dfrd.reject('GeoLocation error: ' + string);
+      },
+      options);
+    return dfrd.promise();
+  };
 
-	function setupGoogleMapsDirections(element, data, map) {
-		var origin, destination, language, region, geocoder,
-		geocoderOptions = {},
-		directionsOptions = {
-			travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
-			avoidHighways: data.avoidhighways,
-			avoidTolls: data.avoidtolls
-		},
-		mapOptions = {
-			mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
-		},
-		directionsDisplay, directionsService,
-		$element = $(element),
-		$status = $element.next('.googledirections').first(),
-		$directions = $status,
-		promiseOrigin = true,
-		promiseDestination = true,
-		failedFn = function(string) {
-			if (typeof string === 'string' && string.length > 0) {
-				insertText($status[0], string);
-			}
-		};
-		/* END: var */
-		log('GoogleMaps directions: initialising...');
-		// setting Geocoder options
-		if (typeof data.language === 'string') {
-			geocoderOptions.language = data.language;
-		}
-		if (typeof data.region === 'string') {
-			geocoderOptions.region = data.region;
-			directionsOptions.region = data.region;
-		}
-		// setting origin
-		if (typeof data.originAddress === 'string' && data.originAddress.length > 0) {
-			origin = data.originAddress;
-		} else if (typeof data.originLatitude !== 'undefined') {
-			origin = new google.maps.LatLng(data.originLatitude, data.originLongitude);
-		} else if (Modernizr.geolocation) {
-			log('Google Maps Directions: missing origin');
-			insertText($status[0], 'attempting to use your most recent location as the origin...');
-			promiseOrigin = MyAnswers.getGeoLocation()
-			.fail(failedFn)
-			.then(function(coords) {
-				origin = new google.maps.LatLng(coords.latitude, coords.longitude);
-			});
-		}
-		// setting destination
-		if (typeof data.destinationAddress === 'string' && data.destinationAddress.length > 0) {
-			destination = data.destinationAddress;
-		} else if (typeof data.destinationLatitude !== 'undefined') {
-			destination = new google.maps.LatLng(data.destinationLatitude, data.destinationLongitude);
-		} else if (Modernizr.geolocation) {
-			log('Google Maps Directions: missing destination');
-			insertText($status[0], 'attempting to use your most recent location as the destination...');
-			promiseDestination = MyAnswers.getGeoLocation()
-			.fail(failedFn)
-			.then(function(coords) {
-				destination = new google.maps.LatLng(coords.latitude, coords.longitude);
-			});
-		}
-		$.when(promiseOrigin, promiseDestination)
-		.always(function() {
-			if (origin && destination) {
-				if ($.type(origin) === 'object' && $.type(destination) === 'object' && origin.equals(destination)) {
-					insertText($status[0], 'origin and destination are the identical');
-					data.latitude = origin.lat();
-					data.longitude = origin.lng();
-					setupGoogleMapsBasic(element, data, map);
-				} else {
-					directionsOptions.origin = origin;
-					directionsOptions.destination = destination;
-					map.setOptions(mapOptions);
-					// setup DirectionsRenderer
-					directionsDisplay = new google.maps.DirectionsRenderer();
-					directionsDisplay.setMap(map);
-					directionsDisplay.setPanel($directions[0]);
-					$.when(getGoogleDirections(directionsOptions))
-					.fail(failedFn)
-					.then(function(result) {
-						directionsDisplay.setDirections(result);
-					});
-				}
-			} else if (!origin && !destination) {
-				insertText($status[0], 'error: neither origin or destination could be determined');
-			} else {
-				if (origin) {
-					insertText($status[0], 'missing destination, only the provided origin is displayed');
-					data.latitude = origin.lat();
-					data.longitude = origin.lng();
-					setupGoogleMapsBasic(element, data, map);
-				} else { // destination
-					insertText($status[0], 'missing origin, only the provided destination is displayed');
-					data.latitude = destination.lat();
-					data.longitude = destination.lng();
-					setupGoogleMapsBasic(element, data, map);
-				}
-			}
-		});
-	}
+  function setupGoogleMapsBasic(element, data, map) {
+    log('GoogleMaps basic: initialising...');
+    MyAnswers.$body.trigger('taskBegun');
+    var location = new google.maps.LatLng(data.latitude, data.longitude),
+    options = {
+      zoom: parseInt(data.zoom, 10),
+      center: location,
+      mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+    },
+    kml, marker, markerInfo;
+    /* END: var */
+    map.setOptions(options);
+    if (typeof data.kml === 'string') {
+      kml = new google.maps.KmlLayer(data.kml, {map: map, preserveViewport: true});
+    } else if (typeof data.marker === 'string') {
+      marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        icon: data.marker
+      });
+      if (typeof data.markerTitle === 'string') {
+        marker.setTitle(data.markerTitle);
+        markerInfo = new google.maps.InfoWindow();
+        google.maps.event.addListener(marker, 'click', function() {
+          markerInfo.setContent(marker.getTitle());
+          markerInfo.open(map, marker);
+        });
+      }
+    }
+    MyAnswers.$body.trigger('taskComplete');
+  }
 
-	MyAnswers.setupGoogleMaps = function($view)	{
-		var $element = $view.find('div.googlemap').first(),
-		data = $element.data(),
-		element = $element[0],
-		googleMap,
-		currentMarker, currentInfo;
-		/* END: var */
-		MyAnswers.$body.trigger('taskBegun');
-		google = window.google;
-		googleMap = new google.maps.Map(element);
-		if (data.mapAction === 'directions') {
-			setupGoogleMapsDirections(element, data, googleMap);
-		} else {
-			setupGoogleMapsBasic(element, data, googleMap);
-		}
-		if (Modernizr.geolocation) {
-			currentMarker = new google.maps.Marker({
-				map: googleMap,
-				// TODO: use a better icon for current location
-				icon: siteVars.serverAppPath + '/images/location24.png',
-				title: 'you are here'
-			});
-			currentInfo = new google.maps.InfoWindow();
-			$.when(MyAnswers.getGeoLocation())
-			.then(function(coords) {
-				currentMarker.setPosition(new google.maps.LatLng(coords.latitude, coords.longitude));
-			});
-			google.maps.event.addListener(currentMarker, 'click', function() {
-				currentInfo.setContent(currentMarker.getTitle());
-				currentInfo.open(googleMap, currentMarker);
-			});
-		}
-		MyAnswers.$body.trigger('taskComplete');
-	};
-	
-/* *** EVENT HANDLERS *** */
+  function setupGoogleMapsDirections(element, data, map) {
+    var origin, destination, language, region, geocoder,
+    geocoderOptions = {},
+    directionsOptions = {
+      travelMode: google.maps.DirectionsTravelMode[data.travelmode.toUpperCase()],
+      avoidHighways: data.avoidhighways,
+      avoidTolls: data.avoidtolls
+    },
+    mapOptions = {
+      mapTypeId: google.maps.MapTypeId[data.type.toUpperCase()]
+    },
+    directionsDisplay, directionsService,
+    $element = $(element),
+    $status = $element.next('.googledirections').first(),
+    $directions = $status,
+    promiseOrigin = true,
+    promiseDestination = true,
+    failedFn = function(string) {
+      if (typeof string === 'string' && string.length > 0) {
+        insertText($status[0], string);
+      }
+    };
+    /* END: var */
+    log('GoogleMaps directions: initialising...');
+    // setting Geocoder options
+    if (typeof data.language === 'string') {
+      geocoderOptions.language = data.language;
+    }
+    if (typeof data.region === 'string') {
+      geocoderOptions.region = data.region;
+      directionsOptions.region = data.region;
+    }
+    // setting origin
+    if (typeof data.originAddress === 'string' && data.originAddress.length > 0) {
+      origin = data.originAddress;
+    } else if (typeof data.originLatitude !== 'undefined') {
+      origin = new google.maps.LatLng(data.originLatitude, data.originLongitude);
+    } else if (Modernizr.geolocation) {
+      log('Google Maps Directions: missing origin');
+      insertText($status[0], 'attempting to use your most recent location as the origin...');
+      promiseOrigin = MyAnswers.getGeoLocation()
+      .fail(failedFn)
+      .then(function(coords) {
+        origin = new google.maps.LatLng(coords.latitude, coords.longitude);
+      });
+    }
+    // setting destination
+    if (typeof data.destinationAddress === 'string' && data.destinationAddress.length > 0) {
+      destination = data.destinationAddress;
+    } else if (typeof data.destinationLatitude !== 'undefined') {
+      destination = new google.maps.LatLng(data.destinationLatitude, data.destinationLongitude);
+    } else if (Modernizr.geolocation) {
+      log('Google Maps Directions: missing destination');
+      insertText($status[0], 'attempting to use your most recent location as the destination...');
+      promiseDestination = MyAnswers.getGeoLocation()
+      .fail(failedFn)
+      .then(function(coords) {
+        destination = new google.maps.LatLng(coords.latitude, coords.longitude);
+      });
+    }
+    $.when(promiseOrigin, promiseDestination)
+    .always(function() {
+      if (origin && destination) {
+        if ($.type(origin) === 'object' && $.type(destination) === 'object' && origin.equals(destination)) {
+          insertText($status[0], 'origin and destination are the identical');
+          data.latitude = origin.lat();
+          data.longitude = origin.lng();
+          setupGoogleMapsBasic(element, data, map);
+        } else {
+          directionsOptions.origin = origin;
+          directionsOptions.destination = destination;
+          map.setOptions(mapOptions);
+          // setup DirectionsRenderer
+          directionsDisplay = new google.maps.DirectionsRenderer();
+          directionsDisplay.setMap(map);
+          directionsDisplay.setPanel($directions[0]);
+          $.when(getGoogleDirections(directionsOptions))
+          .fail(failedFn)
+          .then(function(result) {
+            directionsDisplay.setDirections(result);
+          });
+        }
+      } else if (!origin && !destination) {
+        insertText($status[0], 'error: neither origin or destination could be determined');
+      } else {
+        if (origin) {
+          insertText($status[0], 'missing destination, only the provided origin is displayed');
+          data.latitude = origin.lat();
+          data.longitude = origin.lng();
+          setupGoogleMapsBasic(element, data, map);
+        } else { // destination
+          insertText($status[0], 'missing origin, only the provided destination is displayed');
+          data.latitude = destination.lat();
+          data.longitude = destination.lng();
+          setupGoogleMapsBasic(element, data, map);
+        }
+      }
+    });
+  }
 
-	function onOrientationChange(event) {
-		if ($.inArray('ios', deviceVars.features) !== -1
-				&& Math.abs(window.orientation || 0) === 90) {
-			MyAnswers.screenX = window.screen.height;
-			MyAnswers.screenY = window.screen.width;
-		} else {
-			MyAnswers.screenX = window.screen.width;
-			MyAnswers.screenY = window.screen.height;
-		}
-		MyAnswers.windowX = window.innerWidth;
-		MyAnswers.windowY = window.innerHeight;
-		$window.trigger('scroll');
-	}
-	
-	function onNetworkChange() {
-		var host;
-//		if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
-//			host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
-//			navigator.network.isReachable(host, networkReachableFn);
-//		} else {
-			deviceVars.isOnline = navigator.onLine === true;
-			log('onNetworkChange(): online=' + deviceVars.isOnline);
-//		}
-	}
+  MyAnswers.setupGoogleMaps = function($view)  {
+    var $element = $view.find('div.googlemap').first(),
+    data = $element.data(),
+    element = $element[0],
+    googleMap,
+    currentMarker, currentInfo;
+    /* END: var */
+    MyAnswers.$body.trigger('taskBegun');
+    google = window.google;
+    googleMap = new google.maps.Map(element);
+    if (data.mapAction === 'directions') {
+      setupGoogleMapsDirections(element, data, googleMap);
+    } else {
+      setupGoogleMapsBasic(element, data, googleMap);
+    }
+    if (Modernizr.geolocation) {
+      currentMarker = new google.maps.Marker({
+        map: googleMap,
+        // TODO: use a better icon for current location
+        icon: siteVars.serverAppPath + '/images/location24.png',
+        title: 'you are here'
+      });
+      currentInfo = new google.maps.InfoWindow();
+      $.when(MyAnswers.getGeoLocation())
+      .then(function(coords) {
+        currentMarker.setPosition(new google.maps.LatLng(coords.latitude, coords.longitude));
+      });
+      google.maps.event.addListener(currentMarker, 'click', function() {
+        currentInfo.setContent(currentMarker.getTitle());
+        currentInfo.open(googleMap, currentMarker);
+      });
+    }
+    MyAnswers.$body.trigger('taskComplete');
+  };
 
-// TODO: a window resize event _may_ cause DOM issues with out transitions
-/*	function onWindowResize(event) {
-		$('html').css('min-height', window.innerHeight);
-	} */
+  /* *** EVENT HANDLERS *** */
 
-	function onPendingClick(event) {
-		var $button = $(event.target),
-    action = $button.data('action'),
-    requestUri,
-    $box,
-    dispatch,
-    networkText = 'Check your network connectivity and try again.',
-    cancelText = 'Are you sure you wish to discard this pending record?',
-    submitAllText = 'Submitting all records may take some time, continue?',
-    // variables needed for record-specific actions
-    $entry,
-    version,
-    id,
-    idParts,
-    interaction,    
-    form,
-    uuid,
-    /**
+  function onOrientationChange(event) {
+    if ($.inArray('ios', deviceVars.features) !== -1
+        && Math.abs(window.orientation || 0) === 90) {
+      MyAnswers.screenX = window.screen.height;
+      MyAnswers.screenY = window.screen.width;
+    } else {
+      MyAnswers.screenX = window.screen.width;
+      MyAnswers.screenY = window.screen.height;
+    }
+    MyAnswers.windowX = window.innerWidth;
+    MyAnswers.windowY = window.innerHeight;
+    $window.trigger('scroll');
+  }
+
+  function onNetworkChange() {
+    var host;
+    //    if (window.device && navigator.network) { // TODO: check when this BlinkGap code will actually work (state.code === undefined)
+    //      host = siteVars.serverDomain ? siteVars.serverDomain.split(':')[0] : 'blinkm.co';
+    //      navigator.network.isReachable(host, networkReachableFn);
+    //    } else {
+      deviceVars.isOnline = navigator.onLine === true;
+      log('onNetworkChange(): online=' + deviceVars.isOnline);
+    //    }
+  }
+
+  // TODO: a window resize event _may_ cause DOM issues with out transitions
+  /*  function onWindowResize(event) {
+    $('html').css('min-height', window.innerHeight);
+  } */
+
+  function onPendingClick(event) {
+    var $button = $(event.target),
+        action = $button.data('action'),
+        requestUri,
+        $box,
+        dispatch,
+        networkText = 'Check your network connectivity and try again.',
+        cancelText = 'Are you sure you wish to discard this pending record?',
+        submitAllText = 'Submitting all records may take some time, continue?',
+        // variables needed for record-specific actions
+        $entry,
+        version,
+        id,
+        idParts,
+        interaction,
+        form,
+        uuid,
+        /**
      * @inner
      */
-    submitFn = function($entry) {
-      var dfrd = new $.Deferred(),
-      id = $entry.data('id'),
-      idParts = id.split(':'),
-      interaction = idParts[0],
-      interactionName,
-      form = idParts[1],
-      uuid = idParts[2];
-      /* END: var */
-      if (siteVars.config['i' + interaction]) {
-        interactionName = siteVars.config['i' + interaction].pertinent.name;
-      } else {
-        alert('Error: this record requires an Interaction that not currently available');
-        return;
-      }
-      $button.prop('disabled', true);
-      $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
-      .fail(function() {
-        alert('Error: unable to retrieve this form');
-        $button.prop('disabled', false);
-      })
-      .then(function(json) {
-        var formData;
-        if (typeof json !== 'string' || json.length === 0) {
-          $button.prop('disabled', false);
-          return;
-        } else if ($.type(json) !== 'object') {
-          json = $.parseJSON(json);
-        }
-        switch($.type(json)) {
-          case 'array':
-            formData = json[0];
-            break;
-          case 'object':
-            formData = json;
-            break;
-        }
-        $entry.addClass('s-working');
-        $.when(BlinkForms.submitData(interactionName, form, formData))
-        .always(function(response, status, jqxhr) {
-          var swap;
-          if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
-            swap = jqxhr;
-            jqxhr = response;
-            response = swap;
-          }
-          $button.prop('disabled', false);
-          if (jqxhr.status === 200 && response) {
-            if (MyAnswers.store) {
-              clearPendingForm(interaction, form, uuid);
-              $entry.remove();
-            }
+        submitFn = function($entry) {
+          var dfrd = new $.Deferred(),
+              id = $entry.data('id'),
+              idParts = id.split(':'),
+              interaction = idParts[0],
+              interactionName,
+              form = idParts[1],
+              uuid = idParts[2];
+          /* END: var */
+          if (siteVars.config['i' + interaction]) {
+            interactionName = siteVars.config['i' + interaction].pertinent.name;
           } else {
-            $entry.toggleClass('s-working s-error');
+            alert('Error: this record requires an Interaction that not currently available');
+            return;
           }
-          dfrd.resolve();
-        });
-      });
-      return dfrd.promise();
-    };
+          $button.prop('disabled', true);
+          $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
+      .fail(function() {
+                alert('Error: unable to retrieve this form');
+                $button.prop('disabled', false);
+              })
+      .then(function(json) {
+                var formData;
+                if (typeof json !== 'string' || json.length === 0) {
+                  $button.prop('disabled', false);
+                  return;
+                }
+                if ($.type(json) !== 'object') {
+                  json = $.parseJSON(json);
+                }
+                switch ($.type(json)) {
+                  case 'array':
+                    formData = json[0];
+                    break;
+                  case 'object':
+                    formData = json;
+                    break;
+                }
+                $entry.addClass('s-working');
+                $.when(BlinkForms.submitData(interactionName, form, formData))
+        .always(function(response, status, jqxhr) {
+                      var swap;
+                      if (!jqxhr || $.type(jqxhr.promise) !== 'function') {
+                        swap = jqxhr;
+                        jqxhr = response;
+                        response = swap;
+                      }
+                      $button.prop('disabled', false);
+                      if (jqxhr.status === 200 && response) {
+                        if (MyAnswers.store) {
+                          clearPendingForm(interaction, form, uuid);
+                          $entry.remove();
+                        }
+                      } else {
+                        $entry.toggleClass('s-working s-error');
+                      }
+                      dfrd.resolve();
+                    });
+              });
+          return dfrd.promise();
+        };
     /* END: var */
     if (action === 'submit-all') {
       if (!deviceVars.isOnline) {
@@ -3104,91 +3114,91 @@ function submitAction(keyword, action) {
         return;
       }
       dispatch = new BlinkDispatch(197);
-      $box = $button.closest('.box, .view');      
+      $box = $button.closest('.box, .view');
       $box.find('[data-blink="active-form"][data-id]')
       .each(function(index, element) {
-        dispatch.add(function() {
-          return submitFn($(element));
-        });
-      });
+            dispatch.add(function() {
+              return submitFn($(element));
+            });
+          });
       return;
     }
     $entry = $button.closest('[data-blink="active-form"]');
     version = $entry.data('version');
     id = $entry.data('id');
     idParts = id.split(':');
-    interaction = idParts[0];    
+    interaction = idParts[0];
     form = idParts[1];
     uuid = idParts[2];
     if (version === 2) {
-			if (action === 'clear' && confirm(cancelText)) {
+      if (action === 'clear' && confirm(cancelText)) {
         $.when(clearPendingForm(interaction, form, uuid))
         .then(function() {
-          $entry.remove();
-        });
-        
-			} else if (action === 'resume') {
-				requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
-				History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
-        
-			} else if (action === 'submit') {
+              $entry.remove();
+            });
+
+      } else if (action === 'resume') {
+        requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
+        History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
+
+      } else if (action === 'submit') {
         submitFn($entry);
-        
+
       }
-		} else if (version === 1) {
-			if (action === 'clear' && confirm(cancelText)) {
+    } else if (version === 1) {
+      if (action === 'clear' && confirm(cancelText)) {
         $.when(clearPendingFormV1(interaction, uuid))
         .then(function() {
-          $entry.remove();
-        });
-        
-			} else if (action === 'submit') {
-				$.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
-					.fail(function() {
-						alert('Error: unable to retrieve this form');
-					})
-					.then(function(data) {
-						data = $.parseJSON(data);
-						submitFormWithRetry(data);
-					});
-			}
-		}
-	}
+              $entry.remove();
+            });
 
-	function onTaskBegun(event) {
-		MyAnswers.runningTasks++;
-		if ($('#startUp').size() > 0) {return true;}
-		if (typeof MyAnswers.activityIndicatorTimer === 'number') {return true;}
-		MyAnswers.activityIndicatorTimer = setTimeout(function() {
-			clearTimeout(MyAnswers.activityIndicatorTimer);
-			MyAnswers.activityIndicatorTimer = null;
-			$(MyAnswers.activityIndicator).removeClass('hidden');
-		}, 1000);
-		return true;
-	}
+      } else if (action === 'submit') {
+        $.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
+          .fail(function() {
+            alert('Error: unable to retrieve this form');
+          })
+          .then(function(data) {
+            data = $.parseJSON(data);
+            submitFormWithRetry(data);
+          });
+      }
+    }
+  }
 
-	function onTaskComplete(event) {
-		if (MyAnswers.runningTasks > 0) {
-			MyAnswers.runningTasks--;
-		}
-		if (MyAnswers.runningTasks <= 0) {
-			if (MyAnswers.activityIndicatorTimer !== null) {
-				clearTimeout(MyAnswers.activityIndicatorTimer);
-			}
-			MyAnswers.activityIndicatorTimer = null;
-			$(MyAnswers.activityIndicator).addClass('hidden');
-		}
-		return true;
-	}
+  function onTaskBegun(event) {
+    MyAnswers.runningTasks++;
+    if ($('#startUp').size() > 0) {return true;}
+    if (typeof MyAnswers.activityIndicatorTimer === 'number') {return true;}
+    MyAnswers.activityIndicatorTimer = setTimeout(function() {
+      clearTimeout(MyAnswers.activityIndicatorTimer);
+      MyAnswers.activityIndicatorTimer = null;
+      $(MyAnswers.activityIndicator).removeClass('hidden');
+    }, 1000);
+    return true;
+  }
 
-/* *** INITIALISATION FUNCTIONS *** */
+  function onTaskComplete(event) {
+    if (MyAnswers.runningTasks > 0) {
+      MyAnswers.runningTasks--;
+    }
+    if (MyAnswers.runningTasks <= 0) {
+      if (MyAnswers.activityIndicatorTimer !== null) {
+        clearTimeout(MyAnswers.activityIndicatorTimer);
+      }
+      MyAnswers.activityIndicatorTimer = null;
+      $(MyAnswers.activityIndicator).addClass('hidden');
+    }
+    return true;
+  }
+
+  /* *** INITIALISATION FUNCTIONS *** */
 
   function displayAnswerSpace() {
     var startUp = $('#startUp'),
-    $masterCategoriesView = $('#masterCategoriesView'),
-    $categoriesView = $('#categoriesView'),
-    $keywordListView = $('#keywordListView'),
-    token = siteVars.queryParameters._t;
+        $masterCategoriesView = $('#masterCategoriesView'),
+        $categoriesView = $('#categoriesView'),
+        $keywordListView = $('#keywordListView'),
+        token = siteVars.queryParameters._t;
     /* END: var */
     delete siteVars.queryParameters._t;
     if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
@@ -3215,34 +3225,35 @@ function submitAction(keyword, action) {
       MyAnswers.gotoDefaultScreen();
       $.when(restoreSessionProfile(token))
       .always(function() {
-        var interaction = resolveItemName(siteVars.queryParameters.keyword),
-        config = siteVars.config['a' + siteVars.id].pertinent;
-        /* END: var */
-        delete siteVars.queryParameters.keyword;
-        if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
-          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
-          History.pushState({
-            i: interaction, 
-            'arguments': siteVars.queryParameters
-            }, null, requestUri);
-        } else if (interaction) {
-          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
-          History.pushState({
-            i: interaction
-          }, null, requestUri);
-        } else if (typeof siteVars.queryParameters._c === 'string') {
-          requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
-          History.pushState({
-            c: siteVars.queryParameters._c
-            }, null, requestUri);
-        } else if (typeof siteVars.queryParameters._m === 'string') {
-          requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
-          History.pushState({
-            m: siteVars.queryParameters._m
-            }, null, requestUri);
-        }
-        delete siteVars.queryParameters;
-      });
+            var interaction = resolveItemName(siteVars.queryParameters.keyword),
+                config = siteVars.config['a' + siteVars.id].pertinent,
+                requestUri;
+            /* END: var */
+            delete siteVars.queryParameters.keyword;
+            if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
+              requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
+              History.pushState({
+                i: interaction,
+                'arguments': siteVars.queryParameters
+              }, null, requestUri);
+            } else if (interaction) {
+              requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
+              History.pushState({
+                i: interaction
+              }, null, requestUri);
+            } else if (typeof siteVars.queryParameters._c === 'string') {
+              requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
+              History.pushState({
+                c: siteVars.queryParameters._c
+              }, null, requestUri);
+            } else if (typeof siteVars.queryParameters._m === 'string') {
+              requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
+              History.pushState({
+                m: siteVars.queryParameters._m
+              }, null, requestUri);
+            }
+            delete siteVars.queryParameters;
+          });
     }
     startUp.remove();
     $('#content').removeClass('hidden');
@@ -3251,116 +3262,115 @@ function submitAction(keyword, action) {
     MyAnswers.dfrdMoJOs = processMoJOs();
   }
 
-	function loaded() {
-		log('loaded():');
-		try {
-			MyAnswers.store.set('answerSpace', siteVars.answerSpace);
-			$.when(MyAnswers.siteStore.get('config')).then(function(data) {
-				if (typeof data === 'string') {
-					data = $.parseJSON(data);
-				}
-				if ($.type(data) === 'object') {
-					siteVars.config = data;
-				}
-			}).always(function() {
-				$.when(MyAnswers.siteStore.get('map')).then(function(data) {
-					if (typeof data === 'string') {
-						data = $.parseJSON(data);
-					}
-					if ($.type(data) === 'object') {
-						siteVars.map = data;
-					}
-				})
-				.always(function() {
-          $.when(requestLoginStatus())
+  function loaded() {
+    log('loaded():');
+    try {
+      MyAnswers.store.set('answerSpace', siteVars.answerSpace);
+      $.when(MyAnswers.siteStore.get('config')).then(function(data) {
+        if (typeof data === 'string') {
+          data = $.parseJSON(data);
+        }
+        if ($.type(data) === 'object') {
+          siteVars.config = data;
+        }
+      }).always(function() {
+        $.when(MyAnswers.siteStore.get('map')).then(function(data) {
+          if (typeof data === 'string') {
+            data = $.parseJSON(data);
+          }
+          if ($.type(data) === 'object') {
+            siteVars.map = data;
+          }
+        })
+        .always(function() {
+              $.when(requestLoginStatus())
           .always(function() {
-            $.when(requestConfig())
+                    $.when(requestConfig())
             .always(function() {
-              if (siteVars.map && siteVars.config) {
-                processConfig();
-                displayAnswerSpace();
-              } else {
-                $startup.append('error: unable to contact server, insufficient data found in local storage');
-              }
+                          if (siteVars.map && siteVars.config) {
+                            processConfig();
+                            displayAnswerSpace();
+                          } else {
+                            $startup.append('error: unable to contact server, insufficient data found in local storage');
+                          }
+                        });
+                  });
             });
-          });
-        });
-			});
-			$.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
-				if ($.type(stars) === 'string') {
-					stars = $.parseJSON(stars);
-				}
-				if ($.type(stars) === 'object') {
-					starsProfile = stars;
-				}
-			});
-			$('#startUp-initLoaded').addClass('success');
-		} catch(e) {
-			log("loaded(): exception:");
-			log(e);
-			$('#startUp-initLoaded').addClass('error');
-			$startup.append('loading error: ' + e);
-		}
-	}
+      });
+      $.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
+        if ($.type(stars) === 'string') {
+          stars = $.parseJSON(stars);
+        }
+        if ($.type(stars) === 'object') {
+          starsProfile = stars;
+        }
+      });
+      $('#startUp-initLoaded').addClass('success');
+    } catch (e) {
+      log('loaded(): exception:');
+      log(e);
+      $('#startUp-initLoaded').addClass('error');
+      $startup.append('loading error: ' + e);
+    }
+  }
 
-	function init_main() {
-		var storeEngine = null, // pick automatic engine by default
-		loadedPromises = [],
-		dfrdFixWebSQL,
-    userAgent = navigator.userAgent,
-    domainWhitelist;
-		/* END: var */
-    
-		log("init_main(): ");
-		siteVars.requestsCounter = 0;
+  function init_main() {
+    var storeEngine = null, // pick automatic engine by default
+    loadedPromises = [],
+    dfrdFixWebSQL,
+        userAgent = navigator.userAgent,
+        domainWhitelist;
+    /* END: var */
 
-		PictureSourceType.PHOTO_LIBRARY = 0;
-		PictureSourceType.CAMERA = 1;
-		lastPictureTaken.image = new Hashtable();
-		lastPictureTaken.currentName = null;
+    log('init_main(): ');
+    siteVars.requestsCounter = 0;
 
-		$.fx.interval = 27; // default is 13, increasing this to be kinder on devices
-		
-		log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
+    PictureSourceType.PHOTO_LIBRARY = 0;
+    PictureSourceType.CAMERA = 1;
+    lastPictureTaken.image = new Hashtable();
+    lastPictureTaken.currentName = null;
 
-		ajaxQueue = $.manageAjax.create('globalAjaxQueue', {queue: true});
-		MyAnswers.dispatch = new BlinkDispatch(isBlinkGapDevice() ? 149 : 47);
+    $.fx.interval = 27; // default is 13, larger is kinder on devices
 
-		MyAnswers.runningTasks = 0; // track the number of tasks in progress
+    log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
 
-		// to facilitate building regex replacements
-		RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");};
-		
-		MyAnswers.activityIndicator = document.getElementById('activityIndicator');
-		MyAnswers.activityIndicatorTimer = null;
+    MyAnswers.dispatch = new BlinkDispatch(isBlinkGapDevice() ? 149 : 47);
 
-		MyAnswers.$body.bind('taskBegun', onTaskBegun);
-		MyAnswers.$body.bind('taskComplete', onTaskComplete);
-		MyAnswers.$body.delegate('a:not([href="#"])', 'click', onLinkClick);
-		MyAnswers.$body.delegate('a[href="#"]', 'click', false);
+    MyAnswers.runningTasks = 0; // track the number of tasks in progress
+
+    // to facilitate building regex replacements
+    RegExp.quote = function(str) {return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, '\\$1');};
+
+    MyAnswers.activityIndicator = document.getElementById('activityIndicator');
+    MyAnswers.activityIndicatorTimer = null;
+
+    MyAnswers.$body.bind('taskBegun', onTaskBegun);
+    MyAnswers.$body.bind('taskComplete', onTaskComplete);
+    MyAnswers.$body.delegate('a:not([href="#"])', 'click', onLinkClick);
+    MyAnswers.$body.delegate('a[href="#"]', 'click', false);
     MyAnswers.$body.on('click', '[data-blink="active-form"] button', function(event) {
       event.preventDefault();
       onPendingClick(event);
       return false;
     });
 
-		$window.bind('online', onNetworkChange);
-		$window.bind('offline', onNetworkChange);
-		onNetworkChange(); // $window.trigger('online');
+    $window.bind('online', onNetworkChange);
+    $window.bind('offline', onNetworkChange);
+    onNetworkChange(); // $window.trigger('online');
 
     // pre-configure storage system for BlinkGap if necessary
-		if (isBlinkGapDevice()) {
-			storeEngine = null; // native application should always use auto-select
-			if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
-				dfrdFixWebSQL = fixWebSQL();
-			} else {
-				dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
-			}
-		} else if (userAgent.indexOf('Android') !== -1) {
-			// Android has problems with persistent storage
-			storeEngine = 'sessionstorage';
-		}
-    
+    if (isBlinkGapDevice()) {
+      storeEngine = null; // native application should always use auto-select
+      if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
+        dfrdFixWebSQL = fixWebSQL();
+      } else {
+        dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
+      }
+    } else if (userAgent.indexOf('Android') !== -1) {
+      // Android has problems with persistent storage
+      storeEngine = 'sessionstorage';
+    }
+
     // pre-configure domain whitelist for BlinkGap if necessary
     if (isBlinkGapDevice() && MyAnswers.device.domainWhitelist
         && window.navigator.gap_managewhitelist) {
@@ -3378,217 +3388,217 @@ function submitAction(keyword, action) {
         log('BlinkGap: domain whitelist replaced!');
       }
     }
-    
+
     // fix the WebSQL quota is necessary and open required persistent stores
-		$.when(dfrdFixWebSQL)
-		.always(function() {
-      
-      try {
-        MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
-        loadedPromises.push(MyAnswers.store.ready());
-        MyAnswers.siteStore = new BlinkStorage(storeEngine, siteVars.answerSpace, 'site');
-        loadedPromises.push(MyAnswers.siteStore.ready());
-        MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
-        loadedPromises.push(MyAnswers.pendingStore.ready());
-        MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
-        loadedPromises.push(MyAnswers.pendingV1Store.ready());
-      } catch (e) {
-        $startup.addClass('s-error');
+    $.when(dfrdFixWebSQL)
+    .always(function() {
+
+          try {
+            MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
+            loadedPromises.push(MyAnswers.store.ready());
+            MyAnswers.siteStore = new BlinkStorage(storeEngine, siteVars.answerSpace, 'site');
+            loadedPromises.push(MyAnswers.siteStore.ready());
+            MyAnswers.pendingStore = new BlinkStorage(null, siteVars.answerSpace, 'pending');
+            loadedPromises.push(MyAnswers.pendingStore.ready());
+            MyAnswers.pendingV1Store = new BlinkStorage(null, siteVars.answerSpace, 'pendingV1');
+            loadedPromises.push(MyAnswers.pendingV1Store.ready());
+          } catch (e) {
+            $startup.addClass('s-error');
+            $('#startUp-initMain').addClass('error');
+            if (e.toString) {
+              $startup.children('output').text(e.toString());
+            }
+            $startup.children('article[data-name="persistentfull"]').show();
+            return;
+          }
+
+      $.whenArray(loadedPromises)
+      .fail(function() {
         $('#startUp-initMain').addClass('error');
-        if (e.toString) {
-          $startup.children('output').text(e.toString());
+        throw ('initMain(): unable to initialise device storage');
+      })
+      .then(function() {
+        $.when(updateLocalStorage())
+        .always(function() {
+          $('#startUp-initMain').addClass('success');
+          $('#startUp-initLoaded').addClass('working');
+          loaded();
+          log('loaded(): returned after call by BlinkStorage');
+        });
+      });
+      log('init_main(): finished...');
+    });
+  }
+
+  function onBrowserReady() {
+    var $startup = $('#startUp');
+    log('onBrowserReady: ' + window.location.href);
+    try {
+      History = window.History;
+      // duck-punching some History functions to fix states early
+      _pushState = History.pushState;
+      History.pushState = function() {
+        var args = $.makeArray(arguments);
+        if (args.length >= 1) {
+          args[0] = trimHistoryState(args[0]);
         }
-        $startup.children('article[data-name="persistentfull"]').show();
-        return;
+        if (args.length >= 3) {
+          args[2] = trimHistoryState(args[2]);
+        }
+        _pushState.apply(History, args);
+      };
+      _replaceState = History.replaceState;
+      History.replaceState = function() {
+        var args = $.makeArray(arguments);
+        if (args.length >= 1) {
+          args[0] = trimHistoryState(args[0]);
+        }
+        if (args.length >= 3) {
+          args[2] = trimHistoryState(args[2]);
+        }
+        _replaceState.apply(History, args);
+      };
+
+      log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
+
+      siteVars.serverAppPath = '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
+      siteVars.serverDevicePath = '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
+      siteVars.queryParameters = getURLParameters();
+      delete siteVars.queryParameters.uid;
+      delete siteVars.queryParameters.answerSpace;
+
+      MyAnswers.$html = $('html');
+      MyAnswers.$body = MyAnswers.$html.children('body');
+      MyAnswers.$document = $(window.document);
+      MyAnswers.$window = $window;
+      MyAnswers.$footer = MyAnswers.$body.children('footer');
+
+      // hook orientation events
+      if (Modernizr.orientation) {
+        window.addEventListener('orientationchange', onOrientationChange, false);
+      } else {
+        window.addEventListener('resize', onOrientationChange, false);
       }
-			
-			$.whenArray(loadedPromises)
-			.fail(function() {
-				$('#startUp-initMain').addClass('error');
-				throw('initMain(): unable to initialise device storage');
-			})
-			.then(function() {
-				$.when(updateLocalStorage())
-				.always(function() {
-					$('#startUp-initMain').addClass('success');
-					$('#startUp-initLoaded').addClass('working');
-					loaded();
-					log('loaded(): returned after call by BlinkStorage');
-				});
-			});
-			log('init_main(): finished...');
-		});
-	}
-	
-	function onBrowserReady() {
-		var $startup = $('#startUp');
-		log("onBrowserReady: " + window.location.href);
-		try {
-			History = window.History;
-			// duck-punching some History functions to fix states early
-			_pushState = History.pushState;
-			History.pushState = function() {
-				var args = $.makeArray(arguments);
-				if (args.length >= 1) {
-					args[0] = trimHistoryState(args[0]);
-				}
-				if (args.length >= 3) {
-					args[2] = trimHistoryState(args[2]);
-				}
-				_pushState.apply(History, args);
-			};
-			_replaceState = History.replaceState;
-			History.replaceState = function() {
-				var args = $.makeArray(arguments);
-				if (args.length >= 1) {
-					args[0] = trimHistoryState(args[0]);
-				}
-				if (args.length >= 3) {
-					args[2] = trimHistoryState(args[2]);
-				}
-				_replaceState.apply(History, args);
-			};
-			
-			log('domain=' + siteVars.serverDomain + ' branch=' + siteVars.serverAppBranch + ' version=' + siteVars.serverAppVersion + ' device=' + deviceVars.device);
+      onOrientationChange();
 
-			siteVars.serverAppPath = '/_' + siteVars.serverAppBranch + '_/common/' + siteVars.serverAppVersion;
-			siteVars.serverDevicePath = '/_' + siteVars.serverAppBranch + '_/' + deviceVars.device + '/' + siteVars.serverAppVersion;
-			siteVars.queryParameters = getURLParameters();
-			delete siteVars.queryParameters.uid;
-			delete siteVars.queryParameters.answerSpace;
+      $window.bind('statechange', function(event) {
+        var state = History.getState(),
+            args = state.data['arguments'];
+        // TODO: work out a way to detect Back-navigation so reverse transitions can be used
+        log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+        if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
+          $.noop(); // do we need to do something if we have fired this early?
+        } else if (state.data.storage) {
+          showPendingView();
+        } else if (siteVars.hasLogin && state.data.login) {
+          showLoginView();
+        } else if (hasInteractions && state.data.i) {
+          if ($.isEmptyObject(args) || args.inputs) {
+            gotoNextScreen(state.data.i);
+          } else {
+            showAnswerView(state.data.i, args);
+          }
+        } else if (hasCategories && state.data.c) {
+          showKeywordListView(state.data.c);
+        } else if (hasMasterCategories && state.data.m) {
+          showCategoriesView(state.data.m);
+        } else {
+          if (hasMasterCategories) {
+            showMasterCategoriesView();
+          } else if (hasCategories) {
+            showCategoriesView();
+          } else if (answerSpaceOneKeyword) {
+            gotoNextScreen(siteVars.map.interactions[0]);
+          } else {
+            showKeywordListView();
+          }
+        }
+        event.preventDefault();
+        return false;
+      });
 
-			MyAnswers.$html = $('html');
-			MyAnswers.$body = MyAnswers.$html.children('body');
-			MyAnswers.$document = $(window.document);
-			MyAnswers.$window = $window;
-			MyAnswers.$footer = MyAnswers.$body.children('footer');
+      if (location.href.indexOf('index.php?answerSpace=') !== -1) {
+        History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
+      }
+      if (document.getElementById('loginButton') !== null) {
+        // TODO: get hasLogin working directly off new config field
+        siteVars.hasLogin = true;
+      }
 
-			// hook orientation events
-			if (Modernizr.orientation) {
-				window.addEventListener('orientationchange', onOrientationChange, false);
-			} else {
-				window.addEventListener('resize', onOrientationChange, false);
-			}
-			onOrientationChange();
-			
-			$window.bind('statechange', function(event) {
-				var state = History.getState(),
-        args = state.data['arguments'];
-				// TODO: work out a way to detect Back-navigation so reverse transitions can be used
-				log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
-				if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
-					$.noop(); // do we need to do something if we have fired this early?
-				} else if (state.data.storage) {
-					showPendingView();
-				} else if (siteVars.hasLogin && state.data.login) {
-					showLoginView();
-				} else if (hasInteractions && state.data.i) {
-					if ($.isEmptyObject(args) || args.inputs) {
-						gotoNextScreen(state.data.i);
-					} else {
-						showAnswerView(state.data.i, args);
-					}
-				} else if (hasCategories && state.data.c) {
-					showKeywordListView(state.data.c);
-				} else if (hasMasterCategories && state.data.m) {
-					showCategoriesView(state.data.m);
-				} else {
-					if (hasMasterCategories) {
-						showMasterCategoriesView();
-					} else if (hasCategories) {
-						showCategoriesView();
-					} else if (answerSpaceOneKeyword) {
-						gotoNextScreen(siteVars.map.interactions[0]);
-					} else {
-						showKeywordListView();
-					}
-				}
-				event.preventDefault();
-				return false;
-			});
-
-			if (location.href.indexOf('index.php?answerSpace=') !== -1) {
-				History.replaceState(null, null, '/' + siteVars.answerSpace + '/');
-			}
-			if (document.getElementById('loginButton') !== null) {
-				// TODO: get hasLogin working directly off new config field
-				siteVars.hasLogin = true;
-			}
-
-			// TODO: finish work on HTML5 Web Worker support
-			/*
-			 * deviceVars.hasWebWorkers = typeof window.Worker === 'function'; if
-			 * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
-			 * Worker(siteVars.serverAppPath + '/webworker.js');
-			 * MyAnswers.webworker.onmessage = function(event) { switch
-			 * (event.data.fn) { case 'log': log(event.data.string);
-			 * break; case 'processXSLT': log('WebWorker: finished
-			 * processing XSLT'); var target =
-			 * document.getElementById(event.data.target); insertHTML(target,
-			 * event.data.html); break; case 'workBegun':
-			 * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
-			 * MyAnswers.$body.trigger('taskComplete'); break; } }; }
-			 */
+      // TODO: finish work on HTML5 Web Worker support
+      /*
+       * deviceVars.hasWebWorkers = typeof window.Worker === 'function'; if
+       * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
+       * Worker(siteVars.serverAppPath + '/webworker.js');
+       * MyAnswers.webworker.onmessage = function(event) { switch
+       * (event.data.fn) { case 'log': log(event.data.string);
+       * break; case 'processXSLT': log('WebWorker: finished
+       * processing XSLT'); var target =
+       * document.getElementById(event.data.target); insertHTML(target,
+       * event.data.html); break; case 'workBegun':
+       * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
+       * MyAnswers.$body.trigger('taskComplete'); break; } }; }
+       */
 
       $.when(waitForBlinkGap())
       .then(function() {
-        if (isBlinkGapDevice() && $.type(onDeviceReady) === 'function') {
-          onDeviceReady();
-        }
-      })
+            if (isBlinkGapDevice() && $.type(onDeviceReady) === 'function') {
+              onDeviceReady();
+            }
+          })
       .always(function() {
-        MyAnswers.browserDeferred.resolve();
-      });
+            MyAnswers.browserDeferred.resolve();
+          });
 
-			$('#startUp-initBrowser').addClass('success');
-		} catch(e) {
-			log("onBrowserReady: Exception");
-			log(e);
-			$startup.append('browser error: ' + e);
-			$('#startUp-initBrowser').addClass('error');
-		}
-	}	
+      $('#startUp-initBrowser').addClass('success');
+    } catch (e) {
+      log('onBrowserReady: Exception');
+      log(e);
+      $startup.append('browser error: ' + e);
+      $('#startUp-initBrowser').addClass('error');
+    }
+  }
 
-	MyAnswers.bootPromises = [
-		MyAnswers.deviceDeferred.promise(),
-		MyAnswers.browserDeferred.promise(),
-		MyAnswers.mainDeferred.promise()
-	];
-	$.whenArray(MyAnswers.bootPromises).done(function() {
-		log("all promises kept, initialising...");
-		try {
-			$('#startUp-initMain').addClass('working');
-			init_main();
-			$('#startUp-initDevice').addClass('working');
-			init_device();
-		} catch(e) {
-			log('exception in init_?():');
-			log(e);
-			$startup.append('initialisation error: ' + e);
-		}
-		log("User-Agent: " + window.navigator.userAgent);
-		delete MyAnswers.bootPromises;
-		delete MyAnswers.deviceDeferred;
-		delete MyAnswers.browserDeferred;
-		delete MyAnswers.mainDeferred;
-	}).fail(function() {
-		log('init failed, not all promises kept');
-	});
+  MyAnswers.bootPromises = [
+    MyAnswers.deviceDeferred.promise(),
+    MyAnswers.browserDeferred.promise(),
+    MyAnswers.mainDeferred.promise()
+  ];
+  $.whenArray(MyAnswers.bootPromises).done(function() {
+    log('all promises kept, initialising...');
+    try {
+      $('#startUp-initMain').addClass('working');
+      init_main();
+      $('#startUp-initDevice').addClass('working');
+      init_device();
+    } catch (e) {
+      log('exception in init_?():');
+      log(e);
+      $startup.append('initialisation error: ' + e);
+    }
+    log('User-Agent: ' + window.navigator.userAgent);
+    delete MyAnswers.bootPromises;
+    delete MyAnswers.deviceDeferred;
+    delete MyAnswers.browserDeferred;
+    delete MyAnswers.mainDeferred;
+  }).fail(function() {
+    log('init failed, not all promises kept');
+  });
 
-	// *** DOM DOCUMENT READY ***
+  // *** DOM DOCUMENT READY ***
 
-	$(document).ready(function() {
+  $(document).ready(function() {
     var userAgent = navigator.userAgent,
-    safariTest;
+        safariTest;
     /* END: var */
-    
+
     // check if Safari's Private Browsing is enabled
     if (userAgent.indexOf('Safari') !== -1 && window.localStorage) {
       safariTest = 'SafariTest-' + (Math.random() * Math.pow(10, 16));
       try {
         window.localStorage.setItem(safariTest, safariTest);
         window.localStorage.removeItem(safariTest);
-      } catch(e) {
+      } catch (e) {
         $startup.addClass('s-error');
         if (e.toString) {
           $startup.children('output').text(e.toString());
@@ -3598,140 +3608,140 @@ function submitAction(keyword, action) {
       }
     }
 
-		$('#startUp-loadPolyFills').addClass('working');
+    $('#startUp-loadPolyFills').addClass('working');
 
     // set default options / headers for $.ajax()
-		$.ajaxPrefilter(function(options, original, jqxhr) {
-				var url = decodeURI(options.url),
-					config = {
-						answerSpaceId: siteVars.id,
-						answerSpace: siteVars.answerSpace,
-						conditions: deviceVars.features
-					};
-				/*
-				 * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
-				 * phpName; log(string + ' ' + e.position + ' ' +
-				 * e.total + ' ' + xhr + ' ' + options); }
-				 */
-				if (url.length > 100) {
-					url = url.substring(0, 100) + '...';
-				}
-				jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
-				jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
-					'requests': ++siteVars.requestsCounter
-				}));
-				// prevent jQuery from disabling cache mechanisms
-				options.cache = 'true';
-				log('AJAX start: ' + url);
-		});
-		
-		$.when(MyAnswers.mainDeferred.promise())
-		.then(function() { // load in JSON and XSLT polyfills if necessary
-			var dfrdJSON = new $.Deferred(),
-			dfrdXPath = new $.Deferred(),
-			dfrdXSLT = new $.Deferred(),
-			dfrdHistory = new $.Deferred();
-			/* END: var */
-			// poly-fill JSON
-			Modernizr.load({
-				test: window.JSON && window.JSON.stringify,
-				nope: '//d1c6dfkb81l78v.cloudfront.net/json2.min.js',
-				callback: function(url, result, key) {
-					if (window.JSON) {
-						dfrdJSON.resolve();
-					} else {
-						dfrdJSON.reject();
-						error('Modernizr.load(): failed to poly-fill JSON');
-					}
-				}
-			});
-			if (window.JSON && window.JSON.stringify) {
-				dfrdJSON.resolve();
-			}
-			// poly-fill XPath
-			Modernizr.load({
-				test: (window.XSLTProcessor && Modernizr.xpath) || window.xpathParse,
-				nope: {
-					'xml': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xmltoken.min.js',
-					'util': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/util.min.js',
-					'dom': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/dom.min.js',
-					// TODO: figure out how to test if the above scripts are needed
-					'xpath': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xpath.min.js'
-				},
-				callback: function(url, result, key) {
-					if (key !== 'xpath') {
-						return; // only run this for the last script
-					}
-					if (window.xpathParse) {
-						log('Modernizr.load(): XPath supported via AJAXSLT');
-						dfrdXPath.resolve();
-					} else {
-						error('Modernizr.load(): failed to poly-fill XPath');
-						dfrdXPath.reject();
-					}
-				}
-			});
-			if (window.XSLTProcessor && Modernizr.xpath) {
-				log('Modernizr.load(): XPath supported natively');
-				dfrdXPath.resolve();
-			}
-      if (window.xpathParse) {
-        log('Modernizr.load(): XPath supported via AJAXSLT');
+    $.ajaxPrefilter(function(options, original, jqxhr) {
+        var url = decodeURI(options.url),
+          config = {
+            answerSpaceId: siteVars.id,
+            answerSpace: siteVars.answerSpace,
+            conditions: deviceVars.features
+          };
+        /*
+         * xhr.onprogress = function(e) { var string = 'AJAX progress: ' +
+         * phpName; log(string + ' ' + e.position + ' ' +
+         * e.total + ' ' + xhr + ' ' + options); }
+         */
+        if (url.length > 100) {
+          url = url.substring(0, 100) + '...';
+        }
+        jqxhr.setRequestHeader('X-Blink-Config', JSON.stringify(config));
+        jqxhr.setRequestHeader('X-Blink-Statistics', $.param({
+          'requests': ++siteVars.requestsCounter
+        }));
+        // prevent jQuery from disabling cache mechanisms
+        options.cache = 'true';
+        log('AJAX start: ' + url);
+    });
+
+    $.when(MyAnswers.mainDeferred.promise())
+    .then(function() { // load in JSON and XSLT polyfills if necessary
+      var dfrdJSON = new $.Deferred(),
+      dfrdXPath = new $.Deferred(),
+      dfrdXSLT = new $.Deferred(),
+      dfrdHistory = new $.Deferred();
+      /* END: var */
+      // poly-fill JSON
+      Modernizr.load({
+        test: window.JSON && window.JSON.stringify,
+        nope: '//d1c6dfkb81l78v.cloudfront.net/json2.min.js',
+        callback: function(url, result, key) {
+          if (window.JSON) {
+            dfrdJSON.resolve();
+          } else {
+            dfrdJSON.reject();
+            error('Modernizr.load(): failed to poly-fill JSON');
+          }
+        }
+      });
+      if (window.JSON && window.JSON.stringify) {
+        dfrdJSON.resolve();
+      }
+      // poly-fill XPath
+      Modernizr.load({
+        test: (window.XSLTProcessor && Modernizr.xpath) || window.xpathParse,
+        nope: {
+          'xml': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xmltoken.min.js',
+          'util': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/util.min.js',
+          'dom': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/dom.min.js',
+          // TODO: figure out how to test if the above scripts are needed
+          'xpath': '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xpath.min.js'
+        },
+        callback: function(url, result, key) {
+          if (key !== 'xpath') {
+            return; // only run this for the last script
+          }
+          if (window.xpathParse) {
+            log('Modernizr.load(): XPath supported via AJAXSLT');
+            dfrdXPath.resolve();
+          } else {
+            error('Modernizr.load(): failed to poly-fill XPath');
+            dfrdXPath.reject();
+          }
+        }
+      });
+      if (window.XSLTProcessor && Modernizr.xpath) {
+        log('Modernizr.load(): XPath supported natively');
         dfrdXPath.resolve();
-			}
-			// poly-fill XSLT, after XPath
-			$.when(dfrdXPath.promise())
-			.fail(dfrdXSLT.reject)
-			.then(function() {
-				Modernizr.load({
-					test: window.XSLTProcessor || window.xsltProcess,
-					nope: '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xslt.min.js',
-					callback: function(url, result, key) {
-						if (window.xsltProcess) {
-							log('Modernizr.load(): XSLT supported via AJAXSLT');
-							dfrdXSLT.resolve();
-						} else {
-							error('Modernizr.load(): failed to poly-fill XSLT');
-							dfrdXSLT.reject();
-						}
-					}
-				});
-			});
-			if (window.XSLTProcessor) {
-				log('Modernizr.load(): XSLT supported natively');
-				dfrdXSLT.resolve();
-			}
-      if (window.xsltProcess) {
-        log('Modernizr.load(): XSLT supported via AJAXSLT');
+      }
+          if (window.xpathParse) {
+            log('Modernizr.load(): XPath supported via AJAXSLT');
+            dfrdXPath.resolve();
+      }
+      // poly-fill XSLT, after XPath
+      $.when(dfrdXPath.promise())
+      .fail(dfrdXSLT.reject)
+      .then(function() {
+        Modernizr.load({
+          test: window.XSLTProcessor || window.xsltProcess,
+          nope: '//d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/xslt.min.js',
+          callback: function(url, result, key) {
+            if (window.xsltProcess) {
+              log('Modernizr.load(): XSLT supported via AJAXSLT');
+              dfrdXSLT.resolve();
+            } else {
+              error('Modernizr.load(): failed to poly-fill XSLT');
+              dfrdXSLT.reject();
+            }
+          }
+        });
+      });
+      if (window.XSLTProcessor) {
+        log('Modernizr.load(): XSLT supported natively');
         dfrdXSLT.resolve();
       }
-			// load History.JS, required for all navigation and state management
-			Modernizr.load({
-				test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
-				yep: '//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.html5.min.js',
-				nope: '//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.min.js',
-				callback: function(url, result, key) {
-					if (window.History) {
-						log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
-						dfrdHistory.resolve();
-					} else {
-						error('Modernizr.load(): failed to load History.JS');
-						dfrdHistory.reject();
-					}
-				}
-			});
-			$.when(dfrdJSON.promise(), dfrdXPath.promise(), dfrdXSLT.promise(), dfrdHistory.promise())
-			.fail(function() {
-				$('#startUp-loadPolyFills').addClass('error');
-				$('#startUp').append('<p>error: refresh the application or clear cache and try again</p>');
-			})
-			.then(function() {
-				$('#startUp-loadPolyFills').addClass('success');
-				$('#startUp-initBrowser').addClass('working');
-				setTimeout(onBrowserReady, window.device ? 2000 : 193);
-			});
-		});
-	});
+          if (window.xsltProcess) {
+            log('Modernizr.load(): XSLT supported via AJAXSLT');
+            dfrdXSLT.resolve();
+          }
+      // load History.JS, required for all navigation and state management
+      Modernizr.load({
+        test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
+        yep: '//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.html5.min.js',
+        nope: '//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.min.js',
+        callback: function(url, result, key) {
+          if (window.History) {
+            log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
+            dfrdHistory.resolve();
+          } else {
+            error('Modernizr.load(): failed to load History.JS');
+            dfrdHistory.reject();
+          }
+        }
+      });
+      $.when(dfrdJSON.promise(), dfrdXPath.promise(), dfrdXSLT.promise(), dfrdHistory.promise())
+      .fail(function() {
+        $('#startUp-loadPolyFills').addClass('error');
+        $('#startUp').append('<p>error: refresh the application or clear cache and try again</p>');
+      })
+      .then(function() {
+        $('#startUp-loadPolyFills').addClass('success');
+        $('#startUp-initBrowser').addClass('working');
+        setTimeout(onBrowserReady, window.device ? 2000 : 193);
+      });
+    });
+  });
 
 }(this));
 
