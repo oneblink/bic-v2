@@ -12,8 +12,9 @@
 var MyAnswers = MyAnswers || {},
 siteVars = siteVars || {},
 deviceVars = deviceVars || {},
-webappCache,
-hasCategories = false, hasMasterCategories = false, hasVisualCategories = false, hasInteractions = false, answerSpaceOneKeyword = false,
+hasCategories = false, hasMasterCategories = false,
+              hasVisualCategories = false, hasInteractions = false,
+              answerSpaceOneKeyword = false,
 currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
 starsProfile = {},
 ajaxQueue;
@@ -52,39 +53,6 @@ function triggerScroll(event) {
 	$(window).trigger('scroll');
 }
 
-function addEvent(obj, evType, fn) { 
-	if (obj.addEventListener) { 
-		obj.addEventListener(evType, fn, false); 
-		return true; 
-	} else if (obj.attachEvent) { 
-		var r = obj.attachEvent("on"+evType, fn); 
-		return r; 
-	} else { 
-		return false;
-	} 
-}
-
-function removeEvent(obj, evType, fn) { 
-	if (obj.removeEventListener) {
-		obj.removeEventListener(evType, fn, false);
-		return true;
-	} else if (obj.detachEvent) {
-		var r = obj.detachEvent("on"+evType, fn);
-		return r;
-	} else {
-		return false; 
-	} 
-}
-
-function emptyDOMelement(element)
-{
-	if ($.type(element) === 'object') {
-		while (element.hasChildNodes()) {
-			element.removeChild(element.lastChild);
-		}
-	}
-}
-
 function insertHTML(element, html) {
 	if ($.type(element) === 'object') {
 //		MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
@@ -102,17 +70,6 @@ function insertText(element, text) {
 function setMainLabel(label) {
 	var mainLabel = document.getElementById('mainLabel');
 	insertText(mainLabel, label);
-}
-
-function createDOMelement(tag, attr, text) {
-	var $element = $('<' + tag + '/>');
-	if ($.type(attr) === 'object' && !$.isEmptyObject(attr)) {
-		$element.attr(attr);
-	}
-	if (typeof text === 'string') {
-		$element.text(text);
-	}
-	return $element[0];
 }
 
 function changeDOMclass(element, options) { 
@@ -591,22 +548,21 @@ function setSubmitCachedFormButton() {
 
 // *** BEGIN EVENT HANDLERS ***
 
-function updateCache()
-{
-  log("updateCache: " + webappCache.status);
-  if (webappCache.status !== window.applicationCache.IDLE) {
-    webappCache.swapCache();
-    log("Cache has been updated due to a change found in the manifest");
-  } else {
-    webappCache.update();
-    log("Cache update requested");
-  }
-}
-
-function errorCache()
-{
-  log("errorCache: " + webappCache.status);
-  log("You're either offline or something has gone horribly wrong.");
+if (window.applicationCache) {
+    $(window.applicationCache).on({
+        'updateready': function(event) {
+            if (this.status !== this.IDLE) {
+                this.swapCache();
+                log('Application Cache: manifest change triggered update');
+            } else {
+                this.update();
+                log('Application Cache: update requested');
+            }
+        },
+        'error': function(event) {
+            error('Application Cache: ' + this.status);
+        }
+    });
 }
 
 function onStarClick(event)
@@ -1923,11 +1879,6 @@ function requestConfig() {
 	return dfrd.promise();
 }
 
-if (typeof webappCache !== "undefined") {
-  addEvent(webappCache, "updateready", updateCache);
-  addEvent(webappCache, "error", errorCache);
-}
- 
 MyAnswers.dumpLocalStorage = function() {
 	$.when(MyAnswers.store.keys()).done(function(keys) {
 		var k, kLength = keys.length,
@@ -2592,7 +2543,7 @@ function submitAction(keyword, action) {
         if (window.PhoneGap.available) {
           dfrd.resolve();
         } else {
-          document.addEventListener("deviceready", dfrd.resolve, false);
+          $(document).on('deviceready', dfrd.resolve);
         }
       } else if (($.now() - start) > 10 * 1000) {
         warn('waitForBlinkGap(): still no PhoneGap after 10 seconds');
