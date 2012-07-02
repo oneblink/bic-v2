@@ -1986,8 +1986,6 @@ function showPendingView() {
           } else {
             $section.prop('hidden', true);
           }
-        });
-        MyAnswers.dispatch.add(function() {
           $sectionV1.children('.bForm-pending:not(.template)').remove();
           if (keysV1.length > 0) {
             $.each(keysV1, function(index, key) {
@@ -1996,6 +1994,11 @@ function showPendingView() {
             $sectionV1.prop('hidden', false);
           } else {
             $sectionV1.prop('hidden', true);
+          }
+          if ((keysV1.length + keys.length) > 0) {
+            $noMessage.prop('hidden', true);
+          } else {
+            $noMessage.prop('hidden', false);
           }
         });
         MyAnswers.dispatch.add(function() {
