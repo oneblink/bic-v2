@@ -72,22 +72,6 @@ function setMainLabel(label) {
   insertText(mainLabel, label);
 }
 
-function changeDOMclass(element, options) {
-  // options is { add: 'class(es)', remove: 'class(es)', toggle: 'class(es)' }
-  if ($.type(options) !== 'object') {return;}
-  MyAnswers.dispatch.add(function() {
-    if (typeof options.add === 'string') {
-      $(element).addClass(options.add);
-    }
-    if (typeof options.remove === 'string') {
-      $(element).removeClass(options.remove);
-    }
-    if (typeof options.toggle === 'string') {
-      $(element).toggleClass(options.toggle);
-    }
-  });
-}
-
 //convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
 function deserialize(argsString) {
   var args = argsString.split('&'),
@@ -529,16 +513,16 @@ function setSubmitCachedFormButton() {
   if ($button.length > 0) {
     $.when(window.countPendingForms())
     .fail(function() {
-          $button.addClass('hidden');
+          $button.hide();
         })
     .then(function(count) {
           var buttonText = count + ' Pending';
           MyAnswers.dispatch.add(function() {
             if (typeof count === 'number' && count > 0) {
               insertText($button[0], buttonText);
-              $button.removeClass('hidden');
+              $button.show();
             } else {
-              $button.addClass('hidden');
+              $button.hide();
             }
             log('setSubmitCachedFormButton(): ' + buttonText);
           });
@@ -988,27 +972,15 @@ function updateLoginButtons() {
         $loginStatus.unbind();
         $loginStatus.bind('click', submitLogoutFn);
       });
-      changeDOMclass(loginStatus, {
-        remove: 'hidden'
-      });
+      $(loginStatus).show();
     } else {
-      changeDOMclass(logoutButton, {
-        remove: 'hidden'
-      });
+      $(logoutButton).show();
     }
-    changeDOMclass(loginButton, {
-      add: 'hidden'
-    });
+    $(loginButton).hide();
   } else {
-    changeDOMclass(loginStatus, {
-      add: 'hidden'
-    });
-    changeDOMclass(logoutButton, {
-      add: 'hidden'
-    });
-    changeDOMclass(loginButton, {
-      remove: 'hidden'
-    });
+    $(loginStatus).hide();
+    $(logoutButton).hide();
+    $(loginButton).show();
   }
   if (currentCategory !== undefined) {
     MyAnswers.populateItemListing('interactions', $('#keywordListView'));
@@ -1155,10 +1127,10 @@ function updateNavigationButtons() {
     }
     isHelp = typeof helpContents === 'string';
     if (isHelp) {
-      $helpButton.removeClass('hidden');
+      $helpButton.show();
       $helpButton.removeAttr('disabled');
     } else {
-      $helpButton.addClass('hidden');
+      $helpButton.hide();
     }
     // determine if we need to count the active forms in the queue
     if ($formsButton.length > 0 && isNoNavButtons) {
@@ -1173,14 +1145,14 @@ function updateNavigationButtons() {
           }
           isNoNavBar = isNoNavButtons && !isLogin && !isHelp && !formsCount;
           if (isNoNavBar) {
-            $navBars.addClass('hidden');
+            $navBars.hide();
           } else if (isNoNavButtons) {
-            $navBars.removeClass('hidden');
-            $navButtons.addClass('hidden');
+            $navBars.show();
+            $navButtons.hide();
           } else {
-            $navButtons.removeClass('hidden');
+            $navButtons.show();
             $navButtons.prop('disabled', false);
-            $navBars.removeClass('hidden');
+            $navBars.show();
           }
         });
     $('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
@@ -1315,10 +1287,10 @@ function updateCurrentConfig() {
       if (imageSrc !== $image.attr('src')) {
         $image.attr('src', imageSrc);
       }
-      $banner.removeClass('hidden');
+      $banner.show();
     } else {
       $image.removeAttr('src');
-      $banner.addClass('hidden');
+      $banner.hide();
     }
   });
   // fix footer
@@ -1972,7 +1944,7 @@ function showPendingView() {
               $entry.data('form', form);
               MyAnswers.dispatch.add(function() {
                 $entry.appendTo($section);
-                $entry.removeAttr('hidden').removeClass('template');
+                $entry.show().removeClass('template');
               });
             };
         /* END: var */
@@ -1982,23 +1954,23 @@ function showPendingView() {
             $.each(keys, function(index, key) {
               keysFn(index, key, $section);
             });
-            $section.prop('hidden', false);
+            $section.show();
           } else {
-            $section.prop('hidden', true);
+            $section.hide();
           }
           $sectionV1.children('.bForm-pending:not(.template)').remove();
           if (keysV1.length > 0) {
             $.each(keysV1, function(index, key) {
               keysFn(index, key, $sectionV1);
             });
-            $sectionV1.prop('hidden', false);
+            $sectionV1.show();
           } else {
-            $sectionV1.prop('hidden', true);
+            $sectionV1.hide();
           }
           if ((keysV1.length + keys.length) > 0) {
-            $noMessage.prop('hidden', true);
+            $noMessage.hide();
           } else {
-            $noMessage.prop('hidden', false);
+            $noMessage.show();
           }
         });
         MyAnswers.dispatch.add(function() {
@@ -2200,9 +2172,9 @@ function showKeywordView(keyword) {
     insertHTML(argsBox, config.inputPrompt);
     if (config.description) {
       insertHTML(descriptionBox, config.description);
-      $(descriptionBox).removeClass('hidden');
+      $(descriptionBox).show();
     } else {
-      $(descriptionBox).addClass('hidden');
+      $(descriptionBox).hide();
     }
     MyAnswersDevice.showView($view);
     setMainLabel(config.displayName || config.name);
@@ -3176,7 +3148,7 @@ function submitAction(keyword, action) {
     MyAnswers.activityIndicatorTimer = setTimeout(function() {
       clearTimeout(MyAnswers.activityIndicatorTimer);
       MyAnswers.activityIndicatorTimer = null;
-      $(MyAnswers.activityIndicator).removeClass('hidden');
+      $(MyAnswers.activityIndicator).show();
     }, 1000);
     return true;
   }
@@ -3190,7 +3162,7 @@ function submitAction(keyword, action) {
         clearTimeout(MyAnswers.activityIndicatorTimer);
       }
       MyAnswers.activityIndicatorTimer = null;
-      $(MyAnswers.activityIndicator).addClass('hidden');
+      $(MyAnswers.activityIndicator).hide();
     }
     return true;
   }
@@ -3260,7 +3232,7 @@ function submitAction(keyword, action) {
           });
     }
     startUp.remove();
-    $('#content').removeClass('hidden');
+    $('#content').show();
     setSubmitCachedFormButton();
     processForms();
     MyAnswers.dfrdMoJOs = processMoJOs();
