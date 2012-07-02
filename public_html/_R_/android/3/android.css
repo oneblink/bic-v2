@@ -151,8 +151,10 @@ table input[type=file] { position: relative; }
 
 .navBar > .button > img {
 	position: absolute;
-	top: -4px;
-	width: 44px;
+	top: -9px;
+	left: -7px;
+	width: 54px;
+	height: 54px;
 }
 
 #pendingButton {
