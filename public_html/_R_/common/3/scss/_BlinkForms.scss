@@ -159,6 +159,7 @@ td.bForm-tooltip > span {
 
 .box {
 	.bForm-pending {
+	    &.template { display:none; }
 		dt, dd { display: inline-block; }
 		dt { font-weight: bolder; }
 		dt:after { content: ":" }

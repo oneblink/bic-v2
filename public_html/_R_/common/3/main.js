@@ -1910,7 +1910,7 @@ function showPendingView() {
       */
             keysFn = function(index, key, $section) {
               var version = $section.data('blinkFormVersion'),
-                  $template = $section.children('.template[hidden]'),
+                  $template = $section.children('.template'),
                   $entry = $template.clone(),
                   keyParts = key.split(':'),
                   interaction = siteVars.config['i' + keyParts[0]],
