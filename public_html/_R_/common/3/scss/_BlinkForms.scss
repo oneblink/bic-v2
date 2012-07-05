@@ -173,7 +173,7 @@ td.bForm-tooltip > span {
 
 /* END: pending form styles */
 
-/* pending form styles */
+/* cluetip */
 .cluetip{
   margin-left:10px;
 
@@ -181,4 +181,8 @@ td.bForm-tooltip > span {
     padding:15px;
     font-size:smaller;
   }
+  .cluetip:hover{
+    font-weight: bolder;
+  }
+
 }
