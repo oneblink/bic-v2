@@ -1,10 +1,10 @@
 @mixin img-center {
-	display: block;
 	margin: .5em auto;
 }
 
 figure {
 	img {
+  	display: block;
 		@include img-center;
 	}
 }
@@ -159,6 +159,7 @@ td.bForm-tooltip > span {
 
 .box {
 	.bForm-pending {
+	    &.template { display:none; }
 		dt, dd { display: inline-block; }
 		dt { font-weight: bolder; }
 		dt:after { content: ":" }
@@ -172,7 +173,7 @@ td.bForm-tooltip > span {
 
 /* END: pending form styles */
 
-/* pending form styles */
+/* cluetip */
 .cluetip{
   margin-left:10px;
 
@@ -180,4 +181,8 @@ td.bForm-tooltip > span {
     padding:15px;
     font-size:smaller;
   }
+  .cluetip:hover{
+    font-weight: bolder;
+  }
+
 }

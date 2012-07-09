@@ -79,10 +79,10 @@ header, nav, ul.box {
 	height: 360px;
 }
 
-img.v1col { width: 100%; }
-img.v2col { width: 50%; }
-img.v3col { width: 33%; }
-img.v4col { width: 25%; }
+img.v1col { width: 100%; height: auto; }
+img.v2col { width: 50%; height: auto; }
+img.v3col { width: 33%; height: auto; }
+img.v4col { width: 25%; height: auto; }
 
 
 #startUpLoading {
