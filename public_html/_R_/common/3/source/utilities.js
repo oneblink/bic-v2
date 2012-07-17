@@ -152,6 +152,26 @@
   });
 }(this));
 
+/* convenient additions to the String prototype*/
+(function(window) {
+  var String = window.String;
+  String.prototype.hasEntities = function() {
+    var string = this;
+    if (string.indexOf('&') === -1) {
+      return false;
+    }
+  // TODO: use RegExp to properly detect HTML Entities
+  };
+  String.prototype.repeat = function(occurrences) {
+    var string = '',
+    o;
+    for (o = 0; o < occurrences; o++) {
+      string += this;
+    }
+    return string;
+  };
+}(this));
+
 /* minor improvements to Math */
 (function(window) {
   'use strict';
@@ -209,7 +229,8 @@
   'use strict';
   /*jslint nomen: true*/
   var $ = window.jQuery,
-      _oldAttr = $.fn.attr;
+      _oldAttr = $.fn.attr,
+      _show = $.fn.show;
   /* END: var */
 
   /**
@@ -312,6 +333,22 @@
     return _oldAttr.apply(this, arguments);
   };
 
+  // TODO: remove this backwards-compatibility later
+  $.fn.show = function() {
+    var $this = $(this);
+    $this.removeAttr('hidden');
+    $this.removeClass('hidden');
+    return _show.apply(this, arguments);
+  };
+
+  $.fn.isHidden = function() {
+    var $this = $(this);
+    if ($this.prop('hidden') || $this.hasClass('hidden')) {
+      return true;
+    }
+    return this && this.style && this.style.display === 'none';
+  };
+
   // return just the element's HTML tag (no attributes or innerHTML)
   $.fn.tag = function() {
     var tag;
@@ -396,6 +433,18 @@
   };
   /*jslint regexp: false*/
 
+  $.fn.childrenAsProperties = function() {
+    var properties = {};
+    $(this).children().each(function(index, element) {
+      var $element = $(element),
+      name = $element.tag(),
+      value = $element.text();
+      if (name.length > 0 && value.length > 0) {
+        properties[name] = value;
+      }
+    });
+    return properties;
+  };
 
   /*jslint nomen: false*/
 }(this));
