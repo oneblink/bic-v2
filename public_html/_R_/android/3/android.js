@@ -37,22 +37,6 @@ function init_device() {
       $(window).trigger('scroll');
     });
   }
-  if (Modernizr.touch && !Modernizr.positionfixed) {
-    document.body.addEventListener('touchmove', function(event) {
-      var touch;
-      if (event.touches.length === 1) {
-        touch = event.touches[0];
-        $navBar.hide();
-        MyAnswers.$footer.hide();
-      }
-    }, false);
-    document.body.addEventListener('touchend', function(event) {
-      if ($navBar.children().not('.hidden').length > 0) {
-        $navBar.show();
-      }
-      MyAnswers.$footer.show();
-    }, false);
-  }
   $('#startUp-initDevice').addClass('success');
 }
 
