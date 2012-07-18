@@ -46,15 +46,15 @@ function init_device() {
       var touch;
       if (event.touches.length === 1) {
         touch = event.touches[0];
-        $navBar.addClass('hidden');
-        MyAnswers.$footer.addClass('hidden');
+        $navBar.hide();
+        MyAnswers.$footer.hide();
       }
     }, false);
     document.body.addEventListener('touchend', function(event) {
       if ($navBar.children().not('.hidden').length > 0) {
-        $navBar.removeClass('hidden');
+        $navBar.show();
       }
-      MyAnswers.$footer.removeClass('hidden');
+      MyAnswers.$footer.show();
     }, false);
   }
   $('#startUp-initDevice').addClass('success');
@@ -108,7 +108,7 @@ function onDeviceReady() {
                 /* END: var */
                 // transition the current view away
                 if (window.currentConfig.footerPosition !== 'screen-bottom') {
-              MyAnswers.$body.children('footer').addClass('hidden');
+              MyAnswers.$body.children('footer').hide();
                 }
                 if ($oldView.size() < 1) {
               deferred.resolve();
@@ -158,7 +158,7 @@ function onDeviceReady() {
               $view.removeClass('animating');
               MyAnswers.dispatch.resume('showView');
               updateNavigationButtons();
-              MyAnswers.$body.children('footer').removeClass('hidden');
+              MyAnswers.$body.children('footer').show();
               deferred.resolve();
                 });
                 setTimeout(function() {
