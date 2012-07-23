@@ -335,18 +335,16 @@
 
   // TODO: remove this backwards-compatibility later
   $.fn.show = function() {
-    var $this = $(this);
-    $this.removeAttr('hidden');
-    $this.removeClass('hidden');
+    this.removeAttr('hidden');
+    this.removeClass('hidden');
     return _show.apply(this, arguments);
   };
 
   $.fn.isHidden = function() {
-    var $this = $(this);
-    if ($this.prop('hidden') || $this.hasClass('hidden')) {
+    if (this.prop('hidden') || this.hasClass('hidden')) {
       return true;
     }
-    return this && this.style && this.style.display === 'none';
+    return this[0] && this[0].style && this[0].style.display === 'none';
   };
 
   // return just the element's HTML tag (no attributes or innerHTML)
