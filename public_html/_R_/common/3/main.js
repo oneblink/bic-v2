@@ -3615,8 +3615,7 @@ function submitAction(keyword, action) {
     .then(function() { // load in JSON and XSLT polyfills if necessary
       var dfrdJSON = new $.Deferred(),
       dfrdXPath = new $.Deferred(),
-      dfrdXSLT = new $.Deferred(),
-      dfrdHistory = new $.Deferred();
+      dfrdXSLT = new $.Deferred();
       /* END: var */
       // poly-fill JSON
       Modernizr.load({
@@ -3691,22 +3690,7 @@ function submitAction(keyword, action) {
             log('Modernizr.load(): XSLT supported via AJAXSLT');
             dfrdXSLT.resolve();
           }
-      // load History.JS, required for all navigation and state management
-      Modernizr.load({
-        test: Modernizr.history && !(/ Mobile\/([1-7][a-z]|(8([abcde]|f(1[0-8]))))/i).test(navigator.userAgent), // need HTML4 support on pre-4.3 iOS
-        yep: _Blink.cdnp.getURL('historyjs/history-1.7.1-r2.html5.min.js'),
-        nope: _Blink.cdnp.getURL('historyjs/history-1.7.1-r2.min.js'),
-        callback: function(url, result, key) {
-          if (window.History) {
-            log('Modernizr.load(): History.JS loaded for ' + (result ? 'HTML5' : 'HTML4+5'));
-            dfrdHistory.resolve();
-          } else {
-            error('Modernizr.load(): failed to load History.JS');
-            dfrdHistory.reject();
-          }
-        }
-      });
-      $.when(dfrdJSON.promise(), dfrdXPath.promise(), dfrdXSLT.promise(), dfrdHistory.promise())
+      $.when(dfrdJSON.promise(), dfrdXPath.promise(), dfrdXSLT.promise())
       .fail(function() {
         $('#startUp-loadPolyFills').addClass('error');
         $('#startUp').append('<p>error: refresh the application or clear cache and try again</p>');
