@@ -150,6 +150,36 @@
     var xml = $.parseXML('<xml />');
     return !!window.XPathResult && !!xml.evaluate;
   });
+
+  Modernizr.addTest('documentfragment', function() {
+    var outerFragment,
+    innerFragment,
+    p;
+
+    try {
+      p = document.createElement('p');
+
+      outerFragment = document.createDocumentFragment();
+      innerFragment = document.createDocumentFragment();
+
+      innerFragment.appendChild(p);
+      outerFragment.appendChild(innerFragment);
+
+      // intermediate fragments are supposed to be destroyed
+      if (p.parentNode !== outerFragment) {
+        return false;
+      }
+      if (innerFragment.parentNode === outerFragment) {
+        return false;
+      }
+
+      return true;
+
+    } catch (error) {
+      return false;
+    }
+
+  });
 }(this));
 
 /* convenient additions to the String prototype*/
@@ -388,7 +418,7 @@
   };
 
   /*
-   * @param {String} string the (X)HTML or text to append to the selected element
+   * @param {String} string (X)HTML or text to append to the selected element
    * @param {Number} attempts number of times to try
    * @param {String} [needle] resulting HTML must include this for success
    * @param {Number} [lastIndex] only used internally
@@ -417,7 +447,8 @@
     });
     MyAnswers.dispatch.add(function() {
       var html = $element.html();
-      if ($.type(html) !== 'string' || html.length === 0 || html.lastIndexOf(needle) > lastIndex) {
+      if ($.type(html) !== 'string' || !html ||
+          html.lastIndexOf(needle) > lastIndex) {
         deferred.resolve();
       } else if (attempts > 0) {
         $.when($element.appendWithCheck(string, --attempts, needle, lastIndex))
