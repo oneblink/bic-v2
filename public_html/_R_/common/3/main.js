@@ -1264,20 +1264,104 @@ function initialiseAnswerFeatures($view) {
 
 // run after any change to current*
 function updateCurrentConfig() {
-  // see: https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
+  var configs = [],
+      features = _.clone(deviceVars.features),
+      isRotating = $.inArray('portrait', deviceVars.features) !== -1 &&
+          $.inArray('landscape', deviceVars.features) !== -1,
+      a = 'a' + siteVars.id,
+      m = 'm' + currentMasterCategory,
+      c = 'c' + currentCategory,
+      i = 'i' + currentInteraction,
+      object,
+      /**
+       * for use with jQuery.map()
+       * @param {String} value the complete override string.
+       * @param {Number} index (not used).
+       * @return {String|Null} original value upon match, else null.
+       */
+      isFeatureMatch = function(value, index) {
+        // overrides are made up of mandatory sets
+        var sets = value.split('+'),
+            s, sLength = sets.length,
+            options, o, oLength,
+            isSetPresent,
+            isOptionPresent;
+
+        for (s = 0; s < sLength; s++) {
+          options = sets[s].split('|');
+          oLength = options.length;
+          isSetPresent = true;
+          isOptionPresent = false;
+
+          if (sets[s].indexOf('|') !== -1) {
+            // set contains multiple options (at least one must match)
+            for (o = 0; o < oLength; o++) {
+              if ($.inArray(options[o], features) !== -1) {
+                isOptionPresent = true;
+                break;
+              }
+            }
+            if (!isOptionPresent) {
+              isSetPresent = false;
+            }
+          } else if ($.inArray(sets[s], features) === -1) {
+            // set is simply a single condition
+            isSetPresent = false;
+          }
+          if (!isSetPresent) {
+            // part of the override did not match, exit early
+            return null;
+          }
+        }
+        // the entire override matches current features
+        return value;
+      },
+      /**
+       * @param {Array} overrides names of configuration sections.
+       */
+      sortOverrides = function(overrides) {
+
+      },
+      /**
+       * for use with jQuery.each()
+       * @param {Number} index 0-based position of value (not used).
+       * @param {String} value name of the particular override section.
+       */
+      pushConfig = function(index, value) {
+        configs.push(object[value]);
+      };
+
   // TODO: need to fold orientation-specific config into this somewhere
-  log('updateCurrentConfig(): a=' + siteVars.id + ' mc=' + currentMasterCategory + ' c=' + currentCategory + ' i=' + currentInteraction);
+  log('updateCurrentConfig(): ' + a + ' ' + m + ' ' + c + ' ' + i);
   currentConfig = {};
-  $.extend(currentConfig, siteVars.config['a' + siteVars.id].pertinent);
-  if (typeof currentMasterCategory !== 'undefined' && currentMasterCategory !== null) {
-    $.extend(currentConfig, siteVars.config['m' + currentMasterCategory].pertinent);
+  configs.push(currentConfig);
+  // setting current orientation
+  if (isRotating) {
+    features = _.without(features, 'portrait', 'landscape');
+    features.push(MyAnswers.orientation);
   }
-  if (typeof currentCategory !== 'undefined' && currentCategory !== null) {
-    $.extend(currentConfig, siteVars.config['c' + currentCategory].pertinent);
-  }
-  if (typeof currentInteraction !== 'undefined' && currentInteraction !== null) {
-    $.extend(currentConfig, siteVars.config['i' + currentInteraction].pertinent);
-  }
+  // populate the stack with configs we need to consider
+  $.each([a, m, c, i], function(index, id) {
+    var overrides,
+        isSimple;
+
+    object = siteVars.config[id];
+    if (!object || !$.isObject(object)) {
+      return;
+    }
+    overrides = _.keys(object);
+    isSimple = overrides.length === 1 && overrides[0] === 'pertinent';
+    if (isSimple) {
+      configs.push(object.pertinent);
+    } else {
+      configs.push(object.pertinent);
+      overrides = $.map(overrides, isFeatureMatch);
+      // TODO: rank overrides in order of specificity
+      $.each(overrides, pushConfig);
+    }
+  });
+  // flatten the stack
+  $.extend.apply(this, configs);
   // perform inherited changes
   MyAnswers.dispatch.add(function() {
     var $banner = $('#bannerBox'),
@@ -2970,16 +3054,36 @@ function submitAction(keyword, action) {
   /* *** EVENT HANDLERS *** */
 
   function onOrientationChange(event) {
+    var screenX,
+        screenY,
+        windowX,
+        windowY,
+        orientation,
+        oldOrientation = MyAnswers.orientation,
+        isRotated;
+
     if ($.inArray('ios', deviceVars.features) !== -1
         && Math.abs(window.orientation || 0) === 90) {
-      MyAnswers.screenX = window.screen.height;
-      MyAnswers.screenY = window.screen.width;
+      screenX = window.screen.height;
+      screenY = window.screen.width;
     } else {
-      MyAnswers.screenX = window.screen.width;
-      MyAnswers.screenY = window.screen.height;
+      screenX = window.screen.width;
+      screenY = window.screen.height;
     }
-    MyAnswers.windowX = window.innerWidth;
-    MyAnswers.windowY = window.innerHeight;
+    windowX = window.innerWidth;
+    windowY = window.innerHeight;
+    orientation = windowX > windowY ? 'landscape' : 'portrait';
+    $.extend(MyAnswers, {
+      screenX: screenX,
+      screenY: screenY,
+      windowX: windowX,
+      windowY: windowY,
+      orientation: orientation
+    });
+    if (oldOrientation && oldOrientation !== orientation) {
+      log('onOrientationChange(): rotated!');
+      updateCurrentConfig();
+    }
     $window.trigger('scroll');
   }
 
