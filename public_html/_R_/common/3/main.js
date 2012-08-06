@@ -1317,10 +1317,15 @@ function updateCurrentConfig() {
         return value;
       },
       /**
-       * @param {Array} overrides names of configuration sections.
+       * @param {Array} override names of configuration sections.
+       * @return {Number} weight for Underscore.sortBy().
        */
-      sortOverrides = function(overrides) {
-
+      sortOverrides = function(override) {
+        if (!override || typeof override !== 'string' ||
+            override.indexOf('+') === -1) {
+          return 0;
+        }
+        return override.match(/\+/g).length;
       },
       /**
        * for use with jQuery.each()
@@ -1356,7 +1361,7 @@ function updateCurrentConfig() {
     } else {
       configs.push(object.pertinent);
       overrides = $.map(overrides, isFeatureMatch);
-      // TODO: rank overrides in order of specificity
+      overrides = _.sortBy(overrides, sortOverrides);
       $.each(overrides, pushConfig);
     }
   });
@@ -1422,6 +1427,23 @@ function updateCurrentConfig() {
       $style.text(style);
     }
   });
+  MyAnswers.dispatch.add(function() {
+    var $view = $('.view:visible').first(),
+        level;
+    if ($view.hasClass('listing')) {
+      switch ($view.attr('id')) {
+      case 'masterCategoriesView':
+        level = 'masterCategories';
+        break;
+      case 'categoriesView':
+        level = 'categories';
+        break;
+      default:
+        level = 'interactions';
+      }
+      MyAnswers.populateItemListing(level, $view);
+    }
+  });
 }
 
 (function(window) {
@@ -1459,9 +1481,10 @@ function updateCurrentConfig() {
       category, columns, $images,
       itemConfig;
     hook.interactions = function($item) {
-      var id = $item.attr('data-id');
-      if (siteVars.config['i' + id].pertinent.type === 'hyperlink' && siteVars.config['i' + id].pertinent.hyperlink) {
-        $item.attr('data-hyperlink', siteVars.config['i' + id].pertinent.hyperlink);
+      var id = $item.attr('data-id'),
+          pertinent = siteVars.config['i' + id].pertinent;
+      if (pertinent.type === 'hyperlink' && pertinent.hyperlink) {
+        $item.attr('data-hyperlink', pertinent.hyperlink);
         $item.bind('click', onHyperlinkClick);
       } else {
         $item.bind('click', onKeywordClick);
