@@ -150,6 +150,56 @@
     var xml = $.parseXML('<xml />');
     return !!window.XPathResult && !!xml.evaluate;
   });
+
+  Modernizr.addTest('documentfragment', function() {
+    var outerFragment,
+    innerFragment,
+    p;
+
+    try {
+      p = document.createElement('p');
+
+      outerFragment = document.createDocumentFragment();
+      innerFragment = document.createDocumentFragment();
+
+      innerFragment.appendChild(p);
+      outerFragment.appendChild(innerFragment);
+
+      // intermediate fragments are supposed to be destroyed
+      if (p.parentNode !== outerFragment) {
+        return false;
+      }
+      if (innerFragment.parentNode === outerFragment) {
+        return false;
+      }
+
+      return true;
+
+    } catch (error) {
+      return false;
+    }
+
+  });
+}(this));
+
+/* convenient additions to the String prototype*/
+(function(window) {
+  var String = window.String;
+  String.prototype.hasEntities = function() {
+    var string = this;
+    if (string.indexOf('&') === -1) {
+      return false;
+    }
+  // TODO: use RegExp to properly detect HTML Entities
+  };
+  String.prototype.repeat = function(occurrences) {
+    var string = '',
+    o;
+    for (o = 0; o < occurrences; o++) {
+      string += this;
+    }
+    return string;
+  };
 }(this));
 
 /* minor improvements to Math */
@@ -209,7 +259,8 @@
   'use strict';
   /*jslint nomen: true*/
   var $ = window.jQuery,
-      _oldAttr = $.fn.attr;
+      _oldAttr = $.fn.attr,
+      _show = $.fn.show;
   /* END: var */
 
   /**
@@ -312,6 +363,20 @@
     return _oldAttr.apply(this, arguments);
   };
 
+  // TODO: remove this backwards-compatibility later
+  $.fn.show = function() {
+    this.removeAttr('hidden');
+    this.removeClass('hidden');
+    return _show.apply(this, arguments);
+  };
+
+  $.fn.isHidden = function() {
+    if (this.prop('hidden') || this.hasClass('hidden')) {
+      return true;
+    }
+    return this[0] && this[0].style && this[0].style.display === 'none';
+  };
+
   // return just the element's HTML tag (no attributes or innerHTML)
   $.fn.tag = function() {
     var tag;
@@ -353,7 +418,7 @@
   };
 
   /*
-   * @param {String} string the (X)HTML or text to append to the selected element
+   * @param {String} string (X)HTML or text to append to the selected element
    * @param {Number} attempts number of times to try
    * @param {String} [needle] resulting HTML must include this for success
    * @param {Number} [lastIndex] only used internally
@@ -382,7 +447,8 @@
     });
     MyAnswers.dispatch.add(function() {
       var html = $element.html();
-      if ($.type(html) !== 'string' || html.length === 0 || html.lastIndexOf(needle) > lastIndex) {
+      if ($.type(html) !== 'string' || !html ||
+          html.lastIndexOf(needle) > lastIndex) {
         deferred.resolve();
       } else if (attempts > 0) {
         $.when($element.appendWithCheck(string, --attempts, needle, lastIndex))
@@ -396,6 +462,18 @@
   };
   /*jslint regexp: false*/
 
+  $.fn.childrenAsProperties = function() {
+    var properties = {};
+    $(this).children().each(function(index, element) {
+      var $element = $(element),
+      name = $element.tag(),
+      value = $element.text();
+      if (name.length > 0 && value.length > 0) {
+        properties[name] = value;
+      }
+    });
+    return properties;
+  };
 
   /*jslint nomen: false*/
 }(this));

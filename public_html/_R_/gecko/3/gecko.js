@@ -69,7 +69,7 @@ function init_device() {
                 });
                 $view.show();
                 if (window.currentConfig.footerPosition !== 'screen-bottom') {
-              MyAnswers.$body.children('footer').addClass('hidden');
+              MyAnswers.$body.children('footer').hide();
                 }
                 $navBoxHeader.find('button').prop('disabled', true);
                 deferred.resolve();
@@ -92,14 +92,14 @@ function init_device() {
                         $view.css('z-index', '');
                         $view.css('position', '');
                         updateNavigationButtons();
-                        MyAnswers.$body.children('footer').removeClass('hidden');
+                        MyAnswers.$body.children('footer').show();
                         deferred.resolve();
               });
                 } else {
               $view.css('z-index', '');
               $view.css('position', '');
               updateNavigationButtons();
-              MyAnswers.$body.children('footer').removeClass('hidden');
+              MyAnswers.$body.children('footer').show();
               deferred.resolve();
                 }
           });

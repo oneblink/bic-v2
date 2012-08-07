@@ -41,22 +41,6 @@ function init_device() {
       $(window).trigger('scroll');
     });
   }
-  if (Modernizr.touch && !Modernizr.positionfixed) {
-    document.body.addEventListener('touchmove', function(event) {
-      var touch;
-      if (event.touches.length === 1) {
-        touch = event.touches[0];
-        $navBar.addClass('hidden');
-        MyAnswers.$footer.addClass('hidden');
-      }
-    }, false);
-    document.body.addEventListener('touchend', function(event) {
-      if ($navBar.children().not('.hidden').length > 0) {
-        $navBar.removeClass('hidden');
-      }
-      MyAnswers.$footer.removeClass('hidden');
-    }, false);
-  }
   $('#startUp-initDevice').addClass('success');
 }
 
@@ -108,7 +92,7 @@ function onDeviceReady() {
                 /* END: var */
                 // transition the current view away
                 if (window.currentConfig.footerPosition !== 'screen-bottom') {
-              MyAnswers.$body.children('footer').addClass('hidden');
+              MyAnswers.$body.children('footer').hide();
                 }
                 if ($oldView.size() < 1) {
               deferred.resolve();
@@ -158,7 +142,7 @@ function onDeviceReady() {
               $view.removeClass('animating');
               MyAnswers.dispatch.resume('showView');
               updateNavigationButtons();
-              MyAnswers.$body.children('footer').removeClass('hidden');
+              MyAnswers.$body.children('footer').show();
               deferred.resolve();
                 });
                 setTimeout(function() {

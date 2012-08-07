@@ -1,5 +1,5 @@
 CACHE MANIFEST 
-# svn revision 4000
+# svn revision 4720
 
 CACHE:
 //d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/dom.min.js.gz
@@ -10,7 +10,6 @@ CACHE:
 //d1c6dfkb81l78v.cloudfront.net/blink/iframeUpload-1.js.gz
 //d1c6dfkb81l78v.cloudfront.net/css/blink2010reset.css.gz
 //d1c6dfkb81l78v.cloudfront.net/css/blink2011reset.css.gz
-//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.html5.min.js.gz
 //d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.min.js.gz
 //d1c6dfkb81l78v.cloudfront.net/jquery-ui/1.8.21/js/core.min.js.gz
 //d1c6dfkb81l78v.cloudfront.net/jquery-ui/1.8.21/js/effects.min.js.gz
