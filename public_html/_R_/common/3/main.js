@@ -1428,7 +1428,7 @@ function updateCurrentConfig() {
     }
   });
   MyAnswers.dispatch.add(function() {
-    var $view = $('.view:visible').first(),
+    var $view = $('.view:visible').last(),
         level;
     if ($view.hasClass('listing')) {
       switch ($view.attr('id')) {
