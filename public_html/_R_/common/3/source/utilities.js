@@ -105,84 +105,7 @@
   }
 }(this));
 
-/* new tests for Modernizr */
-(function(window) {
-  'use strict';
-  var Modernizr = window.Modernizr,
-      document = window.document,
-      $ = window.jQuery;
-  /* END: var */
-
-  if (!Modernizr) {
-    window.warn('Blink Modernizr tests need Modernizr to be included first.');
-    return;
-  }
-
-  Modernizr.addTest('positionfixed', function() {
-    var test = document.createElement('div'),
-        fake = false,
-        root = document.body || (function() {
-          fake = true;
-          return document.documentElement.appendChild(document.createElement('body'));
-        }()),
-        oldCssText = root.style.cssText,
-        ret, offset;
-    /* END: var */
-    root.style.cssText = 'height: 3000px; margin: 0; padding; 0;';
-    test.style.cssText = 'position: fixed; top: 100px';
-    root.appendChild(test);
-    window.scrollTo(0, 500);
-    offset = $(test).offset();
-    ret = offset.top === 600; // 100 + 500
-    if (!ret && typeof test.getBoundingClientRect !== 'undefined') {
-      ret = test.getBoundingClientRect().top === 100;
-    }
-    root.removeChild(test);
-    root.style.cssText = oldCssText;
-    window.scrollTo(0, 1);
-    if (fake) {
-      document.documentElement.removeChild(root);
-    }
-    return ret;
-  });
-
-  Modernizr.addTest('xpath', function() {
-    var xml = $.parseXML('<xml />');
-    return !!window.XPathResult && !!xml.evaluate;
-  });
-
-  Modernizr.addTest('documentfragment', function() {
-    var outerFragment,
-    innerFragment,
-    p;
-
-    try {
-      p = document.createElement('p');
-
-      outerFragment = document.createDocumentFragment();
-      innerFragment = document.createDocumentFragment();
-
-      innerFragment.appendChild(p);
-      outerFragment.appendChild(innerFragment);
-
-      // intermediate fragments are supposed to be destroyed
-      if (p.parentNode !== outerFragment) {
-        return false;
-      }
-      if (innerFragment.parentNode === outerFragment) {
-        return false;
-      }
-
-      return true;
-
-    } catch (error) {
-      return false;
-    }
-
-  });
-}(this));
-
-/* convenient additions to the String prototype*/
+//* convenient additions to the String prototype*/
 (function(window) {
   var String = window.String;
   String.prototype.hasEntities = function() {
@@ -527,6 +450,53 @@
       return cfg.PREFIX_GZ + path + cfg.SUFFIX_GZ;
     };
     return this;
+  };
+
+  /**
+   * use a hidden <iframe> to load a page,
+   * deleting the iframe when the page's <body> gains the "s-ready" class
+   * @param {String} src URL for the HTML content to be loaded.
+   */
+  _Blink.preloadPage = function(src) {
+    var $iframe = $('<iframe></iframe>'),
+        checkCountdown = 30,
+        iframeWindow,
+        onReadyFn = function() {
+          $iframe.remove();
+        },
+        testReadyFn = function() {
+          checkCountdown--;
+          if ($(iframeWindow.document.body).hasClass('s-ready')) {
+            onReadyFn();
+          } else if (checkCountdown < 0) {
+            warn('preloadPage(): timed out waiting for "s-ready"');
+            onReadyFn();
+          } else {
+            setTimeout(testReadyFn, 2000);
+          }
+        };
+
+    $iframe.attr({
+      height: 10,
+      width: 10,
+      'src': src
+    });
+    $iframe.css({
+      position: 'absolute',
+      top: '-50px',
+      left: '-50px'
+    });
+    $('body').append($iframe);
+    iframeWindow = $iframe[0].contentWindow;
+    if ($.isWindow(iframeWindow) && iframeWindow.document) {
+      if ($(iframeWindow.document.body).hasClass('s-ready')) {
+        onReadyFn();
+      } else {
+        setTimeout(testReadyFn, 2000);
+      }
+    } else {
+      warn('preloadPage(): unable to find Window or Document in <iframe>');
+    }
   };
 
   // export singleton to global namespace
