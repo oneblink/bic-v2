@@ -1510,53 +1510,53 @@ function updateCurrentConfig() {
         $item.bind('click', onMasterCategoryClick);
       }
     };
-    $view.children('.box:not(.welcomeBox)').remove();
-    $visualBox = $('<div class="box bordered" />');
-    $listBox = $('<ul class="box" />');
-    switch (level) {
-      case 'masterCategories':
-        arrangement = currentConfig.masterCategoriesArrangement;
-        display = currentConfig.masterCategoriesDisplay;
-        order = siteVars.map.masterCategories;
-        list = order;
-        type = 'm';
-        break;
-      case 'categories':
-        arrangement = currentConfig.categoriesArrangement;
-        display = currentConfig.categoriesDisplay;
-        order = siteVars.map.categories;
-        list = siteVars.map['m' + currentMasterCategory] || order;
-        type = 'c';
-        break;
-      case 'interactions':
-        arrangement = currentConfig.interactionsArrangement;
-        display = currentConfig.interactionsDisplay;
-        order = siteVars.map.interactions;
-        list = siteVars.map['c' + currentCategory] || order;
-        type = 'i';
-        break;
-    }
-    if ($view.attr('id') === 'BlinkSideBar') {
-      arrangement = 'list';
-      display = currentConfig.sidebarDisplay;
-    }
-    log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
-    switch (arrangement) {
-      case 'list':
-        columns = 1;
-        break;
-      case '2 column':
-        columns = 2;
-        break;
-      case '3 column':
-        columns = 3;
-        break;
-      case '4 column':
-        columns = 4;
-        break;
-    }
-    oLength = order.length;
     MyAnswers.dispatch.add(function() {
+      $view.children('.box:not(.welcomeBox)').remove();
+      $visualBox = $('<div class="box bordered" />');
+      $listBox = $('<ul class="box" />');
+      switch (level) {
+        case 'masterCategories':
+          arrangement = currentConfig.masterCategoriesArrangement;
+          display = currentConfig.masterCategoriesDisplay;
+          order = siteVars.map.masterCategories;
+          list = order;
+          type = 'm';
+          break;
+        case 'categories':
+          arrangement = currentConfig.categoriesArrangement;
+          display = currentConfig.categoriesDisplay;
+          order = siteVars.map.categories;
+          list = siteVars.map['m' + currentMasterCategory] || order;
+          type = 'c';
+          break;
+        case 'interactions':
+          arrangement = currentConfig.interactionsArrangement;
+          display = currentConfig.interactionsDisplay;
+          order = siteVars.map.interactions;
+          list = siteVars.map['c' + currentCategory] || order;
+          type = 'i';
+          break;
+      }
+      if ($view.attr('id') === 'BlinkSideBar') {
+        arrangement = 'list';
+        display = currentConfig.sidebarDisplay;
+      }
+      log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
+      switch (arrangement) {
+        case 'list':
+          columns = 1;
+          break;
+        case '2 column':
+          columns = 2;
+          break;
+        case '3 column':
+          columns = 3;
+          break;
+        case '4 column':
+          columns = 4;
+          break;
+      }
+      oLength = order.length;
       for (o = 0; o < oLength; o++) {
         itemConfig = siteVars.config[type + order[o]];
         if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
@@ -1604,8 +1604,6 @@ function updateCurrentConfig() {
         }
         $visualBox.appendTo($view);
       }
-    });
-    MyAnswers.dispatch.add(function() {
       if ($listBox.children().size() > 0) {
         $listBox.appendTo($view);
       }
