@@ -499,6 +499,23 @@
     }
   };
 
+  /**
+   * Convert a DOM HTML or XML Node into an XML String.
+   * @param {Node} node XML or HTML Node to convert.
+   * @return {String} XML String.
+   */
+  _Blink.stringifyDOM = function(node) {
+    var xmlSerializer;
+    if (node.xml) {
+      return node.xml;
+    }
+    if (window.XMLSerializer) {
+      xmlSerializer = new window.XMLSerializer();
+      return xmlSerializer.serializeToString(node);
+    }
+    return null;
+  };
+
   // export singleton to global namespace
   window._Blink.cdnp = new PlatformCDN();
 

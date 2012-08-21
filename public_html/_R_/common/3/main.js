@@ -1775,7 +1775,6 @@ function processForms() {
   libraryDeferred = new $.Deferred(),
   promises = [libraryDeferred.promise(), ajaxDeferred.promise()],
   validActions = ['add', 'delete', 'edit', 'find', 'list', 'search', 'view'],
-  xmlserializer = new window.XMLSerializer(), // TODO: find a cross-browser way to do this
   /* @inner */
   formActionFn = function(id, element) {
     var dfrd = new $.Deferred();
@@ -1784,10 +1783,14 @@ function processForms() {
         action = $action.tag(),
         storeKey = 'formXML:' + id + ':' + action,
         $children = $action.children(), c, cLength = $children.length,
+        xml,
         html = '';
       if (validActions.indexOf($action.tag()) !== -1) {
         for (c = 0; c < cLength; c++) {
-          html += xmlserializer.serializeToString($children[c]);
+          xml = _Blink.stringifyDOM($children[c]);
+          if (xml) {
+            html += xml;
+          }
         }
         $.when(MyAnswers.store.set(storeKey, html))
         .fail(function() {
@@ -3576,10 +3579,9 @@ function submitAction(keyword, action) {
 
       // hook orientation events
       if (Modernizr.orientation) {
-        window.addEventListener('orientationchange', onOrientationChange, false);
-      } else {
-        window.addEventListener('resize', onOrientationChange, false);
+        $window.on('orientationchange', onOrientationChange);
       }
+      $window.on('resize', onOrientationChange);
       onOrientationChange();
 
       $window.bind('statechange', function(event) {
