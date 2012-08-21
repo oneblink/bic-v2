@@ -250,7 +250,9 @@ function resolveItemName(name, level) {
 function performXSLT(xmlString, xslString) {
   var deferred = new $.Deferred(function(dfrd) {
     var html, xml, xsl,
-        xsltProcessor;
+        processor,
+        transformer,
+        ActiveXObject = window.ActiveXObject;
     if (typeof xmlString !== 'string' || typeof(xslString) !== 'string') {
       dfrd.reject('XSLT failed due to poorly formed XML or XSL.');
       return;
@@ -266,10 +268,14 @@ function performXSLT(xmlString, xslString) {
      * being constructed entirely on your device.</p><p>Please wait...</p>'; }
      */
     if (window.XSLTProcessor) {
-      log('performXSLT(): performing XSLT via XSLTProcessor()');
-      xsltProcessor = new window.XSLTProcessor();
-      xsltProcessor.importStylesheet(xsl);
-      html = xsltProcessor.transformToFragment(xml, document);
+      log('performXSLT(): performing XSLT via XSLTProcessor (W3C)');
+      processor = new window.XSLTProcessor();
+      processor.importStylesheet(xsl);
+      html = processor.transformToFragment(xml, document);
+    } else if (typeof xml.transformNode !== 'undefined') {
+      // have to use typeof here, checking for "truthy" breaks in IE
+      log('performXSLT(): performing XSLT via transformNode (IE)');
+      html = xml.transformNode(xsl);
     } else if (window.xsltProcess) {
       log('performXSLT(): performing XSLT via AJAXSLT library');
       html = window.xsltProcess(xml, xsl);
@@ -590,7 +596,6 @@ function onStarClick(event)
 }
 
 function onLinkClick(event) {
-  log('onLinkClick(): ' + $(this).tagHTML());
   var $element = $(this),
   a, attributes = $element.attr(),
   id,
@@ -598,81 +603,86 @@ function onLinkClick(event) {
   isPushState = true, // false if we should replace instead of push the state
   data = null, title = null, url = null, // arguments for History
   parts; // variables for working with legacy links
-  /* END: var */
-  // turn any legacy links into new format before continuing
-  if (typeof attributes.href === 'string' && attributes.href.indexOf('showSecondLevelAnswerView(') !== -1) {
-    attributes.href = attributes.href.replace(/^javascript:showSecondLevelAnswerView\(/, '').replace(/\)[\s;]*$/, '');
-    parts = explode(',', attributes.href, 2);
-    attributes.interaction = parts[0].replace(/^(?:'|")(.*)(?:'|")$/g, '$1');
-    $.each(deserialize(parts[1].replace(/^(?:'|")(.*)(?:'|")$/g, '$1')), function(key, value) {
-      attributes[key] = value;
-    });
-    delete attributes.href;
-  }
-  // process link
-  if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
-    if (typeof attributes.back !== 'undefined') {
-      History.back();
+
+  try {
+    log('onLinkClick(): ' + $(this).tagHTML());
+    // turn any legacy links into new format before continuing
+    if (typeof attributes.href === 'string' && attributes.href.indexOf('showSecondLevelAnswerView(') !== -1) {
+      attributes.href = attributes.href.replace(/^javascript:showSecondLevelAnswerView\(/, '').replace(/\)[\s;]*$/, '');
+      parts = explode(',', attributes.href, 2);
+      attributes.interaction = parts[0].replace(/^(?:'|")(.*)(?:'|")$/g, '$1');
+      $.each(deserialize(parts[1].replace(/^(?:'|")(.*)(?:'|")$/g, '$1')), function(key, value) {
+        attributes[key] = value;
+      });
+      delete attributes.href;
+    }
+    // process link
+    if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
+      if (typeof attributes.back !== 'undefined') {
+        History.back();
+        return false;
+      }
+      if (typeof attributes.home !== 'undefined') {
+        url = '/' + siteVars.answerSpace + '/';
+      } else if (typeof attributes.login !== 'undefined') {
+        data = {login: true};
+      } else if (attributes.interaction || attributes.keyword) {
+        id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
+        if (id) {
+          $.each(attributes, function(key, value) {
+            if (key.substr(0, 1) === '_') {
+              attributes['args[' + key.substr(1) + ']'] = value;
+              delete attributes[key];
+            }
+          });
+          delete attributes.interaction;
+          delete attributes.keyword;
+          delete attributes.style;
+          delete attributes['class'];
+          if (attributes['data-submit-stars-type']) {
+            attributes._submitStarsType = $element.data('submitStarsType');
+            attributes._submitStarsPost = $element.data('submitStarsPost') || 'stars';
+          }
+          url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
+          data = {m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes};
+        }
+      } else if (typeof attributes.category !== 'undefined') {
+        id = resolveItemName(attributes.category, 'categories');
+        if (id) {
+          url = '/' + siteVars.answerSpace + '/?_c=' + id;
+          data = {m: currentMasterCategory, c: id};
+        }
+      } else if (typeof attributes.mastercategory !== 'undefined') {
+        id = resolveItemName(attributes.mastercategory, 'masterCategories');
+        if (id) {
+          url = '/' + siteVars.answerSpace + '/?_m=' + id;
+          data = {m: id};
+        }
+      }
+      // TODO: find a more efficient way to decide if we need to make the state unique
+      if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
+        isUnique = true;
+        isPushState = false;
+        // TODO: double-check which BlinkLive buttons need separate History states
+      }
+      if (isUnique) { // we need to make the state unique somehow
+        if ($.type(data) === 'object') {
+          data._timestamp = $.now();
+        } else {
+          data = {_timestamp: $.now()};
+        }
+      }
+      if (data || url) { // make sure we actually have a state to push
+        if (isPushState) {
+          History.pushState(data, title, url);
+        } else {
+          History.replaceState(data, title, url);
+        }
+      }
       return false;
     }
-    if (typeof attributes.home !== 'undefined') {
-      url = '/' + siteVars.answerSpace + '/';
-    } else if (typeof attributes.login !== 'undefined') {
-      data = {login: true};
-    } else if (attributes.interaction || attributes.keyword) {
-      id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
-      if (id) {
-        $.each(attributes, function(key, value) {
-          if (key.substr(0, 1) === '_') {
-            attributes['args[' + key.substr(1) + ']'] = value;
-            delete attributes[key];
-          }
-        });
-        delete attributes.interaction;
-        delete attributes.keyword;
-        delete attributes.style;
-        delete attributes['class'];
-        if (attributes['data-submit-stars-type']) {
-          attributes._submitStarsType = $element.data('submitStarsType');
-          attributes._submitStarsPost = $element.data('submitStarsPost') || 'stars';
-        }
-        url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
-        data = {m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes};
-      }
-    } else if (typeof attributes.category !== 'undefined') {
-      id = resolveItemName(attributes.category, 'categories');
-      if (id) {
-        url = '/' + siteVars.answerSpace + '/?_c=' + id;
-        data = {m: currentMasterCategory, c: id};
-      }
-    } else if (typeof attributes.mastercategory !== 'undefined') {
-      id = resolveItemName(attributes.mastercategory, 'masterCategories');
-      if (id) {
-        url = '/' + siteVars.answerSpace + '/?_m=' + id;
-        data = {m: id};
-      }
-    }
-    // TODO: find a more efficient way to decide if we need to make the state unique
-    if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
-      isUnique = true;
-      isPushState = false;
-      // TODO: double-check which BlinkLive buttons need separate History states
-    }
-    if (isUnique) { // we need to make the state unique somehow
-      if ($.type(data) === 'object') {
-        data._timestamp = $.now();
-      } else {
-        data = {_timestamp: $.now()};
-      }
-    }
-    if (data || url) { // make sure we actually have a state to push
-      if (isPushState) {
-        History.pushState(data, title, url);
-      } else {
-        History.replaceState(data, title, url);
-      }
-    }
-    return false;
+  } catch (error) {
+    error('Error in onLinkClick handler...');
   }
   return true;
 }
@@ -1096,74 +1106,78 @@ MyAnswers.gotoDefaultScreen = function() {
 
 function updateNavigationButtons() {
   MyAnswers.dispatch.add(function() {
-    var $navBars = $('.navBar'),
-        $navButtons = $('#homeButton, #backButton'),
-        $helpButton = $('#helpButton'),
-        $formsButton = $('#pendingButton'),
-        helpContents,
-        isHelp,
-        isLogin = siteVars.hasLogin,
-        isHome = window.isHome(),
-        isNoNavButtons = isHome || MyAnswers.isEmptySpace || MyAnswers.isLoginOnly,
-        isNoNavBar,
-        dfrdForms;
-    /* END: var */
-    // determine if we need the help button
-    switch ($('.view:visible').first().attr('id'))
-    {
-      case 'keywordView':
-      case 'answerView':
-      case 'answerView2':
-        if (currentInteraction) {
-          helpContents = siteVars.config['i' + currentInteraction].pertinent.help;
-        }
-        break;
-      case 'helpView':
-        helpContents = null;
-        break;
-      default:
-        helpContents = siteVars.config['a' + siteVars.id];
-        break;
-    }
-    isHelp = typeof helpContents === 'string';
-    if (isHelp) {
-      $helpButton.show();
-      $helpButton.removeAttr('disabled');
-    } else {
-      $helpButton.hide();
-    }
-    // determine if we need to count the active forms in the queue
-    if ($formsButton.length > 0 && isNoNavButtons) {
-      dfrdForms = countPendingForms();
-    } else {
-      dfrdForms = true;
-    }
-    $.when(dfrdForms) // after we've counted the forms (if necessary), ...
-    .always(function(formsCount) {
-          if (typeof formsCount !== 'number') {
-            formsCount = 0;
+    try {
+      var $navBars = $('.navBar'),
+          $navButtons = $('#homeButton, #backButton'),
+          $helpButton = $('#helpButton'),
+          $formsButton = $('#pendingButton'),
+          helpContents,
+          isHelp,
+          isLogin = siteVars.hasLogin,
+          isHome = window.isHome(),
+          isNoNavButtons = isHome || MyAnswers.isEmptySpace || MyAnswers.isLoginOnly,
+          isNoNavBar,
+          dfrdForms;
+      /* END: var */
+      // determine if we need the help button
+      switch ($('.view:visible').first().attr('id'))
+      {
+        case 'keywordView':
+        case 'answerView':
+        case 'answerView2':
+          if (currentInteraction) {
+            helpContents = siteVars.config['i' + currentInteraction].pertinent.help;
           }
-          isNoNavBar = isNoNavButtons && !isLogin && !isHelp && !formsCount;
-          if (isNoNavBar) {
-            $navBars.hide();
-          } else if (isNoNavButtons) {
-            $navBars.show();
-            $navButtons.hide();
-          } else {
-            $navButtons.show();
-            $navButtons.prop('disabled', false);
-            $navBars.show();
-          }
-        });
-    $('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
-    // update data suitcases if necessary
-    if (isHome && MyAnswers.dfrdMoJOs.isResolved()) {
-      processMoJOs();
-    }
-    // update the sidebar
-    MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
-    if (MyAnswers.sideBar) {
-      MyAnswers.sideBar.update();
+          break;
+        case 'helpView':
+          helpContents = null;
+          break;
+        default:
+          helpContents = siteVars.config['a' + siteVars.id];
+          break;
+      }
+      isHelp = typeof helpContents === 'string';
+      if (isHelp) {
+        $helpButton.show();
+        $helpButton.removeAttr('disabled');
+      } else {
+        $helpButton.hide();
+      }
+      // determine if we need to count the active forms in the queue
+      if ($formsButton.length > 0 && isNoNavButtons) {
+        dfrdForms = countPendingForms();
+      } else {
+        dfrdForms = true;
+      }
+      $.when(dfrdForms) // after we've counted the forms (if necessary), ...
+      .always(function(formsCount) {
+            if (typeof formsCount !== 'number') {
+              formsCount = 0;
+            }
+            isNoNavBar = isNoNavButtons && !isLogin && !isHelp && !formsCount;
+            if (isNoNavBar) {
+              $navBars.hide();
+            } else if (isNoNavButtons) {
+              $navBars.show();
+              $navButtons.hide();
+            } else {
+              $navButtons.show();
+              $navButtons.prop('disabled', false);
+              $navBars.show();
+            }
+          });
+      $('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
+      // update data suitcases if necessary
+      if (isHome && MyAnswers.dfrdMoJOs.isResolved()) {
+        processMoJOs();
+      }
+      // update the sidebar
+      MyAnswers.dispatch.add(function() {$(window).trigger('scroll');});
+      if (MyAnswers.sideBar) {
+        MyAnswers.sideBar.update();
+      }
+    } catch (error) {
+      error('Error in updateNavigationButtons...');
     }
   });
 }
@@ -1423,25 +1437,40 @@ function updateCurrentConfig() {
     style += currentConfig.masterCategoriesStyle ? '#masterCategoriesBox > .masterCategory { ' + currentConfig.masterCategoriesStyle + ' }\n' : '';
     style += currentConfig.categoriesStyle ? '#categoriesBox > .category { ' + currentConfig.categoriesStyle + ' }\n' : '';
     style += currentConfig.interactionsStyle ? '#keywordBox > .interaction, #keywordList > .interaction { ' + currentConfig.interactionsStyle + ' }\n' : '';
-    if (style !== $style.text()) {
-      $style.text(style);
+    if (!$style.length) {
+      return;
+    }
+    if ($style[0].styleSheet) {
+      // Internet Explorer 8
+      if (style !== $style[0].styleSheet.cssText) {
+        $style[0].styleSheet.cssText = style;
+      }
+    } else {
+      // other browsers
+      if (style !== $style.text()) {
+        $style.text(style);
+      }
     }
   });
   MyAnswers.dispatch.add(function() {
     var $view = $('.view:visible').last(),
         level;
-    if ($view.hasClass('listing')) {
-      switch ($view.attr('id')) {
-      case 'masterCategoriesView':
-        level = 'masterCategories';
-        break;
-      case 'categoriesView':
-        level = 'categories';
-        break;
-      default:
-        level = 'interactions';
+    try {
+      if ($view.hasClass('listing')) {
+        switch ($view.attr('id')) {
+        case 'masterCategoriesView':
+          level = 'masterCategories';
+          break;
+        case 'categoriesView':
+          level = 'categories';
+          break;
+        default:
+          level = 'interactions';
+        }
+        MyAnswers.populateItemListing(level, $view);
       }
-      MyAnswers.populateItemListing(level, $view);
+    } catch (error) {
+      error('Error in updateCurrentConfig...');
     }
   });
 }
@@ -3584,37 +3613,41 @@ function submitAction(keyword, action) {
       $window.on('resize', onOrientationChange);
       onOrientationChange();
 
-      $window.bind('statechange', function(event) {
+      $window.on('statechange', function(event) {
         var state = History.getState(),
             args = state.data['arguments'];
         // TODO: work out a way to detect Back-navigation so reverse transitions can be used
-        log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
-        if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
-          $.noop(); // do we need to do something if we have fired this early?
-        } else if (state.data.storage) {
-          showPendingView();
-        } else if (siteVars.hasLogin && state.data.login) {
-          showLoginView();
-        } else if (hasInteractions && state.data.i) {
-          if ($.isEmptyObject(args) || args.inputs) {
-            gotoNextScreen(state.data.i);
+        try {
+          log('History.stateChange: ' + $.param(state.data) + ' ' + state.url);
+          if ($.type(siteVars.config) !== 'object' || $.isEmptyObject(currentConfig)) {
+            $.noop(); // do we need to do something if we have fired this early?
+          } else if (state.data.storage) {
+            showPendingView();
+          } else if (siteVars.hasLogin && state.data.login) {
+            showLoginView();
+          } else if (hasInteractions && state.data.i) {
+            if ($.isEmptyObject(args) || args.inputs) {
+              gotoNextScreen(state.data.i);
+            } else {
+              showAnswerView(state.data.i, args);
+            }
+          } else if (hasCategories && state.data.c) {
+            showKeywordListView(state.data.c);
+          } else if (hasMasterCategories && state.data.m) {
+            showCategoriesView(state.data.m);
           } else {
-            showAnswerView(state.data.i, args);
+            if (hasMasterCategories) {
+              showMasterCategoriesView();
+            } else if (hasCategories) {
+              showCategoriesView();
+            } else if (answerSpaceOneKeyword) {
+              gotoNextScreen(siteVars.map.interactions[0]);
+            } else {
+              showKeywordListView();
+            }
           }
-        } else if (hasCategories && state.data.c) {
-          showKeywordListView(state.data.c);
-        } else if (hasMasterCategories && state.data.m) {
-          showCategoriesView(state.data.m);
-        } else {
-          if (hasMasterCategories) {
-            showMasterCategoriesView();
-          } else if (hasCategories) {
-            showCategoriesView();
-          } else if (answerSpaceOneKeyword) {
-            gotoNextScreen(siteVars.map.interactions[0]);
-          } else {
-            showKeywordListView();
-          }
+        } catch (error) {
+          error('Error in onStateChange handler...');
         }
         event.preventDefault();
         return false;
