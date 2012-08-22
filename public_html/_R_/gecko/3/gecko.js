@@ -38,75 +38,103 @@ function init_device() {
 
 (function(window) {
   var $ = window.jQuery,
-      /* @inner */
-      MyAnswersDevice = function() {
-        var me = this;
-        /* END: var */
-        me.hideLocationBar = function() {
-          window.scrollTo(0, 1);
-        };
-        /**
+  /* @inner */
+  MyAnswersDevice = function() {
+    var me = this;
+    /* END: var */
+    me.hideLocationBar = function() {
+      window.scrollTo(0, 1);
+    };
+    /**
          * hide the current view, and prepare the new view for display
          * @param {jQuery} $view the jQuery-selected element that will be shown.
          * @param {Boolean} reverseTransition toggle transition direction.
          * @return {jQueryPromise}
          */
-        me.prepareView = function($view, reverseTransition) {
-          var deferred = new $.Deferred(),
-              $oldView = $('.view:visible').not($view[0]),
-              $navBoxHeader = $('#navBoxHeader');
-          /* END: var */
-          MyAnswers.dispatch.add(function() {
-                // move the incoming $view offscreen for compositing
-                $view.hide();
-                $view.css({
-              'z-index': 0,
-              position: 'absolute'
-                });
-                $oldView.css({
-              'z-index': 50,
-              position: 'absolute'
-                });
-                $view.show();
-                if (window.currentConfig.footerPosition !== 'screen-bottom') {
-              MyAnswers.$body.children('footer').hide();
-                }
-                $navBoxHeader.find('button').prop('disabled', true);
-                deferred.resolve();
+    me.prepareView = function($view, reverseTransition) {
+      var deferred = new $.Deferred(),
+      $oldView = $('.view:visible').not($view[0]),
+      $navBoxHeader = $('#navBoxHeader');
+      /* END: var */
+      MyAnswers.dispatch.add(function() {
+        // move the incoming $view offscreen for compositing
+        $view.hide();
+        $view.css({
+          'z-index': 0,
+          position: 'absolute'
+        });
+        $oldView.css({
+          'z-index': 50,
+          position: 'absolute'
+        });
+        // add information about Interaction to DOM
+        if (currentMasterCategory) {
+          $view.attr({
+            'data-name': siteVars.config['m' + currentMasterCategory].pertinent.name
           });
-          return deferred.promise();
-        };
-        me.showView = function($view, reverseTransition) {
-          var deferred = new $.Deferred(),
-              $oldView = $('.view:visible').not($view[0]),
-              endPosition = (reverseTransition ? 'right' : 'left'),
-              startPosition = (reverseTransition ? 'left' : 'right');
-          /* END: var */
-          me.hideLocationBar();
-          MyAnswers.dispatch.add(function() {
-                if ($oldView.size() !== 0) {
-              // transition the old view away
-              $oldView.hide('slide', { direction: endPosition }, 300, function() {
-                        $oldView.css('z-index', '');
-                        $oldView.css('position', '');
-                        $view.css('z-index', '');
-                        $view.css('position', '');
-                        updateNavigationButtons();
-                        MyAnswers.$body.children('footer').show();
-                        deferred.resolve();
-              });
-                } else {
-              $view.css('z-index', '');
-              $view.css('position', '');
-              updateNavigationButtons();
-              MyAnswers.$body.children('footer').show();
-              deferred.resolve();
-                }
+        } else {
+          $('#categoriesView').removeAttr('data-name');
+        }
+        if (currentCategory) {
+          $view.attr({
+            'data-name': siteVars.config['c' + currentCategory].pertinent.name
           });
-          return deferred.promise();
-        };
-        return me;
-      };
+        } else {
+          $('#keywordListView').removeAttr('data-name');
+        }
+        if (currentInteraction) {
+ 
+          $view.attr({
+            'data-name': siteVars.config['i' + currentInteraction].pertinent.name,
+            'data-type': siteVars.config['i' + currentInteraction].pertinent.type
+          });
+        } else {
+          $('#answerView').removeAttr('data-name');
+          $('#answerView').removeAttr('data-type');  
+        }
+                
+        $view.show();
+        if (window.currentConfig.footerPosition !== 'screen-bottom') {
+          MyAnswers.$body.children('footer').hide();
+        }
+        $navBoxHeader.find('button').prop('disabled', true);
+        deferred.resolve();
+      });
+      return deferred.promise();
+    };
+    me.showView = function($view, reverseTransition) {
+      var deferred = new $.Deferred(),
+      $oldView = $('.view:visible').not($view[0]),
+      endPosition = (reverseTransition ? 'right' : 'left'),
+      startPosition = (reverseTransition ? 'left' : 'right');
+      /* END: var */
+      me.hideLocationBar();
+      MyAnswers.dispatch.add(function() {
+        if ($oldView.size() !== 0) {
+          // transition the old view away
+          $oldView.hide('slide', {
+            direction: endPosition
+          }, 300, function() {
+            $oldView.css('z-index', '');
+            $oldView.css('position', '');
+            $view.css('z-index', '');
+            $view.css('position', '');
+            updateNavigationButtons();
+            MyAnswers.$body.children('footer').show();
+            deferred.resolve();
+          });
+        } else {
+          $view.css('z-index', '');
+          $view.css('position', '');
+          updateNavigationButtons();
+          MyAnswers.$body.children('footer').show();
+          deferred.resolve();
+        }
+      });
+      return deferred.promise();
+    };
+    return me;
+  };
   /* END: var */
   window.MyAnswersDevice = new MyAnswersDevice();
 }(this));
