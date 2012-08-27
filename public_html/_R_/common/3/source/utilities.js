@@ -38,7 +38,6 @@
       fns = ['log', 'error', 'warn', 'info'],
       /**
    * re-route messages now that we are ready
-   * @inner
    */
       initialise = function() {
         $document.off('ready deviceready', initialise);
@@ -77,7 +76,6 @@
           });
         }, 0);
       },
-      /** @inner */
       waitForBlinkGap = function() {
         if (window.PhoneGap && window.PhoneGap.available) {
           if (early.history) {
@@ -514,6 +512,37 @@
       return xmlSerializer.serializeToString(node);
     }
     return null;
+  };
+
+  /**
+   * @param {String} char Single character to be tested.
+   */
+  _Blink.hasFontFor = function(char) {
+    var me = _Blink.hasFontFor,
+        result,
+        $body,
+        $target,
+        $test;
+    try {
+      if (!me.results) {
+        me.results = {};
+      }
+      if (typeof me.results[char] === 'boolean') {
+        result = me.results[char];
+      } else {
+        $body = $(window.document.body);
+        $target = $('<span>' + char + '</span>');
+        $test = $('<span>&#xFFFD;</span>');
+        $target.add($test).appendTo($body);
+        result = $target.innerWidth() !== $test.innerWidth();
+        me.results[char] = result;
+        $target.add($test).remove();
+      }
+    } catch (err) {
+      error(error);
+      result = false;
+    }
+    return result;
   };
 
   // export singleton to global namespace
