@@ -1881,6 +1881,7 @@ function processForms() {
         if (jqxhr.status === 200 || jqxhr.status === 304) {
           ajaxDeferred.resolve();
         } else {
+          warn('processForms()->GetForm.XHR: failed ' + jqxhr.status);
           ajaxDeferred.reject();
         }
       },
@@ -1947,9 +1948,9 @@ function requestConfig() {
     timeout: computeTimeout(40 * 1024),
     complete: function(jqxhr, status) {
       var data,
-      items = ['a' + siteVars.id],
-      siteStructure;
-      /* END: var */
+          items = ['a' + siteVars.id],
+          siteStructure;
+
       if (jqxhr.status === 200) {
         data = $.parseJSON(jqxhr.responseText);
         if ($.type(data.map) === 'object') {
@@ -1960,18 +1961,24 @@ function requestConfig() {
           siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
         }
         if (siteVars.map) {
-          if (siteStructure === 'master categories' && siteVars.map.masterCategories.length > 0) {
-            items = items.concat($.map(siteVars.map.masterCategories, function(element, index) {
+          if (siteStructure === 'master categories' &&
+              siteVars.map.masterCategories.length > 0) {
+            items = items.concat($.map(siteVars.map.masterCategories,
+                                       function(element, index) {
               return 'm' + element;
             }));
           }
-          if (siteStructure !== 'interactions only' && siteVars.map.categories.length > 0) { // masterCategories or categories
-            items = items.concat($.map(siteVars.map.categories, function(element, index) {
+          if (siteStructure !== 'interactions only' &&
+              siteVars.map.categories.length > 0) {
+            // masterCategories or categories
+            items = items.concat($.map(siteVars.map.categories,
+                                       function(element, index) {
               return 'c' + element;
             }));
           }
           if (siteVars.map.interactions.length > 0) {
-            items = items.concat($.map(siteVars.map.interactions, function(element, index) {
+            items = items.concat($.map(siteVars.map.interactions,
+                                       function(element, index) {
               return 'i' + element;
             }));
           }
@@ -3487,9 +3494,12 @@ function submitAction(keyword, action) {
       return false;
     });
 
-    $window.bind('online', onNetworkChange);
-    $window.bind('offline', onNetworkChange);
-    onNetworkChange(); // $window.trigger('online');
+    if (!_Blink.isPhantomJS) {
+      // enable network detection, but not for PhantomJS (it's broken)
+      $window.bind('online', onNetworkChange);
+      $window.bind('offline', onNetworkChange);
+      onNetworkChange(); // $window.trigger('online');
+    }
 
     // pre-configure storage system for BlinkGap if necessary
     if (isBlinkGapDevice()) {
