@@ -1168,7 +1168,7 @@ function updateNavigationButtons() {
           });
       $('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
       // update data suitcases if necessary
-      if (isHome && MyAnswers.dfrdMoJOs.isResolved()) {
+      if (isHome && MyAnswers.dfrdMoJOs.state() !== 'pending') {
         processMoJOs();
       }
       // update the sidebar
@@ -2172,7 +2172,8 @@ function showAnswerView(interaction, argsString, reverse) {
     currentInteraction = interaction;
     updateCurrentConfig();
     if (typeof currentConfig.xml === 'string' && currentConfig.xml.substring(0, 6) !== 'stars:') {
-      if (currentConfig.mojoType === 'server-hosted' && MyAnswers.dfrdMoJOs.isResolved()) {
+      if (currentConfig.mojoType === 'server-hosted' &&
+          MyAnswers.dfrdMoJOs.state() !== 'pending') {
         requestMoJO(currentConfig.xml);
       }
     }
