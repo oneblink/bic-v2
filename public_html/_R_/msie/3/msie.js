@@ -124,6 +124,7 @@ function init_device() {
             updateNavigationButtons();
             MyAnswers.$body.children('footer').show();
             deferred.resolve();
+            $view.trigger('viewShow');
           });
         } else {
           $view.css('z-index', '');
@@ -131,6 +132,7 @@ function init_device() {
           updateNavigationButtons();
           MyAnswers.$body.children('footer').show();
           deferred.resolve();
+          $view.trigger('viewShow');
         }
       });
       return deferred.promise();

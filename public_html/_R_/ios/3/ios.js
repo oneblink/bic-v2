@@ -170,6 +170,7 @@ function onDeviceReady() {
           updateNavigationButtons();
           MyAnswers.$body.children('footer').show();
           deferred.resolve();
+          $view.trigger('viewShow');
         });
         setTimeout(function() {
           $view.addClass('animating');
