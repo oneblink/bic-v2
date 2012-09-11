@@ -1271,6 +1271,7 @@ function initialiseAnswerFeatures($view) {
     $.when.apply($, promises).always(function() {
       MyAnswers.$body.trigger('taskComplete');
       deferred.resolve();
+      $view.trigger('viewReady');
     });
   });
   return deferred.promise();

@@ -156,6 +156,7 @@ function onDeviceReady() {
             MyAnswers.$body.children('footer')
             .show();
             deferred.resolve();
+            $view.trigger('viewShow');
           });
         } else {
           $view.css('z-index', '');
@@ -163,6 +164,7 @@ function onDeviceReady() {
           window.updateNavigationButtons();
           MyAnswers.$body.children('footer').show();
           deferred.resolve();
+          $view.trigger('viewShow');
         }
       });
       return deferred.promise();
