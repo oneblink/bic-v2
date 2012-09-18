@@ -2199,15 +2199,6 @@ function showAnswerView(interaction, argsString, reverse) {
         completeFn();
       });
     } else if (currentConfig.type === 'form' && currentConfig.blinkFormObjectName && currentConfig.blinkFormAction) {
-      log('waiting for promises...');
-      MyAnswers.dfrdMoJOs.then(function() {
-        log('Data Suitcase promise resolved!');
-      });
-      MyAnswers.formsDeferred.promise().then(function() {
-        log('Forms promise resolved!');
-      }).fail(function() {
-        error('Forms promise rejected!');
-      });
       $.when(MyAnswers.dfrdMoJOs, MyAnswers.formsDeferred.promise())
       .fail(function() {
         html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
