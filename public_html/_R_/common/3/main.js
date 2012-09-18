@@ -3518,12 +3518,12 @@ function submitAction(keyword, action) {
 
     // pre-configure domain whitelist for BlinkGap if necessary
     if (isBlinkGapDevice() && MyAnswers.device.domainWhitelist
-        && window.navigator.gap_managewhitelist) {
+        && window.navigator.whitelistmanage) {
       domainWhitelist = MyAnswers.device.domainWhitelist;
       if ($.type(domainWhitelist) === 'array') {
         log('BlinkGap: replacing domain whitelist...');
         try {
-          navigator.gap_managewhitelist.appendToWhitelist($.noop, $.noop, {
+          navigator.whitelistmanage.appendToWhitelist($.noop, $.noop, {
             externalHosts: domainWhitelist
           });
         } catch (e) {
