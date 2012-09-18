@@ -1848,23 +1848,13 @@ function processForms() {
     });
   };
   /* END: var */
-  Modernizr.load.errorTimeout = 20000;
-  Modernizr.load({
-    test: window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement,
-    nope: siteVars.serverAppPath + '/BlinkForms2.js',
-    callback: function(url, result, key) {
-      setTimeout(function() {
-        Modernizr.load.errorTimeout = 10000;
-        if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
-          log('Modernizr.load() success: ' + url);
-          libraryDeferred.resolve();
-        } else {
-          log('Modernizr.load() error: ' + url);
-          libraryDeferred.reject();
-        }
-      }, 47);
-    }
-  });
+  if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
+    libraryDeferred = true;
+  } else {
+    libraryDeferred = $.getScript(siteVars.serverAppPath + '/BlinkForms2.js');
+
+  }
+  promises = [libraryDeferred, ajaxDeferred.promise()];
   if (deviceVars.isOnline) {
     $.ajax({
       // TODO: send through lastChecked time when updating forms
@@ -2209,6 +2199,15 @@ function showAnswerView(interaction, argsString, reverse) {
         completeFn();
       });
     } else if (currentConfig.type === 'form' && currentConfig.blinkFormObjectName && currentConfig.blinkFormAction) {
+      log('waiting for promises...');
+      MyAnswers.dfrdMoJOs.then(function() {
+        log('Data Suitcase promise resolved!');
+      });
+      MyAnswers.formsDeferred.promise().then(function() {
+        log('Forms promise resolved!');
+      }).fail(function() {
+        error('Forms promise rejected!');
+      });
       $.when(MyAnswers.dfrdMoJOs, MyAnswers.formsDeferred.promise())
       .fail(function() {
         html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
@@ -3783,86 +3782,71 @@ function submitAction(keyword, action) {
         log('AJAX start: ' + url);
     });
 
+    // define linear multi-getScript method
+    $.getScripts = function(urls) {
+      var dfrd = new $.Deferred();
+      if ($.type(urls) !== 'array') {
+        dfrd.reject();
+      } else if (!array.length) {
+        dfrd.resolve();
+      } else {
+        $.getScript(urls.shift())
+        .fail(dfrd.reject)
+        .then(function() {
+          $.getScripts(urls)
+          .fail(dfrd.reject)
+          .then(dfrd.resolve);
+        });
+      }
+      return dfrd.promise();
+    };
+
     $.when(MyAnswers.mainDeferred.promise())
     .then(function() { // load in JSON and XSLT polyfills if necessary
-      var dfrdJSON = new $.Deferred(),
-      dfrdXPath = new $.Deferred(),
-      dfrdXSLT = new $.Deferred();
-      /* END: var */
+      var dfrdJSON,
+          dfrdXPath = new $.Deferred(),
+          dfrdXSLT;
+
       // poly-fill JSON
-      Modernizr.load({
-        test: window.JSON && window.JSON.stringify,
-        nope: _Blink.cdnp.getURL('json2.min.js'),
-        callback: function(url, result, key) {
-          if (window.JSON) {
-            dfrdJSON.resolve();
-          } else {
-            dfrdJSON.reject();
-            error('Modernizr.load(): failed to poly-fill JSON');
-          }
-        }
-      });
       if (window.JSON && window.JSON.stringify) {
-        dfrdJSON.resolve();
+        dfrdJSON = true;
+      } else {
+        dfrdJSON = $.getScript(_Blink.cdnp.getURL('json2.min.js'));
       }
+
       // poly-fill XPath
-      Modernizr.load({
-        test: (window.XSLTProcessor && Modernizr.xpath) || window.xpathParse,
-        nope: {
-          'xml': _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xmltoken.min.js'),
-          'util': _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/util.min.js'),
-          'dom': _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/dom.min.js'),
-          // TODO: figure out how to test if the above scripts are needed
-          'xpath': _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xpath.min.js')
-        },
-        callback: function(url, result, key) {
-          if (key !== 'xpath') {
-            return; // only run this for the last script
-          }
-          if (window.xpathParse) {
-            log('Modernizr.load(): XPath supported via AJAXSLT');
-            dfrdXPath.resolve();
-          } else {
-            error('Modernizr.load(): failed to poly-fill XPath');
-            dfrdXPath.reject();
-          }
-        }
-      });
       if (window.XSLTProcessor && Modernizr.xpath) {
-        log('Modernizr.load(): XPath supported natively');
+        log('XPath supported natively');
         dfrdXPath.resolve();
+      } else if (window.xpathParse) {
+        log('XPath supported via AJAXSLT');
+        dfrdXPath.resolve();
+      } else {
+        $.getScripts([
+          _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xmltoken.min.js'),
+          _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/util.min.js'),
+          _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/dom.min.js'),
+          // TODO: figure out how to test if the above scripts are needed
+          _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xpath.min.js')
+        ])
+        .fail(dfrdXPath.reject)
+        .then(dfrdXPath.resolve);
       }
-          if (window.xpathParse) {
-            log('Modernizr.load(): XPath supported via AJAXSLT');
-            dfrdXPath.resolve();
-      }
+
       // poly-fill XSLT, after XPath
-      $.when(dfrdXPath.promise())
-      .fail(dfrdXSLT.reject)
-      .then(function() {
-        Modernizr.load({
-          test: window.XSLTProcessor || window.xsltProcess,
-          nope: _Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xslt.min.js'),
-          callback: function(url, result, key) {
-            if (window.xsltProcess) {
-              log('Modernizr.load(): XSLT supported via AJAXSLT');
-              dfrdXSLT.resolve();
-            } else {
-              error('Modernizr.load(): failed to poly-fill XSLT');
-              dfrdXSLT.reject();
-            }
-          }
-        });
-      });
       if (window.XSLTProcessor) {
-        log('Modernizr.load(): XSLT supported natively');
-        dfrdXSLT.resolve();
+        log('XSLT supported natively');
+        dfrdXSLT = true;
+      } else if (window.xsltProcess) {
+        log('XSLT supported via AJAXSLT');
+        dfrdXSLT = true;
+      } else {
+        dfrdXSLT = dfrdXPath.pipe(function() {
+          return $.getScript(_Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xslt.min.js'));
+        });
       }
-          if (window.xsltProcess) {
-            log('Modernizr.load(): XSLT supported via AJAXSLT');
-            dfrdXSLT.resolve();
-          }
-      $.when(dfrdJSON.promise(), dfrdXPath.promise(), dfrdXSLT.promise())
+
+      $.when(dfrdJSON, dfrdXPath.promise(), dfrdXSLT)
       .fail(function() {
         $('#startUp-loadPolyFills').addClass('error');
         $('#startUp').append('<p>error: refresh the application or clear cache and try again</p>');
