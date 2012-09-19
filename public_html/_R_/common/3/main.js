@@ -3776,7 +3776,7 @@ function submitAction(keyword, action) {
       var dfrd = new $.Deferred();
       if ($.type(urls) !== 'array') {
         dfrd.reject();
-      } else if (!array.length) {
+      } else if (!urls.length) {
         dfrd.resolve();
       } else {
         $.getScript(urls.shift())
