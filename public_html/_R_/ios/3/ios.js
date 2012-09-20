@@ -196,19 +196,17 @@ function updatePartCSS(element, property, value, valueFormat) {
 }
 
 function onScroll() {
-  MyAnswers.dispatch.add(function() {
-    var scrollTop = MyAnswers.$window.scrollTop(),
-        footerY;
-    /* END: var */
-    if (!Modernizr.positionfixed) {
-      updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-      updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
-    }
-    if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
-      footerY = scrollTop + MyAnswers.windowY - MyAnswers.$footer.outerHeight();
-      updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, footerY, deviceVars.scrollValue);
-    }
-  });
+  var scrollTop = MyAnswers.$window.scrollTop(),
+      footerY;
+  /* END: var */
+  if (!Modernizr.positionfixed) {
+    updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
+    updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
+  }
+  if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
+    footerY = scrollTop + MyAnswers.windowY - MyAnswers.$footer.outerHeight();
+    updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, footerY, deviceVars.scrollValue);
+  }
 }
 
 document.getElementById('startUp-loadDevice').className = 'working success';
