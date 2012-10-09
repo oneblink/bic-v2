@@ -3442,7 +3442,7 @@ function submitAction(keyword, action) {
   }
 
   function loaded() {
-    var isPersist = MyAnswers.device.persistantStorage;
+    var isPersist = MyAnswers.device.persistentStorage;
     log('loaded():');
     try {
       if (isPersist) {
