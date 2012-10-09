@@ -132,18 +132,21 @@ function populateDataTags($element, data) {
 }
 
 function processBlinkAnswerMessage(message) {
-  var i, iLength;
+  var i,
+      iLength,
+      isPersist = MyAnswers.device.persistentStorage;
+
   message = $.parseJSON(message);
-  if (typeof message.mojotarget === 'string') {
+  if (isPersist && typeof message.mojotarget === 'string') {
     if (typeof message.mojoxml === 'string') {
-      log('blinkAnswerMessage: populating Data Suitcase: ' + message.mojotarget);
+      log('controlMessage: populating Data Suitcase: ' + message.mojotarget);
       MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
     } else if (typeof message.mojodelete !== 'undefined') {
-      log('blinkAnswerMessage: deleting Data Suitcase: ' + message.mojotarget);
+      log('controlMessage: deleting Data Suitcase: ' + message.mojotarget);
       MyAnswers.store.remove('mojoXML:' + message.mojotarget);
     }
   }
-  if (message.startype) {
+  if (isPersist && message.startype) {
     starsProfile[message.startype] = starsProfile[message.startype] || {};
     if (message.clearstars) {
       delete starsProfile[message.startype];
@@ -681,8 +684,9 @@ function onLinkClick(event) {
       }
       return false;
     }
-  } catch (error) {
+  } catch (e) {
     error('Error in onLinkClick handler...');
+    error(e);
   }
   return true;
 }
@@ -1105,6 +1109,7 @@ MyAnswers.gotoDefaultScreen = function() {
 };
 
 function updateNavigationButtons() {
+  var isPersist = MyAnswers.device.persistentStorage;
   MyAnswers.dispatch.add(function() {
     try {
       var $navBars = $('.navBar'),
@@ -1168,7 +1173,7 @@ function updateNavigationButtons() {
           });
       $('#loginButton, #logoutButton, #pendingButton').removeAttr('disabled');
       // update data suitcases if necessary
-      if (isHome && MyAnswers.dfrdMoJOs.state() !== 'pending') {
+      if (isPersist && isHome && MyAnswers.dfrdMoJOs.state() !== 'pending') {
         processMoJOs();
       }
       // update the sidebar
@@ -1176,8 +1181,9 @@ function updateNavigationButtons() {
       if (MyAnswers.sideBar) {
         MyAnswers.sideBar.update();
       }
-    } catch (error) {
+    } catch (e) {
       error('Error in updateNavigationButtons...');
+      error(e);
     }
   });
 }
@@ -1220,18 +1226,20 @@ function initialiseAnswerFeatures($view) {
     MyAnswers.$body.trigger('taskBegun');
     $inputs.unbind('blur', triggerScroll);
     $inputs.bind('blur', triggerScroll);
-    $view.find('.blink-starrable').each(function(index, element) {
-      var $div = $('<div class="blink-starrable" />'),
-        data = $(element).data();
-      populateDataTags($div, data);
-      $div.bind('click', onStarClick);
-      if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object') {
-        $div.addClass('blink-star-off');
-      } else {
-        $div.addClass('blink-star-on');
-      }
-      $(element).replaceWith($div);
-    });
+    if (MyAnswers.device.persistentStorage) {
+      $view.find('.blink-starrable').each(function(index, element) {
+        var $div = $('<div class="blink-starrable" />'),
+          data = $(element).data();
+        populateDataTags($div, data);
+        $div.bind('click', onStarClick);
+        if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object') {
+          $div.addClass('blink-star-off');
+        } else {
+          $div.addClass('blink-star-on');
+        }
+        $(element).replaceWith($div);
+      });
+    }
     if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
       if (isGoogleJSLoaded) {
         setTimeout(function() {
@@ -1803,7 +1811,7 @@ function processForms() {
   var dispatch = new BlinkDispatch(0),
   ajaxDeferred = new $.Deferred(),
   libraryDeferred = new $.Deferred(),
-  promises = [libraryDeferred.promise(), ajaxDeferred.promise()],
+  promises,
   validActions = ['add', 'delete', 'edit', 'find', 'list', 'search', 'view'],
   /* @inner */
   formActionFn = function(id, element) {
@@ -1854,32 +1862,35 @@ function processForms() {
     libraryDeferred = $.getScript(siteVars.serverAppPath + '/BlinkForms2.js');
 
   }
-  promises = [libraryDeferred, ajaxDeferred.promise()];
-  if (deviceVars.isOnline) {
-    $.ajax({
-      // TODO: send through lastChecked time when updating forms
-      url: siteVars.serverAppPath + '/xhr/GetForm.php',
-      dataType: 'xml',
-      complete: function(jqxhr, status) {
-        var $data;
-        if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
-          jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
-          $data = $($.parseXML(jqxhr.responseText));
-          // $data contains XMLDocument / <formObjects> / <formObject>s
-          $data.children().children().each(formObjectFn);
-  //      MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
-        }
-        if (jqxhr.status === 200 || jqxhr.status === 304) {
-          ajaxDeferred.resolve();
-        } else {
-          warn('processForms()->GetForm.XHR: failed ' + jqxhr.status);
-          ajaxDeferred.reject();
-        }
-      },
-      timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-    });
-  } else {
-    ajaxDeferred.resolve();
+  promises = [libraryDeferred];
+  if (MyAnswers.device.persistentStorage) {
+    promises.push(ajaxDeferred.promise());
+    if (deviceVars.isOnline) {
+      $.ajax({
+        // TODO: send through lastChecked time when updating forms
+        url: siteVars.serverAppPath + '/xhr/GetForm.php',
+        dataType: 'xml',
+        complete: function(jqxhr, status) {
+          var $data;
+          if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
+            jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
+            $data = $($.parseXML(jqxhr.responseText));
+            // $data contains XMLDocument / <formObjects> / <formObject>s
+            $data.children().children().each(formObjectFn);
+    //      MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
+          }
+          if (jqxhr.status === 200 || jqxhr.status === 304) {
+            ajaxDeferred.resolve();
+          } else {
+            warn('processForms()->GetForm.XHR: failed ' + jqxhr.status);
+            ajaxDeferred.reject();
+          }
+        },
+        timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
+      });
+    } else {
+      ajaxDeferred.resolve();
+    }
   }
   $.whenArray(promises)
   .fail(MyAnswers.formsDeferred.reject)
@@ -1926,8 +1937,9 @@ function processConfig() {
 
 function requestConfig() {
   var now = $.now(),
-  dfrd = new $.Deferred();
-  /* END: var */
+      dfrd = new $.Deferred(),
+      isPersist = MyAnswers.device.persistentStorage;
+
   if (!deviceVars.isOnline) {
     dfrd.reject();
     return dfrd.promise();
@@ -1946,7 +1958,9 @@ function requestConfig() {
         data = $.parseJSON(jqxhr.responseText);
         if ($.type(data.map) === 'object') {
           siteVars.map = data.map;
-          MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
+          if (isPersist) {
+            MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
+          }
         }
         if ($.type(data['a' + siteVars.id]) === 'object') {
           siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
@@ -1983,7 +1997,9 @@ function requestConfig() {
           siteVars.config[id] = data[id];
         }
       });
-      MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+      if (isPersist) {
+        MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+      }
       deviceVars.features = data.deviceFeatures;
       if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
         dfrd.resolve();
@@ -2150,9 +2166,14 @@ function showAnswerView(interaction, argsString, reverse) {
       $.when(initialiseAnswerFeatures($view)).always(function() {
         setMainLabel(currentConfig.displayName || currentConfig.name);
         MyAnswersDevice.showView($view, reverse);
-        MyAnswers.dispatch.add(function() {MyAnswers.$body.trigger('taskComplete');});
+        MyAnswers.dispatch.add(function() {
+          MyAnswers.$body.trigger('taskComplete');
+        });
       });
-    };
+    },
+    isPersist = MyAnswers.device.persistentStorage,
+    isLocalXSLT = !deviceVars.disableXSLT && isPersist;
+
   interaction = resolveItemName(interaction);
   if (interaction === false) {
     alert('The requested Interaction could not be found.');
@@ -2184,7 +2205,7 @@ function showAnswerView(interaction, argsString, reverse) {
     if (currentConfig.type === 'message') {
       insertHTML(answerBox, currentConfig.message);
       completeFn();
-    } else if (currentConfig.type === 'xslt' && deviceVars.disableXSLT !== true) {
+    } else if (currentConfig.type === 'xslt' && isLocalXSLT) {
       $.when(MyAnswers.dfrdMoJOs)
       .always(function() {
         $.when(generateMojoAnswer(args))
@@ -2193,7 +2214,8 @@ function showAnswerView(interaction, argsString, reverse) {
           completeFn();
         });
       });
-    } else if (reverse) {
+
+    } else if (reverse && isPersist) {
       $.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
         insertHTML(answerBox, html);
         completeFn();
@@ -2218,13 +2240,19 @@ function showAnswerView(interaction, argsString, reverse) {
         iact: currentConfig.name
       },
       fallbackToStorage = function() {
-        $.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
-          if (typeof html === 'undefined') {
-            html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
-          }
+        if (isPersist) {
+          $.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
+            if (typeof html === 'undefined') {
+              html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
+            }
+            insertHTML(answerBox, html);
+            completeFn();
+          });
+        } else {
+          html = '<p>Unable to reach server.</p>';
           insertHTML(answerBox, html);
           completeFn();
-        });
+        }
       },
       postData = {},
       starsData = {},
@@ -2269,7 +2297,9 @@ function showAnswerView(interaction, argsString, reverse) {
                 processBlinkAnswerMessage(blinkAnswerMessage[b].substring(24, blinkAnswerMessage[b].length - 4));
               }
             }
-            MyAnswers.store.set('answer___' + interaction, html);
+            if (isPersist) {
+              MyAnswers.store.set('answer___' + interaction, html);
+            }
             insertHTML(answerBox, html);
             completeFn();
           }
@@ -2487,7 +2517,9 @@ function submitFormWithRetry(data) {
         if (isAJAXError(textstatus) || xhr.status !== 200) {
           html = 'Unable to contact server. Your submission has been stored for future attempts.  (' + textstatus + ' ' + xhr.status + ')';
         } else {
-          clearPendingFormV1(data.interaction, uuid);
+          if (MyAnswers.device.persistentStorage) {
+            clearPendingFormV1(data.interaction, uuid);
+          }
           html = xhr.responseText;
         }
         $.when(MyAnswersDevice.prepareView($view)).always(function() {
@@ -2510,7 +2542,9 @@ function submitForm() {
     $form = $('.view:visible').find('form').first(),
     action = $form.attr('action'),
     method = $form.attr('method'),
-    uuid = Math.uuid();
+    uuid = Math.uuid(),
+    data;
+
   $form.find('input, textarea, select').each(function(index, element) {
     if (element.name)
     {
@@ -2555,18 +2589,25 @@ function submitForm() {
   // var str = $('form').first().find('input, textarea, select').serialize();
   log('submitForm(2): ' + document.forms[0].action);
   // log("submitForm(2a): " + str);
-  $.when(pushPendingFormV1(currentInteraction, uuid, {
-      data: str,
-      'action': action,
-      'method': $.type(method) === 'string' ? method.toUpperCase() : 'post',
-      'uuid': uuid,
-      interaction: currentInteraction
-    }))
-    .fail(function() {
-      alert('Error: unable to feed submission through queue.');
-    })
-    .then(submitFormWithRetry);
-  // queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
+
+  data = {
+    data: str,
+    'action': action,
+    'method': $.type(method) === 'string' ? method.toUpperCase() : 'post',
+    'uuid': uuid,
+    interaction: currentInteraction
+  };
+
+  if (MyAnswers.device.persistentStorage) {
+    $.when(pushPendingFormV1(currentInteraction, uuid, data))
+      .fail(function() {
+        alert('Error: unable to feed submission through queue.');
+      })
+      .then(submitFormWithRetry);
+    // queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
+  } else {
+    submitFormWithRetry(data);
+  }
   return false;
 }
 
@@ -2752,20 +2793,24 @@ function submitAction(keyword, action) {
      * version 0 = MoJOs stored in new format, old siteConfig removed
      */
     var dfrd = new $.Deferred();
-    $.when(MyAnswers.store.get('storageVersion'))
-    .always(function(value) {
-      if (!value) {
-        $.when(
-          MyAnswers.store.set('storageVersion', 0),
-          MyAnswers.store.remove('siteConfigMessage'),
-          MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
-        ).always(function() {
+    if (MyAnswers.store) {
+      $.when(MyAnswers.store.get('storageVersion'))
+      .always(function(value) {
+        if (!value) {
+          $.when(
+            MyAnswers.store.set('storageVersion', 0),
+            MyAnswers.store.remove('siteConfigMessage'),
+            MyAnswers.store.removeKeysRegExp(/^mojoMessage-/)
+          ).always(function() {
+            dfrd.resolve();
+          });
+        } else {
           dfrd.resolve();
-        });
-      } else {
-        dfrd.resolve();
-      }
-    });
+        }
+      });
+    } else {
+      dfrd.resolve();
+    }
     return dfrd.promise();
   }
 
@@ -3391,14 +3436,20 @@ function submitAction(keyword, action) {
     $('#content').show();
     setSubmitCachedFormButton();
     processForms();
-    MyAnswers.dfrdMoJOs = processMoJOs();
+    if (MyAnswers.device.persistentStorage) {
+      MyAnswers.dfrdMoJOs = processMoJOs();
+    }
   }
 
   function loaded() {
+    var isPersist = MyAnswers.device.persistantStorage;
     log('loaded():');
     try {
-      MyAnswers.store.set('answerSpace', siteVars.answerSpace);
-      $.when(MyAnswers.siteStore.get('config')).then(function(data) {
+      if (isPersist) {
+        MyAnswers.store.set('answerSpace', siteVars.answerSpace);
+      }
+      $.when(isPersist ? MyAnswers.siteStore.get('config') : true)
+      .then(function(data) {
         if (typeof data === 'string') {
           data = $.parseJSON(data);
         }
@@ -3406,7 +3457,8 @@ function submitAction(keyword, action) {
           siteVars.config = data;
         }
       }).always(function() {
-        $.when(MyAnswers.siteStore.get('map')).then(function(data) {
+        $.when(isPersist ? MyAnswers.siteStore.get('map') : true)
+        .then(function(data) {
           if (typeof data === 'string') {
             data = $.parseJSON(data);
           }
@@ -3415,21 +3467,29 @@ function submitAction(keyword, action) {
           }
         })
         .always(function() {
-              $.when(requestLoginStatus())
+          $.when(requestLoginStatus())
           .always(function() {
-                    $.when(requestConfig())
+            $.when(requestConfig())
             .always(function() {
-                          if (siteVars.map && siteVars.config) {
-                            processConfig();
-                            displayAnswerSpace();
-                          } else {
-                            $startup.append('error: unable to contact server, insufficient data found in local storage');
-                          }
-                        });
-                  });
+              if (siteVars.map && siteVars.config) {
+                processConfig();
+                displayAnswerSpace();
+
+                // hook orientation events
+                if (Modernizr.orientation) {
+                  $window.on('orientationchange', onOrientationChange);
+                }
+                $window.on('resize', onOrientationChange);
+                onOrientationChange();
+              } else {
+                $startup.append('error: unable to contact server, insufficient data found in local storage');
+              }
             });
+          });
+        });
       });
-      $.when(MyAnswers.store.get('starsProfile')).then(function(stars) {
+      $.when(isPersist ? MyAnswers.store.get('starsProfile') : true)
+      .then(function(stars) {
         if ($.type(stars) === 'string') {
           stars = $.parseJSON(stars);
         }
@@ -3527,6 +3587,7 @@ function submitAction(keyword, action) {
     // fix the WebSQL quota is necessary and open required persistent stores
     $.when(dfrdFixWebSQL)
     .always(function() {
+      if (MyAnswers.device.persistentStorage) {
 
           try {
             MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
@@ -3546,6 +3607,7 @@ function submitAction(keyword, action) {
             $startup.children('article[data-name="persistentfull"]').show();
             return;
           }
+      }
 
       $.whenArray(loadedPromises)
       .fail(function() {
@@ -3607,13 +3669,6 @@ function submitAction(keyword, action) {
       MyAnswers.$document = $(window.document);
       MyAnswers.$window = $window;
       MyAnswers.$footer = MyAnswers.$body.children('footer');
-
-      // hook orientation events
-      if (Modernizr.orientation) {
-        $window.on('orientationchange', onOrientationChange);
-      }
-      $window.on('resize', onOrientationChange);
-      onOrientationChange();
 
       $window.on('statechange', function(event) {
         var state = History.getState(),
