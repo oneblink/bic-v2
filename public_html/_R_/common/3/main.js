@@ -610,13 +610,15 @@ function onLinkClick(event) {
   try {
     log('onLinkClick(): ' + $(this).tagHTML());
     // turn any legacy links into new format before continuing
-    if (typeof attributes.href === 'string' && attributes.href.indexOf('showSecondLevelAnswerView(') !== -1) {
-      attributes.href = attributes.href.replace(/^javascript:showSecondLevelAnswerView\(/, '').replace(/\)[\s;]*$/, '');
-      parts = explode(',', attributes.href, 2);
-      attributes.interaction = parts[0].replace(/^(?:'|")(.*)(?:'|")$/g, '$1');
-      $.each(deserialize(parts[1].replace(/^(?:'|")(.*)(?:'|")$/g, '$1')), function(key, value) {
-        attributes[key] = value;
-      });
+    if (typeof attributes.href === 'string' && attributes.href.indexOf('../') !== -1) {
+      attributes.href = attributes.href.replace(/^\.\.\//, '');
+      parts = explode('?', attributes.href, 2);
+      attributes.interaction = parts[0].replace(/^(.*)(?:\/)$/g, '$1');
+      if(parts[1]) {
+        $.each(deserialize(parts[1].trim()), function(key, value) {
+          attributes[key] = value;
+        });
+      }
       delete attributes.href;
     }
     // process link
