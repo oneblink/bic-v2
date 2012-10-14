@@ -1510,7 +1510,7 @@ function updateCurrentConfig() {
   }
   function onHyperlinkClick(event) {
     //window.location.assign($(this).data('hyperlink'));
-    window.open($(this).data('hyperlink'));
+    window.open($(this).data('hyperlink'),$(this).data('target'));
   }
 
   MyAnswers.populateItemListing = function(level, $view) {
@@ -1525,6 +1525,7 @@ function updateCurrentConfig() {
           pertinent = siteVars.config['i' + id].pertinent;
       if (pertinent.type === 'hyperlink' && pertinent.hyperlink) {
         $item.attr('data-hyperlink', pertinent.hyperlink);
+        $item.attr('data-target', pertinent.hyperlinkTarget);
         $item.bind('click', onHyperlinkClick);
       } else {
         $item.bind('click', onKeywordClick);
@@ -2235,7 +2236,9 @@ function showAnswerView(interaction, argsString, reverse) {
       delete args.answerSpace;
       delete args.interaction;
     }
-    if (currentConfig.type === 'message') {
+    if (currentConfig.type === 'hyperlink') {
+      window.open(currentConfig.hyperlink,currentConfig.hyperlinkTarget);
+    } else if (currentConfig.type === 'message') {
       insertHTML(answerBox, currentConfig.message);
       completeFn();
     } else if (currentConfig.type === 'xslt' && isLocalXSLT) {
