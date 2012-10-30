@@ -106,19 +106,20 @@ table input[type=file] { position: relative; }
 }
 
 #navBoxHeader, .navBar {
-	width: 100%;
 	height: 40px;
 }
 
 #navBoxHeader {
-	top: 0;
 	overflow: hidden;
 	color: #73777F;
-	font-size: large;
-	font-weight: bolder;
-	background: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#CCC));
-	background: -moz-linear-gradient(top, #FFF, #CCC);
-	text-shadow: 1px 1px 1px #DEDEE4;
+  text-shadow: 1px 1px 1px #DEDEE4;
+
+	background: #FFF;
+  background: -moz-linear-gradient(top, #FFF 0%, #CCC 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF), color-stop(100%,#CCC));
+  background: -webkit-linear-gradient(top, #FFF 0%,#CCC 100%);
+  background: -o-linear-gradient(top, #FFF 0%,#CCC 100%);
+  background: linear-gradient(to bottom, #FFF 0%,#CCC 100%);
 }
 
 .navBar > .button, .navBar > .label {

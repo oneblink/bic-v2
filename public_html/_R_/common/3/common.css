@@ -158,7 +158,9 @@ img.v4col { width: 25%; height: auto; }
 
 #categorySelectorArea { font-weight: bold; margin: 10px; text-align: center; }
 
-#activityIndicator, #navBoxHeader { z-index: 5; }
+#activityIndicator, #navBoxHeader { position: fixed; z-index: 5; }
+
+#navBoxHeader, .navBar { width: 100%; top: 0; font-size: large; font-weight: bolder; }
 
 .navLeft { float: left; }
 
