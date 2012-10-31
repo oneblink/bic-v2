@@ -22,13 +22,8 @@ function init_device() {
   $navBar = $('#navBoxHeader');
   activityIndicatorTop = Math.floor($(window).height() / 2);
   $activityIndicator.css('top', activityIndicatorTop);
-  if (Modernizr.positionfixed) {
-    $navBar.css('position', 'fixed');
-    $activityIndicator.css('position', 'fixed');
-  } else if (typeof onScroll === 'function') {
-    $navBar.css('position', 'absolute');
-    $activityIndicator.css('position', 'absolute');
-    $(window).bind('scroll', onScroll);
+  if (typeof window.onScroll === 'function') {
+    $(window).bind('scroll', window.onScroll);
     MyAnswers.dispatch.add(function() {
       $(window).trigger('scroll');
     });
