@@ -168,7 +168,16 @@ img.v4col { width: 25%; height: auto; }
 }
 
 #activityIndicator, #navBoxHeader {
+  position: fixed;
 	z-index: 5;
+}
+
+#navBoxHeader, .navBar {
+  width: 100%;
+  top: 0;
+
+  font-size: large;
+  font-weight: bolder;
 }
 
 .navLeft {

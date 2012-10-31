@@ -1972,14 +1972,15 @@ function processConfig() {
 function requestConfig() {
   var now = $.now(),
       dfrd = new $.Deferred(),
-      isPersist = MyAnswers.device.persistentStorage;
+      isPersist = MyAnswers.device.persistentStorage,
+      url = siteVars.serverAppPath + '/xhr/GetConfig.php';
 
   if (!deviceVars.isOnline) {
     dfrd.reject();
     return dfrd.promise();
   }
   $.ajax({
-    url: siteVars.serverAppPath + '/xhr/GetConfig.php',
+    url: url + '?_asn=' + siteVars.answerSpace,
     type: 'POST',
     dataType: 'json',
     timeout: computeTimeout(40 * 1024),

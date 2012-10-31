@@ -82,18 +82,19 @@ button, [type=button], [type=submit], [type=reset] {
 }
 
 #navBoxHeader, .navBar {
-	width: 100%;
 	height: 41px;
 }
 
 #navBoxHeader {
-	top: 0;
 	color: #73777F;
-	font-size: large;
-	font-weight: bolder;
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFF), to(#AAAAB8));
-	text-shadow: 1px 1px 1px #DEDEE4;
-	text-align: center;
+  text-shadow: 1px 1px 1px #DEDEE4;
+  text-align: center;
+
+  background: #FFF;
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF), color-stop(100%,#AAAAB8));
+  background: -webkit-linear-gradient(top, #FFF 0%,#AAAAB8 100%);
+  background: -o-linear-gradient(top, #FFF 0%,#AAAAB8 100%);
+  background: linear-gradient(to bottom, #FFF 0%,#AAAAB8 100%);
 }
 
 .navButtonsHolder {
