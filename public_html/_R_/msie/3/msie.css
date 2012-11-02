@@ -106,19 +106,18 @@ table input[type=file] { position: relative; }
 }
 
 #navBoxHeader, .navBar {
-	width: 100%;
 	height: 40px;
 }
 
 #navBoxHeader {
-	top: 0;
 	overflow: hidden;
 	color: #73777F;
-	font-size: large;
-	font-weight: bolder;
-	background: -moz-gradient(linear, left top, left bottom, from(#FFF), to(#CCC));
-	background: -moz-linear-gradient(top, #FFF, #CCC);
-	text-shadow: 1px 1px 1px #DEDEE4;
+  text-shadow: 1px 1px 1px #DEDEE4;
+	
+  background: #FFF;
+  background: -ms-linear-gradient(top, #FFF 0%,#CCC 100%);
+  background: linear-gradient(to bottom, #FFF 0%,#CCC 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFF', endColorstr='#CCC',GradientType=0 );
 }
 
 .navBar > .button, .navBar > .label {
