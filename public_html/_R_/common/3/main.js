@@ -1799,6 +1799,33 @@ function restoreSessionProfile(token) {
   return deferred.promise();
 }
 
+/**
+ * @param {jQuery} $xml XML document wrapped in a jQuery object.
+ * @return {Object} plain Object { "form": { "field": "subForm", ... } }.
+ * @private
+ */
+function processFormsMap($xml) {
+  var map = {},
+      $form,
+      objectId;
+      // for use with jQuery.each
+      eachElement = function(index, element) {
+        var $element = $(element);
+        map[objectId][$element.attr('id')] = $element.attr('object');
+      };
+
+  if (! $xml instanceof jQuery || !$xml.length) {
+    return {};
+  }
+  $xml.children('formObject[id]').each(function(index, element) {
+    $form = $(element);
+    objectId = $form.attr('id');
+    map[objectId] = {};
+    $form.children('formElement[id][object]').each(eachElement);
+  });
+  return map;
+}
+
 function processForms() {
   var dispatch = new BlinkDispatch(0),
   ajaxDeferred = new $.Deferred(),
@@ -1843,9 +1870,13 @@ function processForms() {
   /* @inner */
   formObjectFn = function(index, element) {
     var $formObject = $(element);
-    $formObject.children().each(function(index, element) {
-      promises.push(formActionFn($formObject.attr('id'), element));
-    });
+    if ($formObject.tag() === '_map') {
+      siteVars.map.forms = processFormsMap($formObject);
+    } else {
+      $formObject.children().each(function(index, element) {
+        promises.push(formActionFn($formObject.attr('id'), element));
+      });
+    }
   };
   /* END: var */
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
