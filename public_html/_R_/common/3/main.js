@@ -1413,22 +1413,11 @@ function updateCurrentConfig() {
       MyAnswers.$footer.html(currentConfig.footer);
     }
     if (currentConfig.footerPosition === 'screen-bottom') {
-      if (Modernizr.positionfixed) {
-        MyAnswers.$footer.css({
-          position: 'fixed',
-          bottom: '0px',
-          'z-index': 1
-        });
-      } else {
-        MyAnswers.$footer.css({
-          position: 'absolute',
-          top: '0px',
-          'z-index': 1
-        });
-        MyAnswers.$window.trigger('scroll');
-      }
-      // TODO: fix padding code below
-      //MyAnswers.$body.css('padding-bottom', MyAnswers.$footer.outerHeight());
+      MyAnswers.$footer.css({
+        position: 'fixed',
+        bottom: '0px',
+        'z-index': 1
+      });
     } else {
       MyAnswers.$footer.removeAttr('style');
     }
@@ -3560,8 +3549,6 @@ function submitAction(keyword, action) {
     lastPictureTaken.currentName = null;
 
     $.fx.interval = 27; // default is 13, larger is kinder on devices
-
-    log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
 
     MyAnswers.dispatch = new BlinkDispatch(isBlinkGapDevice() ? 149 : 47);
 
