@@ -57,7 +57,7 @@ input:invalid, textarea:invalid { background-color: #FF8073; }
 
 /* end controls */
 /* BlinkForms2 styles */
-.googlemaps img { max-height: none; }
+.googlemaps img { max-height: none; max-width: none; }
 
 figure img { display: block; margin: .5em auto; }
 
