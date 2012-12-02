@@ -949,9 +949,7 @@ function updateLoginButtons() {
                 var data = $.parseJSON(xhr.responseText);
                 if (data) {
                   if (data.status === 'LOGGED IN') {
-                    if (data.account) {
-                      MyAnswers.loginAccount = data.account;
-                    }
+                    MyAnswers.loginAccount = data;
                     MyAnswers.isLoggedIn = true;
                   } else {
                     MyAnswers.isLoggedIn = false;
@@ -1020,9 +1018,7 @@ function requestLoginStatus() {
       var data = $.parseJSON(xhr.responseText);
       if (data) {
         if (data.status === 'LOGGED IN') {
-          if (data.account) {
-            MyAnswers.loginAccount = data.account;
-          }
+          MyAnswers.loginAccount = data;
           MyAnswers.isLoggedIn = true;
         } else {
           MyAnswers.isLoggedIn = false;
@@ -1050,9 +1046,7 @@ function submitLogin() {
         var data = $.parseJSON(xhr.responseText);
         if (data) {
           if (data.status === 'LOGGED IN') {
-            if (data.account) {
-              MyAnswers.loginAccount = data.account;
-            }
+            MyAnswers.loginAccount = data;
             MyAnswers.isLoggedIn = true;
             //            window.location.reload();
             $.when(window.requestConfig()).always(function() {
