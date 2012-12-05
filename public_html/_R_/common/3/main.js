@@ -2973,8 +2973,17 @@ function submitAction(keyword, action) {
     options = $.extend({}, defaultOptions, $.isPlainObject(options) ? options : {});
     navigator.geolocation.getCurrentPosition(
       function(position) { // successCallback
-        var coords = position.coords;
-        if ($.type(coords) === 'object') {
+        var coords;
+        if (position.coords) {
+          coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            altitude: position.coords.altitude,
+            accuracy: position.coords.accuracy,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed
+          };
           dfrd.resolve(coords);
         } else {
           dfrd.reject('GeoLocation error: blank location from browser / device');
