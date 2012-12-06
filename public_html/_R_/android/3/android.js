@@ -16,22 +16,10 @@ function init_device() {
   deviceVars.scrollProperty = '-webkit-transform';
   deviceVars.scrollValue = 'translateY($1px)';
 
-  // assume no CSS Fixed Position support for Android < 3
-  matches = navigator.userAgent.match(/Android (\d+)/);
-  if ($.type(matches) === 'array' && matches[1] < 3) {
-    Modernizr.positionfixed = false;
-  }
-
   // caching frequently-accessed selectors
   $navBar = $('#navBoxHeader');
   activityIndicatorTop = Math.floor($(window).height() / 2);
   $activityIndicator.css('top', activityIndicatorTop);
-  if (typeof window.onScroll === 'function') {
-    $(window).bind('scroll', window.onScroll);
-    MyAnswers.dispatch.add(function() {
-      $(window).trigger('scroll');
-    });
-  }
   $('#startUp-initDevice').addClass('success');
 }
 
@@ -174,28 +162,6 @@ function onDeviceReady() {
  * ABOVE: all necessary methods (directly called from main.js)
  * BELOW: methods assisting the above methods (NOT directly called from main.js)
  */
-
-function updatePartCSS(element, property, value, valueFormat) {
-  var formattedValue = String(value).replace(/(\d+)/, valueFormat);
-  $(element).css(property, formattedValue);
-}
-
-function onScroll() {
-  var scrollTop = MyAnswers.$window.scrollTop(),
-      height = scrollTop;
-  updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop,
-      deviceVars.scrollValue);
-  updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop,
-      deviceVars.scrollValue);
-  updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty,
-      (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
-  if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' &&
-      currentConfig.footerPosition === 'screen-bottom') {
-    height += MyAnswers.$window.height() - MyAnswers.$footer.height();
-    updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty,
-        height, deviceVars.scrollValue);
-  }
-}
 
 document.getElementById('startUp-loadDevice').className = 'working success';
 MyAnswers.deviceDeferred.resolve();

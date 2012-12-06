@@ -949,9 +949,7 @@ function updateLoginButtons() {
                 var data = $.parseJSON(xhr.responseText);
                 if (data) {
                   if (data.status === 'LOGGED IN') {
-                    if (data.account) {
-                      MyAnswers.loginAccount = data.account;
-                    }
+                    MyAnswers.loginAccount = data;
                     MyAnswers.isLoggedIn = true;
                   } else {
                     MyAnswers.isLoggedIn = false;
@@ -1020,9 +1018,7 @@ function requestLoginStatus() {
       var data = $.parseJSON(xhr.responseText);
       if (data) {
         if (data.status === 'LOGGED IN') {
-          if (data.account) {
-            MyAnswers.loginAccount = data.account;
-          }
+          MyAnswers.loginAccount = data;
           MyAnswers.isLoggedIn = true;
         } else {
           MyAnswers.isLoggedIn = false;
@@ -1050,9 +1046,7 @@ function submitLogin() {
         var data = $.parseJSON(xhr.responseText);
         if (data) {
           if (data.status === 'LOGGED IN') {
-            if (data.account) {
-              MyAnswers.loginAccount = data.account;
-            }
+            MyAnswers.loginAccount = data;
             MyAnswers.isLoggedIn = true;
             //            window.location.reload();
             $.when(window.requestConfig()).always(function() {
@@ -1413,22 +1407,11 @@ function updateCurrentConfig() {
       MyAnswers.$footer.html(currentConfig.footer);
     }
     if (currentConfig.footerPosition === 'screen-bottom') {
-      if (Modernizr.positionfixed) {
-        MyAnswers.$footer.css({
-          position: 'fixed',
-          bottom: '0px',
-          'z-index': 1
-        });
-      } else {
-        MyAnswers.$footer.css({
-          position: 'absolute',
-          top: '0px',
-          'z-index': 1
-        });
-        MyAnswers.$window.trigger('scroll');
-      }
-      // TODO: fix padding code below
-      //MyAnswers.$body.css('padding-bottom', MyAnswers.$footer.outerHeight());
+      MyAnswers.$footer.css({
+        position: 'fixed',
+        bottom: '0px',
+        'z-index': 1
+      });
     } else {
       MyAnswers.$footer.removeAttr('style');
     }
@@ -2990,8 +2973,17 @@ function submitAction(keyword, action) {
     options = $.extend({}, defaultOptions, $.isPlainObject(options) ? options : {});
     navigator.geolocation.getCurrentPosition(
       function(position) { // successCallback
-        var coords = position.coords;
-        if ($.type(coords) === 'object') {
+        var coords;
+        if (position.coords) {
+          coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            altitude: position.coords.altitude,
+            accuracy: position.coords.accuracy,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed
+          };
           dfrd.resolve(coords);
         } else {
           dfrd.reject('GeoLocation error: blank location from browser / device');
@@ -3560,8 +3552,6 @@ function submitAction(keyword, action) {
     lastPictureTaken.currentName = null;
 
     $.fx.interval = 27; // default is 13, larger is kinder on devices
-
-    log('Modernizr.positionfixed = ' + Modernizr.positionfixed);
 
     MyAnswers.dispatch = new BlinkDispatch(isBlinkGapDevice() ? 149 : 47);
 

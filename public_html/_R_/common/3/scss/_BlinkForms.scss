@@ -19,6 +19,7 @@ form {
     display: none;
 		max-width: 100%;
 		max-height: $formImgMaxHeight;
+    height: auto;
     &[src] {
       display: block;
     }
