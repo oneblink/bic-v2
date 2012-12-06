@@ -12,6 +12,10 @@ textarea, input[type=text], input[type=password], input[type=tel] {
 	border: 1px solid #AAA;
 }
 
+figure > img {
+  -ms-interpolation-mode: bicubic;
+}
+
 /* necessary because Android doesn't like file inputs in tables */
 table input[type=file] { position: relative; }
 
@@ -110,7 +114,6 @@ table input[type=file] { position: relative; }
 }
 
 #navBoxHeader {
-	overflow: hidden;
 	color: #73777F;
   text-shadow: 1px 1px 1px #DEDEE4;
 	

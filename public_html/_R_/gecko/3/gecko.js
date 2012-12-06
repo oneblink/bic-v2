@@ -22,12 +22,6 @@ function init_device() {
   $navBar = $('#navBoxHeader');
   activityIndicatorTop = Math.floor($(window).height() / 2);
   $activityIndicator.css('top', activityIndicatorTop);
-  if (typeof window.onScroll === 'function') {
-    $(window).bind('scroll', window.onScroll);
-    MyAnswers.dispatch.add(function() {
-      $(window).trigger('scroll');
-    });
-  }
   $('#startUp-initDevice').addClass('success');
 }
 
@@ -140,21 +134,6 @@ function init_device() {
  ABOVE: all methods need implementation per device (directly called from main.js)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
-
-function updatePartCSS(element, property, value, valueFormat) {
-  var formattedValue = String(value).replace(/(\d+)/, valueFormat);
-  $(element).css(property, formattedValue);
-}
-
-function onScroll() {
-  var scrollTop = MyAnswers.$window.scrollTop();
-  updatePartCSS($('#signaturePad'), deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-  updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-  updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
-  if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
-    updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, scrollTop + MyAnswers.$window.height() - MyAnswers.$footer.height(), deviceVars.scrollValue);
-  }
-}
 
 document.getElementById('startUp-loadDevice').className = 'working success';
 MyAnswers.deviceDeferred.resolve();

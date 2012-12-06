@@ -110,7 +110,6 @@ table input[type=file] { position: relative; }
 }
 
 #navBoxHeader {
-	overflow: hidden;
 	color: #73777F;
   text-shadow: 1px 1px 1px #DEDEE4;
 	
