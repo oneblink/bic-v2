@@ -1,5 +1,10 @@
 @import "compass/css3";
 
+canvas {
+  /* fix canvas touch input in Internet Explorer 10+ */
+  -ms-touch-action: none;
+}
+
 td {
 	input {
 		width: 100%;

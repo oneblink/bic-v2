@@ -22,6 +22,8 @@ ul, ol { -webkit-padding-start: 0px; }
 #stackLayout { position: relative; z-index: 1; }
 
 /* controls styles */
+canvas { /* fix canvas touch input in Internet Explorer 10+ */ -ms-touch-action: none; }
+
 td input { width: 100%; }
 td input[type=button], td input[type=checkbox], td input[type=image], td input[type=radio], td input[type=reset], td input[type=submit], td input[type=file] { width: auto; }
 td input[type=file] { font-size: smaller; }
