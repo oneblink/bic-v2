@@ -609,22 +609,53 @@ function onLinkClick(event) {
 
   try {
     log('onLinkClick(): ' + $(this).tagHTML());
+    // TODO: find a more efficient way to decide if we need to make the state unique
+    if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
+      isUnique = true;
+      isPushState = false;
+      // TODO: double-check which BlinkLive buttons need separate History states
+    }
     // turn any legacy links into new format before continuing
-    if (typeof attributes.href === 'string' && attributes.href.indexOf('../') !== -1) {
-      attributes.href = attributes.href.replace(/^\.\.\//, '');
+    if (typeof attributes.href === 'string') {
+      attributes.href = $.trim(attributes.href);
       parts = explode('?', attributes.href, 2);
-      attributes.interaction = parts[0].replace(/^(.*)(?:\/)$/g, '$1');
       if(parts[1]) {
         $.each(deserialize(parts[1].trim()), function(key, value) {
           attributes[key] = value;
         });
       }
-      delete attributes.href;
+      if (attributes.href.indexOf('../') !== -1) {
+        attributes.href = attributes.href.replace(/^\.\.\//, '');
+        attributes.interaction = parts[0].replace(/^(.*)(?:\/)$/g, '$1');
+        delete attributes.href;
+      }
+      if (attributes.href[0] === '#') {
+        // allow the browser to handle "#..."
+        return true;
+      }
+      if (attributes.href[0] === '?') {
+        delete attributes.interaction;
+        delete attributes.keyword;
+        delete attributes.style;
+        delete attributes['class'];
+        url = attributes.href;
+        data = History.getState().data;
+        data.arguments = attributes;
+        title = window.document.title;
+        if (isPushState) {
+          History.pushState(data, title, url);
+        } else {
+          History.replaceState(data, title, url);
+        }
+        event.preventDefault();
+        return false;
+      }
     }
     // process link
     if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
       if (typeof attributes.back !== 'undefined') {
         History.back();
+        event.preventDefault();
         return false;
       }
       if (typeof attributes.home !== 'undefined') {
@@ -635,7 +666,7 @@ function onLinkClick(event) {
         id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
         if (id) {
           $.each(attributes, function(key, value) {
-            if (key.substr(0, 1) === '_') {
+            if (key[0] === '_') {
               attributes['args[' + key.substr(1) + ']'] = value;
               delete attributes[key];
             }
@@ -664,12 +695,6 @@ function onLinkClick(event) {
           data = {m: id};
         }
       }
-      // TODO: find a more efficient way to decide if we need to make the state unique
-      if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
-        isUnique = true;
-        isPushState = false;
-        // TODO: double-check which BlinkLive buttons need separate History states
-      }
       if (isUnique) { // we need to make the state unique somehow
         if ($.type(data) === 'object') {
           data._timestamp = $.now();
@@ -684,6 +709,7 @@ function onLinkClick(event) {
           History.replaceState(data, title, url);
         }
       }
+      event.preventDefault();
       return false;
     }
   } catch (e) {
