@@ -2272,7 +2272,7 @@ function showAnswerView(interaction, argsString, reverse) {
         html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
       })
       .then(function() {
-        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
+        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" novalidate="novalidate" data-action="' + currentConfig.blinkFormAction + '" />');
         html.data(args);
       })
       .always(function() {
