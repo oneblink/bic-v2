@@ -482,7 +482,7 @@ function getActiveFormsXML() {
                         $.each(json[1], function(name, value) {
                           var field = '';
                           field += '<name>' + name + '</name>\n';
-                          field += '<value>' + value + '</value>\n';
+                          field += '<value>' + htmlspecialchars(value) + '</value>\n';
                           // TODO: provide access to field type and label
                           fields += '<field>' + field + '</field>\n';
                         });
