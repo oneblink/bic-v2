@@ -18,22 +18,10 @@ function init_device() {
   deviceVars.scrollProperty = deviceVars.engineVersion >= 532 ? '-webkit-transform' : 'top';
   deviceVars.scrollValue = deviceVars.engineVersion >= 532 ? 'translateY($1px)' : '$1px';
 
-  // assume no CSS Fixed Position support for iOS < 5
-  matches = navigator.userAgent.match(/OS (\d)[_\d]* like Mac OS X;/);
-  if ($.type(matches) === 'array') {
-    Modernizr.positionfixed = matches[1] < 5 ? false : Modernizr.positionfixed;
-  }
-
   // caching frequently-accessed selectors
   $navBar = $('#navBoxHeader');
   activityIndicatorTop = Math.floor($(window).height() / 3);
   $activityIndicator.css('top', activityIndicatorTop);
-  if (typeof onScroll === 'function') {
-    $(window).bind('scroll', onScroll);
-    MyAnswers.dispatch.add(function() {
-      $(window).trigger('scroll');
-    });
-  }
   $('#startUp-initDevice').addClass('success');
 }
 
@@ -182,25 +170,6 @@ function onDeviceReady() {
  ABOVE: all methods need implementation per device (directly called from main.js)
  BELOW: methods assisting the above methods (NOT directly called from main.js)
 */
-
-function updatePartCSS(element, property, value, valueFormat) {
-  var formattedValue = (value + '').replace(/(\d+)/, valueFormat);
-  $(element).css(property, formattedValue);
-}
-
-function onScroll() {
-  var scrollTop = MyAnswers.$window.scrollTop(),
-      footerY;
-  /* END: var */
-  if (!Modernizr.positionfixed) {
-    updatePartCSS($navBar, deviceVars.scrollProperty, scrollTop, deviceVars.scrollValue);
-    updatePartCSS(MyAnswers.activityIndicator, deviceVars.scrollProperty, (activityIndicatorTop + scrollTop), deviceVars.scrollValue);
-  }
-  if (!Modernizr.positionfixed && typeof currentConfig !== 'undefined' && currentConfig.footerPosition === 'screen-bottom') {
-    footerY = scrollTop + MyAnswers.windowY - MyAnswers.$footer.outerHeight();
-    updatePartCSS(MyAnswers.$footer, deviceVars.scrollProperty, footerY, deviceVars.scrollValue);
-  }
-}
 
 document.getElementById('startUp-loadDevice').className = 'working success';
 MyAnswers.deviceDeferred.resolve();

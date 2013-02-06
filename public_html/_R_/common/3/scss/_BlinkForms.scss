@@ -19,6 +19,7 @@ form {
     display: none;
 		max-width: 100%;
 		max-height: $formImgMaxHeight;
+    height: auto;
     &[src] {
       display: block;
     }
@@ -134,7 +135,14 @@ form {
 	margin: .5em;
 }
 
-.bForm-error { color: $errorColor; }
+.bForm-error { 
+  color: $errorColor;
+  .bForm-index::before {
+    content: '#';
+  }
+  .bForm-label {
+  }
+}
 
 .bForm-dataDisplay {
 	margin: .5em;
