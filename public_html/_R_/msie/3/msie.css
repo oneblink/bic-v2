@@ -120,7 +120,7 @@ table input[type=file] { position: relative; }
   background: #FFF;
   background: -ms-linear-gradient(top, #FFF 0%,#CCC 100%);
   background: linear-gradient(to bottom, #FFF 0%,#CCC 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFF', endColorstr='#CCC',GradientType=0 );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFFFFF', endColorstr='#CCCCCC',GradientType=0 );
 }
 
 .navBar > .button, .navBar > .label {
