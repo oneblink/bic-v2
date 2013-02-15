@@ -482,7 +482,7 @@ function getActiveFormsXML() {
                         $.each(json[1], function(name, value) {
                           var field = '';
                           field += '<name>' + name + '</name>\n';
-                          field += '<value>' + value + '</value>\n';
+                          field += '<value>' + htmlspecialchars(value) + '</value>\n';
                           // TODO: provide access to field type and label
                           fields += '<field>' + field + '</field>\n';
                         });
@@ -2272,7 +2272,7 @@ function showAnswerView(interaction, argsString, reverse) {
         html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
       })
       .then(function() {
-        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
+        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" novalidate="novalidate" data-action="' + currentConfig.blinkFormAction + '" />');
         html.data(args);
       })
       .always(function() {
