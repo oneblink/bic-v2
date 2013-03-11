@@ -625,15 +625,15 @@ function onLinkClick(event) {
         });
       }
       if (attributes.href.indexOf('../') !== -1) {
-        attributes.href = attributes.href.replace(/^\.\.\//, '');
+        parts[0] = parts[0].replace(/^\.\.\//, '');
         attributes.interaction = parts[0].replace(/^(.*)(?:\/)$/g, '$1');
         delete attributes.href;
       }
-      if (attributes.href[0] === '#') {
+      if (attributes.href && attributes.href[0] === '#') {
         // allow the browser to handle "#..."
         return true;
       }
-      if (attributes.href[0] === '?') {
+      if (attributes.href && attributes.href[0] === '?') {
         delete attributes.interaction;
         delete attributes.keyword;
         delete attributes.style;
