@@ -81,7 +81,6 @@
         dismissedFn;
 
     options = options || {};
-    options.title = 'Alert';
     options.ok = 'OK';
 
     dismissedFn = function() {
@@ -90,6 +89,7 @@
 
     if ($.type(alert) === 'function') {
       // do cordova thing here
+      options.title = 'Alert';
       alert(message, dismissedFn, options.title, options.ok);
 
     /*
@@ -99,6 +99,7 @@
 
     } else if (hasjQueryUI()) {
       // do jQueryUI thing here
+      options.title = 'Alert';
       options.buttons = {};
       options.buttons[options.ok] = function() {
         $(this).dialog('close');
@@ -109,6 +110,7 @@
 
     } else {
       // last resort, use browser global :(
+      message = (options.title ? options.title + ' | ' : '') + message;
       global.alert(message);
       dfrd.resolve();
     }
@@ -127,12 +129,12 @@
         alert = n10n.alert;
 
     options = options || {};
-    options.title = options.title || 'Confirm';
     options.ok = options.ok || 'OK';
     options.cancel = options.cancel || 'Cancel';
 
     if ($.type(alert) === 'function') {
       // do cordova thing here
+      options.title = options.title || 'Confirm';
       alert(message, function(result) {
         if (result === 1) {
           // OK button pressed
@@ -150,6 +152,7 @@
 
     } else if (hasjQueryUI()) {
       // do jQueryUI thing here
+      options.title = options.title || 'Confirm';
       options.buttons = {};
       options.buttons[options.cancel] = function() {
         $(this).dialog('close');
@@ -168,6 +171,7 @@
 
     } else {
       // last resort, use browser global :(
+      message = (options.title ? options.title + ' | ' : '') + message;
       dfrd.resolve(global.confirm(message));
     }
     return dfrd.promise();
@@ -189,7 +193,6 @@
     }
 
     options = options || {};
-    options.title = options.title || 'Prompt';
     options.ok = options.ok || 'OK';
     options.cancel = options.cancel || 'Cancel';
 
@@ -202,6 +205,7 @@
     } else*/ if (hasjQueryUI()) {
       // do jQueryUI thing here
       message += '</p><p><input type="text" value="' + value + '" />';
+      options.title = options.title || 'Prompt';
       options.buttons = {};
       options.buttons[options.cancel] = function() {
         $(this).dialog('close');
@@ -221,6 +225,7 @@
 
     } else {
       // last resort, use browser global :(
+      message = (options.title ? options.title + ' | ' : '') + message;
       dfrd.resolve(global.prompt(message));
     }
     return dfrd.promise();

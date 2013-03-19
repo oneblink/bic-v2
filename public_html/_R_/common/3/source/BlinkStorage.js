@@ -17,7 +17,8 @@
   'use strict';
   var available,
   $ = window.jQuery,
-  alert = window.alert,
+  BMP = window.BMP,
+  alert = BMP.alert,
   // for websqldatabase
   estimatedSize,
   webSqlDbs = {}, // store open handles to databases (websqldatabase)
@@ -124,7 +125,7 @@
         var sqlError = arg2 && arg1.executeSql ? arg2 : arg1;
         error('BlinkStorage error1: ' + sqlError.code + ' ' + sqlError.message);
         if (sqlError.code === 3 || sqlError.code === 4 || sqlError.code === 7) {
-          alert('storage-error: ' + sqlError.code + '\n' + sqlError.message);
+          BMP.alert(sqlError.code + '\n' + sqlError.message, { title: 'Storage error!' });
         }
         return false;
       };
@@ -340,7 +341,7 @@
   /* END: var */
 
   if (!$) {
-    alert('error: BlinkStorage.JS requires jQuery to be loaded first');
+    BMP.alert('jQuery must be be loaded first', { title: 'Storage error!' });
     return;
   }
 
