@@ -962,35 +962,39 @@ function updateLoginButtons() {
           }, null, requestUri);
           return false;
         }
-        if (confirm('Log out?')) {
-          $.ajax({
-            type: 'GET',
-            cache: 'false',
-            url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-            data: {
-              '_a': 'logout'
-            },
-            complete: function(xhr, textstatus) {
-              if (xhr.status === 200) {
-                var data = $.parseJSON(xhr.responseText);
-                if (data) {
-                  if (data.status === 'LOGGED IN') {
-                    MyAnswers.loginAccount = data;
-                    MyAnswers.isLoggedIn = true;
-                  } else {
-                    MyAnswers.isLoggedIn = false;
-                    delete MyAnswers.loginAccount;
-                    window.location.reload();
-                  }
-                }
-                updateLoginButtons();
-                //          getSiteConfig();
-                goBackToHome();
+        BMP.confirm('Log out?')
+            .then(function(result) {
+              if (result) {
+                $.ajax({
+                  type: 'GET',
+                  cache: 'false',
+                  url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+                  data: {
+                    '_a': 'logout'
+                  },
+                  complete: function(xhr, textstatus) {
+                    if (xhr.status === 200) {
+                      var data = $.parseJSON(xhr.responseText);
+                      if (data) {
+                        if (data.status === 'LOGGED IN') {
+                          MyAnswers.loginAccount = data;
+                          MyAnswers.isLoggedIn = true;
+                        } else {
+                          MyAnswers.isLoggedIn = false;
+                          delete MyAnswers.loginAccount;
+                          window.location.reload();
+                        }
+                      }
+                      updateLoginButtons();
+                      //          getSiteConfig();
+                      goBackToHome();
+                    }
+                  },
+                  timeout: currentConfig.downloadTimeout * 1000
+                });
               }
-            },
-            timeout: currentConfig.downloadTimeout * 1000
-          });
-        }
+            });
+
         return false;
       };
   /* END: var */
@@ -3339,60 +3343,71 @@ function submitAction(keyword, action) {
     /* END: var */
     if (action === 'submit-all') {
       if (!deviceVars.isOnline) {
-        alert(networkText);
+        BMP.alert(networkText, { title: 'Forms Queue' });
         return;
       }
-      if (!window.confirm(submitAllText)) {
-        return;
-      }
-      dispatch = new BlinkDispatch(197);
-      $box = $button.closest('.box, .view');
-      $box.find('[data-blink="active-form"][data-id]')
-      .each(function(index, element) {
-            dispatch.add(function() {
-              return submitFn($(element));
-            });
+      BMP.confirm(submitAllText, { title: 'Forms Queue' })
+          .then(function(result) {
+            if (result) {
+              dispatch = new BlinkDispatch(197);
+              $box = $button.closest('.box, .view');
+              $box.find('[data-blink="active-form"][data-id]')
+                  .each(function(index, element) {
+                    dispatch.add(function() {
+                      return submitFn($(element));
+                    });
+                  });
+            }
           });
-      return;
-    }
-    $entry = $button.closest('[data-blink="active-form"]');
-    version = $entry.data('version');
-    id = $entry.data('id');
-    idParts = id.split(':');
-    interaction = idParts[0];
-    form = idParts[1];
-    uuid = idParts[2];
-    if (version === 2) {
-      if (action === 'clear' && confirm(cancelText)) {
-        $.when(clearPendingForm(interaction, form, uuid))
-        .then(function() {
-              $entry.remove();
-            });
 
-      } else if (action === 'resume') {
-        requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
-        History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
-
-      } else if (action === 'submit') {
-        submitFn($entry);
-
-      }
-    } else if (version === 1) {
-      if (action === 'clear' && confirm(cancelText)) {
-        $.when(clearPendingFormV1(interaction, uuid))
-        .then(function() {
-              $entry.remove();
-            });
-
-      } else if (action === 'submit') {
-        $.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
-          .fail(function() {
-            alert('Error: unable to retrieve this form');
+    } else {
+      $entry = $button.closest('[data-blink="active-form"]');
+      version = $entry.data('version');
+      id = $entry.data('id');
+      idParts = id.split(':');
+      interaction = idParts[0];
+      form = idParts[1];
+      uuid = idParts[2];
+      if (version === 2) {
+        if (action === 'clear') {
+          BMP.confirm(cancelText, { title: 'Forms Queue' }).then(function(result) {
+            if (result) {
+              $.when(clearPendingForm(interaction, form, uuid))
+                  .then(function() {
+                    $entry.remove();
+                  });
+            }
           })
-          .then(function(data) {
-            data = $.parseJSON(data);
-            submitFormWithRetry(data);
+
+        } else if (action === 'resume') {
+          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
+          History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
+
+        } else if (action === 'submit') {
+          submitFn($entry);
+
+        }
+      } else if (version === 1) {
+        if (action === 'clear') {
+          BMP.confirm(cancelText, { title: 'Forms Queue' }).then(function(result) {
+            if (result) {
+              $.when(clearPendingFormV1(interaction, uuid))
+                  .then(function() {
+                    $entry.remove();
+                  });
+            }
           });
+
+        } else if (action === 'submit') {
+          $.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
+              .fail(function() {
+                BMP.alert('Unable to retrieve record from storage.', { title: 'Forms Queue' });
+              })
+              .then(function(data) {
+                data = $.parseJSON(data);
+                submitFormWithRetry(data);
+              });
+        }
       }
     }
   }
