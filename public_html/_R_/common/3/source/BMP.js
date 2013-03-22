@@ -256,11 +256,11 @@
         array.unshift('inprogress');
         result = method.apply(context, args);
         result.then(function() {
-          dfrd.resolve();
+          dfrd.resolve.apply(dfrd, $.makeArray(arguments));
           array.shift(); // clear 'inprogress'
           next();
         }, function() {
-          dfrd.reject();
+          dfrd.reject.apply(dfrd, $.makeArray(arguments));
           array.shift(); // clear 'inprogress'
           next();
         });
