@@ -14,9 +14,10 @@ var MyAnswers = MyAnswers || {},
     siteVars = siteVars || {},
     deviceVars = deviceVars || {},
     hasCategories = false, hasMasterCategories = false,
-    hasVisualCategories = false, hasInteractions = false,
+    hasInteractions = false,
     answerSpaceOneKeyword = false,
-    currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
+    currentInteraction, currentCategory, currentMasterCategory,
+    currentConfig = {},
     starsProfile = {};
 /* END: var */
 
@@ -55,9 +56,7 @@ function triggerScroll(event) {
 
 function insertHTML(element, html) {
   if ($.type(element) === 'object') {
-    //    MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
     MyAnswers.dispatch.add(function() {$(element).html(html);});
-    //    MyAnswers.dispatch.add($.noop);
   }
 }
 
@@ -72,7 +71,10 @@ function setMainLabel(label) {
   insertText(mainLabel, label);
 }
 
-//convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
+/**
+ * convert 'argument=value&args[0]=value1&args[1]=value2'
+ * into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
+ */
 function deserialize(argsString) {
   var args = argsString.split('&'),
     result = { };
@@ -89,8 +91,10 @@ function deserialize(argsString) {
 
 function getURLParameters() {
   var href = window.location.href,
-    matches,
-    parameters = {};
+      matches,
+      parameters = {},
+      regexp = new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i');
+
   if (href.indexOf('?') !== -1) {
     matches = href.match(/\?([^#]*)#?.*$/);
     if (matches && matches.length >= 2) {
@@ -100,7 +104,7 @@ function getURLParameters() {
       }
     }
   }
-  matches = href.match(new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i'));
+  matches = href.match(regexp);
   if (matches && matches.length >= 2) {
     parameters.keyword = matches[1];
   }
