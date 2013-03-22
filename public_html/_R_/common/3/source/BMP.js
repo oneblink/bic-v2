@@ -29,7 +29,8 @@
       showDialog = {},
       hasCordova,
       hasjQueryUI,
-      hasjQueryMobile;
+      hasjQueryMobile,
+      bindQueue;
 
   BMP = global.BMP = global.BMP || {};
 
@@ -74,7 +75,7 @@
    * @param {Object} [options] { title: "...", ok: "..." }
    * @return {Promise} resolved when dismissed by user.
    */
-  BMP.alert = function(message, options) {
+  BMP.alertNoQueue = function(message, options) {
     var dfrd = new $.Deferred(),
         n10n = nav.notification || {},
         alert = n10n.alert,
@@ -123,7 +124,7 @@
    * @param {Object} [options] { title: "...", ok: "...", cancel: "..." }
    * @return {Promise} resolved when dismissed by user, passed Boolean result.
    */
-  BMP.confirm = function(message, options) {
+  BMP.confirmNoQueue = function(message, options) {
     var dfrd = new $.Deferred(),
         n10n = nav.notification || {},
         alert = n10n.alert;
@@ -184,7 +185,7 @@
    * @param {Object} [options] { title: "...", ok: "...", cancel: "..." }
    * @return {Promise} resolved when dismissed by user, passed input String.
    */
-  BMP.prompt = function(message, value, options) {
+  BMP.promptNoQueue = function(message, value, options) {
     var dfrd = new $.Deferred();
 
     if (typeof value !== 'string') {
@@ -230,6 +231,53 @@
     }
     return dfrd.promise();
   };
+
+  // put alert|confirm|prompt in a queue to prevent lost messages / promises
+
+  /**
+   * @param {Object} context the context to use during execution.
+   * @param {Function|String} method either the name or the method itself.
+   * @param {String} queue the name of the queue to use.
+   * @return {Function} a method that returns Promises and queues itself.
+   */
+  bindQueue = function(context, method, queue) {
+    if (typeof method === 'string') {
+      method = context[method];
+    }
+
+    return function() {
+      var args = $.makeArray(arguments),
+          dfrd = new $.Deferred();
+
+      $doc.queue(queue, function(next) {
+        var result,
+            array = $._data($doc[0], queue + 'queue');
+
+        array.unshift('inprogress');
+        result = method.apply(context, args);
+        result.then(function() {
+          dfrd.resolve();
+          array.shift(); // clear 'inprogress'
+          next();
+        }, function() {
+          dfrd.reject();
+          array.shift(); // clear 'inprogress'
+          next();
+        });
+        return result;
+      });
+
+      if ($doc.queue(queue).length && $doc.queue(queue)[0] !== 'inprogress') {
+        $doc.dequeue(queue);
+      }
+
+      return dfrd.promise();
+    };
+  };
+
+  BMP.alert = bindQueue(this, BMP.alertNoQueue, 'bmp-alerts');
+  BMP.confirm = bindQueue(this, BMP.confirmNoQueue, 'bmp-alerts');
+  BMP.prompt = bindQueue(this, BMP.promptNoQueue, 'bmp-alerts');
 
   return BMP;
 }));
