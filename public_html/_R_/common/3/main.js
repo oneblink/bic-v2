@@ -928,7 +928,7 @@ function showLoginView(event) {
   if (MyAnswers.isCustomLogin) {
     id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
     if (!id) {
-      alert('error: interaction used for login prompt is inaccessible or misconfigured');
+      BMP.alert('error: interaction used for login prompt is inaccessible or misconfigured');
       return false;
     }
     requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
@@ -955,7 +955,7 @@ function updateLoginButtons() {
         if (currentConfig.loginUseInteractions) {
           id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
           if (!id) {
-            alert('error: login interaction is inaccessible or misconfigured');
+            BMP.alert('error: login interaction is inaccessible or misconfigured');
             return false;
           }
           requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
@@ -1089,7 +1089,7 @@ function submitLogin() {
                 window.updateNavigationButtons();
                 // explicity do not implement loginToDefaultScreen here
               } else {
-                alert('error: insufficient data, check network and reload / refresh');
+                BMP.alert('error: insufficient data, check network and reload / refresh');
               }
             });
           } else {
@@ -1100,7 +1100,7 @@ function submitLogin() {
         updateLoginButtons();
       //        getSiteConfig();
       } else {
-        alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
+        BMP.alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
       }
     },
     timeout: currentConfig.downloadTimeout * 1000
@@ -1239,7 +1239,7 @@ function initialiseAnswerFeatures($view) {
                 MyAnswers.gotoDefaultScreen();
               }
             } else {
-              alert('error: insufficient data, check network and reload / refresh');
+              BMP.alert('error: insufficient data, check network and reload / refresh');
             }
           });
         } else {
@@ -1791,7 +1791,7 @@ function restoreSessionProfile(token) {
     complete: function(xhr, xhrStatus) {
       if (isAJAXError(xhrStatus) || xhr.status !== 200)
       {
-        alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
+        BMP.alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
         deferred.reject();
         return deferred.promise();
       }
@@ -1799,7 +1799,7 @@ function restoreSessionProfile(token) {
       if (data === null)
       {
         log('restoreSessionProfile error: null data');
-        alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
+        BMP.alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
         deferred.reject();
         return deferred.promise();
       }
@@ -2087,7 +2087,7 @@ function gotoStorageView() {
       url = '/' + siteVars.answerSpace + '/' + interaction.pertinent.name + '/?';
       History.pushState({ i: currentConfig.activeFormsInteraction }, null, url);
     } else {
-      window.alert('Interaction for active forms listing could not be found.');
+      BMP.alert('Interaction for active forms listing could not be found.');
       return;
     }
   } else {
@@ -2228,7 +2228,7 @@ function showAnswerView(interaction, argsString, reverse) {
 
   interaction = resolveItemName(interaction);
   if (interaction === false) {
-    alert('The requested Interaction could not be found.');
+    BMP.alert('The requested Interaction could not be found.');
     return;
   }
   MyAnswers.$body.trigger('taskBegun');
@@ -2418,7 +2418,7 @@ function gotoNextScreen(keyword, category, masterCategory) {
   log('gotoNextScreen(): ' + keyword);
   keyword = resolveItemName(keyword);
   if (keyword === false) {
-    alert('The requested Interaction could not be found.');
+    BMP.alert('The requested Interaction could not be found.');
     return;
   }
   config = siteVars.config['i' + keyword];
@@ -2655,7 +2655,7 @@ function submitForm() {
   if (MyAnswers.device.persistentStorage) {
     $.when(pushPendingFormV1(currentInteraction, uuid, data))
       .fail(function() {
-        alert('Error: unable to feed submission through queue.');
+        BMP.alert('Error: unable to feed submission through queue.');
       })
       .then(submitFormWithRetry);
     // queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
@@ -3295,13 +3295,13 @@ function submitAction(keyword, action) {
           if (siteVars.config['i' + interaction]) {
             interactionName = siteVars.config['i' + interaction].pertinent.name;
           } else {
-            alert('Error: this record requires an Interaction that not currently available');
+            BMP.alert('Error: this record requires an Interaction that not currently available');
             return;
           }
           $button.prop('disabled', true);
           $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
       .fail(function() {
-                alert('Error: unable to retrieve this form');
+                BMP.alert('Error: unable to retrieve this form');
                 $button.prop('disabled', false);
               })
       .then(function(json) {
