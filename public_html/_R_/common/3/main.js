@@ -14,9 +14,10 @@ var MyAnswers = MyAnswers || {},
     siteVars = siteVars || {},
     deviceVars = deviceVars || {},
     hasCategories = false, hasMasterCategories = false,
-    hasVisualCategories = false, hasInteractions = false,
+    hasInteractions = false,
     answerSpaceOneKeyword = false,
-    currentInteraction, currentCategory, currentMasterCategory, currentConfig = {},
+    currentInteraction, currentCategory, currentMasterCategory,
+    currentConfig = {},
     starsProfile = {};
 /* END: var */
 
@@ -55,9 +56,7 @@ function triggerScroll(event) {
 
 function insertHTML(element, html) {
   if ($.type(element) === 'object') {
-    //    MyAnswers.dispatch.add($.noop); // adding these extra noops in did not help on iPad
     MyAnswers.dispatch.add(function() {$(element).html(html);});
-    //    MyAnswers.dispatch.add($.noop);
   }
 }
 
@@ -72,7 +71,10 @@ function setMainLabel(label) {
   insertText(mainLabel, label);
 }
 
-//convert 'argument=value&args[0]=value1&args[1]=value2' into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
+/**
+ * convert 'argument=value&args[0]=value1&args[1]=value2'
+ * into '{"argument":"value","args[0]":"value1","args[1]":"value2"}'
+ */
 function deserialize(argsString) {
   var args = argsString.split('&'),
     result = { };
@@ -89,8 +91,10 @@ function deserialize(argsString) {
 
 function getURLParameters() {
   var href = window.location.href,
-    matches,
-    parameters = {};
+      matches,
+      parameters = {},
+      regexp = new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i');
+
   if (href.indexOf('?') !== -1) {
     matches = href.match(/\?([^#]*)#?.*$/);
     if (matches && matches.length >= 2) {
@@ -100,7 +104,7 @@ function getURLParameters() {
       }
     }
   }
-  matches = href.match(new RegExp('/' + siteVars.answerSpace + '/([^/?]*)', 'i'));
+  matches = href.match(regexp);
   if (matches && matches.length >= 2) {
     parameters.keyword = matches[1];
   }
@@ -924,7 +928,7 @@ function showLoginView(event) {
   if (MyAnswers.isCustomLogin) {
     id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
     if (!id) {
-      alert('error: interaction used for login prompt is inaccessible or misconfigured');
+      BMP.alert('error: interaction used for login prompt is inaccessible or misconfigured');
       return false;
     }
     requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
@@ -951,7 +955,7 @@ function updateLoginButtons() {
         if (currentConfig.loginUseInteractions) {
           id = resolveItemName(currentConfig.loginPromptInteraction, 'interactions');
           if (!id) {
-            alert('error: login interaction is inaccessible or misconfigured');
+            BMP.alert('error: login interaction is inaccessible or misconfigured');
             return false;
           }
           requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?';
@@ -962,35 +966,39 @@ function updateLoginButtons() {
           }, null, requestUri);
           return false;
         }
-        if (confirm('Log out?')) {
-          $.ajax({
-            type: 'GET',
-            cache: 'false',
-            url: siteVars.serverAppPath + '/xhr/GetLogin.php',
-            data: {
-              '_a': 'logout'
-            },
-            complete: function(xhr, textstatus) {
-              if (xhr.status === 200) {
-                var data = $.parseJSON(xhr.responseText);
-                if (data) {
-                  if (data.status === 'LOGGED IN') {
-                    MyAnswers.loginAccount = data;
-                    MyAnswers.isLoggedIn = true;
-                  } else {
-                    MyAnswers.isLoggedIn = false;
-                    delete MyAnswers.loginAccount;
-                    window.location.reload();
-                  }
-                }
-                updateLoginButtons();
-                //          getSiteConfig();
-                goBackToHome();
+        BMP.confirm('Log out?')
+            .then(function(result) {
+              if (result) {
+                $.ajax({
+                  type: 'GET',
+                  cache: 'false',
+                  url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+                  data: {
+                    '_a': 'logout'
+                  },
+                  complete: function(xhr, textstatus) {
+                    if (xhr.status === 200) {
+                      var data = $.parseJSON(xhr.responseText);
+                      if (data) {
+                        if (data.status === 'LOGGED IN') {
+                          MyAnswers.loginAccount = data;
+                          MyAnswers.isLoggedIn = true;
+                        } else {
+                          MyAnswers.isLoggedIn = false;
+                          delete MyAnswers.loginAccount;
+                          window.location.reload();
+                        }
+                      }
+                      updateLoginButtons();
+                      //          getSiteConfig();
+                      goBackToHome();
+                    }
+                  },
+                  timeout: currentConfig.downloadTimeout * 1000
+                });
               }
-            },
-            timeout: currentConfig.downloadTimeout * 1000
-          });
-        }
+            });
+
         return false;
       };
   /* END: var */
@@ -1081,7 +1089,7 @@ function submitLogin() {
                 window.updateNavigationButtons();
                 // explicity do not implement loginToDefaultScreen here
               } else {
-                alert('error: insufficient data, check network and reload / refresh');
+                BMP.alert('error: insufficient data, check network and reload / refresh');
               }
             });
           } else {
@@ -1092,7 +1100,7 @@ function submitLogin() {
         updateLoginButtons();
       //        getSiteConfig();
       } else {
-        alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
+        BMP.alert('Unable to login:  (' + textstatus + ' ' + xhr.status + ') ' + xhr.responseText);
       }
     },
     timeout: currentConfig.downloadTimeout * 1000
@@ -1231,7 +1239,7 @@ function initialiseAnswerFeatures($view) {
                 MyAnswers.gotoDefaultScreen();
               }
             } else {
-              alert('error: insufficient data, check network and reload / refresh');
+              BMP.alert('error: insufficient data, check network and reload / refresh');
             }
           });
         } else {
@@ -1783,7 +1791,7 @@ function restoreSessionProfile(token) {
     complete: function(xhr, xhrStatus) {
       if (isAJAXError(xhrStatus) || xhr.status !== 200)
       {
-        alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
+        BMP.alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
         deferred.reject();
         return deferred.promise();
       }
@@ -1791,7 +1799,7 @@ function restoreSessionProfile(token) {
       if (data === null)
       {
         log('restoreSessionProfile error: null data');
-        alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
+        BMP.alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
         deferred.reject();
         return deferred.promise();
       }
@@ -2079,7 +2087,7 @@ function gotoStorageView() {
       url = '/' + siteVars.answerSpace + '/' + interaction.pertinent.name + '/?';
       History.pushState({ i: currentConfig.activeFormsInteraction }, null, url);
     } else {
-      window.alert('Interaction for active forms listing could not be found.');
+      BMP.alert('Interaction for active forms listing could not be found.');
       return;
     }
   } else {
@@ -2220,7 +2228,7 @@ function showAnswerView(interaction, argsString, reverse) {
 
   interaction = resolveItemName(interaction);
   if (interaction === false) {
-    alert('The requested Interaction could not be found.');
+    BMP.alert('The requested Interaction could not be found.');
     return;
   }
   MyAnswers.$body.trigger('taskBegun');
@@ -2410,7 +2418,7 @@ function gotoNextScreen(keyword, category, masterCategory) {
   log('gotoNextScreen(): ' + keyword);
   keyword = resolveItemName(keyword);
   if (keyword === false) {
-    alert('The requested Interaction could not be found.');
+    BMP.alert('The requested Interaction could not be found.');
     return;
   }
   config = siteVars.config['i' + keyword];
@@ -2647,7 +2655,7 @@ function submitForm() {
   if (MyAnswers.device.persistentStorage) {
     $.when(pushPendingFormV1(currentInteraction, uuid, data))
       .fail(function() {
-        alert('Error: unable to feed submission through queue.');
+        BMP.alert('Error: unable to feed submission through queue.');
       })
       .then(submitFormWithRetry);
     // queuePendingFormData(str, document.forms[0].action, document.forms[0].method.toLowerCase(), Math.uuid(), submitFormWithRetry);
@@ -3287,13 +3295,13 @@ function submitAction(keyword, action) {
           if (siteVars.config['i' + interaction]) {
             interactionName = siteVars.config['i' + interaction].pertinent.name;
           } else {
-            alert('Error: this record requires an Interaction that not currently available');
+            BMP.alert('Error: this record requires an Interaction that not currently available');
             return;
           }
           $button.prop('disabled', true);
           $.when(MyAnswers.pendingStore.get(interaction + ':' + form + ':' + uuid))
       .fail(function() {
-                alert('Error: unable to retrieve this form');
+                BMP.alert('Error: unable to retrieve this form');
                 $button.prop('disabled', false);
               })
       .then(function(json) {
@@ -3339,60 +3347,71 @@ function submitAction(keyword, action) {
     /* END: var */
     if (action === 'submit-all') {
       if (!deviceVars.isOnline) {
-        alert(networkText);
+        BMP.alert(networkText, { title: 'Forms Queue' });
         return;
       }
-      if (!window.confirm(submitAllText)) {
-        return;
-      }
-      dispatch = new BlinkDispatch(197);
-      $box = $button.closest('.box, .view');
-      $box.find('[data-blink="active-form"][data-id]')
-      .each(function(index, element) {
-            dispatch.add(function() {
-              return submitFn($(element));
-            });
+      BMP.confirm(submitAllText, { title: 'Forms Queue' })
+          .then(function(result) {
+            if (result) {
+              dispatch = new BlinkDispatch(197);
+              $box = $button.closest('.box, .view');
+              $box.find('[data-blink="active-form"][data-id]')
+                  .each(function(index, element) {
+                    dispatch.add(function() {
+                      return submitFn($(element));
+                    });
+                  });
+            }
           });
-      return;
-    }
-    $entry = $button.closest('[data-blink="active-form"]');
-    version = $entry.data('version');
-    id = $entry.data('id');
-    idParts = id.split(':');
-    interaction = idParts[0];
-    form = idParts[1];
-    uuid = idParts[2];
-    if (version === 2) {
-      if (action === 'clear' && confirm(cancelText)) {
-        $.when(clearPendingForm(interaction, form, uuid))
-        .then(function() {
-              $entry.remove();
-            });
 
-      } else if (action === 'resume') {
-        requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
-        History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
-
-      } else if (action === 'submit') {
-        submitFn($entry);
-
-      }
-    } else if (version === 1) {
-      if (action === 'clear' && confirm(cancelText)) {
-        $.when(clearPendingFormV1(interaction, uuid))
-        .then(function() {
-              $entry.remove();
-            });
-
-      } else if (action === 'submit') {
-        $.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
-          .fail(function() {
-            alert('Error: unable to retrieve this form');
+    } else {
+      $entry = $button.closest('[data-blink="active-form"]');
+      version = $entry.data('version');
+      id = $entry.data('id');
+      idParts = id.split(':');
+      interaction = idParts[0];
+      form = idParts[1];
+      uuid = idParts[2];
+      if (version === 2) {
+        if (action === 'clear') {
+          BMP.confirm(cancelText, { title: 'Forms Queue' }).then(function(result) {
+            if (result) {
+              $.when(clearPendingForm(interaction, form, uuid))
+                  .then(function() {
+                    $entry.remove();
+                  });
+            }
           })
-          .then(function(data) {
-            data = $.parseJSON(data);
-            submitFormWithRetry(data);
+
+        } else if (action === 'resume') {
+          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?_uuid=' + uuid;
+          History.pushState({m: currentMasterCategory, c: currentCategory, i: interaction, 'arguments': {pendingForm: id}}, null, requestUri);
+
+        } else if (action === 'submit') {
+          submitFn($entry);
+
+        }
+      } else if (version === 1) {
+        if (action === 'clear') {
+          BMP.confirm(cancelText, { title: 'Forms Queue' }).then(function(result) {
+            if (result) {
+              $.when(clearPendingFormV1(interaction, uuid))
+                  .then(function() {
+                    $entry.remove();
+                  });
+            }
           });
+
+        } else if (action === 'submit') {
+          $.when(MyAnswers.pendingV1Store.get(interaction + ':' + uuid))
+              .fail(function() {
+                BMP.alert('Unable to retrieve record from storage.', { title: 'Forms Queue' });
+              })
+              .then(function(data) {
+                data = $.parseJSON(data);
+                submitFormWithRetry(data);
+              });
+        }
       }
     }
   }
