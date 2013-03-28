@@ -199,7 +199,9 @@ function getPicture_Success(imageData) {
 }
 
 function getPicture(sourceType) {
-  var options = {quality: currentConfig.imageCaptureQuality, imageScale: currentConfig.imageCaptureScale};
+  var cfg = new BMP.BIC.Config(currentConfig),
+      options = cfg.toCameraOptions();
+
   if (sourceType !== undefined) {
     options.sourceType = sourceType;
   }
