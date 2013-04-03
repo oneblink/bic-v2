@@ -396,6 +396,16 @@
     return properties;
   };
 
+  // from http://api.jquery.com/jQuery.getScript/
+  $.getCachedScript = function(url, options) {
+    options = $.extend(options || {}, {
+      dataType: "script",
+      cache: true,
+      url: url
+    });
+    return $.ajax(options);
+  };
+
   /*jslint nomen: false*/
 }(this));
 

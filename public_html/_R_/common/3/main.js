@@ -199,7 +199,9 @@ function getPicture_Success(imageData) {
 }
 
 function getPicture(sourceType) {
-  var options = {quality: currentConfig.imageCaptureQuality, imageScale: currentConfig.imageCaptureScale};
+  var cfg = new BMP.BIC.Config(currentConfig),
+      options = cfg.toCameraOptions();
+
   if (sourceType !== undefined) {
     options.sourceType = sourceType;
   }
@@ -1277,7 +1279,7 @@ function initialiseAnswerFeatures($view) {
         }, 1000);
       } else {
         MyAnswers.dfrdGoogleMaps = new $.Deferred();
-        $.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
+        $.getCachedScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
         .fail(function() {
           throw ('unable to download Google Maps JavaScript library');
         })
@@ -1910,7 +1912,7 @@ function processForms() {
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
     libraryDeferred = true;
   } else {
-    libraryDeferred = $.getScript(siteVars.serverAppPath + '/BlinkForms2.js');
+    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/BlinkForms2.js');
 
   }
   promises = [libraryDeferred];
@@ -3908,7 +3910,7 @@ function submitAction(keyword, action) {
       } else if (!urls.length) {
         dfrd.resolve();
       } else {
-        $.getScript(urls.shift())
+        $.getCachedScript(urls.shift())
         .fail(dfrd.reject)
         .then(function() {
           $.getScripts(urls)
@@ -3929,7 +3931,7 @@ function submitAction(keyword, action) {
       if (window.JSON && window.JSON.stringify) {
         dfrdJSON = true;
       } else {
-        dfrdJSON = $.getScript(_Blink.cdnp.getURL('json2.min.js'));
+        dfrdJSON = $.getCachedScript(_Blink.cdnp.getURL('json2.min.js'));
       }
 
       // poly-fill XPath
@@ -3960,7 +3962,7 @@ function submitAction(keyword, action) {
         dfrdXSLT = true;
       } else {
         dfrdXSLT = dfrdXPath.pipe(function() {
-          return $.getScript(_Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xslt.min.js'));
+          return $.getCachedScript(_Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xslt.min.js'));
         });
       }
 
