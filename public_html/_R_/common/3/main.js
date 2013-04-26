@@ -482,7 +482,7 @@ function getActiveFormsXML() {
                         $.each(json[1], function(name, value) {
                           var field = '';
                           field += '<name>' + name + '</name>\n';
-                          field += '<value>' + value + '</value>\n';
+                          field += '<value>' + htmlspecialchars(value) + '</value>\n';
                           // TODO: provide access to field type and label
                           fields += '<field>' + field + '</field>\n';
                         });
@@ -609,22 +609,53 @@ function onLinkClick(event) {
 
   try {
     log('onLinkClick(): ' + $(this).tagHTML());
+    // TODO: find a more efficient way to decide if we need to make the state unique
+    if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
+      isUnique = true;
+      isPushState = false;
+      // TODO: double-check which BlinkLive buttons need separate History states
+    }
     // turn any legacy links into new format before continuing
-    if (typeof attributes.href === 'string' && attributes.href.indexOf('../') !== -1) {
-      attributes.href = attributes.href.replace(/^\.\.\//, '');
+    if (typeof attributes.href === 'string') {
+      attributes.href = $.trim(attributes.href);
       parts = explode('?', attributes.href, 2);
-      attributes.interaction = parts[0].replace(/^(.*)(?:\/)$/g, '$1');
       if(parts[1]) {
         $.each(deserialize(parts[1].trim()), function(key, value) {
           attributes[key] = value;
         });
       }
-      delete attributes.href;
+      if (attributes.href.indexOf('../') !== -1) {
+        parts[0] = parts[0].replace(/^\.\.\//, '');
+        attributes.interaction = parts[0].replace(/^(.*)(?:\/)$/g, '$1');
+        delete attributes.href;
+      }
+      if (attributes.href && attributes.href[0] === '#') {
+        // allow the browser to handle "#..."
+        return true;
+      }
+      if (attributes.href && attributes.href[0] === '?') {
+        delete attributes.interaction;
+        delete attributes.keyword;
+        delete attributes.style;
+        delete attributes['class'];
+        url = attributes.href;
+        data = History.getState().data;
+        data.arguments = attributes;
+        title = window.document.title;
+        if (isPushState) {
+          History.pushState(data, title, url);
+        } else {
+          History.replaceState(data, title, url);
+        }
+        event.preventDefault();
+        return false;
+      }
     }
     // process link
     if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
       if (typeof attributes.back !== 'undefined') {
         History.back();
+        event.preventDefault();
         return false;
       }
       if (typeof attributes.home !== 'undefined') {
@@ -635,7 +666,7 @@ function onLinkClick(event) {
         id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
         if (id) {
           $.each(attributes, function(key, value) {
-            if (key.substr(0, 1) === '_') {
+            if (key[0] === '_') {
               attributes['args[' + key.substr(1) + ']'] = value;
               delete attributes[key];
             }
@@ -664,12 +695,6 @@ function onLinkClick(event) {
           data = {m: id};
         }
       }
-      // TODO: find a more efficient way to decide if we need to make the state unique
-      if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
-        isUnique = true;
-        isPushState = false;
-        // TODO: double-check which BlinkLive buttons need separate History states
-      }
       if (isUnique) { // we need to make the state unique somehow
         if ($.type(data) === 'object') {
           data._timestamp = $.now();
@@ -684,6 +709,7 @@ function onLinkClick(event) {
           History.replaceState(data, title, url);
         }
       }
+      event.preventDefault();
       return false;
     }
   } catch (e) {
@@ -1243,7 +1269,7 @@ function initialiseAnswerFeatures($view) {
         }, 1000);
       } else {
         MyAnswers.dfrdGoogleMaps = new $.Deferred();
-        $.getScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
+        $.getCachedScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
         .fail(function() {
           throw ('unable to download Google Maps JavaScript library');
         })
@@ -1876,7 +1902,7 @@ function processForms() {
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
     libraryDeferred = true;
   } else {
-    libraryDeferred = $.getScript(siteVars.serverAppPath + '/BlinkForms2.js');
+    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/BlinkForms2.js');
 
   }
   promises = [libraryDeferred];
@@ -2246,7 +2272,7 @@ function showAnswerView(interaction, argsString, reverse) {
         html = '<p>Error: forms Interactions are currently unavailable. Reload the application and try again.</p>';
       })
       .then(function() {
-        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" data-action="' + currentConfig.blinkFormAction + '" />');
+        html = $('<form data-object-name="' + currentConfig.blinkFormObjectName + '" novalidate="novalidate" data-action="' + currentConfig.blinkFormAction + '" />');
         html.data(args);
       })
       .always(function() {
@@ -3863,7 +3889,7 @@ function submitAction(keyword, action) {
       } else if (!urls.length) {
         dfrd.resolve();
       } else {
-        $.getScript(urls.shift())
+        $.getCachedScript(urls.shift())
         .fail(dfrd.reject)
         .then(function() {
           $.getScripts(urls)
@@ -3884,7 +3910,7 @@ function submitAction(keyword, action) {
       if (window.JSON && window.JSON.stringify) {
         dfrdJSON = true;
       } else {
-        dfrdJSON = $.getScript(_Blink.cdnp.getURL('json2.min.js'));
+        dfrdJSON = $.getCachedScript(_Blink.cdnp.getURL('json2.min.js'));
       }
 
       // poly-fill XPath
@@ -3915,7 +3941,7 @@ function submitAction(keyword, action) {
         dfrdXSLT = true;
       } else {
         dfrdXSLT = dfrdXPath.pipe(function() {
-          return $.getScript(_Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xslt.min.js'));
+          return $.getCachedScript(_Blink.cdnp.getURL('ajaxslt/0.8.1-r61/xslt.min.js'));
         });
       }
 

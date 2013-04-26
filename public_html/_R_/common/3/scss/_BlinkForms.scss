@@ -2,6 +2,11 @@
 	margin: .5em auto;
 }
 
+.googlemaps img {
+	max-height: none;
+	max-width: none;
+}
+
 figure {
 	img {
   	display: block;
@@ -130,7 +135,14 @@ form {
 	margin: .5em;
 }
 
-.bForm-error { color: $errorColor; }
+.bForm-error { 
+  color: $errorColor;
+  .bForm-index::before {
+    content: '#';
+  }
+  .bForm-label {
+  }
+}
 
 .bForm-dataDisplay {
 	margin: .5em;
