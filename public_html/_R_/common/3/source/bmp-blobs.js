@@ -122,14 +122,11 @@
 
   /**
    * @constructor
-   * @param {Array} [data] zero or more {String}, we assume non-text MIME is
-   * already Base64-encoded
+   * @param {Array} [data] contains 1 {String}
    * @param {Object} [options] properties Object with "type" attribute
    */
   Blob = function (data, options) {
-    var d,
-      dLength,
-      datum;
+    var datum;
 
     if (data && !Array.isArray(data)) {
       throw new Error('first argument should be an Array');
@@ -146,17 +143,15 @@
       this.type = options.type || this.type;
     }
 
-    if (data) {
-      dLength = data.length;
-      for (d = 0; d < dLength; d++) {
-        datum = data[d];
-        if (typeof datum === 'string') {
+    if (data && data.length) {
+      datum = data[0];
+      if (typeof datum === 'string') {
+        if (datum.indexOf('data:') === 0 && this.type === 'text/plain') {
           this.size += datum.length;
-          if (MIME.isText(this.type)) {
-            this.text += datum;
-          } else {
-            this.base64 += datum;
-          }
+          this.text += datum;
+        } else {
+          this.size += datum.length;
+          this.base64 += datum;
         }
       }
     }
@@ -217,13 +212,11 @@
     var fr = new window.FileReader();
 
     fr.onload = function (event) {
+      var result;
       fr.onload = null;
       try {
-        if (MIME.isText(blob.type)) {
-          blob = new Blob([event.target.result], { type: blob.type });
-        } else {
-          blob = Blob.fromDataURI(event.target.result);
-        }
+        result = event.target.result;
+        blob = Blob.fromDataURI(event.target.result);
         if (onSuccess && onSuccess instanceof Function) {
           onSuccess(blob);
         }
@@ -240,11 +233,7 @@
       }
     };
     try {
-      if (MIME.isText(blob.type)) {
-        fr.readAsText(blob);
-      } else {
-        fr.readAsDataURL(blob);
-      }
+      fr.readAsDataURL(blob);
     } catch (err) {
       fr.onload = null;
       fr.onerror = null;
@@ -273,16 +262,20 @@
     encoding = parts[1];
 
     if (encoding === 'base64') {
-      if (MIME.isText(type)) {
-        blob.text = window.atob(data);
-      } else {
-        blob.base64 = data;
-      }
+      blob.base64 = data;
     } else {
       blob.text = data;
     }
     blob.type = type;
     blob.size = data.length;
+
+    try {
+      blob = Blob.fromDataURI(window.atob(blob.base64));
+      blob.makeNested();
+    } catch (err) {
+      // do nothing, let original blob be returned
+    }
+
     return blob;
   };
 
@@ -299,10 +292,9 @@
     xhr.onreadystatechange = function () {
       var mime,
         base64,
-        serializer,
-        dataview;
+        serializer;
 
-      if (this.readyState === this.DONE) {
+      if (this.readyState === window.XMLHttpRequest.DONE) {
         this.onreadystatechange = null;
         mime = this.getResponseHeader('Content-Type');
         if (this.status === 200) {
@@ -331,11 +323,7 @@
             blob = new Blob([base64], { type: mime });
 
           } else { // this.responseType === 'text'
-            if (MIME.isText(mime)) {
-              blob = new Blob([this.response], { type: mime });
-            } else {
-              blob = new Blob([base64], { type: mime });
-            }
+            blob = new Blob([this.response], { type: mime });
           }
           if (blob && onSuccess && onSuccess instanceof Function) {
             onSuccess(blob);
@@ -368,13 +356,8 @@
   Blob.prototype.makeNested = function () {
     var dataURI = 'data:';
     dataURI += this.type;
-    if (MIME.isText(this.type)) {
-      dataURI += ',';
-      dataURI += this.text;
-    } else {
-      dataURI += ';base64,';
-      dataURI += this.base64;
-    }
+    dataURI += ';base64,';
+    dataURI += this.base64;
     this.type = 'text/plain';
     this.text = dataURI;
     this.base64 = null;
@@ -383,13 +366,8 @@
   Blob.prototype.undoNested = function () {
     var blob = Blob.fromDataURI(this.text);
     this.type = blob.type;
-    if (MIME.isText(this.type)) {
-      this.text = blob.text;
-      this.base64 = null;
-    } else {
-      this.base64 = blob.base64;
-      this.text = null;
-    }
+    this.base64 = blob.base64;
+    this.text = null;
   };
 
   Blob.prototype.toNative = function () {
@@ -451,7 +429,7 @@
    * @param {Function} onError: function (err)
    */
   blobs.get = function (blobURL, onSuccess, onError) {
-    var successFn, errorFn, blob;
+    var successFn, errorFn;
     successFn = onSuccess || function () {};
     errorFn = onError || function () {};
     window.BMP.Blob.fromBlobURL(blobURL, function (blob) { // onSuccess
