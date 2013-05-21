@@ -37,6 +37,13 @@
     return blobs[key];
   };
 
+  /**
+   * non-W3C standard, but used for our implementation
+   */
+  URL.revokeAllObjectURLs = function () {
+    blobs = {};
+  };
+
   generateUUID = function () {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       /*jslint bitwise:true*/
@@ -187,15 +194,14 @@
     var xhr,
       blob;
 
+    onSuccess = onSuccess || function () {};
+    onError = onError || function () {};
+
     if (!window.URL || !window.URL.createObjectURL) {
       this.fromNativeBlob(window.BMP.URL.retrieveObject(url), function (blob) {
-        if (onSuccess && onSuccess instanceof Function) {
-          onSuccess(blob);
-        }
+        onSuccess(blob);
       }, function (err) {
-        if (onError && onError instanceof Function) {
-          onError(err);
-        }
+        onError(err);
       });
 
     } else { // native URL.createObjectURL, therefore use XMLHTTPRequest
@@ -211,35 +217,34 @@
   Blob.fromNativeBlob = function (blob, onSuccess, onError) {
     var fr = new window.FileReader();
 
+    onSuccess = onSuccess || function () {};
+    onError = onError || function () {};
+
     fr.onload = function (event) {
       var result;
       fr.onload = null;
       try {
         result = event.target.result;
         blob = Blob.fromDataURI(event.target.result);
-        if (onSuccess && onSuccess instanceof Function) {
-          onSuccess(blob);
+        if (!blob) {
+          throw new Error('Blob.fromNativeBlob: fromDataURI gave no blob');
         }
       } catch (err) {
-        if (onError && onError instanceof Function) {
-          onError(err);
-        }
+        onError(err);
+        return;
       }
+      onSuccess(blob);
     };
     fr.onerror = function (event) {
       fr.onerror = null;
-      if (onError && onError instanceof Function) {
-        onError(event.target.error);
-      }
+      onError(event.target.error);
     };
     try {
       fr.readAsDataURL(blob);
     } catch (err) {
       fr.onload = null;
       fr.onerror = null;
-      if (onError && onError instanceof Function) {
-        onError(err);
-      }
+      onError(err);
     }
   };
 
@@ -288,6 +293,9 @@
     var xhr,
       blob;
 
+    onSuccess = onSuccess || function () {};
+    onError = onError || function () {};
+
     xhr = new window.XMLHttpRequest();
     xhr.onreadystatechange = function () {
       var mime,
@@ -304,13 +312,9 @@
 
           } else if (this.responseType === 'blob') {
             Blob.fromNativeBlob(this.response, function (blob) {
-              if (onSuccess && onSuccess instanceof Function) {
-                onSuccess(blob);
-              }
+              onSuccess(blob);
             }, function (err) {
-              if (onError && onError instanceof Function) {
-                onError(err);
-              }
+              onError(err);
             });
 
           } else if (this.responseType === 'document') {
@@ -325,17 +329,14 @@
           } else { // this.responseType === 'text'
             blob = new Blob([this.response], { type: mime });
           }
-          if (blob && onSuccess && onSuccess instanceof Function) {
+          if (blob) {
             onSuccess(blob);
-          }
-          if (!blob && onError && onError instanceof Function) {
+          } else {
             onError(new Error('error retrieving target Blob via Blob URL'));
           }
 
         } else { // status === 500
-          if (onError && onError instanceof Function) {
-            onError(new Error(this.responseText));
-          }
+          onError(new Error(this.url + ' -> ' + this.status));
         }
       }
     };
@@ -371,7 +372,7 @@
   };
 
   Blob.prototype.toNative = function () {
-    return window.BMP.Blob.createNative([this.base64 || this.text], {
+    return window.BMP.Blob.createNative([window.atob(this.base64)], {
       type: this.type
     });
   };
@@ -379,78 +380,4 @@
   window.BMP = window.BMP || {};
   window.BMP.Blob = Blob;
   window.BMP.NestedBlob = NestedBlob;
-}(this));
-
-/*global define:true, require:true*/ // require.js
-/*jslint indent:2*/
-/*jslint browser:true*/
-
-(function (window) {
-  'use strict';
-
-  var blobs = {};
-
-  /**
-   * emulates (and uses, if available) native URL.createObjectURL
-   * @param {BMP.Blob|Blob|String} blob
-   * @param {Function} onSuccess: function (blobURL)
-   * @param {Function} onError: function (err)
-   * @return {String} blobURL (only if given a BMP.Blob).
-   */
-  blobs.save = function (blob, onSuccess, onError) {
-    var successFn, errorFn, nativeBlob;
-    if (blob instanceof window.BMP.Blob) {
-      blob.makeNested();
-      nativeBlob = blob.toNative();
-      if (!window.URL || !window.URL.createObjectURL) {
-        return window.BMP.URL.createObjectURL(nativeBlob);
-      }
-      return window.URL.createObjectURL(nativeBlob);
-    }
-    // handle native blob below
-    successFn = onSuccess || function () {};
-    errorFn = onError || function () {};
-    window.BMP.Blob.fromNativeBlob(blob, function (bmpBlob) { // onSuccess
-      bmpBlob.makeNested();
-      nativeBlob = bmpBlob.toNative();
-      if (!window.URL || !window.URL.createObjectURL) {
-        successFn(window.BMP.URL.createObjectURL(nativeBlob));
-      } else {
-        successFn(window.URL.createObjectURL(nativeBlob));
-      }
-    }, function (err) { // onError
-      errorFn(err);
-    });
-  };
-
-  /**
-   * @param {String} blobURL
-   * @param {Function} onSuccess: function (blobURL)
-   * @param {Function} onError: function (err)
-   */
-  blobs.get = function (blobURL, onSuccess, onError) {
-    var successFn, errorFn;
-    successFn = onSuccess || function () {};
-    errorFn = onError || function () {};
-    window.BMP.Blob.fromBlobURL(blobURL, function (blob) { // onSuccess
-      blob.undoNested();
-      successFn(blob);
-    }, function (err) { // onError
-      errorFn(err);
-    });
-  };
-
-  /**
-   * emulates (and uses, if available) native URL.revokeObjectURL
-   * @param {String} blobURL
-   */
-  blobs.remove = function (blobURL) {
-    if (window.URL && window.URL.revokeObjectURL) {
-      window.URL.revokeObjectURL(blobURL);
-    }
-    delete blobs[blobURL];
-  };
-
-  window.BMP = window.BMP || {};
-  window.BMP.blobs = blobs;
 }(this));
