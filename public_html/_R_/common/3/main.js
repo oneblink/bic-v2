@@ -394,17 +394,14 @@ function generateMojoAnswer(args) {
   } else if ($.type(currentConfig.xml) === 'string' && !!currentConfig.xml) {
     $.when(MyAnswers.store.get('mojoXML:' + currentConfig.xml))
     .always(function(data) {
-          var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
-              hosted = '<p>Please try again in 30 seconds.</p>';
+//          var general = '<p>The data used to contruct this page is not currently stored on your device.</p>',
+//              hosted = '<p>Please try again in 30 seconds.</p>';
           /* END: var */
           xml = data;
-          if (typeof xml === 'string' && xml.length > 0) {
-            setTimeout(dfrdXml.resolve, 0);
-          } else if (currentConfig.mojoType === 'server-hosted') {
-            deferred.reject(general + hosted);
-          } else {
-            deferred.reject(general);
+          if(!xml){
+            xml = '<xml />';
           }
+          setTimeout(dfrdXml.resolve, 0);
         });
 
   } else {
