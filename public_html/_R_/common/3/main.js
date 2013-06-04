@@ -1276,7 +1276,7 @@ function initialiseAnswerFeatures($view) {
         }, 1000);
       } else {
         MyAnswers.dfrdGoogleMaps = new $.Deferred();
-        $.getCachedScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
+        $.getCachedScript('//maps.googleapis.com/maps/api/js?key=' + _Blink.cfg.GOOGLE_API_KEY + '&v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
         .fail(function() {
           throw ('unable to download Google Maps JavaScript library');
         })
