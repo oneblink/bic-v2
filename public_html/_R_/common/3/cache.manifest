@@ -10,7 +10,6 @@ CACHE:
 //d1c6dfkb81l78v.cloudfront.net/blink/iframeUpload-1.js.gz
 //d1c6dfkb81l78v.cloudfront.net/css/blink2010reset.css.gz
 //d1c6dfkb81l78v.cloudfront.net/css/blink2011reset.css.gz
-//d1c6dfkb81l78v.cloudfront.net/historyjs/history-1.7.1-r2.min.js.gz
 //d1c6dfkb81l78v.cloudfront.net/jquery-ui/1.9.2/jquery-ui.min.js.gz
 //d1c6dfkb81l78v.cloudfront.net/jquery/1.7.2/jquery.min.js.gz
 //d1c6dfkb81l78v.cloudfront.net/json2.js.gz
@@ -18,8 +17,6 @@ CACHE:
 //d1c6dfkb81l78v.cloudfront.net/signaturepad/jquery.signaturepad-2.1.1.min.js.gz
 /_R_/common/3/BlinkForms2.js
 /_R_/common/3/common.css
-/_R_/common/3/common.min.js
-/_R_/common/3/main.js
 /_R_/common/3/webworker.js
 /gfx/star-off32.png
 
