@@ -1,3 +1,2322 @@
+// see MIT/GPL http://phpjs.org/ for the original source of these functions
+
+function explode (delimiter, string, limit) {
+    // Splits a string on string separator and return array of components. If limit is positive only limit number of components is returned. If limit is negative all components except the last abs(limit) are returned.  
+    // 
+    // version: 1103.1210
+    // discuss at: http://phpjs.org/functions/explode
+    // +     original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +     improved by: kenneth
+    // +     improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +     improved by: d3x
+    // +     bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // *     example 1: explode(' ', 'Kevin van Zonneveld');
+    // *     returns 1: {0: 'Kevin', 1: 'van', 2: 'Zonneveld'}
+    // *     example 2: explode('=', 'a=bc=d', 2);
+    // *     returns 2: ['a', 'bc=d']
+    var emptyArray = {
+        0: ''
+    };
+ 
+    // third argument is not required
+    if (arguments.length < 2 || typeof arguments[0] == 'undefined' || typeof arguments[1] == 'undefined') {
+        return null;
+    }
+ 
+    if (delimiter === '' || delimiter === false || delimiter === null) {
+        return false;
+    }
+ 
+    if (typeof delimiter == 'function' || typeof delimiter == 'object' || typeof string == 'function' || typeof string == 'object') {
+        return emptyArray;
+    }
+ 
+    if (delimiter === true) {
+        delimiter = '1';
+    }
+ 
+    if (!limit) {
+        return string.toString().split(delimiter.toString());
+    } else {
+        // support for limit argument
+        var splitted = string.toString().split(delimiter.toString());
+        var partA = splitted.splice(0, limit - 1);
+        var partB = splitted.join(delimiter.toString());
+        partA.push(partB);
+        return partA;
+    }
+}
+
+function utf8_encode (argString) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: Webtoolkit.info (http://www.webtoolkit.info/)
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   improved by: sowberry
+    // +    tweaked by: Jack
+    // +   bugfixed by: Onno Marsman
+    // +   improved by: Yves Sucaet
+    // +   bugfixed by: Onno Marsman
+    // +   bugfixed by: Ulrich
+    // +   bugfixed by: Rafal Kukawski
+    // *     example 1: utf8_encode('Kevin van Zonneveld');
+    // *     returns 1: 'Kevin van Zonneveld'
+
+    if (argString === null || typeof argString === "undefined") {
+        return "";
+    }
+
+    var string = (argString + ''); // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    var utftext = "",
+        start, end, stringl = 0;
+
+    start = end = 0;
+    stringl = string.length;
+    for (var n = 0; n < stringl; n++) {
+        var c1 = string.charCodeAt(n);
+        var enc = null;
+
+        if (c1 < 128) {
+            end++;
+        } else if (c1 > 127 && c1 < 2048) {
+            enc = String.fromCharCode((c1 >> 6) | 192) + String.fromCharCode((c1 & 63) | 128);
+        } else {
+            enc = String.fromCharCode((c1 >> 12) | 224) + String.fromCharCode(((c1 >> 6) & 63) | 128) + String.fromCharCode((c1 & 63) | 128);
+        }
+        if (enc !== null) {
+            if (end > start) {
+                utftext += string.slice(start, end);
+            }
+            utftext += enc;
+            start = end = n + 1;
+        }
+    }
+
+    if (end > start) {
+        utftext += string.slice(start, stringl);
+    }
+
+    return utftext;
+}
+
+function sha1 (str) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: Webtoolkit.info (http://www.webtoolkit.info/)
+    // + namespaced by: Michael White (http://getsprink.com)
+    // +      input by: Brett Zamir (http://brett-zamir.me)
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // -    depends on: utf8_encode
+    // *     example 1: sha1('Kevin van Zonneveld');
+    // *     returns 1: '54916d2e62f65b3afa6e192e6a601cdbe5cb5897'
+    var rotate_left = function (n, s) {
+        var t4 = (n << s) | (n >>> (32 - s));
+        return t4;
+    };
+
+    var cvt_hex = function (val) {
+        var str = "";
+        var i;
+        var v;
+
+        for (i = 7; i >= 0; i--) {
+            v = (val >>> (i * 4)) & 0x0f;
+            str += v.toString(16);
+        }
+        return str;
+    };
+
+    var blockstart;
+    var i, j;
+    var W = new Array(80);
+    var H0 = 0x67452301;
+    var H1 = 0xEFCDAB89;
+    var H2 = 0x98BADCFE;
+    var H3 = 0x10325476;
+    var H4 = 0xC3D2E1F0;
+    var A, B, C, D, E;
+    var temp;
+
+    str = this.utf8_encode(str);
+    var str_len = str.length;
+
+    var word_array = [];
+    for (i = 0; i < str_len - 3; i += 4) {
+        j = str.charCodeAt(i) << 24 | str.charCodeAt(i + 1) << 16 | str.charCodeAt(i + 2) << 8 | str.charCodeAt(i + 3);
+        word_array.push(j);
+    }
+
+    switch (str_len % 4) {
+    case 0:
+        i = 0x080000000;
+        break;
+    case 1:
+        i = str.charCodeAt(str_len - 1) << 24 | 0x0800000;
+        break;
+    case 2:
+        i = str.charCodeAt(str_len - 2) << 24 | str.charCodeAt(str_len - 1) << 16 | 0x08000;
+        break;
+    case 3:
+        i = str.charCodeAt(str_len - 3) << 24 | str.charCodeAt(str_len - 2) << 16 | str.charCodeAt(str_len - 1) << 8 | 0x80;
+        break;
+    }
+
+    word_array.push(i);
+
+    while ((word_array.length % 16) != 14) {
+        word_array.push(0);
+    }
+
+    word_array.push(str_len >>> 29);
+    word_array.push((str_len << 3) & 0x0ffffffff);
+
+    for (blockstart = 0; blockstart < word_array.length; blockstart += 16) {
+        for (i = 0; i < 16; i++) {
+            W[i] = word_array[blockstart + i];
+        }
+        for (i = 16; i <= 79; i++) {
+            W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+        }
+
+
+        A = H0;
+        B = H1;
+        C = H2;
+        D = H3;
+        E = H4;
+
+        for (i = 0; i <= 19; i++) {
+            temp = (rotate_left(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
+            E = D;
+            D = C;
+            C = rotate_left(B, 30);
+            B = A;
+            A = temp;
+        }
+
+        for (i = 20; i <= 39; i++) {
+            temp = (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
+            E = D;
+            D = C;
+            C = rotate_left(B, 30);
+            B = A;
+            A = temp;
+        }
+
+        for (i = 40; i <= 59; i++) {
+            temp = (rotate_left(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
+            E = D;
+            D = C;
+            C = rotate_left(B, 30);
+            B = A;
+            A = temp;
+        }
+
+        for (i = 60; i <= 79; i++) {
+            temp = (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
+            E = D;
+            D = C;
+            C = rotate_left(B, 30);
+            B = A;
+            A = temp;
+        }
+
+        H0 = (H0 + A) & 0x0ffffffff;
+        H1 = (H1 + B) & 0x0ffffffff;
+        H2 = (H2 + C) & 0x0ffffffff;
+        H3 = (H3 + D) & 0x0ffffffff;
+        H4 = (H4 + E) & 0x0ffffffff;
+    }
+
+    temp = cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4);
+    return temp.toLowerCase();
+}
+
+/* from http://phpjs.org/functions/urldecode:572 */
+function urldecode (str) {
+    // Decodes URL-encoded string  
+    // 
+    // version: 1103.1210
+    // discuss at: http://phpjs.org/functions/urldecode
+    // +   original by: Philip Peterson
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +      input by: AJ
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   improved by: Brett Zamir (http://brett-zamir.me)
+    // +      input by: travc
+    // +      input by: Brett Zamir (http://brett-zamir.me)
+    // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   improved by: Lars Fischer
+    // +      input by: Ratheous
+    // +   improved by: Orlando
+    // +      reimplemented by: Brett Zamir (http://brett-zamir.me)
+    // +      bugfixed by: Rob
+    // +      input by: e-mike
+    // +   improved by: Brett Zamir (http://brett-zamir.me)
+    // %        note 1: info on what encoding functions to use from: http://xkr.us/articles/javascript/encode-compare/
+    // %        note 2: Please be aware that this function expects to decode from UTF-8 encoded strings, as found on
+    // %        note 2: pages served as UTF-8
+    // *     example 1: urldecode('Kevin+van+Zonneveld%21');
+    // *     returns 1: 'Kevin van Zonneveld!'
+    // *     example 2: urldecode('http%3A%2F%2Fkevin.vanzonneveld.net%2F');
+    // *     returns 2: 'http://kevin.vanzonneveld.net/'
+    // *     example 3: urldecode('http%3A%2F%2Fwww.google.nl%2Fsearch%3Fq%3Dphp.js%26ie%3Dutf-8%26oe%3Dutf-8%26aq%3Dt%26rls%3Dcom.ubuntu%3Aen-US%3Aunofficial%26client%3Dfirefox-a');
+    // *     returns 3: 'http://www.google.nl/search?q=php.js&ie=utf-8&oe=utf-8&aq=t&rls=com.ubuntu:en-US:unofficial&client=firefox-a'
+    return decodeURIComponent((str + '').replace(/\+/g, '%20'));
+}
+
+/* http://phpjs.org/functions/parse_url:485 version 1009.2513 */
+// note: Does not replace invalid characters with '_' as in PHP, nor does it return false for bad URLs
+function parse_url (str, component) {
+	var o = {
+		strictMode: false,
+		key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+		q: {
+			name: "queryKey",
+			parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+		},
+		parser: {
+			strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+			loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/\/?)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/ 
+				// Added one optional slash to post-protocol to catch file:/// (should restrict this)
+		}
+	};
+	var m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+	uri = {},
+	i = 14;
+	while (i--) { uri[o.key[i]] = m[i] || ""; }
+	switch (component) {
+		case 'PHP_URL_SCHEME':
+			return uri.protocol;
+		case 'PHP_URL_HOST':
+			return uri.host;
+		case 'PHP_URL_PORT':
+			return uri.port;
+		case 'PHP_URL_USER':
+			return uri.user;
+		case 'PHP_URL_PASS':
+			return uri.password;
+		case 'PHP_URL_PATH':
+			return uri.path;
+		case 'PHP_URL_QUERY':
+			return uri.query;
+		case 'PHP_URL_FRAGMENT':
+			return uri.anchor;
+		default:
+			var retArr = {};
+			if (uri.protocol !== '') {retArr.scheme=uri.protocol;}
+			if (uri.host !== '') {retArr.host=uri.host;}
+			if (uri.port !== '') {retArr.port=uri.port;}
+			if (uri.user !== '') {retArr.user=uri.user;}
+			if (uri.password !== '') {retArr.pass=uri.password;}
+			if (uri.path !== '') {retArr.path=uri.path;}
+			if (uri.query !== '') {retArr.query=uri.query;}
+			if (uri.anchor !== '') {retArr.fragment=uri.anchor;}
+			return retArr;
+	}
+}
+
+/* from http://phpjs.org/functions/parse_str:484 */
+function parse_str (str, array) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: Cagri Ekin
+    // +   improved by: Michael White (http://getsprink.com)
+    // +    tweaked by: Jack
+    // +   bugfixed by: Onno Marsman
+    // +   reimplemented by: stag019
+    // +   bugfixed by: Brett Zamir (http://brett-zamir.me)
+    // +   bugfixed by: stag019
+    // -    depends on: urldecode
+    // +   input by: Dreamer
+    // +   bugfixed by: Brett Zamir (http://brett-zamir.me)
+    // %        note 1: When no argument is specified, will put variables in global scope.
+    // *     example 1: var arr = {};
+    // *     example 1: parse_str('first=foo&second=bar', arr);
+    // *     results 1: arr == { first: 'foo', second: 'bar' }
+    // *     example 2: var arr = {};
+    // *     example 2: parse_str('str_a=Jack+and+Jill+didn%27t+see+the+well.', arr);
+    // *     results 2: arr == { str_a: "Jack and Jill didn't see the well." }
+    var glue1 = '=',
+        glue2 = '&',
+        array2 = String(str).replace(/^&?([\s\S]*?)&?$/, '$1').split(glue2),
+        i, j, chr, tmp, key, value, bracket, keys, evalStr, that = this,
+        fixStr = function (str) {
+            return that.urldecode(str).replace(/([\\"'])/g, '\\$1').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        };
+
+    if (!array) {
+        array = this.window;
+    }
+
+    for (i = 0; i < array2.length; i++) {
+        tmp = array2[i].split(glue1);
+        if (tmp.length < 2) {
+            tmp = [tmp, ''];
+        }
+        key = fixStr(tmp[0]);
+        value = fixStr(tmp[1]);
+        while (key.charAt(0) === ' ') {
+            key = key.substr(1);
+        }
+        if (key.indexOf('\0') !== -1) {
+            key = key.substr(0, key.indexOf('\0'));
+        }
+        if (key && key.charAt(0) !== '[') {
+            keys = [];
+            bracket = 0;
+            for (j = 0; j < key.length; j++) {
+                if (key.charAt(j) === '[' && !bracket) {
+                    bracket = j + 1;
+                } else if (key.charAt(j) === ']') {
+                    if (bracket) {
+                        if (!keys.length) {
+                            keys.push(key.substr(0, bracket - 1));
+                        }
+                        keys.push(key.substr(bracket, j - bracket));
+                        bracket = 0;
+                        if (key.charAt(j + 1) !== '[') {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!keys.length) {
+                keys = [key];
+            }
+            for (j = 0; j < keys[0].length; j++) {
+                chr = keys[0].charAt(j);
+                if (chr === ' ' || chr === '.' || chr === '[') {
+                    keys[0] = keys[0].substr(0, j) + '_' + keys[0].substr(j + 1);
+                }
+                if (chr === '[') {
+                    break;
+                }
+            }
+            evalStr = 'array';
+            for (j = 0; j < keys.length; j++) {
+                key = keys[j];
+                if ((key !== '' && key !== ' ') || j === 0) {
+                    key = "'" + key + "'";
+                } else {
+                    key = eval(evalStr + '.push([]);') - 1;
+                }
+                evalStr += '[' + key + ']';
+                if (j !== keys.length - 1 && eval('typeof ' + evalStr) === 'undefined') {
+                    eval(evalStr + ' = [];');
+                }
+            }
+            evalStr += " = '" + value + "';\n";
+            eval(evalStr);
+        }
+    }
+}
+
+function htmlspecialchars (string, quote_style, charset, double_encode) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: Mirek Slugen
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   bugfixed by: Nathan
+    // +   bugfixed by: Arno
+    // +    revised by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +    bugfixed by: Brett Zamir (http://brett-zamir.me)
+    // +      input by: Ratheous
+    // +      input by: Mailfaker (http://www.weedem.fr/)
+    // +      reimplemented by: Brett Zamir (http://brett-zamir.me)
+    // +      input by: felix
+    // +    bugfixed by: Brett Zamir (http://brett-zamir.me)
+    // %        note 1: charset argument not supported
+    // *     example 1: htmlspecialchars("<a href='test'>Test</a>", 'ENT_QUOTES');
+    // *     returns 1: '&lt;a href=&#039;test&#039;&gt;Test&lt;/a&gt;'
+    // *     example 2: htmlspecialchars("ab\"c'd", ['ENT_NOQUOTES', 'ENT_QUOTES']);
+    // *     returns 2: 'ab"c&#039;d'
+    // *     example 3: htmlspecialchars("my "&entity;" is still here", null, null, false);
+    // *     returns 3: 'my &quot;&entity;&quot; is still here'
+    var optTemp = 0,
+        i = 0,
+        noquotes = false;
+    if (typeof quote_style === 'undefined' || quote_style === null) {
+        quote_style = 2;
+    }
+    string = string.toString();
+    if (double_encode !== false) { // Put this first to avoid double-encoding
+        string = string.replace(/&/g, '&amp;');
+    }
+    string = string.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    var OPTS = {
+        'ENT_NOQUOTES': 0,
+        'ENT_HTML_QUOTE_SINGLE': 1,
+        'ENT_HTML_QUOTE_DOUBLE': 2,
+        'ENT_COMPAT': 2,
+        'ENT_QUOTES': 3,
+        'ENT_IGNORE': 4
+    };
+    if (quote_style === 0) {
+        noquotes = true;
+    }
+    if (typeof quote_style !== 'number') { // Allow for a single string or an array of string flags
+        quote_style = [].concat(quote_style);
+        for (i = 0; i < quote_style.length; i++) {
+            // Resolve string input to bitwise e.g. 'ENT_IGNORE' becomes 4
+            if (OPTS[quote_style[i]] === 0) {
+                noquotes = true;
+            }
+            else if (OPTS[quote_style[i]]) {
+                optTemp = optTemp | OPTS[quote_style[i]];
+            }
+        }
+        quote_style = optTemp;
+    }
+    if (quote_style & OPTS.ENT_HTML_QUOTE_SINGLE) {
+        string = string.replace(/'/g, '&#039;');
+    }
+    if (!noquotes) {
+        string = string.replace(/"/g, '&quot;');
+    }
+
+    return string;
+}
+
+function htmlspecialchars_decode (string, quote_style) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: Mirek Slugen
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   bugfixed by: Mateusz "loonquawl" Zalega
+    // +      input by: ReverseSyntax
+    // +      input by: Slawomir Kaniecki
+    // +      input by: Scott Cariss
+    // +      input by: Francois
+    // +   bugfixed by: Onno Marsman
+    // +    revised by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   bugfixed by: Brett Zamir (http://brett-zamir.me)
+    // +      input by: Ratheous
+    // +      input by: Mailfaker (http://www.weedem.fr/)
+    // +      reimplemented by: Brett Zamir (http://brett-zamir.me)
+    // +    bugfixed by: Brett Zamir (http://brett-zamir.me)
+    // *     example 1: htmlspecialchars_decode("<p>this -&gt; &quot;</p>", 'ENT_NOQUOTES');
+    // *     returns 1: '<p>this -> &quot;</p>'
+    // *     example 2: htmlspecialchars_decode("&amp;quot;");
+    // *     returns 2: '&quot;'
+    var optTemp = 0,
+        i = 0,
+        noquotes = false;
+    if (typeof quote_style === 'undefined') {
+        quote_style = 2;
+    }
+    string = string.toString().replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    var OPTS = {
+        'ENT_NOQUOTES': 0,
+        'ENT_HTML_QUOTE_SINGLE': 1,
+        'ENT_HTML_QUOTE_DOUBLE': 2,
+        'ENT_COMPAT': 2,
+        'ENT_QUOTES': 3,
+        'ENT_IGNORE': 4
+    };
+    if (quote_style === 0) {
+        noquotes = true;
+    }
+    if (typeof quote_style !== 'number') { // Allow for a single string or an array of string flags
+        quote_style = [].concat(quote_style);
+        for (i = 0; i < quote_style.length; i++) {
+            // Resolve string input to bitwise e.g. 'PATHINFO_EXTENSION' becomes 4
+            if (OPTS[quote_style[i]] === 0) {
+                noquotes = true;
+            } else if (OPTS[quote_style[i]]) {
+                optTemp = optTemp | OPTS[quote_style[i]];
+            }
+        }
+        quote_style = optTemp;
+    }
+    if (quote_style & OPTS.ENT_HTML_QUOTE_SINGLE) {
+        string = string.replace(/&#0*39;/g, "'"); // PHP doesn't currently escape if more than one 0, but it should
+        // string = string.replace(/&apos;|&#x0*27;/g, "'"); // This would also be useful here, but not a part of PHP
+    }
+    if (!noquotes) {
+        string = string.replace(/&quot;/g, '"');
+    }
+    // Put this in last place to avoid escape being double-decoded
+    string = string.replace(/&amp;/g, '&');
+
+    return string;
+}
+
+function setlocale (category, locale) {
+	// Set locale information  
+	// 
+	// version: 1107.2516
+	// discuss at: http://phpjs.org/functions/setlocale
+	// +   original by: Brett Zamir (http://brett-zamir.me)
+	// +   derived from: Blues at http://hacks.bluesmoon.info/strftime/strftime.js
+	// +   derived from: YUI Library: http://developer.yahoo.com/yui/docs/YAHOO.util.DateLocale.html
+	// -    depends on: getenv
+	// %          note 1: Is extensible, but currently only implements locales en,
+	// %          note 1: en_US, en_GB, en_AU, fr, and fr_CA for LC_TIME only; C for LC_CTYPE;
+	// %          note 1: C and en for LC_MONETARY/LC_NUMERIC; en for LC_COLLATE
+	// %          note 2: Uses global: php_js to store locale info
+	// %          note 3: Consider using http://demo.icu-project.org/icu-bin/locexp as basis for localization (as in i18n_loc_set_default())
+	// *     example 1: setlocale('LC_ALL', 'en_US');
+	// *     returns 1: 'en_US'
+	var categ = '',
+	cats = [],
+	i = 0,
+	d = this.window.document;
+ 
+	// BEGIN STATIC
+	var _copy = function _copy(orig) {
+		if (orig instanceof RegExp) {
+			return new RegExp(orig);
+		} else if (orig instanceof Date) {
+			return new Date(orig);
+		}
+		var newObj = {};
+		for (var i in orig) {
+			if (typeof orig[i] === 'object') {
+				newObj[i] = _copy(orig[i]);
+			} else {
+				newObj[i] = orig[i];
+			}
+		}
+		return newObj;
+	};
+ 
+	// Function usable by a ngettext implementation (apparently not an accessible part of setlocale(), but locale-specific)
+	// See http://www.gnu.org/software/gettext/manual/gettext.html#Plural-forms though amended with others from
+	// https://developer.mozilla.org/En/Localization_and_Plurals (new categories noted with "MDC" below, though
+	// not sure of whether there is a convention for the relative order of these newer groups as far as ngettext)
+	// The function name indicates the number of plural forms (nplural)
+	// Need to look into http://cldr.unicode.org/ (maybe future JavaScript); Dojo has some functions (under new BSD),
+	// including JSON conversions of LDML XML from CLDR: http://bugs.dojotoolkit.org/browser/dojo/trunk/cldr
+	// and docs at http://api.dojotoolkit.org/jsdoc/HEAD/dojo.cldr
+	var _nplurals1 = function (n) { // e.g., Japanese
+		return 0;
+	};
+	var _nplurals2a = function (n) { // e.g., English
+		return n !== 1 ? 1 : 0;
+	};
+	var _nplurals2b = function (n) { // e.g., French
+		return n > 1 ? 1 : 0;
+	};
+	var _nplurals2c = function (n) { // e.g., Icelandic (MDC)
+		return n % 10 === 1 && n % 100 !== 11 ? 0 : 1;
+	};
+	var _nplurals3a = function (n) { // e.g., Latvian (MDC has a different order from gettext)
+		return n % 10 === 1 && n % 100 !== 11 ? 0 : n !== 0 ? 1 : 2;
+	};
+	var _nplurals3b = function (n) { // e.g., Scottish Gaelic
+		return n === 1 ? 0 : n === 2 ? 1 : 2;
+	};
+	var _nplurals3c = function (n) { // e.g., Romanian
+		return n === 1 ? 0 : (n === 0 || (n % 100 > 0 && n % 100 < 20)) ? 1 : 2;
+	};
+	var _nplurals3d = function (n) { // e.g., Lithuanian (MDC has a different order from gettext)
+		return n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2;
+	};
+	var _nplurals3e = function (n) { // e.g., Croatian
+		return n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2;
+	};
+	var _nplurals3f = function (n) { // e.g., Slovak
+		return n === 1 ? 0 : n >= 2 && n <= 4 ? 1 : 2;
+	};
+	var _nplurals3g = function (n) { // e.g., Polish
+		return n === 1 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2;
+	};
+	var _nplurals3h = function (n) { // e.g., Macedonian (MDC)
+		return n % 10 === 1 ? 0 : n % 10 === 2 ? 1 : 2;
+	};
+	var _nplurals4a = function (n) { // e.g., Slovenian
+		return n % 100 === 1 ? 0 : n % 100 === 2 ? 1 : n % 100 === 3 || n % 100 === 4 ? 2 : 3;
+	};
+	var _nplurals4b = function (n) { // e.g., Maltese (MDC)
+		return n === 1 ? 0 : n === 0 || (n % 100 && n % 100 <= 10) ? 1 : n % 100 >= 11 && n % 100 <= 19 ? 2 : 3;
+	};
+	var _nplurals5 = function (n) { // e.g., Irish Gaeilge (MDC)
+		return n === 1 ? 0 : n === 2 ? 1 : n >= 3 && n <= 6 ? 2 : n >= 7 && n <= 10 ? 3 : 4;
+	};
+	var _nplurals6 = function (n) { // e.g., Arabic (MDC) - Per MDC puts 0 as last group
+		return n === 0 ? 5 : n === 1 ? 0 : n === 2 ? 1 : n % 100 >= 3 && n % 100 <= 10 ? 2 : n % 100 >= 11 && n % 100 <= 99 ? 3 : 4;
+	};
+	// END STATIC
+	// BEGIN REDUNDANT
+	this.php_js = this.php_js || {};
+ 
+	var phpjs = this.php_js;
+ 
+	// Reconcile Windows vs. *nix locale names?
+	// Allow different priority orders of languages, esp. if implement gettext as in
+	//     LANGUAGE env. var.? (e.g., show German if French is not available)
+	if (!phpjs.locales) {
+		// Can add to the locales
+		phpjs.locales = {};
+ 
+		phpjs.locales.en = {
+			'LC_COLLATE': // For strcoll
+ 
+ 
+			function (str1, str2) { // Fix: This one taken from strcmp, but need for other locales; we don't use localeCompare since its locale is not settable
+				return (str1 == str2) ? 0 : ((str1 > str2) ? 1 : -1);
+			},
+			'LC_CTYPE': { // Need to change any of these for English as opposed to C?
+				an: /^[A-Za-z\d]+$/g,
+				al: /^[A-Za-z]+$/g,
+				ct: /^[\u0000-\u001F\u007F]+$/g,
+				dg: /^[\d]+$/g,
+				gr: /^[\u0021-\u007E]+$/g,
+				lw: /^[a-z]+$/g,
+				pr: /^[\u0020-\u007E]+$/g,
+				pu: /^[\u0021-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E]+$/g,
+				sp: /^[\f\n\r\t\v ]+$/g,
+				up: /^[A-Z]+$/g,
+				xd: /^[A-Fa-f\d]+$/g,
+				CODESET: 'UTF-8',
+				// Used by sql_regcase
+				lower: 'abcdefghijklmnopqrstuvwxyz',
+				upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+			},
+			'LC_TIME': { // Comments include nl_langinfo() constant equivalents and any changes from Blues' implementation
+				a: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+				// ABDAY_
+				A: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+				// DAY_
+				b: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+				// ABMON_
+				B: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+				// MON_
+				c: '%a %d %b %Y %r %Z',
+				// D_T_FMT // changed %T to %r per results
+				p: ['AM', 'PM'],
+				// AM_STR/PM_STR
+				P: ['am', 'pm'],
+				// Not available in nl_langinfo()
+				r: '%I:%M:%S %p',
+				// T_FMT_AMPM (Fixed for all locales)
+				x: '%m/%d/%Y',
+				// D_FMT // switched order of %m and %d; changed %y to %Y (C uses %y)
+				X: '%r',
+				// T_FMT // changed from %T to %r  (%T is default for C, not English US)
+				// Following are from nl_langinfo() or http://www.cptec.inpe.br/sx4/sx4man2/g1ab02e/strftime.4.html
+				alt_digits: '',
+				// e.g., ordinal
+				ERA: '',
+				ERA_YEAR: '',
+				ERA_D_T_FMT: '',
+				ERA_D_FMT: '',
+				ERA_T_FMT: ''
+			},
+			// Assuming distinction between numeric and monetary is thus:
+			// See below for C locale
+			'LC_MONETARY': { // Based on Windows "english" (English_United States.1252) locale
+				int_curr_symbol: 'USD',
+				currency_symbol: '$',
+				mon_decimal_point: '.',
+				mon_thousands_sep: ',',
+				mon_grouping: [3],
+				// use mon_thousands_sep; "" for no grouping; additional array members indicate successive group lengths after first group (e.g., if to be 1,23,456, could be [3, 2])
+				positive_sign: '',
+				negative_sign: '-',
+				int_frac_digits: 2,
+				// Fractional digits only for money defaults?
+				frac_digits: 2,
+				p_cs_precedes: 1,
+				// positive currency symbol follows value = 0; precedes value = 1
+				p_sep_by_space: 0,
+				// 0: no space between curr. symbol and value; 1: space sep. them unless symb. and sign are adjacent then space sep. them from value; 2: space sep. sign and value unless symb. and sign are adjacent then space separates
+				n_cs_precedes: 1,
+				// see p_cs_precedes
+				n_sep_by_space: 0,
+				// see p_sep_by_space
+				p_sign_posn: 3,
+				// 0: parentheses surround quantity and curr. symbol; 1: sign precedes them; 2: sign follows them; 3: sign immed. precedes curr. symbol; 4: sign immed. succeeds curr. symbol
+				n_sign_posn: 0 // see p_sign_posn
+			},
+			'LC_NUMERIC': { // Based on Windows "english" (English_United States.1252) locale
+				decimal_point: '.',
+				thousands_sep: ',',
+				grouping: [3] // see mon_grouping, but for non-monetary values (use thousands_sep)
+			},
+			'LC_MESSAGES': {
+				YESEXPR: '^[yY].*',
+				NOEXPR: '^[nN].*',
+				YESSTR: '',
+				NOSTR: ''
+			},
+			nplurals: _nplurals2a
+		};
+		phpjs.locales.en_US = _copy(phpjs.locales.en);
+		phpjs.locales.en_US.LC_TIME.c = '%a %d %b %Y %r %Z';
+		phpjs.locales.en_US.LC_TIME.x = '%D';
+		phpjs.locales.en_US.LC_TIME.X = '%r';
+		// The following are based on *nix settings
+		phpjs.locales.en_US.LC_MONETARY.int_curr_symbol = 'USD ';
+		phpjs.locales.en_US.LC_MONETARY.p_sign_posn = 1;
+		phpjs.locales.en_US.LC_MONETARY.n_sign_posn = 1;
+		phpjs.locales.en_US.LC_MONETARY.mon_grouping = [3, 3];
+		phpjs.locales.en_US.LC_NUMERIC.thousands_sep = '';
+		phpjs.locales.en_US.LC_NUMERIC.grouping = [];
+ 
+		phpjs.locales.en_GB = _copy(phpjs.locales.en);
+		phpjs.locales.en_GB.LC_TIME.r = '%l:%M:%S %P %Z';
+ 
+		phpjs.locales.en_AU = _copy(phpjs.locales.en_GB);
+		phpjs.locales.C = _copy(phpjs.locales.en); // Assume C locale is like English (?) (We need C locale for LC_CTYPE)
+		phpjs.locales.C.LC_CTYPE.CODESET = 'ANSI_X3.4-1968';
+		phpjs.locales.C.LC_MONETARY = {
+			int_curr_symbol: '',
+			currency_symbol: '',
+			mon_decimal_point: '',
+			mon_thousands_sep: '',
+			mon_grouping: [],
+			p_cs_precedes: 127,
+			p_sep_by_space: 127,
+			n_cs_precedes: 127,
+			n_sep_by_space: 127,
+			p_sign_posn: 127,
+			n_sign_posn: 127,
+			positive_sign: '',
+			negative_sign: '',
+			int_frac_digits: 127,
+			frac_digits: 127
+		};
+		phpjs.locales.C.LC_NUMERIC = {
+			decimal_point: '.',
+			thousands_sep: '',
+			grouping: []
+		};
+		phpjs.locales.C.LC_TIME.c = '%a %b %e %H:%M:%S %Y'; // D_T_FMT
+		phpjs.locales.C.LC_TIME.x = '%m/%d/%y'; // D_FMT
+		phpjs.locales.C.LC_TIME.X = '%H:%M:%S'; // T_FMT
+		phpjs.locales.C.LC_MESSAGES.YESEXPR = '^[yY]';
+		phpjs.locales.C.LC_MESSAGES.NOEXPR = '^[nN]';
+ 
+		phpjs.locales.fr = _copy(phpjs.locales.en);
+		phpjs.locales.fr.nplurals = _nplurals2b;
+		phpjs.locales.fr.LC_TIME.a = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+		phpjs.locales.fr.LC_TIME.A = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+		phpjs.locales.fr.LC_TIME.b = ['jan', 'f\u00E9v', 'mar', 'avr', 'mai', 'jun', 'jui', 'ao\u00FB', 'sep', 'oct', 'nov', 'd\u00E9c'];
+		phpjs.locales.fr.LC_TIME.B = ['janvier', 'f\u00E9vrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'ao\u00FBt', 'septembre', 'octobre', 'novembre', 'd\u00E9cembre'];
+		phpjs.locales.fr.LC_TIME.c = '%a %d %b %Y %T %Z';
+		phpjs.locales.fr.LC_TIME.p = ['', ''];
+		phpjs.locales.fr.LC_TIME.P = ['', ''];
+		phpjs.locales.fr.LC_TIME.x = '%d.%m.%Y';
+		phpjs.locales.fr.LC_TIME.X = '%T';
+ 
+		phpjs.locales.fr_CA = _copy(phpjs.locales.fr);
+		phpjs.locales.fr_CA.LC_TIME.x = '%Y-%m-%d';
+	}
+	if (!phpjs.locale) {
+		phpjs.locale = 'en_US';
+		var NS_XHTML = 'http://www.w3.org/1999/xhtml';
+		var NS_XML = 'http://www.w3.org/XML/1998/namespace';
+		if (d.getElementsByTagNameNS && d.getElementsByTagNameNS(NS_XHTML, 'html')[0]) {
+			if (d.getElementsByTagNameNS(NS_XHTML, 'html')[0].getAttributeNS && d.getElementsByTagNameNS(NS_XHTML, 'html')[0].getAttributeNS(NS_XML, 'lang')) {
+				phpjs.locale = d.getElementsByTagName(NS_XHTML, 'html')[0].getAttributeNS(NS_XML, 'lang');
+			} else if (d.getElementsByTagNameNS(NS_XHTML, 'html')[0].lang) { // XHTML 1.0 only
+				phpjs.locale = d.getElementsByTagNameNS(NS_XHTML, 'html')[0].lang;
+			}
+		} else if (d.getElementsByTagName('html')[0] && d.getElementsByTagName('html')[0].lang) {
+			phpjs.locale = d.getElementsByTagName('html')[0].lang;
+		}
+	}
+	phpjs.locale = phpjs.locale.replace('-', '_'); // PHP-style
+	// Fix locale if declared locale hasn't been defined
+	if (!(phpjs.locale in phpjs.locales)) {
+		if (phpjs.locale.replace(/_[a-zA-Z]+$/, '') in phpjs.locales) {
+			phpjs.locale = phpjs.locale.replace(/_[a-zA-Z]+$/, '');
+		}
+	}
+ 
+	if (!phpjs.localeCategories) {
+		phpjs.localeCategories = {
+			'LC_COLLATE': phpjs.locale,
+			// for string comparison, see strcoll()
+			'LC_CTYPE': phpjs.locale,
+			// for character classification and conversion, for example strtoupper()
+			'LC_MONETARY': phpjs.locale,
+			// for localeconv()
+			'LC_NUMERIC': phpjs.locale,
+			// for decimal separator (See also localeconv())
+			'LC_TIME': phpjs.locale,
+			// for date and time formatting with strftime()
+			'LC_MESSAGES': phpjs.locale // for system responses (available if PHP was compiled with libintl)
+		};
+	}
+	// END REDUNDANT
+	if (locale === null || locale === '') {
+		locale = this.getenv(category) || this.getenv('LANG');
+	} else if (Object.prototype.toString.call(locale) === '[object Array]') {
+		for (i = 0; i < locale.length; i++) {
+			if (!(locale[i] in this.php_js.locales)) {
+				if (i === locale.length - 1) {
+					return false; // none found
+				}
+				continue;
+			}
+			locale = locale[i];
+			break;
+		}
+	}
+ 
+	// Just get the locale
+	if (locale === '0' || locale === 0) {
+		if (category === 'LC_ALL') {
+			for (categ in this.php_js.localeCategories) {
+				cats.push(categ + '=' + this.php_js.localeCategories[categ]); // Add ".UTF-8" or allow ".@latint", etc. to the end?
+			}
+			return cats.join(';');
+		}
+		return this.php_js.localeCategories[category];
+	}
+ 
+	if (!(locale in this.php_js.locales)) {
+		return false; // Locale not found
+	}
+ 
+	// Set and get locale
+	if (category === 'LC_ALL') {
+		for (categ in this.php_js.localeCategories) {
+			this.php_js.localeCategories[categ] = locale;
+		}
+	} else {
+		this.php_js.localeCategories[category] = locale;
+	}
+	return locale;
+}
+
+/**
+ * @param {String} fmt format string (C library strftime-style)
+ * @param {String} timestamp ISO 8601 formatted time string
+ * @returns {String}
+ */
+function strftime (fmt, timestamp) {
+	// Format a local time/date according to locale settings  
+	// 
+	// version: 1107.2516
+	// discuss at: http://phpjs.org/functions/strftime
+	// +      original by: Blues (http://tech.bluesmoon.info/)
+	// + reimplemented by: Brett Zamir (http://brett-zamir.me)
+	// +   input by: Alex
+	// +   bugfixed by: Brett Zamir (http://brett-zamir.me)
+	// +   improved by: Brett Zamir (http://brett-zamir.me)
+	// -       depends on: setlocale
+	// %        note 1: Uses global: php_js to store locale info
+	// *        example 1: strftime("%A", 1062462400); // Return value will depend on date and locale
+	// *        returns 1: 'Tuesday'
+	// BEGIN REDUNDANT
+	this.php_js = this.php_js || {};
+	this.setlocale('LC_ALL', 0); // ensure setup of localization variables takes place
+	// END REDUNDANT
+	var phpjs = this.php_js;
+ 
+	// BEGIN STATIC
+	var _xPad = function (x, pad, r) {
+		if (typeof r === 'undefined') {
+			r = 10;
+		}
+		for (; parseInt(x, 10) < r && r > 1; r /= 10) {
+			x = pad.toString() + x;
+		}
+		return x.toString();
+	};
+ 
+	var locale = phpjs.localeCategories.LC_TIME;
+	var locales = phpjs.locales;
+	var lc_time = locales[locale].LC_TIME;
+ 
+	var _formats = {
+		a: function (d) {
+			return lc_time.a[d.getDay()];
+		},
+		A: function (d) {
+			return lc_time.A[d.getDay()];
+		},
+		b: function (d) {
+			return lc_time.b[d.getMonth()];
+		},
+		B: function (d) {
+			return lc_time.B[d.getMonth()];
+		},
+		C: function (d) {
+			return _xPad(parseInt(d.getFullYear() / 100, 10), 0);
+		},
+		d: ['getDate', '0'],
+		e: ['getDate', ' '],
+		g: function (d) {
+			return _xPad(parseInt(this.G(d) / 100, 10), 0);
+		},
+		G: function (d) {
+			var y = d.getFullYear();
+			var V = parseInt(_formats.V(d), 10);
+			var W = parseInt(_formats.W(d), 10);
+ 
+			if (W > V) {
+				y++;
+			} else if (W === 0 && V >= 52) {
+				y--;
+			}
+ 
+			return y;
+		},
+		H: ['getHours', '0'],
+		I: function (d) {
+			var I = d.getHours() % 12;
+			return _xPad(I === 0 ? 12 : I, 0);
+		},
+		j: function (d) {
+			var ms = d - new Date('' + d.getFullYear() + '/1/1 GMT');
+			ms += d.getTimezoneOffset() * 60000; // Line differs from Yahoo implementation which would be equivalent to replacing it here with:
+			// ms = new Date('' + d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' GMT') - ms;
+			var doy = parseInt(ms / 60000 / 60 / 24, 10) + 1;
+			return _xPad(doy, 0, 100);
+		},
+		k: ['getHours', '0'],
+		// not in PHP, but implemented here (as in Yahoo)
+		l: function (d) {
+			var l = d.getHours() % 12;
+			return _xPad(l === 0 ? 12 : l, ' ');
+		},
+		m: function (d) {
+			return _xPad(d.getMonth() + 1, 0);
+		},
+		M: ['getMinutes', '0'],
+		p: function (d) {
+			return lc_time.p[d.getHours() >= 12 ? 1 : 0];
+		},
+		P: function (d) {
+			return lc_time.P[d.getHours() >= 12 ? 1 : 0];
+		},
+		s: function (d) { // Yahoo uses return parseInt(d.getTime()/1000, 10);
+			return Date.parse(d) / 1000;
+		},
+		S: ['getSeconds', '0'],
+		u: function (d) {
+			var dow = d.getDay();
+			return ((dow === 0) ? 7 : dow);
+		},
+		U: function (d) {
+			var doy = parseInt(_formats.j(d), 10);
+			var rdow = 6 - d.getDay();
+			var woy = parseInt((doy + rdow) / 7, 10);
+			return _xPad(woy, 0);
+		},
+		V: function (d) {
+			var woy = parseInt(_formats.W(d), 10);
+			var dow1_1 = (new Date('' + d.getFullYear() + '/1/1')).getDay();
+			// First week is 01 and not 00 as in the case of %U and %W,
+			// so we add 1 to the final result except if day 1 of the year
+			// is a Monday (then %W returns 01).
+			// We also need to subtract 1 if the day 1 of the year is
+			// Friday-Sunday, so the resulting equation becomes:
+			var idow = woy + (dow1_1 > 4 || dow1_1 <= 1 ? 0 : 1);
+			if (idow === 53 && (new Date('' + d.getFullYear() + '/12/31')).getDay() < 4) {
+				idow = 1;
+			} else if (idow === 0) {
+				idow = _formats.V(new Date('' + (d.getFullYear() - 1) + '/12/31'));
+			}
+			return _xPad(idow, 0);
+		},
+		w: 'getDay',
+		W: function (d) {
+			var doy = parseInt(_formats.j(d), 10);
+			var rdow = 7 - _formats.u(d);
+			var woy = parseInt((doy + rdow) / 7, 10);
+			return _xPad(woy, 0, 10);
+		},
+		y: function (d) {
+			return _xPad(d.getFullYear() % 100, 0);
+		},
+		Y: 'getFullYear',
+		z: function (d) {
+			var o = d.getTimezoneOffset();
+			var H = _xPad(parseInt(Math.abs(o / 60), 10), 0);
+			var M = _xPad(o % 60, 0);
+			return (o > 0 ? '-' : '+') + H + M;
+		},
+		Z: function (d) {
+			return d.toString().replace(/^.*\(([^)]+)\)$/, '$1');
+		/*
+            // Yahoo's: Better?
+            var tz = d.toString().replace(/^.*:\d\d( GMT[+-]\d+)? \(?([A-Za-z ]+)\)?\d*$/, '$2').replace(/[a-z ]/g, '');
+            if(tz.length > 4) {
+                tz = Dt.formats.z(d);
+            }
+            return tz;
+            */
+		},
+		'%': function (d) {
+			return '%';
+		}
+	};
+	// END STATIC
+	/* Fix: Locale alternatives are supported though not documented in PHP; see http://linux.die.net/man/3/strptime */
+
+	var _date = ((typeof(timestamp) == 'undefined') ? new Date() : // Not provided
+		(typeof(timestamp) == 'object') ? new Date(timestamp) : // Javascript Date()
+		new Date(timestamp * 1000) // PHP API expects UNIX timestamp (auto-convert to int)
+		);
+	var _aggregates = {
+		c: 'locale',
+		D: '%m/%d/%y',
+		F: '%y-%m-%d',
+		h: '%b',
+		n: '\n',
+		r: 'locale',
+		R: '%H:%M',
+		t: '\t',
+		T: '%H:%M:%S',
+		x: 'locale',
+		X: 'locale'
+	};
+ 
+ 
+	// First replace aggregates (run in a loop because an agg may be made up of other aggs)
+	while (fmt.match(/%[cDFhnrRtTxX]/)) {
+		fmt = fmt.replace(/%([cDFhnrRtTxX])/g, function (m0, m1) {
+			var f = _aggregates[m1];
+			return (f === 'locale' ? lc_time[m1] : f);
+		});
+	}
+ 
+	// Now replace formats - we need a closure so that the date object gets passed through
+	var str = fmt.replace(/%([aAbBCdegGHIjklmMpPsSuUVwWyYzZ%])/g, function (m0, m1) {
+		var f = _formats[m1];
+		if (typeof f === 'string') {
+			return _date[f]();
+		} else if (typeof f === 'function') {
+			return f(_date);
+		} else if (typeof f === 'object' && typeof(f[0]) === 'string') {
+			return _xPad(_date[f[0]](), f[1]);
+		} else { // Shouldn't reach here
+			return m1;
+		}
+	});
+	return str;
+}
+
+// Underscore.js 1.4.4
+// ===================
+
+// > http://underscorejs.org
+// > (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
+// > Underscore may be freely distributed under the MIT license.
+
+// Baseline setup
+// --------------
+(function() {
+
+  // Establish the root object, `window` in the browser, or `global` on the server.
+  var root = this;
+
+  // Save the previous value of the `_` variable.
+  var previousUnderscore = root._;
+
+  // Establish the object that gets returned to break out of a loop iteration.
+  var breaker = {};
+
+  // Save bytes in the minified (but not gzipped) version:
+  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+  // Create quick reference variables for speed access to core prototypes.
+  var push             = ArrayProto.push,
+      slice            = ArrayProto.slice,
+      concat           = ArrayProto.concat,
+      toString         = ObjProto.toString,
+      hasOwnProperty   = ObjProto.hasOwnProperty;
+
+  // All **ECMAScript 5** native function implementations that we hope to use
+  // are declared here.
+  var
+    nativeForEach      = ArrayProto.forEach,
+    nativeMap          = ArrayProto.map,
+    nativeReduce       = ArrayProto.reduce,
+    nativeReduceRight  = ArrayProto.reduceRight,
+    nativeFilter       = ArrayProto.filter,
+    nativeEvery        = ArrayProto.every,
+    nativeSome         = ArrayProto.some,
+    nativeIndexOf      = ArrayProto.indexOf,
+    nativeLastIndexOf  = ArrayProto.lastIndexOf,
+    nativeIsArray      = Array.isArray,
+    nativeKeys         = Object.keys,
+    nativeBind         = FuncProto.bind;
+
+  // Create a safe reference to the Underscore object for use below.
+  var _ = function(obj) {
+    if (obj instanceof _) return obj;
+    if (!(this instanceof _)) return new _(obj);
+    this._wrapped = obj;
+  };
+
+  // Export the Underscore object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, add `_` as a global object via a string identifier,
+  // for Closure Compiler "advanced" mode.
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = _;
+    }
+    exports._ = _;
+  } else {
+    root._ = _;
+  }
+
+  // Current version.
+  _.VERSION = '1.4.4';
+
+  // Collection Functions
+  // --------------------
+
+  // The cornerstone, an `each` implementation, aka `forEach`.
+  // Handles objects with the built-in `forEach`, arrays, and raw objects.
+  // Delegates to **ECMAScript 5**'s native `forEach` if available.
+  var each = _.each = _.forEach = function(obj, iterator, context) {
+    if (obj == null) return;
+    if (nativeForEach && obj.forEach === nativeForEach) {
+      obj.forEach(iterator, context);
+    } else if (obj.length === +obj.length) {
+      for (var i = 0, l = obj.length; i < l; i++) {
+        if (iterator.call(context, obj[i], i, obj) === breaker) return;
+      }
+    } else {
+      for (var key in obj) {
+        if (_.has(obj, key)) {
+          if (iterator.call(context, obj[key], key, obj) === breaker) return;
+        }
+      }
+    }
+  };
+
+  // Return the results of applying the iterator to each element.
+  // Delegates to **ECMAScript 5**'s native `map` if available.
+  _.map = _.collect = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
+    each(obj, function(value, index, list) {
+      results[results.length] = iterator.call(context, value, index, list);
+    });
+    return results;
+  };
+
+  var reduceError = 'Reduce of empty array with no initial value';
+
+  // **Reduce** builds up a single result from a list of values, aka `inject`,
+  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
+  _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduce && obj.reduce === nativeReduce) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
+    }
+    each(obj, function(value, index, list) {
+      if (!initial) {
+        memo = value;
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, value, index, list);
+      }
+    });
+    if (!initial) throw new TypeError(reduceError);
+    return memo;
+  };
+
+  // The right-associative version of reduce, also known as `foldr`.
+  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
+  _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
+    }
+    var length = obj.length;
+    if (length !== +length) {
+      var keys = _.keys(obj);
+      length = keys.length;
+    }
+    each(obj, function(value, index, list) {
+      index = keys ? keys[--length] : --length;
+      if (!initial) {
+        memo = obj[index];
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, obj[index], index, list);
+      }
+    });
+    if (!initial) throw new TypeError(reduceError);
+    return memo;
+  };
+
+  // Return the first value which passes a truth test. Aliased as `detect`.
+  _.find = _.detect = function(obj, iterator, context) {
+    var result;
+    any(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) {
+        result = value;
+        return true;
+      }
+    });
+    return result;
+  };
+
+  // Return all the elements that pass a truth test.
+  // Delegates to **ECMAScript 5**'s native `filter` if available.
+  // Aliased as `select`.
+  _.filter = _.select = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(iterator, context);
+    each(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) results[results.length] = value;
+    });
+    return results;
+  };
+
+  // Return all the elements for which a truth test fails.
+  _.reject = function(obj, iterator, context) {
+    return _.filter(obj, function(value, index, list) {
+      return !iterator.call(context, value, index, list);
+    }, context);
+  };
+
+  // Determine whether all of the elements match a truth test.
+  // Delegates to **ECMAScript 5**'s native `every` if available.
+  // Aliased as `all`.
+  _.every = _.all = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = true;
+    if (obj == null) return result;
+    if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
+    each(obj, function(value, index, list) {
+      if (!(result = result && iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if at least one element in the object matches a truth test.
+  // Delegates to **ECMAScript 5**'s native `some` if available.
+  // Aliased as `any`.
+  var any = _.some = _.any = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = false;
+    if (obj == null) return result;
+    if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
+    each(obj, function(value, index, list) {
+      if (result || (result = iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if the array or object contains a given value (using `===`).
+  // Aliased as `include`.
+  _.contains = _.include = function(obj, target) {
+    if (obj == null) return false;
+    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+    return any(obj, function(value) {
+      return value === target;
+    });
+  };
+
+  // Invoke a method (with arguments) on every item in a collection.
+  _.invoke = function(obj, method) {
+    var args = slice.call(arguments, 2);
+    var isFunc = _.isFunction(method);
+    return _.map(obj, function(value) {
+      return (isFunc ? method : value[method]).apply(value, args);
+    });
+  };
+
+  // Convenience version of a common use case of `map`: fetching a property.
+  _.pluck = function(obj, key) {
+    return _.map(obj, function(value){ return value[key]; });
+  };
+
+  // Convenience version of a common use case of `filter`: selecting only objects
+  // containing specific `key:value` pairs.
+  _.where = function(obj, attrs, first) {
+    if (_.isEmpty(attrs)) return first ? null : [];
+    return _[first ? 'find' : 'filter'](obj, function(value) {
+      for (var key in attrs) {
+        if (attrs[key] !== value[key]) return false;
+      }
+      return true;
+    });
+  };
+
+  // Convenience version of a common use case of `find`: getting the first object
+  // containing specific `key:value` pairs.
+  _.findWhere = function(obj, attrs) {
+    return _.where(obj, attrs, true);
+  };
+
+  // Return the maximum element or (element-based computation).
+  // Can't optimize arrays of integers longer than 65,535 elements.
+  // See: https://bugs.webkit.org/show_bug.cgi?id=80797
+  _.max = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+      return Math.max.apply(Math, obj);
+    }
+    if (!iterator && _.isEmpty(obj)) return -Infinity;
+    var result = {computed : -Infinity, value: -Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed >= result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Return the minimum element (or element-based computation).
+  _.min = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+      return Math.min.apply(Math, obj);
+    }
+    if (!iterator && _.isEmpty(obj)) return Infinity;
+    var result = {computed : Infinity, value: Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed < result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Shuffle an array.
+  _.shuffle = function(obj) {
+    var rand;
+    var index = 0;
+    var shuffled = [];
+    each(obj, function(value) {
+      rand = _.random(index++);
+      shuffled[index - 1] = shuffled[rand];
+      shuffled[rand] = value;
+    });
+    return shuffled;
+  };
+
+  // An internal function to generate lookup iterators.
+  var lookupIterator = function(value) {
+    return _.isFunction(value) ? value : function(obj){ return obj[value]; };
+  };
+
+  // Sort the object's values by a criterion produced by an iterator.
+  _.sortBy = function(obj, value, context) {
+    var iterator = lookupIterator(value);
+    return _.pluck(_.map(obj, function(value, index, list) {
+      return {
+        value : value,
+        index : index,
+        criteria : iterator.call(context, value, index, list)
+      };
+    }).sort(function(left, right) {
+      var a = left.criteria;
+      var b = right.criteria;
+      if (a !== b) {
+        if (a > b || a === void 0) return 1;
+        if (a < b || b === void 0) return -1;
+      }
+      return left.index < right.index ? -1 : 1;
+    }), 'value');
+  };
+
+  // An internal function used for aggregate "group by" operations.
+  var group = function(obj, value, context, behavior) {
+    var result = {};
+    var iterator = lookupIterator(value || _.identity);
+    each(obj, function(value, index) {
+      var key = iterator.call(context, value, index, obj);
+      behavior(result, key, value);
+    });
+    return result;
+  };
+
+  // Groups the object's values by a criterion. Pass either a string attribute
+  // to group by, or a function that returns the criterion.
+  _.groupBy = function(obj, value, context) {
+    return group(obj, value, context, function(result, key, value) {
+      (_.has(result, key) ? result[key] : (result[key] = [])).push(value);
+    });
+  };
+
+  // Counts instances of an object that group by a certain criterion. Pass
+  // either a string attribute to count by, or a function that returns the
+  // criterion.
+  _.countBy = function(obj, value, context) {
+    return group(obj, value, context, function(result, key) {
+      if (!_.has(result, key)) result[key] = 0;
+      result[key]++;
+    });
+  };
+
+  // Use a comparator function to figure out the smallest index at which
+  // an object should be inserted so as to maintain order. Uses binary search.
+  _.sortedIndex = function(array, obj, iterator, context) {
+    iterator = iterator == null ? _.identity : lookupIterator(iterator);
+    var value = iterator.call(context, obj);
+    var low = 0, high = array.length;
+    while (low < high) {
+      var mid = (low + high) >>> 1;
+      iterator.call(context, array[mid]) < value ? low = mid + 1 : high = mid;
+    }
+    return low;
+  };
+
+  // Safely convert anything iterable into a real, live array.
+  _.toArray = function(obj) {
+    if (!obj) return [];
+    if (_.isArray(obj)) return slice.call(obj);
+    if (obj.length === +obj.length) return _.map(obj, _.identity);
+    return _.values(obj);
+  };
+
+  // Return the number of elements in an object.
+  _.size = function(obj) {
+    if (obj == null) return 0;
+    return (obj.length === +obj.length) ? obj.length : _.keys(obj).length;
+  };
+
+  // Array Functions
+  // ---------------
+
+  // Get the first element of an array. Passing **n** will return the first N
+  // values in the array. Aliased as `head` and `take`. The **guard** check
+  // allows it to work with `_.map`.
+  _.first = _.head = _.take = function(array, n, guard) {
+    if (array == null) return void 0;
+    return (n != null) && !guard ? slice.call(array, 0, n) : array[0];
+  };
+
+  // Returns everything but the last entry of the array. Especially useful on
+  // the arguments object. Passing **n** will return all the values in
+  // the array, excluding the last N. The **guard** check allows it to work with
+  // `_.map`.
+  _.initial = function(array, n, guard) {
+    return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
+  };
+
+  // Get the last element of an array. Passing **n** will return the last N
+  // values in the array. The **guard** check allows it to work with `_.map`.
+  _.last = function(array, n, guard) {
+    if (array == null) return void 0;
+    if ((n != null) && !guard) {
+      return slice.call(array, Math.max(array.length - n, 0));
+    } else {
+      return array[array.length - 1];
+    }
+  };
+
+  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
+  // Especially useful on the arguments object. Passing an **n** will return
+  // the rest N values in the array. The **guard**
+  // check allows it to work with `_.map`.
+  _.rest = _.tail = _.drop = function(array, n, guard) {
+    return slice.call(array, (n == null) || guard ? 1 : n);
+  };
+
+  // Trim out all falsy values from an array.
+  _.compact = function(array) {
+    return _.filter(array, _.identity);
+  };
+
+  // Internal implementation of a recursive `flatten` function.
+  var flatten = function(input, shallow, output) {
+    each(input, function(value) {
+      if (_.isArray(value)) {
+        shallow ? push.apply(output, value) : flatten(value, shallow, output);
+      } else {
+        output.push(value);
+      }
+    });
+    return output;
+  };
+
+  // Return a completely flattened version of an array.
+  _.flatten = function(array, shallow) {
+    return flatten(array, shallow, []);
+  };
+
+  // Return a version of the array that does not contain the specified value(s).
+  _.without = function(array) {
+    return _.difference(array, slice.call(arguments, 1));
+  };
+
+  // Produce a duplicate-free version of the array. If the array has already
+  // been sorted, you have the option of using a faster algorithm.
+  // Aliased as `unique`.
+  _.uniq = _.unique = function(array, isSorted, iterator, context) {
+    if (_.isFunction(isSorted)) {
+      context = iterator;
+      iterator = isSorted;
+      isSorted = false;
+    }
+    var initial = iterator ? _.map(array, iterator, context) : array;
+    var results = [];
+    var seen = [];
+    each(initial, function(value, index) {
+      if (isSorted ? (!index || seen[seen.length - 1] !== value) : !_.contains(seen, value)) {
+        seen.push(value);
+        results.push(array[index]);
+      }
+    });
+    return results;
+  };
+
+  // Produce an array that contains the union: each distinct element from all of
+  // the passed-in arrays.
+  _.union = function() {
+    return _.uniq(concat.apply(ArrayProto, arguments));
+  };
+
+  // Produce an array that contains every item shared between all the
+  // passed-in arrays.
+  _.intersection = function(array) {
+    var rest = slice.call(arguments, 1);
+    return _.filter(_.uniq(array), function(item) {
+      return _.every(rest, function(other) {
+        return _.indexOf(other, item) >= 0;
+      });
+    });
+  };
+
+  // Take the difference between one array and a number of other arrays.
+  // Only the elements present in just the first array will remain.
+  _.difference = function(array) {
+    var rest = concat.apply(ArrayProto, slice.call(arguments, 1));
+    return _.filter(array, function(value){ return !_.contains(rest, value); });
+  };
+
+  // Zip together multiple lists into a single array -- elements that share
+  // an index go together.
+  _.zip = function() {
+    var args = slice.call(arguments);
+    var length = _.max(_.pluck(args, 'length'));
+    var results = new Array(length);
+    for (var i = 0; i < length; i++) {
+      results[i] = _.pluck(args, "" + i);
+    }
+    return results;
+  };
+
+  // Converts lists into objects. Pass either a single array of `[key, value]`
+  // pairs, or two parallel arrays of the same length -- one of keys, and one of
+  // the corresponding values.
+  _.object = function(list, values) {
+    if (list == null) return {};
+    var result = {};
+    for (var i = 0, l = list.length; i < l; i++) {
+      if (values) {
+        result[list[i]] = values[i];
+      } else {
+        result[list[i][0]] = list[i][1];
+      }
+    }
+    return result;
+  };
+
+  // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
+  // we need this function. Return the position of the first occurrence of an
+  // item in an array, or -1 if the item is not included in the array.
+  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
+    if (array == null) return -1;
+    var i = 0, l = array.length;
+    if (isSorted) {
+      if (typeof isSorted == 'number') {
+        i = (isSorted < 0 ? Math.max(0, l + isSorted) : isSorted);
+      } else {
+        i = _.sortedIndex(array, item);
+        return array[i] === item ? i : -1;
+      }
+    }
+    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
+    for (; i < l; i++) if (array[i] === item) return i;
+    return -1;
+  };
+
+  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
+  _.lastIndexOf = function(array, item, from) {
+    if (array == null) return -1;
+    var hasIndex = from != null;
+    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) {
+      return hasIndex ? array.lastIndexOf(item, from) : array.lastIndexOf(item);
+    }
+    var i = (hasIndex ? from : array.length);
+    while (i--) if (array[i] === item) return i;
+    return -1;
+  };
+
+  // Generate an integer Array containing an arithmetic progression. A port of
+  // the native Python `range()` function. See
+  // [the Python documentation](http://docs.python.org/library/functions.html#range).
+  _.range = function(start, stop, step) {
+    if (arguments.length <= 1) {
+      stop = start || 0;
+      start = 0;
+    }
+    step = arguments[2] || 1;
+
+    var len = Math.max(Math.ceil((stop - start) / step), 0);
+    var idx = 0;
+    var range = new Array(len);
+
+    while(idx < len) {
+      range[idx++] = start;
+      start += step;
+    }
+
+    return range;
+  };
+
+  // Function (ahem) Functions
+  // ------------------
+
+  // Create a function bound to a given object (assigning `this`, and arguments,
+  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
+  // available.
+  _.bind = function(func, context) {
+    if (func.bind === nativeBind && nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    var args = slice.call(arguments, 2);
+    return function() {
+      return func.apply(context, args.concat(slice.call(arguments)));
+    };
+  };
+
+  // Partially apply a function by creating a version that has had some of its
+  // arguments pre-filled, without changing its dynamic `this` context.
+  _.partial = function(func) {
+    var args = slice.call(arguments, 1);
+    return function() {
+      return func.apply(this, args.concat(slice.call(arguments)));
+    };
+  };
+
+  // Bind all of an object's methods to that object. Useful for ensuring that
+  // all callbacks defined on an object belong to it.
+  _.bindAll = function(obj) {
+    var funcs = slice.call(arguments, 1);
+    if (funcs.length === 0) funcs = _.functions(obj);
+    each(funcs, function(f) { obj[f] = _.bind(obj[f], obj); });
+    return obj;
+  };
+
+  // Memoize an expensive function by storing its results.
+  _.memoize = function(func, hasher) {
+    var memo = {};
+    hasher || (hasher = _.identity);
+    return function() {
+      var key = hasher.apply(this, arguments);
+      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+    };
+  };
+
+  // Delays a function for the given number of milliseconds, and then calls
+  // it with the arguments supplied.
+  _.delay = function(func, wait) {
+    var args = slice.call(arguments, 2);
+    return setTimeout(function(){ return func.apply(null, args); }, wait);
+  };
+
+  // Defers a function, scheduling it to run after the current call stack has
+  // cleared.
+  _.defer = function(func) {
+    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
+  };
+
+  // Returns a function, that, when invoked, will only be triggered at most once
+  // during a given window of time.
+  _.throttle = function(func, wait) {
+    var context, args, timeout, result;
+    var previous = 0;
+    var later = function() {
+      previous = new Date;
+      timeout = null;
+      result = func.apply(context, args);
+    };
+    return function() {
+      var now = new Date;
+      var remaining = wait - (now - previous);
+      context = this;
+      args = arguments;
+      if (remaining <= 0) {
+        clearTimeout(timeout);
+        timeout = null;
+        previous = now;
+        result = func.apply(context, args);
+      } else if (!timeout) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
+  };
+
+  // Returns a function, that, as long as it continues to be invoked, will not
+  // be triggered. The function will be called after it stops being called for
+  // N milliseconds. If `immediate` is passed, trigger the function on the
+  // leading edge, instead of the trailing.
+  _.debounce = function(func, wait, immediate) {
+    var timeout, result;
+    return function() {
+      var context = this, args = arguments;
+      var later = function() {
+        timeout = null;
+        if (!immediate) result = func.apply(context, args);
+      };
+      var callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) result = func.apply(context, args);
+      return result;
+    };
+  };
+
+  // Returns a function that will be executed at most one time, no matter how
+  // often you call it. Useful for lazy initialization.
+  _.once = function(func) {
+    var ran = false, memo;
+    return function() {
+      if (ran) return memo;
+      ran = true;
+      memo = func.apply(this, arguments);
+      func = null;
+      return memo;
+    };
+  };
+
+  // Returns the first function passed as an argument to the second,
+  // allowing you to adjust arguments, run code before and after, and
+  // conditionally execute the original function.
+  _.wrap = function(func, wrapper) {
+    return function() {
+      var args = [func];
+      push.apply(args, arguments);
+      return wrapper.apply(this, args);
+    };
+  };
+
+  // Returns a function that is the composition of a list of functions, each
+  // consuming the return value of the function that follows.
+  _.compose = function() {
+    var funcs = arguments;
+    return function() {
+      var args = arguments;
+      for (var i = funcs.length - 1; i >= 0; i--) {
+        args = [funcs[i].apply(this, args)];
+      }
+      return args[0];
+    };
+  };
+
+  // Returns a function that will only be executed after being called N times.
+  _.after = function(times, func) {
+    if (times <= 0) return func();
+    return function() {
+      if (--times < 1) {
+        return func.apply(this, arguments);
+      }
+    };
+  };
+
+  // Object Functions
+  // ----------------
+
+  // Retrieve the names of an object's properties.
+  // Delegates to **ECMAScript 5**'s native `Object.keys`
+  _.keys = nativeKeys || function(obj) {
+    if (obj !== Object(obj)) throw new TypeError('Invalid object');
+    var keys = [];
+    for (var key in obj) if (_.has(obj, key)) keys[keys.length] = key;
+    return keys;
+  };
+
+  // Retrieve the values of an object's properties.
+  _.values = function(obj) {
+    var values = [];
+    for (var key in obj) if (_.has(obj, key)) values.push(obj[key]);
+    return values;
+  };
+
+  // Convert an object into a list of `[key, value]` pairs.
+  _.pairs = function(obj) {
+    var pairs = [];
+    for (var key in obj) if (_.has(obj, key)) pairs.push([key, obj[key]]);
+    return pairs;
+  };
+
+  // Invert the keys and values of an object. The values must be serializable.
+  _.invert = function(obj) {
+    var result = {};
+    for (var key in obj) if (_.has(obj, key)) result[obj[key]] = key;
+    return result;
+  };
+
+  // Return a sorted list of the function names available on the object.
+  // Aliased as `methods`
+  _.functions = _.methods = function(obj) {
+    var names = [];
+    for (var key in obj) {
+      if (_.isFunction(obj[key])) names.push(key);
+    }
+    return names.sort();
+  };
+
+  // Extend a given object with all the properties in passed-in object(s).
+  _.extend = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      if (source) {
+        for (var prop in source) {
+          obj[prop] = source[prop];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // Return a copy of the object only containing the whitelisted properties.
+  _.pick = function(obj) {
+    var copy = {};
+    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    each(keys, function(key) {
+      if (key in obj) copy[key] = obj[key];
+    });
+    return copy;
+  };
+
+   // Return a copy of the object without the blacklisted properties.
+  _.omit = function(obj) {
+    var copy = {};
+    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    for (var key in obj) {
+      if (!_.contains(keys, key)) copy[key] = obj[key];
+    }
+    return copy;
+  };
+
+  // Fill in a given object with default properties.
+  _.defaults = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      if (source) {
+        for (var prop in source) {
+          if (obj[prop] == null) obj[prop] = source[prop];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // Create a (shallow-cloned) duplicate of an object.
+  _.clone = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+  };
+
+  // Invokes interceptor with the obj, and then returns obj.
+  // The primary purpose of this method is to "tap into" a method chain, in
+  // order to perform operations on intermediate results within the chain.
+  _.tap = function(obj, interceptor) {
+    interceptor(obj);
+    return obj;
+  };
+
+  // Internal recursive comparison function for `isEqual`.
+  var eq = function(a, b, aStack, bStack) {
+    // Identical objects are equal. `0 === -0`, but they aren't identical.
+    // See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.
+    if (a === b) return a !== 0 || 1 / a == 1 / b;
+    // A strict comparison is necessary because `null == undefined`.
+    if (a == null || b == null) return a === b;
+    // Unwrap any wrapped objects.
+    if (a instanceof _) a = a._wrapped;
+    if (b instanceof _) b = b._wrapped;
+    // Compare `[[Class]]` names.
+    var className = toString.call(a);
+    if (className != toString.call(b)) return false;
+    switch (className) {
+      // Strings, numbers, dates, and booleans are compared by value.
+      case '[object String]':
+        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+        // equivalent to `new String("5")`.
+        return a == String(b);
+      case '[object Number]':
+        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
+        // other numeric values.
+        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+      case '[object Date]':
+      case '[object Boolean]':
+        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+        // millisecond representations. Note that invalid dates with millisecond representations
+        // of `NaN` are not equivalent.
+        return +a == +b;
+      // RegExps are compared by their source patterns and flags.
+      case '[object RegExp]':
+        return a.source == b.source &&
+               a.global == b.global &&
+               a.multiline == b.multiline &&
+               a.ignoreCase == b.ignoreCase;
+    }
+    if (typeof a != 'object' || typeof b != 'object') return false;
+    // Assume equality for cyclic structures. The algorithm for detecting cyclic
+    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+    var length = aStack.length;
+    while (length--) {
+      // Linear search. Performance is inversely proportional to the number of
+      // unique nested structures.
+      if (aStack[length] == a) return bStack[length] == b;
+    }
+    // Add the first object to the stack of traversed objects.
+    aStack.push(a);
+    bStack.push(b);
+    var size = 0, result = true;
+    // Recursively compare objects and arrays.
+    if (className == '[object Array]') {
+      // Compare array lengths to determine if a deep comparison is necessary.
+      size = a.length;
+      result = size == b.length;
+      if (result) {
+        // Deep compare the contents, ignoring non-numeric properties.
+        while (size--) {
+          if (!(result = eq(a[size], b[size], aStack, bStack))) break;
+        }
+      }
+    } else {
+      // Objects with different constructors are not equivalent, but `Object`s
+      // from different frames are.
+      var aCtor = a.constructor, bCtor = b.constructor;
+      if (aCtor !== bCtor && !(_.isFunction(aCtor) && (aCtor instanceof aCtor) &&
+                               _.isFunction(bCtor) && (bCtor instanceof bCtor))) {
+        return false;
+      }
+      // Deep compare objects.
+      for (var key in a) {
+        if (_.has(a, key)) {
+          // Count the expected number of properties.
+          size++;
+          // Deep compare each member.
+          if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+        }
+      }
+      // Ensure that both objects contain the same number of properties.
+      if (result) {
+        for (key in b) {
+          if (_.has(b, key) && !(size--)) break;
+        }
+        result = !size;
+      }
+    }
+    // Remove the first object from the stack of traversed objects.
+    aStack.pop();
+    bStack.pop();
+    return result;
+  };
+
+  // Perform a deep comparison to check if two objects are equal.
+  _.isEqual = function(a, b) {
+    return eq(a, b, [], []);
+  };
+
+  // Is a given array, string, or object empty?
+  // An "empty" object has no enumerable own-properties.
+  _.isEmpty = function(obj) {
+    if (obj == null) return true;
+    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
+    for (var key in obj) if (_.has(obj, key)) return false;
+    return true;
+  };
+
+  // Is a given value a DOM element?
+  _.isElement = function(obj) {
+    return !!(obj && obj.nodeType === 1);
+  };
+
+  // Is a given value an array?
+  // Delegates to ECMA5's native Array.isArray
+  _.isArray = nativeIsArray || function(obj) {
+    return toString.call(obj) == '[object Array]';
+  };
+
+  // Is a given variable an object?
+  _.isObject = function(obj) {
+    return obj === Object(obj);
+  };
+
+  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
+  each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function(name) {
+    _['is' + name] = function(obj) {
+      return toString.call(obj) == '[object ' + name + ']';
+    };
+  });
+
+  // Define a fallback version of the method in browsers (ahem, IE), where
+  // there isn't any inspectable "Arguments" type.
+  if (!_.isArguments(arguments)) {
+    _.isArguments = function(obj) {
+      return !!(obj && _.has(obj, 'callee'));
+    };
+  }
+
+  // Optimize `isFunction` if appropriate.
+  if (typeof (/./) !== 'function') {
+    _.isFunction = function(obj) {
+      return typeof obj === 'function';
+    };
+  }
+
+  // Is a given object a finite number?
+  _.isFinite = function(obj) {
+    return isFinite(obj) && !isNaN(parseFloat(obj));
+  };
+
+  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
+  _.isNaN = function(obj) {
+    return _.isNumber(obj) && obj != +obj;
+  };
+
+  // Is a given value a boolean?
+  _.isBoolean = function(obj) {
+    return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
+  };
+
+  // Is a given value equal to null?
+  _.isNull = function(obj) {
+    return obj === null;
+  };
+
+  // Is a given variable undefined?
+  _.isUndefined = function(obj) {
+    return obj === void 0;
+  };
+
+  // Shortcut function for checking if an object has a given property directly
+  // on itself (in other words, not on a prototype).
+  _.has = function(obj, key) {
+    return hasOwnProperty.call(obj, key);
+  };
+
+  // Utility Functions
+  // -----------------
+
+  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+  // previous owner. Returns a reference to the Underscore object.
+  _.noConflict = function() {
+    root._ = previousUnderscore;
+    return this;
+  };
+
+  // Keep the identity function around for default iterators.
+  _.identity = function(value) {
+    return value;
+  };
+
+  // Run a function **n** times.
+  _.times = function(n, iterator, context) {
+    var accum = Array(n);
+    for (var i = 0; i < n; i++) accum[i] = iterator.call(context, i);
+    return accum;
+  };
+
+  // Return a random integer between min and max (inclusive).
+  _.random = function(min, max) {
+    if (max == null) {
+      max = min;
+      min = 0;
+    }
+    return min + Math.floor(Math.random() * (max - min + 1));
+  };
+
+  // List of HTML entities for escaping.
+  var entityMap = {
+    escape: {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      '/': '&#x2F;'
+    }
+  };
+  entityMap.unescape = _.invert(entityMap.escape);
+
+  // Regexes containing the keys and values listed immediately above.
+  var entityRegexes = {
+    escape:   new RegExp('[' + _.keys(entityMap.escape).join('') + ']', 'g'),
+    unescape: new RegExp('(' + _.keys(entityMap.unescape).join('|') + ')', 'g')
+  };
+
+  // Functions for escaping and unescaping strings to/from HTML interpolation.
+  _.each(['escape', 'unescape'], function(method) {
+    _[method] = function(string) {
+      if (string == null) return '';
+      return ('' + string).replace(entityRegexes[method], function(match) {
+        return entityMap[method][match];
+      });
+    };
+  });
+
+  // If the value of the named property is a function then invoke it;
+  // otherwise, return it.
+  _.result = function(object, property) {
+    if (object == null) return null;
+    var value = object[property];
+    return _.isFunction(value) ? value.call(object) : value;
+  };
+
+  // Add your own custom functions to the Underscore object.
+  _.mixin = function(obj) {
+    each(_.functions(obj), function(name){
+      var func = _[name] = obj[name];
+      _.prototype[name] = function() {
+        var args = [this._wrapped];
+        push.apply(args, arguments);
+        return result.call(this, func.apply(_, args));
+      };
+    });
+  };
+
+  // Generate a unique integer id (unique within the entire client session).
+  // Useful for temporary DOM ids.
+  var idCounter = 0;
+  _.uniqueId = function(prefix) {
+    var id = ++idCounter + '';
+    return prefix ? prefix + id : id;
+  };
+
+  // By default, Underscore uses ERB-style template delimiters, change the
+  // following template settings to use alternative delimiters.
+  _.templateSettings = {
+    evaluate    : /<%([\s\S]+?)%>/g,
+    interpolate : /<%=([\s\S]+?)%>/g,
+    escape      : /<%-([\s\S]+?)%>/g
+  };
+
+  // When customizing `templateSettings`, if you don't want to define an
+  // interpolation, evaluation or escaping regex, we need one that is
+  // guaranteed not to match.
+  var noMatch = /(.)^/;
+
+  // Certain characters need to be escaped so that they can be put into a
+  // string literal.
+  var escapes = {
+    "'":      "'",
+    '\\':     '\\',
+    '\r':     'r',
+    '\n':     'n',
+    '\t':     't',
+    '\u2028': 'u2028',
+    '\u2029': 'u2029'
+  };
+
+  var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+
+  // JavaScript micro-templating, similar to John Resig's implementation.
+  // Underscore templating handles arbitrary delimiters, preserves whitespace,
+  // and correctly escapes quotes within interpolated code.
+  _.template = function(text, data, settings) {
+    var render;
+    settings = _.defaults({}, settings, _.templateSettings);
+
+    // Combine delimiters into one regular expression via alternation.
+    var matcher = new RegExp([
+      (settings.escape || noMatch).source,
+      (settings.interpolate || noMatch).source,
+      (settings.evaluate || noMatch).source
+    ].join('|') + '|$', 'g');
+
+    // Compile the template source, escaping string literals appropriately.
+    var index = 0;
+    var source = "__p+='";
+    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+      source += text.slice(index, offset)
+        .replace(escaper, function(match) { return '\\' + escapes[match]; });
+
+      if (escape) {
+        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+      }
+      if (interpolate) {
+        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+      }
+      if (evaluate) {
+        source += "';\n" + evaluate + "\n__p+='";
+      }
+      index = offset + match.length;
+      return match;
+    });
+    source += "';\n";
+
+    // If a variable is not specified, place data values in local scope.
+    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+    source = "var __t,__p='',__j=Array.prototype.join," +
+      "print=function(){__p+=__j.call(arguments,'');};\n" +
+      source + "return __p;\n";
+
+    try {
+      render = new Function(settings.variable || 'obj', '_', source);
+    } catch (e) {
+      e.source = source;
+      throw e;
+    }
+
+    if (data) return render(data, _);
+    var template = function(data) {
+      return render.call(this, data, _);
+    };
+
+    // Provide the compiled function source as a convenience for precompilation.
+    template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
+
+    return template;
+  };
+
+  // Add a "chain" function, which will delegate to the wrapper.
+  _.chain = function(obj) {
+    return _(obj).chain();
+  };
+
+  // OOP
+  // ---------------
+  // If Underscore is called as a function, it returns a wrapped object that
+  // can be used OO-style. This wrapper holds altered versions of all the
+  // underscore functions. Wrapped objects may be chained.
+
+  // Helper function to continue chaining intermediate results.
+  var result = function(obj) {
+    return this._chain ? _(obj).chain() : obj;
+  };
+
+  // Add all of the Underscore functions to the wrapper object.
+  _.mixin(_);
+
+  // Add all mutator Array functions to the wrapper.
+  each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      var obj = this._wrapped;
+      method.apply(obj, arguments);
+      if ((name == 'shift' || name == 'splice') && obj.length === 0) delete obj[0];
+      return result.call(this, obj);
+    };
+  });
+
+  // Add all accessor Array functions to the wrapper.
+  each(['concat', 'join', 'slice'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      return result.call(this, method.apply(this._wrapped, arguments));
+    };
+  });
+
+  _.extend(_.prototype, {
+
+    // Start chaining a wrapped Underscore object.
+    chain: function() {
+      this._chain = true;
+      return this;
+    },
+
+    // Extracts the result from a wrapped and chained object.
+    value: function() {
+      return this._wrapped;
+    }
+
+  });
+
+}).call(this);
+
 // Copyright 2009-2012 by contributors, MIT License
 // vim: ts=4 sts=4 sw=4 expandtab
 
