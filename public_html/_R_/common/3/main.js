@@ -2040,18 +2040,20 @@ function requestConfig() {
           }
         }
       }
-      if ($.type(siteVars.config) !== 'object' || items.length > 0) {
-        siteVars.config = {};
-      }
-      $.each(items, function(index, id) {
-        if ($.type(data[id]) === 'object') {
-          siteVars.config[id] = data[id];
+      if (data) {
+        if ($.type(siteVars.config) !== 'object' || items.length > 0) {
+          siteVars.config = {};
         }
-      });
-      if (isPersist) {
-        MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+        $.each(items, function(index, id) {
+          if ($.type(data[id]) === 'object') {
+            siteVars.config[id] = data[id];
+          }
+        });
+        if (isPersist) {
+          MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+        }
+        deviceVars.features = data.deviceFeatures;
       }
-      deviceVars.features = data.deviceFeatures;
       if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
         dfrd.resolve();
       } else {
