@@ -1909,7 +1909,7 @@ function processForms() {
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
     libraryDeferred = true;
   } else {
-    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/BlinkForms2.js');
+    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/forms2.min.js');
 
   }
   promises = [libraryDeferred];
