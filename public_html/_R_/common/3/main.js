@@ -1276,7 +1276,7 @@ function initialiseAnswerFeatures($view) {
         }, 1000);
       } else {
         MyAnswers.dfrdGoogleMaps = new $.Deferred();
-        $.getCachedScript('//maps.googleapis.com/maps/api/js?v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
+        $.getCachedScript('//maps.googleapis.com/maps/api/js?key=' + _Blink.cfg.GOOGLE_API_KEY + '&v=3&sensor=true&callback=MyAnswers.onGoogleMapsLoad')
         .fail(function() {
           throw ('unable to download Google Maps JavaScript library');
         })
@@ -1909,7 +1909,7 @@ function processForms() {
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
     libraryDeferred = true;
   } else {
-    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/BlinkForms2.js');
+    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/forms2.min.js');
 
   }
   promises = [libraryDeferred];
@@ -2040,18 +2040,20 @@ function requestConfig() {
           }
         }
       }
-      if ($.type(siteVars.config) !== 'object' || items.length > 0) {
-        siteVars.config = {};
-      }
-      $.each(items, function(index, id) {
-        if ($.type(data[id]) === 'object') {
-          siteVars.config[id] = data[id];
+      if (data) {
+        if ($.type(siteVars.config) !== 'object' || items.length > 0) {
+          siteVars.config = {};
         }
-      });
-      if (isPersist) {
-        MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+        $.each(items, function(index, id) {
+          if ($.type(data[id]) === 'object') {
+            siteVars.config[id] = data[id];
+          }
+        });
+        if (isPersist) {
+          MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+        }
+        deviceVars.features = data.deviceFeatures;
       }
-      deviceVars.features = data.deviceFeatures;
       if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
         dfrd.resolve();
       } else {
