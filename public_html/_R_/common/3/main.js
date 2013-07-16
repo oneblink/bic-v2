@@ -2386,17 +2386,10 @@ function showKeywordView(keyword) {
   var $view = $('#keywordView');
   $.when(MyAnswersDevice.prepareView($view)).always(function() {
     var config = siteVars.config['i' + keyword].pertinent,
-      argsBox = $('#argsBox')[0],
-      descriptionBox = $('#descriptionBox')[0];
+      argsBox = $('#argsBox')[0];
     currentInteraction = keyword;
     updateCurrentConfig();
     insertHTML(argsBox, config.inputPrompt);
-    if (config.description) {
-      insertHTML(descriptionBox, config.description);
-      $(descriptionBox).show();
-    } else {
-      $(descriptionBox).hide();
-    }
     MyAnswersDevice.showView($view);
     setMainLabel(config.displayName || config.name);
   });
