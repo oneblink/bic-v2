@@ -213,7 +213,7 @@ ul.box > li > .label, ul.box > li > .description {
 	margin-right: 6%;
 }
 
-#descriptionBox, #argsBox {
+#argsBox {
 	text-align: center;
 }
 
