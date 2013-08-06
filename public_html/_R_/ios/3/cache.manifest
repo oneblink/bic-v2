@@ -20,7 +20,6 @@ CACHE:
 //d1c6dfkb81l78v.cloudfront.net/cubiq-homescreen/1.0.8.201147/add2home.min.js.gz
 
 NETWORK:
-*
 /_R_/common/3/util/GetSession.php
 /_R_/common/3/xhr/GetAnswer.php
 /_R_/common/3/xhr/GetConfig.php

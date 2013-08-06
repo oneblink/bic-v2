@@ -546,23 +546,6 @@ function setSubmitCachedFormButton() {
 
 // *** BEGIN EVENT HANDLERS ***
 
-if (window.applicationCache) {
-  $(window.applicationCache).on({
-    'updateready': function(event) {
-      if (this.status !== this.IDLE) {
-        this.swapCache();
-        log('Application Cache: manifest change triggered update');
-      } else {
-        this.update();
-        log('Application Cache: update requested');
-      }
-    },
-    'error': function(event) {
-      error('Application Cache: ' + this.status);
-    }
-  });
-}
-
 function onStarClick(event)
 {
   var id = $(this).data('id'),
@@ -3207,6 +3190,37 @@ function submitAction(keyword, action) {
 
   /* *** EVENT HANDLERS *** */
 
+  MyAnswers.cacheDfrd = new $.Deferred();
+  if (window.applicationCache) {
+    $(window.applicationCache).on({
+      noupdate: function (event) {
+        log('applicationCache: status=' + this.status + ' event=' + event.type);
+        MyAnswers.cacheDfrd.resolve();
+      },
+      cached: function (event) {
+        log('applicationCache: status=' + this.status + ' event=' + event.type);
+        MyAnswers.cacheDfrd.resolve();
+      },
+      obsolete: function (event) {
+        log('applicationCache: status=' + this.status + ' event=' + event.type);
+        MyAnswers.cacheDfrd.resolve();
+      },
+      updateready: function(event) {
+        log('applicationCache: status=' + this.status + ' event=' + event.type);
+        log('applicationCache: reloading to use updated resources...');
+        window.location.reload();
+      },
+      error: function(event) {
+        log('applicationCache: status=' + this.status + ' event=' + event.type);
+        error('Application Cache: ' + this.status);
+        MyAnswers.cacheDfrd.resolve();
+      }
+    });
+
+  } else {
+    MyAnswers.cacheDfrd.resolve();
+  }
+
   function onOrientationChange(event) {
     var screenX,
         screenY,
@@ -3649,6 +3663,9 @@ function submitAction(keyword, action) {
         log('BlinkGap: domain whitelist replaced!');
       }
     }
+
+    // wait for Application Cache
+    loadedPromises.push(MyAnswers.cacheDfrd.promise());
 
     // fix the WebSQL quota is necessary and open required persistent stores
     $.when(dfrdFixWebSQL)
