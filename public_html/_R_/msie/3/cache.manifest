@@ -17,7 +17,6 @@ CACHE:
 /_R_/msie/3/bic2.min.js
 
 NETWORK:
-*
 /_R_/common/3/util/GetSession.php
 /_R_/common/3/xhr/GetAnswer.php
 /_R_/common/3/xhr/GetConfig.php

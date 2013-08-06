@@ -1,5 +1,5 @@
 CACHE MANIFEST 
-# git [05de6ca] 2013-06-06
+# git [b55520e] 2013-08-06
 
 CACHE:
 //d1c6dfkb81l78v.cloudfront.net/ajaxslt/0.8.1-r61/dom.min.js.gz
@@ -25,3 +25,7 @@ CACHE:
 #FALLBACK:  
 #image/to/use/when/image/is/missing.png
 
+NETWORK:
+*
+http://*
+https://*
