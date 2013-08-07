@@ -1,5 +1,5 @@
-/*jslint browser:true, devel:true, regexp:true, sloppy:true, white:true*/
-/*jslint nomen:true, plusplus:true*/
+/*jslint browser:true, indent:2, regexp:true, sloppy:true*/
+/*jslint nomen:true, todo:true, plusplus:true*/
 
 /*global info:true, log:true, warn:true, error:true*/
 /*global computeTimeout:true, isBlinkGapDevice:true, MyAnswersDevice:true*/
@@ -8,7 +8,7 @@
 
 /*global $:true, Hashtable:true, History:true, Modernizr:true*/
 /*global explode:true, implode:true*/
-/*global _Blink:true*/
+/*global BMP,_Blink:true*/
 
 var MyAnswers = MyAnswers || {},
     siteVars = siteVars || {},
@@ -145,7 +145,7 @@ function processBlinkAnswerMessage(message) {
     if (typeof message.mojoxml === 'string') {
       log('controlMessage: populating Data Suitcase: ' + message.mojotarget);
       MyAnswers.store.set('mojoXML:' + message.mojotarget, message.mojoxml);
-    } else if (typeof message.mojodelete !== 'undefined') {
+    } else if (message.mojodelete) {
       log('controlMessage: deleting Data Suitcase: ' + message.mojotarget);
       MyAnswers.store.remove('mojoXML:' + message.mojotarget);
     }
@@ -183,7 +183,9 @@ function getPicture_Success(imageData) {
     if (document.forms[0].elements.hasOwnProperty(i)) {
       thisElement = document.forms[0].elements[i];
       if (thisElement.name) {
-        if (thisElement.type && (thisElement.type.toLowerCase() === 'radio' || thisElement.type.toLowerCase() === 'checkbox') && thisElement.checked === false) {
+        if (thisElement.type && (thisElement.type.toLowerCase() === 'radio' ||
+            thisElement.type.toLowerCase() === 'checkbox') &&
+            thisElement.checked === false) {
           $.noop(); // do nothing for unchecked radio or checkbox
         } else {
           if (thisElement.type && (thisElement.type.toLowerCase() === 'button') && (lastPictureTaken.image.size() > 0)) {
@@ -638,15 +640,15 @@ function onLinkClick(event) {
       }
     }
     // process link
-    if (typeof attributes.href === 'undefined' && typeof attributes.onclick === 'undefined') {
-      if (typeof attributes.back !== 'undefined') {
+    if (!attributes.href && !attributes.onclick) {
+      if (attributes.back) {
         History.back();
         event.preventDefault();
         return false;
       }
-      if (typeof attributes.home !== 'undefined') {
+      if (attributes.home) {
         url = '/' + siteVars.answerSpace + '/';
-      } else if (typeof attributes.login !== 'undefined') {
+      } else if (attributes.login) {
         data = {login: true};
       } else if (attributes.interaction || attributes.keyword) {
         id = resolveItemName(attributes.interaction || attributes.keyword, 'interactions');
@@ -668,13 +670,13 @@ function onLinkClick(event) {
           url = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + id].pertinent.name + '/?' + $.param(attributes);
           data = {m: currentMasterCategory, c: currentCategory, i: id, 'arguments': attributes};
         }
-      } else if (typeof attributes.category !== 'undefined') {
+      } else if (attributes.category) {
         id = resolveItemName(attributes.category, 'categories');
         if (id) {
           url = '/' + siteVars.answerSpace + '/?_c=' + id;
           data = {m: currentMasterCategory, c: id};
         }
-      } else if (typeof attributes.mastercategory !== 'undefined') {
+      } else if (attributes.mastercategory) {
         id = resolveItemName(attributes.mastercategory, 'masterCategories');
         if (id) {
           url = '/' + siteVars.answerSpace + '/?_m=' + id;
@@ -988,7 +990,7 @@ function updateLoginButtons() {
     return;
   }
   if (MyAnswers.isLoggedIn) {
-    if (typeof MyAnswers.loginAccount !== 'undefined' && typeof MyAnswers.loginAccount !== 'boolean') {
+    if (MyAnswers.loginAccount && typeof MyAnswers.loginAccount !== 'boolean') {
       MyAnswers.dispatch.add(function() {
         var $loginStatus = $(loginStatus),
             text = 'logged in as<br />';
@@ -1234,7 +1236,7 @@ function initialiseAnswerFeatures($view) {
   MyAnswers.dispatch.add(function() {
     var $inputs = $view.find('input, textarea, select'),
       $form = $view.find('form').first(),
-      isGoogleJSLoaded = typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined' && typeof window.google.maps.Map !== 'undefined';
+      isGoogleJSLoaded = window.google && window.google.maps && window.google.maps.Map;
     MyAnswers.$body.trigger('taskBegun');
     $inputs.unbind('blur', triggerScroll);
     $inputs.bind('blur', triggerScroll);
@@ -1599,7 +1601,7 @@ function updateCurrentConfig() {
       oLength = order.length;
       for (o = 0; o < oLength; o++) {
         itemConfig = siteVars.config[type + order[o]];
-        if (typeof itemConfig !== 'undefined' && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
+        if (itemConfig && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
           name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
           if (display !== 'text only' && itemConfig.pertinent.icon) {
             $item = $('<img />');
@@ -2173,7 +2175,7 @@ function createParamsAndArgs(keywordID) {
     returnValue = 'asn=' + siteVars.answerSpace + '&iact=' + encodeURIComponent(config.pertinent.name),
     args = '',
     argElements = $('#argsBox').find('input, textarea, select');
-  if (typeof config === 'undefined' || !config.pertinent.inputPrompt) {return returnValue;}
+  if (!config || !config.pertinent.inputPrompt) {return returnValue;}
   args = '';
   argElements.each(function(index, element) {
     if (this.type && (this.type.toLowerCase() === 'radio' || this.type.toLowerCase() === 'checkbox') && !this.checked) {
@@ -2280,7 +2282,7 @@ function showAnswerView(interaction, argsString, reverse) {
       fallbackToStorage = function() {
         if (isPersist) {
           $.when(MyAnswers.store.get('answer___' + interaction)).done(function(html) {
-            if (typeof html === 'undefined') {
+            if (!html) {
               html = '<p>Unable to reach server, and unable to display previously stored content.</p>';
             }
             insertHTML(answerBox, html);
@@ -3153,7 +3155,7 @@ function submitAction(keyword, action) {
         token = siteVars.queryParameters._t;
     /* END: var */
     delete siteVars.queryParameters._t;
-    if (startUp.size() > 0 && typeof siteVars.config !== 'undefined') {
+    if (startUp.size() > 0 && siteVars.config) {
       if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768) {
         $('#mainLabel').remove(); //  TODO: fix the main navigation label
       }
