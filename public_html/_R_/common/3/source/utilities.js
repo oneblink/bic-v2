@@ -1,19 +1,21 @@
-/* basic collection of utility functions not expected to undergo rapid development
- * requires jQuery
+/* basic collection of utility functions not expected to undergo rapid
+ * development requires jQuery
  * if Modernizr is being used, please include this after Modernizr
  */
 
-/*jslint browser: true, dangling:true, plusplus: true, white: true*/
+/*jslint browser:true, indent:2, nomen:true, plusplus:true, todo:true*/
+/*global error, warn*/
 
 (function(window) {
   'use strict';
   var $ = window.jQuery,
-      Math = window.Math;
+    Math = window.Math;
   /* END: var */
 
   // detect BlinkGap / PhoneGap / Callback
   window.isBlinkGapDevice = function() {
-    return window.PhoneGap && $.type(window.device) === 'object' && window.device instanceof window.Device;
+    return window.PhoneGap && $.type(window.device) === 'object' &&
+      window.device instanceof window.Device;
   };
 
   window.computeTimeout = function(messageLength) {
@@ -30,70 +32,79 @@
 (function(window) {
   'use strict';
   var $ = window.jQuery,
-      $document = $(window.document),
-      early = { // catch messages from before we are ready
-        history: []
-      },
-      console,
-      fns = ['log', 'error', 'warn', 'info'],
-      /**
-   * re-route messages now that we are ready
-   */
-      initialise = function() {
-        $document.off('ready deviceready', initialise);
-        setTimeout(function() { // force thread-switch for PhoneGap
-          console = window.console || window.debug || { log: $.noop };
-          $.each(fns, function(index, fn) {
-            var type = $.type(console[fn]);
-            if (type === 'function') {
-              window[fn] = function() {
-                console[fn].apply(console, arguments);
-              };
-            } else if (type === 'object') {
-              window[fn] = function(message) {
-                console[fn](message);
-              };
-            } else if (fn !== 'log') {
-              window[fn] = window.log;
-            } else {
-              window[fn] = $.noop;
-            }
-          });
-          // playback early messages
-          $.each(early.history, function(index, message) {
-            var fn = window[message.fn],
-                type = $.type(fn);
-            if (type === 'function') {
-              fn.apply(console, message.args);
-            } else if (type === 'object') {
-              fn(message.args[0]);
-            }
-          });
-          // discard unused objects
-          delete early.history;
-          $.each(fns, function(index, fn) {
-            delete early[fn];
-          });
-        }, 0);
-      },
-      waitForBlinkGap = function() {
-        if (window.PhoneGap && window.PhoneGap.available) {
-          if (early.history) {
-            initialise();
+    $document = $(window.document),
+    early = { // catch messages from before we are ready
+      history: []
+    },
+    console,
+    fns = ['log', 'error', 'warn', 'info'],
+    /**
+ * re-route messages now that we are ready
+ */
+    initialise = function() {
+      $document.off('ready deviceready', initialise);
+      setTimeout(function() { // force thread-switch for PhoneGap
+        console = window.console || window.debug || { log: $.noop };
+        /*jslint unparam:true*/
+        $.each(fns, function(index, fn) {
+          var type = $.type(console[fn]);
+          if (type === 'function') {
+            window[fn] = function() {
+              console[fn].apply(console, arguments);
+            };
+          } else if (type === 'object') {
+            window[fn] = function(message) {
+              console[fn](message);
+            };
+          } else if (fn !== 'log') {
+            window[fn] = window.log;
+          } else {
+            window[fn] = $.noop;
           }
-        } else {
-          setTimeout(waitForBlinkGap, 197);
+        });
+        /*jslint unparam:false*/
+        // playback early messages
+        /*jslint unparam:true*/
+        $.each(early.history, function(index, message) {
+          var fn = window[message.fn],
+            type = $.type(fn);
+
+          if (type === 'function') {
+            fn.apply(console, message.args);
+          } else if (type === 'object') {
+            fn(message.args[0]);
+          }
+        });
+        /*jslint unparam:false*/
+        // discard unused objects
+        delete early.history;
+        /*jslint unparam:true*/
+        $.each(fns, function(index, fn) {
+          delete early[fn];
+        });
+        /*jslint unparam:false*/
+      }, 0);
+    },
+    waitForBlinkGap = function() {
+      if (window.PhoneGap && window.PhoneGap.available) {
+        if (early.history) {
+          initialise();
         }
-      };
+      } else {
+        setTimeout(waitForBlinkGap, 197);
+      }
+    };
 
   // setup routing for early messages
   console = early;
+  /*jslint unparam:true*/
   $.each(fns, function(index, fn) {
     early[fn] = function() {
       early.history.push({ 'fn': fn, 'args': $.makeArray(arguments) });
     };
     window[fn] = console[fn];
   });
+  /*jslint unparam:false*/
 
   // wait until we are ready to start real routing
   if (window.isBlinkGap) {
@@ -105,6 +116,7 @@
 
 //* convenient additions to the String prototype*/
 (function(window) {
+  'use strict';
   var String = window.String;
   String.prototype.hasEntities = function() {
     var string = this;
@@ -115,7 +127,7 @@
   };
   String.prototype.repeat = function(occurrences) {
     var string = '',
-    o;
+      o;
     for (o = 0; o < occurrences; o++) {
       string += this;
     }
@@ -127,7 +139,7 @@
 (function(window) {
   'use strict';
   var Math = window.Math,
-      oldRound = Math.round;
+    oldRound = Math.round;
   /* END: var */
 
   /* duck-punching Math.round() so it accepts a 2nd parameter */
@@ -152,8 +164,10 @@
   /*jslint bitwise: true*/
   if (typeof Math.uuid !== 'function') {
     Math.uuid = function() {
-      var chars = Math.uuid.CHARS, uuid = [],
-          r, i = 36;
+      var chars = Math.uuid.CHARS,
+        uuid = [],
+        r,
+        i = 36;
 
       // rfc4122 requires these characters
       uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
@@ -178,10 +192,9 @@
 /* minor improvements to jQuery */
 (function(window) {
   'use strict';
-  /*jslint nomen: true*/
   var $ = window.jQuery,
-      _oldAttr = $.fn.attr,
-      _show = $.fn.show;
+    _oldAttr = $.fn.attr,
+    _show = $.fn.show;
   /* END: var */
 
   /**
@@ -198,13 +211,15 @@
       return false;
     }
     if ($.type(props) === 'array') {
+      /*jslint unparam:true*/
       $.each(props, function(index, name) {
-        if (typeof object[name] === 'undefined') {
+        if (object[name] === undefined) {
           result = false;
           return false; // break loop now
         }
         return true; // continue testing
       });
+      /*jslint unparam:false*/
       return result;
     }
     if ($.type(props) === 'object') {
@@ -232,16 +247,16 @@
    */
   $.isPromise = function(object) {
     var type = 'function',
-        props = {
-          always: type,
-          done: type,
-          fail: type,
-          pipe: type,
-          progress: type,
-          promise: type,
-          state: type,
-          then: type
-        };
+      props = {
+        always: type,
+        done: type,
+        fail: type,
+        pipe: type,
+        progress: type,
+        promise: type,
+        state: type,
+        then: type
+      };
     return hasProperties(object, props);
   };
 
@@ -250,14 +265,14 @@
    */
   $.isDeferred = function(object) {
     var type = 'function',
-        props = {
-          notify: type,
-          notifyWith: type,
-          reject: type,
-          rejectWith: type,
-          resolve: type,
-          resolveWith: type
-        };
+      props = {
+        notify: type,
+        notifyWith: type,
+        reject: type,
+        rejectWith: type,
+        resolve: type,
+        resolveWith: type
+      };
     if ($.isPromise(object)) {
       return hasProperties(object, props);
     }
@@ -266,19 +281,20 @@
 
   // duck-punching to make attr() return a map
   $.fn.attr = function() {
-    var a, aLength, attributes, map;
+    var attributes, map;
     if (this[0] && arguments.length === 0) {
       map = {};
       attributes = this[0].attributes;
-      aLength = attributes.length;
+      /*jslint unparam:true*/
       $.each(attributes, function(index, attribute) {
         var name = attribute.name || attribute.nodeName,
-            value = attribute.value || attribute.nodeValue;
+          value = attribute.value || attribute.nodeValue;
         /* END: var */
         if (name) {
           map[name.toLowerCase()] = value;
         }
       });
+      /*jslint unparam:false*/
       return map;
     }
     return _oldAttr.apply(this, arguments);
@@ -311,7 +327,7 @@
   // return a simple HTML tag string not containing the innerHTML
   $.fn.tagHTML = function() {
     var $this = $(this),
-        html;
+      html;
     if (this[0]) {
       html = '<' + $this.tag();
       $.each($this.attr(), function(key, value) {
@@ -331,7 +347,7 @@
    */
   $.resolveTimeout = function() {
     var args = $.makeArray(arguments),
-        deferred = args.shift();
+      deferred = args.shift();
     setTimeout(function() {
       deferred.resolve.apply(deferred, args);
     }, 0);
@@ -348,8 +364,8 @@
   /*jslint regexp: true*/
   $.fn.appendWithCheck = function(string, attempts, needle, lastIndex) {
     var $element = $(this),
-        deferred = new $.Deferred(),
-        MyAnswers = window.MyAnswers;
+      deferred = new $.Deferred(),
+      MyAnswers = window.MyAnswers;
     /* END: var */
     if ($.type(needle) !== 'string') {
       needle = string.match(/>([^<>\0\n\f\r\t\v]+)</);
@@ -385,14 +401,16 @@
 
   $.fn.childrenAsProperties = function() {
     var properties = {};
+    /*jslint unparam:true*/
     $(this).children().each(function(index, element) {
       var $element = $(element),
-      name = $element.tag(),
-      value = $element.text();
+        name = $element.tag(),
+        value = $element.text();
       if (name.length > 0 && value.length > 0) {
         properties[name] = value;
       }
     });
+    /*jslint unparam:false*/
     return properties;
   };
 
@@ -406,59 +424,58 @@
     return $.ajax(options);
   };
 
-  /*jslint nomen: false*/
 }(this));
 
 (function(window) {
   'use strict';
   var $ = window.jQuery,
-  _Blink = window._Blink,
-  _SERVER = window._SERVER,
-  defaults = {
-    'PREFIX_GZ': '/_c_/',
-    'SUFFIX_GZ': '',
-    'PREFIX': '/_c_/',
-    'SUFFIX': ''
-  },
-  /** @const */
-  GZ_TYPES = ['css', 'js'],
-  /**
-   * JavaScript mirror of our PHP class: \Blink\CDN\PlatformCDN
-   * @class
-   * @param {String} [encoding] Provide the HTTP_ACCEPT_ENCODING Header.
-   */
-  PlatformCDN = function(encoding) {
-    var cfg;
-    cfg = _Blink && _Blink.cfg && _Blink.cfg.CDN_PLATFORM;
-    cfg = $.isObject(cfg) ? cfg : {};
-    cfg = $.extend({}, defaults, cfg);
-    encoding = encoding || (_SERVER && _SERVER.HTTP_ACCEPT_ENCODING);
-    encoding = typeof encoding === 'string' ? encoding : '';
-    if (encoding.indexOf('gzip') === -1) {
-      cfg.PREFIX_GZ = cfg.PREFIX;
-      cfg.SUFFIX_GZ = cfg.SUFFIX;
-    }
+    _Blink = window._Blink,
+    _SERVER = window._SERVER,
+    defaults = {
+      'PREFIX_GZ': '/_c_/',
+      'SUFFIX_GZ': '',
+      'PREFIX': '/_c_/',
+      'SUFFIX': ''
+    },
+    /** @const */
+    GZ_TYPES = ['css', 'js'],
     /**
-     * add necessary protocol, domain and suffix to a given path
-     * @param  {String} path Provide the path to desired resource.
-     * @return {String} The completed URL.
+     * JavaScript mirror of our PHP class: \Blink\CDN\PlatformCDN
+     * @class
+     * @param {String} [encoding] Provide the HTTP_ACCEPT_ENCODING Header.
      */
-    this.getURL = function(path) {
-      var extension;
-      if (!path || typeof path !== 'string') {
-        return '';
+    PlatformCDN = function(encoding) {
+      var cfg;
+      cfg = _Blink && _Blink.cfg && _Blink.cfg.CDN_PLATFORM;
+      cfg = $.isObject(cfg) ? cfg : {};
+      cfg = $.extend({}, defaults, cfg);
+      encoding = encoding || (_SERVER && _SERVER.HTTP_ACCEPT_ENCODING);
+      encoding = typeof encoding === 'string' ? encoding : '';
+      if (encoding.indexOf('gzip') === -1) {
+        cfg.PREFIX_GZ = cfg.PREFIX;
+        cfg.SUFFIX_GZ = cfg.SUFFIX;
       }
-      path = $.trim(path);
-      path = path.replace(/^\/*/, '');
-      extension = path.match(/\.?(\w+)$/);
-      extension = $.type(extension) === 'array' ? extension[1] : '';
-      if (!extension || $.inArray(extension, GZ_TYPES) === -1) {
-        return cfg.PREFIX + path + cfg.SUFFIX;
-      }
-      return cfg.PREFIX_GZ + path + cfg.SUFFIX_GZ;
+      /**
+       * add necessary protocol, domain and suffix to a given path
+       * @param  {String} path Provide the path to desired resource.
+       * @return {String} The completed URL.
+       */
+      this.getURL = function(path) {
+        var extension;
+        if (!path || typeof path !== 'string') {
+          return '';
+        }
+        path = $.trim(path);
+        path = path.replace(/^\/*/, '');
+        extension = path.match(/\.?(\w+)$/);
+        extension = $.type(extension) === 'array' ? extension[1] : '';
+        if (!extension || $.inArray(extension, GZ_TYPES) === -1) {
+          return cfg.PREFIX + path + cfg.SUFFIX;
+        }
+        return cfg.PREFIX_GZ + path + cfg.SUFFIX_GZ;
+      };
+      return this;
     };
-    return this;
-  };
 
   /**
    * use a hidden <iframe> to load a page,
@@ -467,22 +484,22 @@
    */
   _Blink.preloadPage = function(src) {
     var $iframe = $('<iframe></iframe>'),
-        checkCountdown = 30,
-        iframeWindow,
-        onReadyFn = function() {
-          $iframe.remove();
-        },
-        testReadyFn = function() {
-          checkCountdown--;
-          if ($(iframeWindow.document.body).hasClass('s-ready')) {
-            onReadyFn();
-          } else if (checkCountdown < 0) {
-            warn('preloadPage(): timed out waiting for "s-ready"');
-            onReadyFn();
-          } else {
-            setTimeout(testReadyFn, 2000);
-          }
-        };
+      checkCountdown = 30,
+      iframeWindow,
+      onReadyFn = function() {
+        $iframe.remove();
+      },
+      testReadyFn = function() {
+        checkCountdown--;
+        if ($(iframeWindow.document.body).hasClass('s-ready')) {
+          onReadyFn();
+        } else if (checkCountdown < 0) {
+          warn('preloadPage(): timed out waiting for "s-ready"');
+          onReadyFn();
+        } else {
+          setTimeout(testReadyFn, 2000);
+        }
+      };
 
     $iframe.attr({
       height: 10,
@@ -529,10 +546,10 @@
    */
   _Blink.hasFontFor = function(char) {
     var me = _Blink.hasFontFor,
-        result,
-        $body,
-        $target,
-        $test;
+      result,
+      $body,
+      $target,
+      $test;
     try {
       if (!me.results) {
         me.results = {};
@@ -549,7 +566,7 @@
         $target.add($test).remove();
       }
     } catch (err) {
-      error(error);
+      error(err);
       result = false;
     }
     return result;
