@@ -2886,8 +2886,16 @@ function submitAction(keyword, action) {
   /* *** EVENT HANDLERS *** */
 
   MyAnswers.cacheDfrd = new $.Deferred();
-  if (window.applicationCache) {
+  if (!$(document.body).closest('html[manifest]').length) {
+    log('applicationCache: uncached');
+    MyAnswers.cacheDfrd.resolve();
+
+  } else if (window.applicationCache) {
     $(window.applicationCache).on({
+      checking: function (event) {
+        log('applicationCache: status=' + this.status + ' event=' + event.type);
+        MyAnswers.cacheDfrd.resolve();
+      },
       noupdate: function (event) {
         log('applicationCache: status=' + this.status + ' event=' + event.type);
         MyAnswers.cacheDfrd.resolve();
@@ -2900,12 +2908,12 @@ function submitAction(keyword, action) {
         log('applicationCache: status=' + this.status + ' event=' + event.type);
         MyAnswers.cacheDfrd.resolve();
       },
-      updateready: function(event) {
+      updateready: function (event) {
         log('applicationCache: status=' + this.status + ' event=' + event.type);
         log('applicationCache: reloading to use updated resources...');
         window.location.reload();
       },
-      error: function(event) {
+      error: function (event) {
         log('applicationCache: status=' + this.status + ' event=' + event.type);
         error('Application Cache: ' + this.status);
         MyAnswers.cacheDfrd.resolve();
@@ -2913,6 +2921,7 @@ function submitAction(keyword, action) {
     });
 
   } else {
+    log('applicationCache: unsupported');
     MyAnswers.cacheDfrd.resolve();
   }
 
