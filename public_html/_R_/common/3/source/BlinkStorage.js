@@ -155,6 +155,7 @@
                       if (window.sqlitePlugin) {
                         db = window.sqlitePlugin.openDatabase(partition, "1.0", partition, estimatedSize, function () {
                           webSqlDbs[partition] = db;
+                          db.readTransaction = db.readTransaction || db.transaction;
                           onSuccess(db, readyDeferred);
                         }, function () {
                           log("failed to open " + partition);
@@ -165,6 +166,7 @@
                       } else {
                         db = window.openDatabase(partition, "1.0", partition, estimatedSize);
                         webSqlDbs[partition] = db;
+                        db.readTransaction = db.readTransaction || db.transaction;
                         onSuccess(db, readyDeferred);
                       }
 
@@ -185,12 +187,6 @@
 
                 if (webSqlDbs[partition]) {
                     db = webSqlDbs[partition];
-                    try {
-                        db.readTransaction = db.readTransaction || db.transaction;
-                    }
-                    catch (e) {
-                        //swallow this exception
-                    }
                     openSection(db, readyDeferred);
                 } else {
                     openWebSQL(partition, readyDeferred, openSection);
