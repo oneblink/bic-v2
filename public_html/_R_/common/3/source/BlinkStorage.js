@@ -19,6 +19,7 @@
         $ = window.jQuery,
         alert = window.alert,
     // for websqldatabase
+        estimatedSizeMbs,
         estimatedSize,
         webSqlDbs = {}, // store open handles to databases (websqldatabase)
         errorHandler,
@@ -117,8 +118,20 @@
                 readyDeferred.resolve();
 
             } else if (type === 'websqldatabase') {
-
-                estimatedSize = (window.device ? 100 : 0.75) * 1024 * 1024;
+                //set the estimated size - use 5mb if we are using the old plugin, 100mb if we are on the new blinkgap and not much at all if we are not
+                if (window.device) {
+                  //we are on device
+                  if (window.sqlitePlugin) {
+                    //new version
+                    estimatedSizeMbs = 100
+                  } else {
+                    //old version
+                    estimatedSizeMbs = 5
+                  }
+                } else {
+                  estimatedSizeMbs = 0.75
+                }
+                estimatedSize = estimatedSizeMbs * 1024 * 1024;
                 /* @inner */
                 errorHandler = function (arg1, arg2) {
                     var sqlError = arg2 && arg1.executeSql ? arg2 : arg1;
@@ -161,8 +174,8 @@
                           readyDeferred.reject();
                           throw 'BlinkStorage: sqliteplugin unable to open database';
                         });
-                     } else {
-                        db = window.openDatabase(partition, "1.0", partition, estimatedSize);
+                      } else {
+                         db = window.openDatabase(partition, "1.0", partition, estimatedSize);
                       }
                       //assign our references to DB and the nulls
                       if (db && (db.readTransaction || db.transaction)) {
