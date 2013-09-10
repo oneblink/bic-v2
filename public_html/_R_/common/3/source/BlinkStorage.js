@@ -153,23 +153,25 @@
                     try {
                         //db = window.openDatabase(partition, '1.0', partition, estimatedSize);
                       if (window.sqlitePlugin) {
+                        log("sqliteplugin found. opening database.");
                         db = window.sqlitePlugin.openDatabase(partition, "1.0", partition, estimatedSize, function () {
-                          webSqlDbs[partition] = db;
-                          db.readTransaction = db.readTransaction || db.transaction;
-                          onSuccess(db, readyDeferred);
+                          log("opendb success callback");
                         }, function () {
                           log("failed to open " + partition);
                           readyDeferred.reject();
-                          throw 'BlinkStorage: ' + error;
+                          throw 'BlinkStorage: sqliteplugin unable to open database';
                         });
-
-                      } else {
+                     } else {
                         db = window.openDatabase(partition, "1.0", partition, estimatedSize);
+                      }
+                      //assign our references to DB and the nulls
+                      if (db && (db.readTransaction || db.transaction)) {
                         webSqlDbs[partition] = db;
                         db.readTransaction = db.readTransaction || db.transaction;
                         onSuccess(db, readyDeferred);
+                      } else {
+                        throw "neither sqliteplugin nor window.openDatabase worked. failing."
                       }
-
                     } catch (error) {
                         readyDeferred.reject();
                         throw 'BlinkStorage: ' + error;
