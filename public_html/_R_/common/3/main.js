@@ -2823,7 +2823,7 @@ function submitAction(keyword, action) {
         navigator.gap_database.getLimits(getDBLimits_Success, deferred.reject, null);
       } catch (error) {
         deferred.reject();
-        log(error);
+        error(error);
         log('*** Open/Increase quota for database failed');
         throw 'fixWebSQL(): ' + error;
       }
@@ -3568,7 +3568,7 @@ function submitAction(keyword, action) {
       $('#startUp-initLoaded').addClass('success');
     } catch (e) {
       log('loaded(): exception:');
-      log(e);
+      error(e);
       $('#startUp-initLoaded').addClass('error');
       $startup.append('loading error: ' + e);
     }
@@ -3812,7 +3812,7 @@ function submitAction(keyword, action) {
       $('#startUp-initBrowser').addClass('success');
     } catch (e) {
       log('onBrowserReady: Exception');
-      log(e);
+      error(e);
       $startup.append('browser error: ' + e);
       $('#startUp-initBrowser').addClass('error');
     }
@@ -3832,7 +3832,7 @@ function submitAction(keyword, action) {
       init_device();
     } catch (e) {
       log('exception in init_?():');
-      log(e);
+      error(e);
       $startup.append('initialisation error: ' + e);
     }
     log('User-Agent: ' + window.navigator.userAgent);
