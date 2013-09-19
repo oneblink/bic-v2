@@ -56,7 +56,11 @@ function triggerScroll(event) {
 
 function insertHTML(element, html) {
   if ($.type(element) === 'object') {
-    MyAnswers.dispatch.add(function() {$(element).html(html);});
+    MyAnswers.dispatch.add(function() {
+      $(element).html(html);
+      $('img').off('error', siteVars.fixImages);
+      $('img').on('error', siteVars.fixImages);
+    });
   }
 }
 
@@ -1404,6 +1408,17 @@ function updateCurrentConfig() {
   });
   // flatten the stack
   $.extend.apply(this, configs);
+
+  if(currentConfig.logoBanner) {
+    currentConfig.logoBanner = siteVars.cdnu.getURL(currentConfig.logoBanner);
+  }
+  if(currentConfig.splashImage) {
+    currentConfig.splashImage = siteVars.cdnu.getURL(currentConfig.splashImage);
+  }
+  if(currentConfig.icon) {
+    currentConfig.icon = siteVars.cdnu.getURL(currentConfig.icon);
+  }
+
   // perform inherited changes
   MyAnswers.dispatch.add(function() {
     var $banner = $('#bannerBox'),
@@ -2000,6 +2015,7 @@ function requestConfig() {
         }
         if ($.type(data['a' + siteVars.id]) === 'object') {
           siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
+          siteVars.cdnu = new _Blink.AnswerSpaceCDN(data['a' + siteVars.id].pertinent.cdnLocation);
         }
         if (siteVars.map) {
           if (siteStructure === 'master categories' &&
@@ -2724,6 +2740,12 @@ function submitAction(keyword, action) {
     google; // defined in MyAnswers.setupGoogleMaps
 
   /* *** BLINKGAP FUNCTIONS *** */
+  siteVars.fixImages = function () {
+    var src;
+    src = $(this).attr("src");
+    src = siteVars.cdnu.getURL(src);
+    $(this).unbind("error").attr("src", src);
+  };
 
   /**
    * @return {jQueryPromise}
@@ -3589,6 +3611,9 @@ function submitAction(keyword, action) {
     }
 
     $('#startUp-loadPolyFills').addClass('working');
+
+    $('img').off('error', siteVars.fixImages);
+    $('img').on('error', siteVars.fixImages);
 
     // set default options / headers for $.ajax()
     $.ajaxPrefilter(function(options, original, jqxhr) {

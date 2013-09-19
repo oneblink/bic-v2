@@ -476,7 +476,53 @@
       };
       return this;
     };
+  _Blink.AnswerSpaceCDN = function(cdn) {
+    var cfg, basename, answerSpaceDefaults, getCDN;
+    answerSpaceDefaults = {
+      "ROOT": 'images/'
+    };
+    cfg = _Blink && _Blink.cfg && _Blink.cfg.CDN_USER;
+    cfg = $.isObject(cfg) ? cfg : {};
+    cfg = $.extend({}, answerSpaceDefaults, cfg);
+    cfg.cdnLocation = cdn;
+    basename = function(path, suffix) {
+      var b, ln;
+      /*jslint regexp:true*/ // this isn't being used for secure purposes
+      b = path.replace(/^.*[\/\\]/g, '');
+      /*jslint regexp:false*/
+      if (suffix === undefined) {
+        suffix = "";
+      }
+      ln = b.length - suffix.length;
+      if (b.substr(ln) === suffix) {
+        b = b.substr(0, ln);
+      }
+      return b;
+    };
+    getCDN = function() {
+      var parts;
+      parts = cfg.cdnLocation.split(":");
 
+      return parts[1];
+    };
+    /**
+     * add necessary protocol, domain and suffix to a given path
+     * @param  {String} path Provide the path to desired resource.
+     * @return {String} The completed URL.
+     */
+    this.getURL = function(path) {
+      if (!path || typeof path !== 'string') {
+        return '';
+      }
+      path = $.trim(path);
+      path = path.replace(/^\/*/, '');
+      if (basename(path) === path) {
+        path = cfg.ROOT + getCDN() + "/" + path;
+      }
+      return path;
+    };
+    return this;
+  };
   /**
    * use a hidden <iframe> to load a page,
    * deleting the iframe when the page's <body> gains the "s-ready" class
