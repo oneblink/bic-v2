@@ -70,8 +70,8 @@
     var dfrd = new $.Deferred(),
       defaultOptions = {
         enableHighAccuracy: true,
-        maximumAge: 5 * 60 * 1000, // 5 minutes
-        timeout: 5 * 1000 // 5 seconds
+        maximumAge: 10 * 60 * 1000, // 10 minutes
+        timeout: 10 * 1000 // 10 seconds
       };
     /* END: var */
     if (!Modernizr.geolocation) {
