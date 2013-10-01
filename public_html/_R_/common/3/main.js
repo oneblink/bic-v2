@@ -1,14 +1,14 @@
 /*jslint browser:true, devel:true, regexp:true, sloppy:true, white:true*/
 /*jslint nomen:true, plusplus:true*/
 
-/*global info:true, log:true, warn:true, error:true*/
-/*global computeTimeout:true, isBlinkGapDevice:true, MyAnswersDevice:true*/
-/*global init_device:true, onDeviceReady:true, prepareHistorySideBar:true*/
-/*global BlinkDispatch:true, BlinkForms:true, BlinkStorage:true*/
+/*global info, log, warn, error*/
+/*global computeTimeout, isBlinkGapDevice, MyAnswersDevice*/
+/*global init_device, onDeviceReady, prepareHistorySideBar*/
+/*global BlinkDispatch, BlinkForms, BlinkStorage*/
 
-/*global $:true, Hashtable:true, History:true, Modernizr:true*/
-/*global explode:true, implode:true*/
-/*global _Blink:true*/
+/*global $, Hashtable, History, Modernizr*/
+/*global explode, implode*/
+/*global _Blink*/
 
 var MyAnswers = MyAnswers || {},
     siteVars = siteVars || {},
