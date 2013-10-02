@@ -30,6 +30,11 @@ deviceVars.isOnline = true;
 function PictureSourceType() {}
 function lastPictureTaken() {}
 
+PictureSourceType.PHOTO_LIBRARY = 0;
+PictureSourceType.CAMERA = 1;
+lastPictureTaken.image = new Hashtable();
+lastPictureTaken.currentName = null;
+
 MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
 MyAnswers.formsDeferred = new $.Deferred();
@@ -3584,11 +3589,6 @@ function submitAction(keyword, action) {
 
     log('init_main(): ');
     siteVars.requestsCounter = 0;
-
-    PictureSourceType.PHOTO_LIBRARY = 0;
-    PictureSourceType.CAMERA = 1;
-    lastPictureTaken.image = new Hashtable();
-    lastPictureTaken.currentName = null;
 
     $.fx.interval = 27; // default is 13, larger is kinder on devices
 
