@@ -217,10 +217,6 @@ ul.box > li > .label, ul.box > li > .description {
 	text-align: center;
 }
 
-.bLive-box, .bLive-link {
-	border-radius: 8px;
-}
-
 /* MyAnswersSideBar styles */
 
 #BlinkSideBar {

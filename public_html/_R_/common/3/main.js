@@ -602,11 +602,6 @@ function onLinkClick(event) {
   try {
     log('onLinkClick(): ' + $(this).tagHTML());
     // TODO: find a more efficient way to decide if we need to make the state unique
-    if ($element.hasClass('button') && $element.closest('.bLive-screen').length > 0) {
-      isUnique = true;
-      isPushState = false;
-      // TODO: double-check which BlinkLive buttons need separate History states
-    }
     // turn any legacy links into new format before continuing
     if (typeof attributes.href === 'string') {
       attributes.href = $.trim(attributes.href);
