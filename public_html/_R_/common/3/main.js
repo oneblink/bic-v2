@@ -1,14 +1,14 @@
 /*jslint browser:true, devel:true, regexp:true, sloppy:true, white:true*/
 /*jslint nomen:true, plusplus:true*/
 
-/*global info:true, log:true, warn:true, error:true*/
-/*global computeTimeout:true, isBlinkGapDevice:true, MyAnswersDevice:true*/
-/*global init_device:true, onDeviceReady:true, prepareHistorySideBar:true*/
-/*global BlinkDispatch:true, BlinkForms:true, BlinkStorage:true*/
+/*global info, log, warn, error*/
+/*global computeTimeout, isBlinkGapDevice, MyAnswersDevice*/
+/*global init_device, onDeviceReady, prepareHistorySideBar*/
+/*global BlinkDispatch, BlinkForms, BlinkStorage*/
 
-/*global $:true, Hashtable:true, History:true, Modernizr:true*/
-/*global explode:true, implode:true*/
-/*global _Blink:true*/
+/*global $, Hashtable, History, Modernizr*/
+/*global explode, implode*/
+/*global _Blink*/
 
 var MyAnswers = MyAnswers || {},
     siteVars = siteVars || {},
@@ -29,6 +29,11 @@ deviceVars.isOnline = true;
 
 function PictureSourceType() {}
 function lastPictureTaken() {}
+
+PictureSourceType.PHOTO_LIBRARY = 0;
+PictureSourceType.CAMERA = 1;
+lastPictureTaken.image = new Hashtable();
+lastPictureTaken.currentName = null;
 
 MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
@@ -3584,11 +3589,6 @@ function submitAction(keyword, action) {
 
     log('init_main(): ');
     siteVars.requestsCounter = 0;
-
-    PictureSourceType.PHOTO_LIBRARY = 0;
-    PictureSourceType.CAMERA = 1;
-    lastPictureTaken.image = new Hashtable();
-    lastPictureTaken.currentName = null;
 
     $.fx.interval = 27; // default is 13, larger is kinder on devices
 
