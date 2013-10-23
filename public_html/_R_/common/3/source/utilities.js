@@ -6,19 +6,19 @@
 /*jslint browser:true, indent:2, nomen:true, plusplus:true, todo:true*/
 /*global error, warn*/
 
-(function(window) {
+(function (window) {
   'use strict';
   var $ = window.jQuery,
     Math = window.Math;
   /* END: var */
 
   // detect BlinkGap / PhoneGap / Callback
-  window.isBlinkGapDevice = function() {
+  window.isBlinkGapDevice = function () {
     return window.PhoneGap && $.type(window.device) === 'object' &&
       window.device instanceof window.Device;
   };
 
-  window.computeTimeout = function(messageLength) {
+  window.computeTimeout = function (messageLength) {
     var lowestTransferRateConst = 1000 / (4800 / 8);
     // maxTransactionTimeout = 180 * 1000;
     return Math.floor((messageLength * lowestTransferRateConst) + 15000);
@@ -29,7 +29,7 @@
 /* logging functions
  * initialises log(), error(), warn(), info() in the global context
  */
-(function(window) {
+(function (window) {
   'use strict';
   var $ = window.jQuery,
     $document = $(window.document),
@@ -41,19 +41,19 @@
     /**
  * re-route messages now that we are ready
  */
-    initialise = function() {
+    initialise = function () {
       $document.off('ready deviceready', initialise);
-      setTimeout(function() { // force thread-switch for PhoneGap
+      setTimeout(function () { // force thread-switch for PhoneGap
         console = window.console || window.debug || { log: $.noop };
         /*jslint unparam:true*/
-        $.each(fns, function(index, fn) {
+        $.each(fns, function (index, fn) {
           var type = $.type(console[fn]);
           if (type === 'function') {
-            window[fn] = function() {
+            window[fn] = function () {
               console[fn].apply(console, arguments);
             };
           } else if (type === 'object') {
-            window[fn] = function(message) {
+            window[fn] = function (message) {
               console[fn](message);
             };
           } else if (fn !== 'log') {
@@ -65,7 +65,7 @@
         /*jslint unparam:false*/
         // playback early messages
         /*jslint unparam:true*/
-        $.each(early.history, function(index, message) {
+        $.each(early.history, function (index, message) {
           var fn = window[message.fn],
             type = $.type(fn);
 
@@ -79,13 +79,13 @@
         // discard unused objects
         delete early.history;
         /*jslint unparam:true*/
-        $.each(fns, function(index, fn) {
+        $.each(fns, function (index, fn) {
           delete early[fn];
         });
         /*jslint unparam:false*/
       }, 0);
     },
-    waitForBlinkGap = function() {
+    waitForBlinkGap = function () {
       if (window.PhoneGap && window.PhoneGap.available) {
         if (early.history) {
           initialise();
@@ -98,8 +98,8 @@
   // setup routing for early messages
   console = early;
   /*jslint unparam:true*/
-  $.each(fns, function(index, fn) {
-    early[fn] = function() {
+  $.each(fns, function (index, fn) {
+    early[fn] = function () {
       early.history.push({ 'fn': fn, 'args': $.makeArray(arguments) });
     };
     window[fn] = console[fn];
@@ -115,17 +115,17 @@
 }(this));
 
 //* convenient additions to the String prototype*/
-(function(window) {
+(function (window) {
   'use strict';
   var String = window.String;
-  String.prototype.hasEntities = function() {
+  String.prototype.hasEntities = function () {
     var string = this;
     if (string.indexOf('&') === -1) {
       return false;
     }
   // TODO: use RegExp to properly detect HTML Entities
   };
-  String.prototype.repeat = function(occurrences) {
+  String.prototype.repeat = function (occurrences) {
     var string = '',
       o;
     for (o = 0; o < occurrences; o++) {
@@ -136,14 +136,14 @@
 }(this));
 
 /* minor improvements to Math */
-(function(window) {
+(function (window) {
   'use strict';
   var Math = window.Math,
     oldRound = Math.round;
   /* END: var */
 
   /* duck-punching Math.round() so it accepts a 2nd parameter */
-  Math.round = function(value, decimals) {
+  Math.round = function (value, decimals) {
     var order;
     if (!decimals || decimals === 0) {
       return oldRound(value);
@@ -163,7 +163,7 @@
   */
   /*jslint bitwise: true*/
   if (typeof Math.uuid !== 'function') {
-    Math.uuid = function() {
+    Math.uuid = function () {
       var chars = Math.uuid.CHARS,
         uuid = [],
         r,
@@ -190,7 +190,7 @@
 }(this));
 
 /* minor improvements to jQuery */
-(function(window) {
+(function (window) {
   'use strict';
   var $ = window.jQuery,
     _oldAttr = $.fn.attr,
@@ -212,7 +212,7 @@
     }
     if ($.type(props) === 'array') {
       /*jslint unparam:true*/
-      $.each(props, function(index, name) {
+      $.each(props, function (index, name) {
         if (object[name] === undefined) {
           result = false;
           return false; // break loop now
@@ -223,7 +223,7 @@
       return result;
     }
     if ($.type(props) === 'object') {
-      $.each(props, function(name, value) {
+      $.each(props, function (name, value) {
         if ($.type(object[name]) !== value) {
           result = false;
           return false; // break loop now
@@ -238,14 +238,14 @@
   /**
    * @param {Object} Does $.type(object) === 'object'?
    */
-  $.isObject = function(variable) {
+  $.isObject = function (variable) {
     return $.type(variable) === 'object';
   };
 
   /**
    * @return {Boolean} Is object a jQuery Deferred Promise (read-only)?
    */
-  $.isPromise = function(object) {
+  $.isPromise = function (object) {
     var type = 'function',
       props = {
         always: type,
@@ -263,7 +263,7 @@
   /**
    * @return {Boolean} Is object a jQuery Deferred Object (read-write)?
    */
-  $.isDeferred = function(object) {
+  $.isDeferred = function (object) {
     var type = 'function',
       props = {
         notify: type,
@@ -280,13 +280,13 @@
   };
 
   // duck-punching to make attr() return a map
-  $.fn.attr = function() {
+  $.fn.attr = function () {
     var attributes, map;
     if (this[0] && arguments.length === 0) {
       map = {};
       attributes = this[0].attributes;
       /*jslint unparam:true*/
-      $.each(attributes, function(index, attribute) {
+      $.each(attributes, function (index, attribute) {
         var name = attribute.name || attribute.nodeName,
           value = attribute.value || attribute.nodeValue;
         /* END: var */
@@ -301,13 +301,13 @@
   };
 
   // TODO: remove this backwards-compatibility later
-  $.fn.show = function() {
+  $.fn.show = function () {
     this.removeAttr('hidden');
     this.removeClass('hidden');
     return _show.apply(this, arguments);
   };
 
-  $.fn.isHidden = function() {
+  $.fn.isHidden = function () {
     if (this.prop('hidden') || this.hasClass('hidden')) {
       return true;
     }
@@ -315,7 +315,7 @@
   };
 
   // return just the element's HTML tag (no attributes or innerHTML)
-  $.fn.tag = function() {
+  $.fn.tag = function () {
     var tag;
     if (this.length > 0) {
       tag = this[0].nodeName || this[0].tagName || '';
@@ -325,12 +325,12 @@
   };
 
   // return a simple HTML tag string not containing the innerHTML
-  $.fn.tagHTML = function() {
+  $.fn.tagHTML = function () {
     var $this = $(this),
       html;
     if (this[0]) {
       html = '<' + $this.tag();
-      $.each($this.attr(), function(key, value) {
+      $.each($this.attr(), function (key, value) {
         html += ' ' + key + '="' + value + '"';
       });
       html += ' />';
@@ -339,16 +339,16 @@
   };
 
   /* function to allow passing an array to jQuery.when() */
-  $.whenArray = function(array) {
+  $.whenArray = function (array) {
     return $.when.apply($, array);
   };
   /* automatically wrap Deferred.resolve in a setTimeout
    * @param {jQueryDeferred} deferred
    */
-  $.resolveTimeout = function() {
+  $.resolveTimeout = function () {
     var args = $.makeArray(arguments),
       deferred = args.shift();
-    setTimeout(function() {
+    setTimeout(function () {
       deferred.resolve.apply(deferred, args);
     }, 0);
     return this;
@@ -362,7 +362,7 @@
    * @returns {jQueryPromise}
    */
   /*jslint regexp: true*/
-  $.fn.appendWithCheck = function(string, attempts, needle, lastIndex) {
+  $.fn.appendWithCheck = function (string, attempts, needle, lastIndex) {
     var $element = $(this),
       deferred = new $.Deferred(),
       MyAnswers = window.MyAnswers;
@@ -375,14 +375,14 @@
       needle = $.type(needle) === 'array' ? needle[0] : string;
     }
     if ($.type(lastIndex) !== 'number') {
-      MyAnswers.dispatch.add(function() {
+      MyAnswers.dispatch.add(function () {
         lastIndex = $element.html().lastIndexOf(needle);
       });
     }
-    MyAnswers.dispatch.add(function() {
+    MyAnswers.dispatch.add(function () {
       $element.append(string);
     });
-    MyAnswers.dispatch.add(function() {
+    MyAnswers.dispatch.add(function () {
       var html = $element.html();
       if ($.type(html) !== 'string' || !html ||
           html.lastIndexOf(needle) > lastIndex) {
@@ -399,10 +399,10 @@
   };
   /*jslint regexp: false*/
 
-  $.fn.childrenAsProperties = function() {
+  $.fn.childrenAsProperties = function () {
     var properties = {};
     /*jslint unparam:true*/
-    $(this).children().each(function(index, element) {
+    $(this).children().each(function (index, element) {
       var $element = $(element),
         name = $element.tag(),
         value = $element.text();
@@ -415,7 +415,7 @@
   };
 
   // from http://api.jquery.com/jQuery.getScript/
-  $.getCachedScript = function(url, options) {
+  $.getCachedScript = function (url, options) {
     options = $.extend(options || {}, {
       dataType: "script",
       cache: true,
@@ -426,7 +426,7 @@
 
 }(this));
 
-(function(window) {
+(function (window) {
   'use strict';
   var $ = window.jQuery,
     _Blink = window._Blink,
@@ -444,7 +444,7 @@
      * @class
      * @param {String} [encoding] Provide the HTTP_ACCEPT_ENCODING Header.
      */
-    PlatformCDN = function(encoding) {
+    PlatformCDN = function (encoding) {
       var cfg;
       cfg = _Blink && _Blink.cfg && _Blink.cfg.CDN_PLATFORM;
       cfg = $.isObject(cfg) ? cfg : {};
@@ -460,7 +460,7 @@
        * @param  {String} path Provide the path to desired resource.
        * @return {String} The completed URL.
        */
-      this.getURL = function(path) {
+      this.getURL = function (path) {
         var extension;
         if (!path || typeof path !== 'string') {
           return '';
@@ -476,7 +476,7 @@
       };
       return this;
     };
-  _Blink.AnswerSpaceCDN = function(cdn) {
+  _Blink.AnswerSpaceCDN = function (cdn) {
     var cfg, basename, answerSpaceDefaults, getCDN;
     answerSpaceDefaults = {
       "ROOT": 'images/'
@@ -485,7 +485,7 @@
     cfg = $.isObject(cfg) ? cfg : {};
     cfg = $.extend({}, answerSpaceDefaults, cfg);
     cfg.cdnLocation = cdn;
-    basename = function(path, suffix) {
+    basename = function (path, suffix) {
       var b, ln;
       /*jslint regexp:true*/ // this isn't being used for secure purposes
       b = path.replace(/^.*[\/\\]/g, '');
@@ -499,7 +499,7 @@
       }
       return b;
     };
-    getCDN = function() {
+    getCDN = function () {
       var parts;
       parts = cfg.cdnLocation.split(":");
 
@@ -510,7 +510,7 @@
      * @param  {String} path Provide the path to desired resource.
      * @return {String} The completed URL.
      */
-    this.getURL = function(path) {
+    this.getURL = function (path) {
       if (!path || typeof path !== 'string') {
         return '';
       }
@@ -528,14 +528,14 @@
    * deleting the iframe when the page's <body> gains the "s-ready" class
    * @param {String} src URL for the HTML content to be loaded.
    */
-  _Blink.preloadPage = function(src) {
+  _Blink.preloadPage = function (src) {
     var $iframe = $('<iframe></iframe>'),
       checkCountdown = 30,
       iframeWindow,
-      onReadyFn = function() {
+      onReadyFn = function () {
         $iframe.remove();
       },
-      testReadyFn = function() {
+      testReadyFn = function () {
         checkCountdown--;
         if ($(iframeWindow.document.body).hasClass('s-ready')) {
           onReadyFn();
@@ -575,7 +575,7 @@
    * @param {Node} node XML or HTML Node to convert.
    * @return {String} XML String.
    */
-  _Blink.stringifyDOM = function(node) {
+  _Blink.stringifyDOM = function (node) {
     var xmlSerializer;
     if (node.xml) {
       return node.xml;
@@ -590,7 +590,7 @@
   /**
    * @param {String} char Single character to be tested.
    */
-  _Blink.hasFontFor = function(char) {
+  _Blink.hasFontFor = function (char) {
     var me = _Blink.hasFontFor,
       result,
       $body,
