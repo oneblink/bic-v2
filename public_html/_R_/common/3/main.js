@@ -1769,58 +1769,6 @@ function goBackToCategoriesView() {
   });
 }
 
-function restoreSessionProfile(token) {
-  log('restoreSessionProfile():');
-  var requestData, requestUrl = siteVars.serverAppPath + '/util/GetSession.php',
-    deferred = new $.Deferred();
-  if ($.type(token) !== 'string' || token.length === 0) {
-    deferred.reject();
-    return deferred.promise();
-  }
-  requestData = '_as=' + siteVars.answerSpace + '&_t=' + token;
-  $.ajax({
-    url: requestUrl,
-    data: requestData,
-    dataType: 'json',
-    complete: function(xhr, xhrStatus) {
-      if (isAJAXError(xhrStatus) || xhr.status !== 200)
-      {
-        BMP.alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
-        deferred.reject();
-        return deferred.promise();
-      }
-      var data = $.parseJSON(xhr.responseText);
-      if (data === null)
-      {
-        log('restoreSessionProfile error: null data');
-        BMP.alert('Connection error, please try again later. (' + xhrStatus + ' ' + xhr.status + ')');
-        deferred.reject();
-        return deferred.promise();
-      }
-      if (typeof data.errorMessage !== 'string' && typeof data.statusMessage !== 'string')
-      {
-        log('restoreSessionProfile success: no error messages, data: ' + data);
-        if (data.sessionProfile === null) {
-          deferred.reject();
-          return deferred.promise();
-        }
-        MyAnswers.store.set('starsProfile', JSON.stringify(data.sessionProfile.stars));
-        starsProfile = data.sessionProfile.stars;
-      }
-      if (typeof data.errorMessage === 'string')
-      {
-        log('restoreSessionProfile error: ' + data.errorMessage);
-        deferred.reject();
-      }
-      setTimeout(function() {
-        deferred.resolve();
-      }, 100);
-    },
-    timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(10 * 1024))
-  });
-  return deferred.promise();
-}
-
 /**
  * @param {jQuery} $xml XML document wrapped in a jQuery object.
  * @return {Object} plain Object { "form": { "field": "subForm", ... } }.
@@ -3177,10 +3125,8 @@ function submitAction(keyword, action) {
     var startUp = $('#startUp'),
         $masterCategoriesView = $('#masterCategoriesView'),
         $categoriesView = $('#categoriesView'),
-        $keywordListView = $('#keywordListView'),
-        token = siteVars.queryParameters._t;
+        $keywordListView = $('#keywordListView');
     /* END: var */
-    delete siteVars.queryParameters._t;
     if (startUp.size() > 0 && siteVars.config) {
       if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768) {
         $('#mainLabel').remove(); //  TODO: fix the main navigation label
@@ -3203,37 +3149,36 @@ function submitAction(keyword, action) {
       }
       $('#answerSpacesListView').remove();
       MyAnswers.gotoDefaultScreen();
-      $.when(restoreSessionProfile(token))
-      .always(function() {
-            var interaction = resolveItemName(siteVars.queryParameters.keyword),
-                config = siteVars.config['a' + siteVars.id].pertinent,
-                requestUri;
-            /* END: var */
-            delete siteVars.queryParameters.keyword;
-            if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
-              requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
-              History.pushState({
-                i: interaction,
-                'arguments': siteVars.queryParameters
-              }, null, requestUri);
-            } else if (interaction) {
-              requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
-              History.pushState({
-                i: interaction
-              }, null, requestUri);
-            } else if (typeof siteVars.queryParameters._c === 'string') {
-              requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
-              History.pushState({
-                c: siteVars.queryParameters._c
-              }, null, requestUri);
-            } else if (typeof siteVars.queryParameters._m === 'string') {
-              requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
-              History.pushState({
-                m: siteVars.queryParameters._m
-              }, null, requestUri);
-            }
-            delete siteVars.queryParameters;
-          });
+      (function() {
+        var interaction = resolveItemName(siteVars.queryParameters.keyword),
+            config = siteVars.config['a' + siteVars.id].pertinent,
+            requestUri;
+        /* END: var */
+        delete siteVars.queryParameters.keyword;
+        if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
+          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
+          History.pushState({
+            i: interaction,
+            'arguments': siteVars.queryParameters
+          }, null, requestUri);
+        } else if (interaction) {
+          requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?';
+          History.pushState({
+            i: interaction
+          }, null, requestUri);
+        } else if (typeof siteVars.queryParameters._c === 'string') {
+          requestUri = '/' + siteVars.answerSpace + '/?_c=' + siteVars.queryParameters._c;
+          History.pushState({
+            c: siteVars.queryParameters._c
+          }, null, requestUri);
+        } else if (typeof siteVars.queryParameters._m === 'string') {
+          requestUri = '/' + siteVars.answerSpace + '/?_m=' + siteVars.queryParameters._m;
+          History.pushState({
+            m: siteVars.queryParameters._m
+          }, null, requestUri);
+        }
+        delete siteVars.queryParameters;
+      }());
     }
     startUp.remove();
     $('#content').show();
