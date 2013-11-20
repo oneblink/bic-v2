@@ -109,6 +109,10 @@ table input[type=file] { position: relative; }
 	background-color: #FFF;
 }
 
+button, .button, input[type="submit"], input[type="button"], input[type="reset"]{
+text-transform:capitalize;
+}
+
 #navBoxHeader, .navBar {
 	height: 40px;
 }
@@ -208,7 +212,7 @@ ul.box .label, ul.box .description {
 	margin-right: 50px;
 }
 
-#descriptionBox, #argsBox {
+#argsBox {
 	text-align: center;
 }
 

@@ -428,7 +428,11 @@
    * @param {String} [encoding] Provide the HTTP_ACCEPT_ENCODING Header.
    */
   PlatformCDN = function(encoding) {
-    var cfg;
+    var cfg, isAppCache, isSecure;
+
+    isAppCache = window.applicationCache && window.applicationCache.status !== 0;
+    isSecure = window.location && window.location.protocol === 'https:';
+
     cfg = _Blink && _Blink.cfg && _Blink.cfg.CDN_PLATFORM;
     cfg = $.isObject(cfg) ? cfg : {};
     cfg = $.extend({}, defaults, cfg);
@@ -438,6 +442,13 @@
       cfg.PREFIX_GZ = cfg.PREFIX;
       cfg.SUFFIX_GZ = cfg.SUFFIX;
     }
+    if (isAppCache && isSecure) {
+      cfg.PREFIX = '/_c_/';
+      cfg.SUFFIX = '';
+      cfg.PREFIX_GZ = cfg.PREFIX;
+      cfg.SUFFIX_GZ = cfg.SUFFIX;
+    }
+
     /**
      * add necessary protocol, domain and suffix to a given path
      * @param  {String} path Provide the path to desired resource.

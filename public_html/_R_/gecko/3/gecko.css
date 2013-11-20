@@ -203,7 +203,7 @@ ul.box .label, ul.box .description {
 	margin-right: 50px;
 }
 
-#descriptionBox, #argsBox {
+#argsBox {
 	text-align: center;
 }
 

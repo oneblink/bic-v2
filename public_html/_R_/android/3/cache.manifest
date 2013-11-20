@@ -1,7 +1,22 @@
 CACHE:
-//d1c6dfkb81l78v.cloudfront.net/jquery-ui/1.8.23/css/eggplant/jqui.css.gz
+/_c_/jquery-ui/1.9.2/css/eggplant/jquery-ui.css
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_flat_0_aaaaaa_40x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_flat_0_eeeeee_40x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_flat_55_994d53_40x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_flat_55_fafafa_40x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_gloss-wave_30_3d3644_500x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_highlight-soft_100_dcd9de_1x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_highlight-soft_100_eae6ea_1x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_highlight-soft_25_30273a_1x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-bg_highlight-soft_45_5f5964_1x100.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_454545_256x240.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_734d99_256x240.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_8d78a5_256x240.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_a8a3ae_256x240.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_ebccce_256x240.png
+/_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_ffffff_256x240.png
 /_R_/android/3/android.css
-/_R_/android/3/android.js
+/_R_/android/3/bic2.min.js
 http://code.google.com/apis/gears/gears_init.js
 
 NETWORK:
