@@ -1,14 +1,14 @@
-/*jslint browser:true, indent:2, regexp:true, sloppy:true*/
-/*jslint nomen:true, todo:true, plusplus:true*/
+/*jslint browser:true, devel:true, regexp:true, sloppy:true, white:true*/
+/*jslint nomen:true, plusplus:true*/
 
-/*global info:true, log:true, warn:true, error:true*/
-/*global computeTimeout:true, isBlinkGapDevice:true, MyAnswersDevice:true*/
-/*global init_device:true, onDeviceReady:true, prepareHistorySideBar:true*/
-/*global BlinkDispatch:true, BlinkForms:true, BlinkStorage:true*/
+/*global info, log, warn, error*/
+/*global computeTimeout, isBlinkGapDevice, MyAnswersDevice*/
+/*global init_device, onDeviceReady, prepareHistorySideBar*/
+/*global BlinkDispatch, BlinkForms, BlinkStorage*/
 
-/*global $:true, Hashtable:true, History:true, Modernizr:true*/
-/*global explode:true, implode:true*/
-/*global BMP,_Blink:true*/
+/*global $, Hashtable, History, Modernizr*/
+/*global explode, implode*/
+/*global _Blink*/
 
 var MyAnswers = MyAnswers || {},
     siteVars = siteVars || {},
@@ -26,9 +26,6 @@ document.getElementById('startUp-loadMain').className = 'working';
 currentConfig.downloadTimeout = 30;
 currentConfig.uploadTimeout = 45;
 deviceVars.isOnline = true;
-
-function PictureSourceType() {}
-function lastPictureTaken() {}
 
 MyAnswers.mainDeferred = new $.Deferred();
 MyAnswers.browserDeferred = new $.Deferred();
@@ -176,61 +173,6 @@ function processBlinkAnswerMessage(message) {
 }
 
 // *** END OF UTILS ***
-
-// *** BEGIN PHONEGAP UTILS ***
-
-function getPicture_Success(imageData) {
-  var i, thisElement;
-  //  log("getPicture_Success: " + imageData);
-  lastPictureTaken.image.put(lastPictureTaken.currentName, imageData);
-  for (i in document.forms[0].elements) {
-    if (document.forms[0].elements.hasOwnProperty(i)) {
-      thisElement = document.forms[0].elements[i];
-      if (thisElement.name) {
-        if (thisElement.type && (thisElement.type.toLowerCase() === 'radio' ||
-            thisElement.type.toLowerCase() === 'checkbox') &&
-            thisElement.checked === false) {
-          $.noop(); // do nothing for unchecked radio or checkbox
-        } else {
-          if (thisElement.type && (thisElement.type.toLowerCase() === 'button') && (lastPictureTaken.image.size() > 0)) {
-            if (lastPictureTaken.currentName === thisElement.name) {
-              thisElement.style.backgroundColor = 'red';
-            }
-          }
-        }
-      }
-    }
-  }
-  log('getpic success ' + imageData.length);
-}
-
-function getPicture(sourceType) {
-  var cfg = new BMP.BIC.Config(currentConfig),
-      options = cfg.toCameraOptions();
-
-  if (sourceType !== undefined) {
-    options.sourceType = sourceType;
-  }
-  // if no sourceType specified, the default is CAMERA
-  navigator.camera.getPicture(getPicture_Success, null, options);
-}
-
-function selectCamera(nameStr) {
-  log('selectCamera: ');
-  lastPictureTaken.currentName = nameStr;
-  getPicture(PictureSourceType.CAMERA);
-}
-
-function selectLibrary(nameStr) {
-  log('selectLibrary: ');
-  lastPictureTaken.currentName = nameStr;
-  getPicture(PictureSourceType.PHOTO_LIBRARY);
-}
-
-// *** END PHONEGAP UTILS ***
-
-// *** BEGIN BLINK UTILS ***
-
 
 /**
  * @param name
@@ -1283,8 +1225,6 @@ function initialiseAnswerFeatures($view) {
         .always(function() {
           promises.push(BlinkForms.initialiseForm($form));
         });
-      } else if (!isCameraPresent()) {
-        $form.find('input[onclick*="selectCamera"]').attr('disabled', 'disabled');
       }
     }
   });
@@ -2546,37 +2486,16 @@ function submitForm() {
       }
       else
       {
-        if (element.type && (element.type.toLowerCase() === 'button') && (lastPictureTaken.image.size() > 0))
-        {
-          if (lastPictureTaken.image.containsKey(element.name))
-          {
-            str += '&' + element.name + '=' + encodeURIComponent(lastPictureTaken.image.get(element.name));
-            // log("if: " + str);
-          }
+        if (element.type && (element.type.toLowerCase() === 'button')) {
+          str += '&' + element.name + '=';
         }
         else
         {
-          if (element.type && (element.type.toLowerCase() === 'button')) {
-            if ((element.value !== 'Gallery') && (element.value !== 'Camera'))
-            {
-              str += '&' + element.name + '=' + encodeURIComponent(element.value);
-            }
-            else
-            {
-              str += '&' + element.name + '=';
-            }
-          }
-          else
-          {
-            str += '&' + element.name + '=' + encodeURIComponent(element.value);
-          }
-          // log("else: " + str);
+          str += '&' + element.name + '=' + encodeURIComponent(element.value);
         }
       }
     }
   });
-  log('lastPictureTaken.image.size() = ' + lastPictureTaken.image.size());
-  lastPictureTaken.image.clear();
 
   // var str = $('form').first().find('input, textarea, select').serialize();
   log('submitForm(2): ' + document.forms[0].action);
@@ -2773,7 +2692,7 @@ function submitAction(keyword, action) {
         navigator.gap_database.getLimits(getDBLimits_Success, deferred.reject, null);
       } catch (error) {
         deferred.reject();
-        log(error);
+        error(error);
         log('*** Open/Increase quota for database failed');
         throw 'fixWebSQL(): ' + error;
       }
@@ -3248,7 +3167,7 @@ function submitAction(keyword, action) {
       $('#startUp-initLoaded').addClass('success');
     } catch (e) {
       log('loaded(): exception:');
-      log(e);
+      error(e);
       $('#startUp-initLoaded').addClass('error');
       $startup.append('loading error: ' + e);
     }
@@ -3264,11 +3183,6 @@ function submitAction(keyword, action) {
 
     log('init_main(): ');
     siteVars.requestsCounter = 0;
-
-    PictureSourceType.PHOTO_LIBRARY = 0;
-    PictureSourceType.CAMERA = 1;
-    lastPictureTaken.image = new Hashtable();
-    lastPictureTaken.currentName = null;
 
     $.fx.interval = 27; // default is 13, larger is kinder on devices
 
@@ -3495,7 +3409,7 @@ function submitAction(keyword, action) {
       $('#startUp-initBrowser').addClass('success');
     } catch (e) {
       log('onBrowserReady: Exception');
-      log(e);
+      error(e);
       $startup.append('browser error: ' + e);
       $('#startUp-initBrowser').addClass('error');
     }
@@ -3515,7 +3429,7 @@ function submitAction(keyword, action) {
       init_device();
     } catch (e) {
       log('exception in init_?():');
-      log(e);
+      error(e);
       $startup.append('initialisation error: ' + e);
     }
     log('User-Agent: ' + window.navigator.userAgent);
@@ -3663,3 +3577,4 @@ function submitAction(keyword, action) {
 
 document.getElementById('startUp-loadMain').className = 'working success';
 MyAnswers.mainDeferred.resolve();
+

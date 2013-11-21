@@ -19,6 +19,7 @@
   };
 
   window.computeTimeout = function (messageLength) {
+
     var lowestTransferRateConst = 1000 / (4800 / 8);
     // maxTransactionTimeout = 180 * 1000;
     return Math.floor((messageLength * lowestTransferRateConst) + 15000);
@@ -423,7 +424,7 @@
     });
     return $.ajax(options);
   };
-
+  /*jslint nomen: false*/
 }(this));
 
 (function (window) {
@@ -445,7 +446,11 @@
      * @param {String} [encoding] Provide the HTTP_ACCEPT_ENCODING Header.
      */
     PlatformCDN = function (encoding) {
-      var cfg;
+      var cfg, isAppCache, isSecure;
+
+      isAppCache = window.applicationCache && window.applicationCache.status !== 0;
+      isSecure = window.location && window.location.protocol === 'https:';
+
       cfg = _Blink && _Blink.cfg && _Blink.cfg.CDN_PLATFORM;
       cfg = $.isObject(cfg) ? cfg : {};
       cfg = $.extend({}, defaults, cfg);
@@ -455,6 +460,13 @@
         cfg.PREFIX_GZ = cfg.PREFIX;
         cfg.SUFFIX_GZ = cfg.SUFFIX;
       }
+      if (isAppCache && isSecure) {
+        cfg.PREFIX = '/_c_/';
+        cfg.SUFFIX = '';
+        cfg.PREFIX_GZ = cfg.PREFIX;
+        cfg.SUFFIX_GZ = cfg.SUFFIX;
+      }
+
       /**
        * add necessary protocol, domain and suffix to a given path
        * @param  {String} path Provide the path to desired resource.
@@ -476,6 +488,7 @@
       };
       return this;
     };
+
   _Blink.AnswerSpaceCDN = function (cdn) {
     var cfg, basename, answerSpaceDefaults, getCDN;
     answerSpaceDefaults = {
@@ -523,6 +536,7 @@
     };
     return this;
   };
+
   /**
    * use a hidden <iframe> to load a page,
    * deleting the iframe when the page's <body> gains the "s-ready" class
