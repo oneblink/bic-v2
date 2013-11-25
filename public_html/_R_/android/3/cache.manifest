@@ -16,7 +16,7 @@ CACHE:
 /_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_ebccce_256x240.png
 /_c_/jquery-ui/1.9.2/css/eggplant/images/ui-icons_ffffff_256x240.png
 /_R_/BICv2/css/android.css
-/_R_/android/3/bic2.min.js
+/_R_/BICv2/js/android.min.js
 http://code.google.com/apis/gears/gears_init.js
 
 NETWORK:
