@@ -3380,21 +3380,6 @@ function submitAction(keyword, action) {
         siteVars.hasLogin = true;
       }
 
-      // TODO: finish work on HTML5 Web Worker support
-      /*
-       * deviceVars.hasWebWorkers = typeof window.Worker === 'function'; if
-       * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
-       * Worker(siteVars.serverAppPath + '/webworker.js');
-       * MyAnswers.webworker.onmessage = function(event) { switch
-       * (event.data.fn) { case 'log': log(event.data.string);
-       * break; case 'processXSLT': log('WebWorker: finished
-       * processing XSLT'); var target =
-       * document.getElementById(event.data.target); insertHTML(target,
-       * event.data.html); break; case 'workBegun':
-       * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
-       * MyAnswers.$body.trigger('taskComplete'); break; } }; }
-       */
-
       $.when(waitForBlinkGap())
       .then(function() {
             if (isBlinkGapDevice() && $.type(onDeviceReady) === 'function') {
