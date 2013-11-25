@@ -1792,8 +1792,7 @@ function processForms() {
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
     libraryDeferred = true;
   } else {
-    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/forms2.min.js');
-
+    libraryDeferred = $.getCachedScript('/_R_/forms2/forms2.min.js');
   }
   promises = [libraryDeferred];
   if (MyAnswers.device.persistentStorage) {
