@@ -770,7 +770,7 @@ function requestMoJO(mojo) {
     }
     if (deviceVars.isOnline) {
       $.ajax({
-        url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+        url: '/_R_/xhr/GetMoJO.php',
         data: requestData,
         dataType: 'xml',
         complete: function(jqxhr, status) {
@@ -897,7 +897,7 @@ function updateLoginButtons() {
                 $.ajax({
                   type: 'GET',
                   cache: 'false',
-                  url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+                  url: '/_R_/xhr/GetLogin.php',
                   data: {
                     '_a': 'logout'
                   },
@@ -967,7 +967,7 @@ function requestLoginStatus() {
     return deferred.promise();
   }
   $.ajax({
-    url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+    url: '/_R_/xhr/GetLogin.php',
     dataType: 'json',
     complete: function(xhr, xhrStatus) {
       if (isAJAXError(xhrStatus) || xhr.status !== 200) {
@@ -997,7 +997,7 @@ function submitLogin() {
   $.ajax({
     type: 'GET',
     cache: 'false',
-    url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+    url: '/_R_/xhr/GetLogin.php',
     data: $('#loginView').find('form').serializeArray(),
     complete: function(xhr, textstatus) {
       $('#loginView').find('input[type=password]').val('');
@@ -1792,8 +1792,7 @@ function processForms() {
   if (window.BlinkForms && window.BlinkFormObject && window.BlinkFormElement) {
     libraryDeferred = true;
   } else {
-    libraryDeferred = $.getCachedScript(siteVars.serverAppPath + '/forms2.min.js');
-
+    libraryDeferred = $.getCachedScript('/_R_/forms2/forms2.min.js');
   }
   promises = [libraryDeferred];
   if (MyAnswers.device.persistentStorage) {
@@ -1801,7 +1800,7 @@ function processForms() {
     if (deviceVars.isOnline) {
       $.ajax({
         // TODO: send through lastChecked time when updating forms
-        url: siteVars.serverAppPath + '/xhr/GetForm.php',
+        url: '/_R_/xhr-forms/GetForm.php',
         dataType: 'xml',
         complete: function(jqxhr, status) {
           var $data;
@@ -1872,7 +1871,7 @@ function requestConfig() {
   var now = $.now(),
       dfrd = new $.Deferred(),
       isPersist = MyAnswers.device.persistentStorage,
-      url = siteVars.serverAppPath + '/xhr/GetConfig.php';
+      url = '/_R_/xhr/GetConfig.php';
 
   if (!deviceVars.isOnline) {
     dfrd.reject();
@@ -2173,7 +2172,7 @@ function showAnswerView(interaction, argsString, reverse) {
         completeFn();
       });
     } else {
-      var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
+      var answerUrl = '/_R_/xhr/GetAnswer.php',
       requestData = {
         asn: siteVars.answerSpace,
         iact: currentConfig.name
@@ -2414,7 +2413,7 @@ function goBackToTopLevelAnswerView(event) {
 function submitFormWithRetry(data) {
   var str, arr, method, uuid,
   localKeyword,
-  answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+  answerUrl = '/_R_/xhr/GetAnswer.php?',
   $view = $('.view:visible'),
   $box = $view.children('.box').first(),
   requestData;
@@ -2543,11 +2542,11 @@ function submitAction(keyword, action) {
   }
   if ($.type(method) === 'string' && method.toLowerCase() === 'get') {
     method = 'GET';
-    requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword;
+    requestUrl = '/_R_/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword;
     requestData = '&' + formData + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
   } else {
     method = 'POST';
-    requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
+    requestUrl = '/_R_/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
     requestData = formData;
   }
   MyAnswers.$body.trigger('taskBegun');
@@ -3380,21 +3379,6 @@ function submitAction(keyword, action) {
         // TODO: get hasLogin working directly off new config field
         siteVars.hasLogin = true;
       }
-
-      // TODO: finish work on HTML5 Web Worker support
-      /*
-       * deviceVars.hasWebWorkers = typeof window.Worker === 'function'; if
-       * (deviceVars.hasWebWorkers === true) { MyAnswers.webworker = new
-       * Worker(siteVars.serverAppPath + '/webworker.js');
-       * MyAnswers.webworker.onmessage = function(event) { switch
-       * (event.data.fn) { case 'log': log(event.data.string);
-       * break; case 'processXSLT': log('WebWorker: finished
-       * processing XSLT'); var target =
-       * document.getElementById(event.data.target); insertHTML(target,
-       * event.data.html); break; case 'workBegun':
-       * MyAnswers.$body.trigger('taskBegun'); break; case 'workComplete':
-       * MyAnswers.$body.trigger('taskComplete'); break; } }; }
-       */
 
       $.when(waitForBlinkGap())
       .then(function() {

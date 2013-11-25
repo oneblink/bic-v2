@@ -16,10 +16,9 @@ CACHE:
 /_c_/modernizr/modernizr-2.6.1-2012W33.min.js
 /_c_/signaturepad/jquery.signaturepad-2.1.1.min.js
 /_R_/common/3/main.js
-/_R_/common/3/forms2.min.js
+/_R_/forms2/forms2.min.js
 /_R_/common/3/common.css
-/_R_/common/3/webworker.js
-/_R_/common/3/lanczos.min.js
+/_R_/forms2/lanczos.min.js
 /gfx/star-off32.png
 
 #FALLBACK:

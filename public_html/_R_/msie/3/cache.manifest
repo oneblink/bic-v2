@@ -18,15 +18,6 @@ CACHE:
 
 NETWORK:
 *
-/_R_/common/3/util/GetSession.php
-/_R_/common/3/xhr/GetAnswer.php
-/_R_/common/3/xhr/GetConfig.php
-/_R_/common/3/xhr/GetForm.php
-/_R_/common/3/xhr/GetFormList.php
-/_R_/common/3/xhr/GetFormRecord.php
-/_R_/common/3/xhr/GetLogin.php
-/_R_/common/3/xhr/GetMoJO.php
-/_R_/common/3/xhr/SaveFormRecord.php
 
 CACHE:
 /_R_/msie/3/Images/ActivityIndicator.png
