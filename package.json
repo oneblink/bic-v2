@@ -1,0 +1,17 @@
+{
+  "name": "bic-v2",
+  "version": "2.201331.0",
+  "description": "Blink Intelligent Client",
+  "repository": "git@github.com:blinkmobile/bic-v2.git",
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "~1.8",
+    "grunt": "~0.4",
+    "grunt-contrib-compass": "~0.6",
+    "grunt-contrib-uglify": "~0.2",
+    "grunt-contrib-watch": "~0.5",
+    "grunt-jslint": "~1.1",
+    "grunt-mocha": "~0.4",
+    "mocha": "~1.14"
+  }
+}
