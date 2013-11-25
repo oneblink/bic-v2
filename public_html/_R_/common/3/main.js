@@ -770,7 +770,7 @@ function requestMoJO(mojo) {
     }
     if (deviceVars.isOnline) {
       $.ajax({
-        url: siteVars.serverAppPath + '/xhr/GetMoJO.php',
+        url: '/_R_/xhr/GetMoJO.php',
         data: requestData,
         dataType: 'xml',
         complete: function(jqxhr, status) {
@@ -897,7 +897,7 @@ function updateLoginButtons() {
                 $.ajax({
                   type: 'GET',
                   cache: 'false',
-                  url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+                  url: '/_R_/xhr/GetLogin.php',
                   data: {
                     '_a': 'logout'
                   },
@@ -967,7 +967,7 @@ function requestLoginStatus() {
     return deferred.promise();
   }
   $.ajax({
-    url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+    url: '/_R_/xhr/GetLogin.php',
     dataType: 'json',
     complete: function(xhr, xhrStatus) {
       if (isAJAXError(xhrStatus) || xhr.status !== 200) {
@@ -997,7 +997,7 @@ function submitLogin() {
   $.ajax({
     type: 'GET',
     cache: 'false',
-    url: siteVars.serverAppPath + '/xhr/GetLogin.php',
+    url: '/_R_/xhr/GetLogin.php',
     data: $('#loginView').find('form').serializeArray(),
     complete: function(xhr, textstatus) {
       $('#loginView').find('input[type=password]').val('');
@@ -1872,7 +1872,7 @@ function requestConfig() {
   var now = $.now(),
       dfrd = new $.Deferred(),
       isPersist = MyAnswers.device.persistentStorage,
-      url = siteVars.serverAppPath + '/xhr/GetConfig.php';
+      url = '/_R_/xhr/GetConfig.php';
 
   if (!deviceVars.isOnline) {
     dfrd.reject();
@@ -2173,7 +2173,7 @@ function showAnswerView(interaction, argsString, reverse) {
         completeFn();
       });
     } else {
-      var answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php',
+      var answerUrl = '/_R_/xhr/GetAnswer.php',
       requestData = {
         asn: siteVars.answerSpace,
         iact: currentConfig.name
@@ -2414,7 +2414,7 @@ function goBackToTopLevelAnswerView(event) {
 function submitFormWithRetry(data) {
   var str, arr, method, uuid,
   localKeyword,
-  answerUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?',
+  answerUrl = '/_R_/xhr/GetAnswer.php?',
   $view = $('.view:visible'),
   $box = $view.children('.box').first(),
   requestData;
@@ -2543,11 +2543,11 @@ function submitAction(keyword, action) {
   }
   if ($.type(method) === 'string' && method.toLowerCase() === 'get') {
     method = 'GET';
-    requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword;
+    requestUrl = '/_R_/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword;
     requestData = '&' + formData + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
   } else {
     method = 'POST';
-    requestUrl = siteVars.serverAppPath + '/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
+    requestUrl = '/_R_/xhr/GetAnswer.php?asn=' + siteVars.answerSpace + '&iact=' + keyword + (typeof action === 'string' && action.length > 0 ? '&' + action : '');
     requestData = formData;
   }
   MyAnswers.$body.trigger('taskBegun');
