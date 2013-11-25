@@ -5,8 +5,7 @@
 
 (function (window) {
   'use strict';
-  var siteVars = window.siteVars,
-    MyAnswers,
+  var MyAnswers,
     $ = window.jQuery,
     navigator = window.navigator,
     google; // defined in MyAnswers.setupGoogleMaps
