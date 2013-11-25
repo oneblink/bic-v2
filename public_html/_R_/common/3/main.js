@@ -1801,7 +1801,7 @@ function processForms() {
     if (deviceVars.isOnline) {
       $.ajax({
         // TODO: send through lastChecked time when updating forms
-        url: siteVars.serverAppPath + '/xhr/GetForm.php',
+        url: '/_R_/xhr-forms/GetForm.php',
         dataType: 'xml',
         complete: function(jqxhr, status) {
           var $data;
