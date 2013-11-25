@@ -13,14 +13,14 @@ CACHE:
 /_c_/jquery-ui/1.9.2/css/smoothness/images/ui-icons_454545_256x240.png
 /_c_/jquery-ui/1.9.2/css/smoothness/images/ui-icons_888888_256x240.png
 /_c_/jquery-ui/1.9.2/css/smoothness/images/ui-icons_cd0a0a_256x240.png
-/_R_/gecko/3/gecko.css
+/_R_/BICv2/css/gecko.css
 /_R_/gecko/3/bic2.min.js
 
 NETWORK:
 *
 
 CACHE:
-/_R_/gecko/3/Images/ActivityIndicator.png
-/_R_/gecko/3/Images/ActivityIndicatorWhite.png
-/_R_/gecko/3/Images/bulletin.png
-/_R_/gecko/3/Images/WebClipIcon.png
+/_R_/BICv2/images/gecko/ActivityIndicator.png
+/_R_/BICv2/images/gecko/ActivityIndicatorWhite.png
+/_R_/BICv2/images/gecko/bulletin.png
+/_R_/BICv2/images/gecko/WebClipIcon.png
