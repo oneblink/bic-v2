@@ -288,7 +288,7 @@
       currentMarker = new google.maps.Marker({
         map: googleMap,
         // TODO: use a better icon for current location
-        icon: siteVars.serverAppPath + '/images/location24.png',
+        icon: '/_R_/BICv2/images/location24.png',
         title: 'you are here'
       });
       currentInfo = new google.maps.InfoWindow();
