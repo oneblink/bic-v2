@@ -24,6 +24,8 @@ You will need [Compass](http://compass-style.org/) for CSS pre-processing, which
 
 You'll also need [Grunt](http://gruntjs.com/) for task automation, which means you'll need [Node.JS](http://nodejs.org/).
 
+Third-party run-time dependencies are configured via [Bower](http://bower.io/).
+
 ### Git
 
 This project follows the [git flow](http://nvie.com/posts/a-successful-git-branching-model/) branching model. Tooling for this is available [on GitHub](https://github.com/nvie/gitflow).

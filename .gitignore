@@ -1,4 +1,5 @@
 # third-party files
+bower_components
 node_modules
 
 # build output
