@@ -6,7 +6,7 @@ This project is the front-end component for our mobility platform. As such, the 
 
 Opening this code serves primarily to encourage understanding and discussion.
 
-This code is officially in maintenance mode, with few new features being introduced. This code will be obsoleted by a major overhaul focusing on maintainability and extensibility.
+An effort is underway to replace this project with a greater focus on maintainability and extensibility.
 
 ## History
 
