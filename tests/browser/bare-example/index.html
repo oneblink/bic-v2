@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <link rel="stylesheet" href="../../../node_modules/mocha/mocha.css" />
+  <script src="../../../node_modules/chai/chai.js"></script>
+  <script src="../../../node_modules/mocha/mocha.js"></script>
+</head>
+<body>
+<div id="mocha"></div>
+<script>
+  var assert = chai.assert;
+  mocha.setup({
+    ui: 'tdd'
+  });
+</script>
+<script src="tests.js"></script>
+<script>
+  mocha.run();
+</script>
+</body>
+</html>

@@ -31,6 +31,7 @@ module.exports = function (grunt) {
         exclude: [
           '**/*.min.js',
           '**/node_modules/**',
+          'bower_components/**',
           'js/vendor/**/*'
         ],
         directives: {},
@@ -38,6 +39,38 @@ module.exports = function (grunt) {
           errorsOnly: true,
           failOnError: true
         }
+      }
+    },
+
+    connect: {
+      server: {
+        options: {
+          port: 8083
+        }
+      }
+    },
+
+    mocha: {
+      common: {
+        options: {
+          urls: [
+            'http://localhost:8083/tests/browser/common-lib/index.html'
+          ],
+          run: true
+        }
+      },
+      bic: {
+        options: {
+          urls: [
+//            'http://localhost:8083/tests/browser/bare-example/index.html',
+            'http://localhost:8083/tests/browser/bare-answerSpace/index.html'
+          ],
+          run: false
+        }
+      },
+      options: {
+        mocha: {},
+        log: false
       }
     },
 
@@ -134,13 +167,13 @@ module.exports = function (grunt) {
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-compass');
+  grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-jslint');
   grunt.loadNpmTasks('grunt-mocha');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
-  //grunt.registerTask('test', ['jslint', 'mochacli', 'mocha']);
-  grunt.registerTask('test', ['jslint']); // ['jslint', 'mocha']
+  grunt.registerTask('test', ['jslint', 'connect', 'mocha']);
   grunt.registerTask('build', ['uglify', 'compass']);
   grunt.registerTask('default', ['build', 'test']);
 
