@@ -1,4 +1,4 @@
-/*jslint indent:2, maxlen:80, node:true*/
+/*jslint indent:2, node:true*/
 'use strict';
 
 module.exports = function (grunt) {
@@ -58,6 +58,12 @@ module.exports = function (grunt) {
         options: {
           port: 8083
         }
+      },
+      keepalive: {
+        options: {
+          port: 8083,
+          keepalive: true
+        }
       }
     },
 
@@ -104,7 +110,7 @@ module.exports = function (grunt) {
         },
         files: {
           'js/android.min.js': commonjs.concat([
-            'js/vendor/history-1.7.1-r2.min.js',
+            'bower_components/history.js/scripts/bundled-uncompressed/html4+html5/jquery.history.js',
             'js/android.js',
             'js/lib/maps.js',
             'js/main.js'
@@ -119,7 +125,7 @@ module.exports = function (grunt) {
         },
         files: {
           'js/gecko.min.js': commonjs.concat([
-            'js/vendor/history-1.7.1-r2.min.js',
+            'bower_components/history.js/scripts/bundled-uncompressed/html4+html5/jquery.history.js',
             'js/gecko.js',
             'js/lib/maps.js',
             'js/main.js'
@@ -134,7 +140,7 @@ module.exports = function (grunt) {
         },
         files: {
           'js/ios.min.js': commonjs.concat([
-            'js/vendor/history-1.7.1-r2.min.js',
+            'bower_components/history.js/scripts/bundled-uncompressed/html4+html5/jquery.history.js',
             'js/ios.js',
             'js/lib/maps.js',
             'js/main.js'
@@ -149,7 +155,7 @@ module.exports = function (grunt) {
         },
         files: {
           'js/msie.min.js': commonjs.concat([
-            'js/vendor/history-1.7.1-r2.min.js',
+            'bower_components/history.js/scripts/bundled-uncompressed/html4+html5/jquery.history.js',
             'js/msie.js',
             'js/lib/maps.js',
             'js/main.js'
@@ -185,7 +191,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-mocha');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('test', ['jslint', 'jqlint', 'connect', 'mocha']);
+  grunt.registerTask('test', ['jslint', 'jqlint', 'connect:server', 'mocha']);
   grunt.registerTask('build', ['uglify', 'compass']);
   grunt.registerTask('default', ['build', 'test']);
 
