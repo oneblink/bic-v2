@@ -1,4 +1,4 @@
-/*jslint browser:true, indent:2, maxlen:80*/
+/*jslint browser:true, indent:2*/
 /*global suite, test, suiteSetup, suiteTeardown, setup, teardown*/ // Mocha
 /*global chai, assert*/ // Chai
 
@@ -9,12 +9,10 @@ suite('jQuery', function () {
   'use strict';
 
   test('defined functions', function () {
-    assert.equal(typeof $.type !== 'undefined', true,
-                 'jQuery.type is ' + typeof $.type);
+    assert.isFunction($.type, 'jQuery.type is ' + typeof $.type);
     assert.equal(typeof $.type, 'function',
                  'jQuery.type is ' + typeof $.type);
-    assert.equal(typeof $.fn.remove !== 'undefined', true,
-                 'jQuery.fn.remove is ' + typeof $.fn.remove);
+    assert.isFunction($.fn.remove, 'jQuery.fn.remove is ' + typeof $.fn.remove);
     assert.equal(typeof $.fn.remove, 'function',
                  'jQuery.fn.remove is ' + typeof $.fn.remove);
   });
