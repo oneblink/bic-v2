@@ -6,8 +6,8 @@ module.exports = function (grunt) {
   var commonjs = [
     'js/vendor/phpjs-2011-09.js',
     'js/vendor/jshashtable-2.1.js',
-    'js/vendor/underscore.js',
-    'js/vendor/es5-shim.js',
+    'bower_components/underscore/underscore.js',
+    'bower_components/es5-shim/es5-shim.js',
     'js/lib/bmp-blobs.js',
     'js/lib/Modernizr-tests.js',
     'js/lib/utilities.js',

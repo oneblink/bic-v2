@@ -4,12 +4,14 @@
   "description": "Blink Intelligent Client",
   "repository": "git@github.com:blinkmobile/bic-v2.git",
   "dependencies": {
-    "jquery": "1.7.2",
+    "jquery": "2.0.3",
     "jquery-ui": "1.9.2",
     "modernizr": "2.6.1"
   },
   "devDependencies": {
     "chai": "~1.8",
-    "mocha": "~1.14"
+    "mocha": "~1.14",
+    "es5-shim": "~2.1.0",
+    "underscore": "~1.5.2"
   }
 }
