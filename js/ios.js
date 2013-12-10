@@ -75,7 +75,7 @@ function onDeviceReady() {
         if (window.currentConfig.footerPosition !== 'screen-bottom') {
           MyAnswers.$body.children('footer').hide();
         }
-        if ($oldView.size() < 1) {
+        if ($oldView.length < 1) {
           deferred.resolve();
           return;
         }
@@ -120,9 +120,9 @@ function onDeviceReady() {
         } else {
 
           $('#answerView').removeAttr('data-name');
-          $('#answerView').removeAttr('data-type');  
+          $('#answerView').removeAttr('data-type');
         }
-      
+
       });
       return deferred.promise();
     };

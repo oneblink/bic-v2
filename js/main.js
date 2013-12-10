@@ -942,8 +942,8 @@ function updateLoginButtons() {
         }
         $loginStatus.empty();
         $loginStatus.append(text);
-        $loginStatus.unbind();
-        $loginStatus.bind('click', submitLogoutFn);
+        $loginStatus.off();
+        $loginStatus.on('click', submitLogoutFn);
       });
       $(loginStatus).show();
     } else {
@@ -1179,14 +1179,14 @@ function initialiseAnswerFeatures($view) {
       $form = $view.find('form').first(),
       isGoogleJSLoaded = window.google && window.google.maps && window.google.maps.Map;
     MyAnswers.$body.trigger('taskBegun');
-    $inputs.unbind('blur', triggerScroll);
-    $inputs.bind('blur', triggerScroll);
+    $inputs.off('blur', triggerScroll);
+    $inputs.on('blur', triggerScroll);
     if (MyAnswers.device.persistentStorage) {
       $view.find('.blink-starrable').each(function(index, element) {
         var $div = $('<div class="blink-starrable" />'),
           data = $(element).data();
         populateDataTags($div, data);
-        $div.bind('click', onStarClick);
+        $div.on('click', onStarClick);
         if ($.type(starsProfile[$(element).data('type')]) !== 'object' || $.type(starsProfile[$(element).data('type')][$(element).data('id')]) !== 'object') {
           $div.addClass('blink-star-off');
         } else {
@@ -1195,7 +1195,7 @@ function initialiseAnswerFeatures($view) {
         $(element).replaceWith($div);
       });
     }
-    if ($view.find('div.googlemap').size() > 0) { // check for items requiring Google features (so far only #map)
+    if ($view.find('div.googlemap').length > 0) { // check for items requiring Google features (so far only #map)
       if (isGoogleJSLoaded) {
         setTimeout(function() {
           MyAnswers.setupGoogleMaps($view);
@@ -1477,9 +1477,9 @@ function updateCurrentConfig() {
       if (pertinent.type === 'hyperlink' && pertinent.hyperlink) {
         $item.attr('data-hyperlink', pertinent.hyperlink);
         $item.attr('data-target', pertinent.hyperlinkTarget);
-        $item.bind('click', onHyperlinkClick);
+        $item.on('click', onHyperlinkClick);
       } else {
-        $item.bind('click', onKeywordClick);
+        $item.on('click', onKeywordClick);
       }
     };
     hook.categories = function($item) {
@@ -1489,7 +1489,7 @@ function updateCurrentConfig() {
         $item.attr('data-id', siteVars.map['c' + id][0]);
         hook.interactions($item);
       } else if (siteVars.map['c' + id].length > 0) {
-        $item.bind('click', onCategoryClick);
+        $item.on('click', onCategoryClick);
       }
     };
     hook.masterCategories = function($item) {
@@ -1499,7 +1499,7 @@ function updateCurrentConfig() {
         $item.attr('data-id', siteVars.map['m' + id][0]);
         hook.categories($item);
       } else if (siteVars.map['m' + id].length > 0) {
-        $item.bind('click', onMasterCategoryClick);
+        $item.on('click', onMasterCategoryClick);
       }
     };
     MyAnswers.dispatch.add(function() {
@@ -1579,24 +1579,24 @@ function updateCurrentConfig() {
       }
     });
     MyAnswers.dispatch.add(function() {
-      if ($visualBox.children().size() > 0) {
+      if ($visualBox.children().length > 0) {
         $images = $visualBox.find('img');
         if (columns === 1) {
           $images.first().addClass('topLeft topRight');
           $images.last().addClass('bottomLeft bottomRight');
         } else {
           $images.first().addClass('topLeft');
-          if ($images.size() >= columns) {
+          if ($images.length >= columns) {
             $images.eq(columns - 1).addClass('topRight');
           }
-          if ($images.size() % columns === 0) {
+          if ($images.length % columns === 0) {
             $images.eq(columns * -1).addClass('bottomLeft');
             $images.last().addClass('bottomRight');
           }
         }
         $visualBox.appendTo($view);
       }
-      if ($listBox.children().size() > 0) {
+      if ($listBox.children().length > 0) {
         $listBox.appendTo($view);
       }
     });
@@ -2086,7 +2086,7 @@ function createParamsAndArgs(keywordID) {
   });
   if (args.length > 0) {
     returnValue += encodeURI(args);
-  } else if (argElements.size() === 1 && this.value) {
+  } else if (argElements.length === 1 && this.value) {
     returnValue += '&args=' + encodeURIComponent(this.value);
   }
   return returnValue;
@@ -2535,7 +2535,7 @@ function submitAction(keyword, action) {
   if ($submits.length === 1 && $submits.attr('name') && $submits.val()) {
     formData += '&' + $submits.attr('name') + '=' + $submits.val();
   }
-  if (sessionInput.size() === 1 && ! $.isEmptyObject(starsProfile)) {
+  if (sessionInput.length === 1 && ! $.isEmptyObject(starsProfile)) {
     serializedProfile = '{"stars":' + JSON.stringify(starsProfile) + '}';
     formData = formData.replace('blink_session_data=', 'blink_session_data=' + encodeURIComponent(serializedProfile));
     method = 'post';
@@ -2605,7 +2605,7 @@ function submitAction(keyword, action) {
     var src;
     src = $(this).attr("src");
     src = siteVars.cdnu.getURL(src);
-    $(this).unbind("error").attr("src", src);
+    $(this).off("error").attr("src", src);
   };
 
   /**
@@ -3013,7 +3013,7 @@ function submitAction(keyword, action) {
 
   function onTaskBegun(event) {
     MyAnswers.runningTasks++;
-    if ($('#startUp').size() > 0) {return true;}
+    if ($('#startUp').length > 0) {return true;}
     if (typeof MyAnswers.activityIndicatorTimer === 'number') {return true;}
     MyAnswers.activityIndicatorTimer = setTimeout(function() {
       clearTimeout(MyAnswers.activityIndicatorTimer);
@@ -3045,7 +3045,7 @@ function submitAction(keyword, action) {
         $categoriesView = $('#categoriesView'),
         $keywordListView = $('#keywordListView');
     /* END: var */
-    if (startUp.size() > 0 && siteVars.config) {
+    if (startUp.length > 0 && siteVars.config) {
       if ($.inArray('phone', deviceVars.features) !== -1 || $(window).width() < 768) {
         $('#mainLabel').remove(); //  TODO: fix the main navigation label
       }
@@ -3195,8 +3195,8 @@ function submitAction(keyword, action) {
     MyAnswers.activityIndicator = document.getElementById('activityIndicator');
     MyAnswers.activityIndicatorTimer = null;
 
-    MyAnswers.$body.bind('taskBegun', onTaskBegun);
-    MyAnswers.$body.bind('taskComplete', onTaskComplete);
+    MyAnswers.$body.on('taskBegun', onTaskBegun);
+    MyAnswers.$body.on('taskComplete', onTaskComplete);
     MyAnswers.$body.delegate('a:not([href="#"])', 'click', onLinkClick);
     MyAnswers.$body.delegate('a[href="#"]', 'click', false);
     MyAnswers.$body.on('click', '[data-blink="active-form"] button', function(event) {
@@ -3207,8 +3207,8 @@ function submitAction(keyword, action) {
 
     if (!_Blink.isPhantomJS) {
       // enable network detection, but not for PhantomJS (it's broken)
-      $window.bind('online', onNetworkChange);
-      $window.bind('offline', onNetworkChange);
+      $window.on('online', onNetworkChange);
+      $window.on('offline', onNetworkChange);
       onNetworkChange(); // $window.trigger('online');
     }
 

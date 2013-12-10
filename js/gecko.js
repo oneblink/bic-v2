@@ -72,16 +72,16 @@ function init_device() {
           $('#keywordListView').removeAttr('data-name');
         }
         if (currentInteraction) {
- 
+
           $view.attr({
             'data-name': siteVars.config['i' + currentInteraction].pertinent.name,
             'data-type': siteVars.config['i' + currentInteraction].pertinent.type
           });
         } else {
           $('#answerView').removeAttr('data-name');
-          $('#answerView').removeAttr('data-type');  
+          $('#answerView').removeAttr('data-type');
         }
-                
+
         $view.show();
         if (window.currentConfig.footerPosition !== 'screen-bottom') {
           MyAnswers.$body.children('footer').hide();
@@ -99,7 +99,7 @@ function init_device() {
       /* END: var */
       me.hideLocationBar();
       MyAnswers.dispatch.add(function() {
-        if ($oldView.size() !== 0) {
+        if ($oldView.length !== 0) {
           // transition the old view away
           $oldView.hide('slide', {
             direction: endPosition

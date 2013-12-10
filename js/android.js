@@ -77,7 +77,7 @@ function onDeviceReady() {
           'z-index': 0,
           position: 'absolute'
         });
-                
+
         // add information about Interaction to DOM
         if (currentMasterCategory) {
           $view.attr({
@@ -101,9 +101,9 @@ function onDeviceReady() {
           });
         } else {
           $('#answerView').removeAttr('data-name');
-          $('#answerView').removeAttr('data-type');  
+          $('#answerView').removeAttr('data-type');
         }
-                
+
         $oldView.css({
           'z-index': 50,
           position: 'absolute'
@@ -125,7 +125,7 @@ function onDeviceReady() {
       /* END: var */
       me.hideLocationBar();
       MyAnswers.dispatch.add(function() {
-        if ($oldView.size() !== 0) {
+        if ($oldView.length !== 0) {
           // transition the old view away
           $oldView.hide('slide', {
             direction: endPosition
