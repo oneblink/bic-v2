@@ -1,0 +1,104 @@
+/*
+	- used by all devices that render BlinkForms2
+*/
+[hidden], .hidden { display: none !important; z-index: -1 !important; }
+
+/* controls styles */
+canvas { /* fix canvas touch input in Internet Explorer 10+ */ -ms-touch-action: none; }
+
+td input { width: 100%; }
+td input[type=button], td input[type=checkbox], td input[type=image], td input[type=radio], td input[type=reset], td input[type=submit], td input[type=file] { width: auto; }
+td input[type=file] { font-size: smaller; }
+
+form input[type=reset] { color: #aa0000; }
+
+select { white-space: nowrap; text-overflow: ellipsis; }
+
+textarea, select, input, label, button, input[type=button], input[type=reset], input[type=submit] { max-width: 100%; font-size: medium; }
+
+textarea { width: 100%; height: 5em; min-height: 5em; }
+textarea[rows] { height: auto; }
+textarea[cols] { width: auto; }
+
+input[type=checkbox], input[type=radio] { margin: .4em; }
+
+button, input[type=button], input[type=reset], input[type=submit], .button { -webkit-appearance: none; -moz-appearance: none; appearance: none; border: 1px solid #000; background-color: #fff; margin: .2em; padding: .5em 1em; min-width: 3em; font-weight: bold; }
+button[disabled], input[disabled][type=button], input[disabled][type=reset], input[disabled][type=submit], .button[disabled] { opacity: 0.5; }
+
+input[type=checkbox], input[type=radio] { padding: .5em; height: auto; -webkit-transform: scale(1.5, 1.5); -moz-transform: scale(1.5, 1.5); -ms-transform: scale(1.5, 1.5); -o-transform: scale(1.5, 1.5); transform: scale(1.5, 1.5); }
+input[type=file] { color: inherit; }
+
+fieldset.options { border: 0; }
+fieldset.options label.checkbox, fieldset.options label.radio { display: block; }
+
+label.checkbox, label.radio { display: inline-block; margin: .5em; text-align: left; }
+
+/* http://colorschemedesigner.com/#1m52Hw0w0w0w0 */
+input:invalid, textarea:invalid { background-color: #FF8073; }
+
+/* adjust jQuery UI */
+.ui-datepicker { margin-top: 50px; }
+
+/* end controls */
+/* BlinkForms2 styles */
+.googlemaps img { max-height: none; max-width: none; }
+
+figure img { display: block; margin: .5em auto; }
+
+form img { display: none; max-width: 100%; max-height: 10em; height: auto; }
+form img[src] { display: block; }
+form img[name] { margin: .5em auto; }
+form td { padding: .2em; }
+form td[colspan] { padding: 0; }
+
+form { /* we are currently hiding form metadata in a caption <element> */ }
+form caption.bForm-input { display: none; }
+form col.bForm-tooltip { width: 24px; }
+form col.bForm-label { width: 35%; }
+form col.bForm-input { width: 65%; }
+form table { overflow: hidden; width: 100%; text-align: left; border-spacing: 0; table-layout: fixed; }
+form table table { margin-bottom: 2px; border-bottom: 2px solid #AAA; }
+form td.bForm-input { padding-right: 30px; }
+form td.bForm-input > input[type=button] { display: inline-block; }
+form td.bForm-input > .radiooption, form td.bForm-input > .checkoption { display: table-row; }
+form td.bForm-input > .radiooption label, form td.bForm-input > .radiooption input[type=radio], form td.bForm-input > .radiooption input[type=checkbox], form td.bForm-input > .checkoption label, form td.bForm-input > .checkoption input[type=radio], form td.bForm-input > .checkoption input[type=checkbox] { text-align: left; display: table-cell; }
+form td.bForm-input > span { display: inline-block; }
+form td.bForm-input .stars { font-size: xx-large; font-weight: bold; }
+form td.bForm-input .stars > span { color: #DDD; text-shadow: 0px 0px .2em #000; }
+form td.bForm-input .stars > span:hover, form td.bForm-input .stars > span.filled { color: #EC0; text-shadow: 0px 0px .3em #FF0; }
+form td.bForm-input .stars > span:hover { opacity: .5; }
+form .bForm-list .stars { font-size: large; }
+form .bForm-list .stars > span { color: #EEE; text-shadow: 0px 0px .3em #000; }
+form .bForm-list .stars > span.filled { color: #EC0; text-shadow: 0px 0px .3em #FF0; }
+@media only screen and (max-width: 720px) { form tr.bField-labelAbove td.bForm-input { text-align: center; } }
+@media only screen and (min-width: 721px) { form tr.bField-labelAbove td.bForm-input { padding-left: 35%; text-align: left; } }
+
+.bForm-subFormLabel { display: inline-block; font-weight: bolder; margin: .5em; }
+
+.bForm-error { color: #aa0000; }
+.bForm-error .bForm-index::before { content: '#'; }
+
+.bForm-dataDisplay { margin: .5em; white-space: pre-wrap; }
+
+.bForm-label, .bForm-value { font-size: smaller; }
+
+td.bForm-tooltip > span { font-size: larger; font-weight: bolder; color: #000; text-outline: 1px 1px #000; cursor: help; }
+
+.fieldInput { padding-right: 1em; }
+
+.bForm-subFormControls > button, .bForm-subFormControls > input[type=button], .bForm-subFormControls > input[type=reset], .bForm-subFormControls > input[type=submit] { padding: .5em; }
+
+/* pending form styles */
+.box .bForm-pending.template { display: none; }
+.box .bForm-pending dt, .box .bForm-pending dd { display: inline-block; }
+.box .bForm-pending dt { font-weight: bolder; }
+.box .bForm-pending dt:after { content: ":"; }
+.box .bForm-pending pre.uuid { white-space: nowrap; text-overflow: ellipsis; max-width: 90%; }
+
+/* END: pending form styles */
+/* cluetip */
+.cluetip { margin-left: 10px; }
+.cluetip .ui-cluetip-content { padding: 15px; font-size: smaller; }
+.cluetip .cluetip:hover { font-weight: bolder; }
+
+/* end BlinkForms2 */
