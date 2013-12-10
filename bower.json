@@ -12,6 +12,7 @@
     "chai": "~1.8",
     "mocha": "~1.14",
     "es5-shim": "~2.1.0",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "jquery-migrate": "~1.2.1"
   }
 }

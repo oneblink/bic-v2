@@ -8,6 +8,7 @@ module.exports = function (grunt) {
     'js/vendor/jshashtable-2.1.js',
     'bower_components/underscore/underscore.js',
     'bower_components/es5-shim/es5-shim.js',
+    'bower_components/jquery-migrate/jquery-migrate.js',
     'js/lib/bmp-blobs.js',
     'js/lib/Modernizr-tests.js',
     'js/lib/utilities.js',
