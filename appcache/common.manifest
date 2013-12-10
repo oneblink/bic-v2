@@ -11,9 +11,9 @@ CACHE:
 /_c_/css/blink2010reset.css
 /_c_/css/blink2011reset.css
 /_c_/jquery-ui/1.9.2/jquery-ui.min.js
-/_c_/jquery/1.7.2/jquery.min.js
+/_c_/jquery/2.0.3/jquery-2.0.3.min.js
 /_c_/json2.js
-/_c_/modernizr/modernizr-2.6.1-2012W33.min.js
+/_c_/modernizr/2.7.0/modernizr.21073.min.js
 /_c_/signaturepad/jquery.signaturepad-2.1.1.min.js
 /_R_/forms2/forms2.min.js
 /_R_/BICv2/css/common.css
