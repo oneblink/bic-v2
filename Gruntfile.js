@@ -21,19 +21,29 @@ module.exports = function (grunt) {
   // Project configuration.
   grunt.initConfig({
 
+    jqlint: {
+      all: {
+        src: [
+          '**/*.js',
+          '!**/node_modules/**',
+          '!**/bower_components/**',
+          '!**/*.min.js',
+          '!js/vendor/**/*'
+        ],
+        options: {
+          errorsOnly: true,
+          failOnError: true
+        }
+      }
+    },
+
     jslint: {
       all: {
         src: [
-          'Gruntfile.js',
           '**/*.json',
-          'js/lib/maps.js',
-          'js/lib/utilities.js'
-        ],
-        exclude: [
-          '**/*.min.js',
-          '**/node_modules/**',
-          'bower_components/**',
-          'js/vendor/**/*'
+          '<%= jqlint.all.src %>',
+          '!js/*.js',
+          '!js/lib/*.js'
         ],
         directives: {},
         options: {
@@ -170,11 +180,12 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-compass');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-jqlint');
   grunt.loadNpmTasks('grunt-jslint');
   grunt.loadNpmTasks('grunt-mocha');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('test', ['jslint', 'connect', 'mocha']);
+  grunt.registerTask('test', ['jslint', 'jqlint', 'connect', 'mocha']);
   grunt.registerTask('build', ['uglify', 'compass']);
   grunt.registerTask('default', ['build', 'test']);
 
