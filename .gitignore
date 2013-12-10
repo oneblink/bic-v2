@@ -4,7 +4,3 @@ node_modules
 
 # build output
 .sass-cache
-js/*.js.map
-js/*.min.js
-css/BlinkForms2.css
-css/common.css
