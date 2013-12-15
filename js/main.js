@@ -1865,6 +1865,7 @@ function processConfig() {
   } else {
     log('processConfig(): unable to retrieve answerSpace config');
   }
+  processForms();
 }
 
 function requestConfig() {
@@ -3101,7 +3102,6 @@ function submitAction(keyword, action) {
     startUp.remove();
     $('#content').show();
     setSubmitCachedFormButton();
-    processForms();
     if (MyAnswers.device.persistentStorage) {
       MyAnswers.dfrdMoJOs = processMoJOs();
     }
