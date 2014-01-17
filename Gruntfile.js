@@ -166,6 +166,7 @@ module.exports = function (grunt) {
       options: {
         preserveComments: 'some',
         beautify: {
+          ascii_only: true,
           max_line_len: 80
         },
         compress: {}
