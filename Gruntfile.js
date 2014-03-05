@@ -57,12 +57,12 @@ module.exports = function (grunt) {
     connect: {
       server: {
         options: {
-          port: 8083
+          port: 9999
         }
       },
       keepalive: {
         options: {
-          port: 8083,
+          port: 9999,
           keepalive: true
         }
       }
@@ -72,8 +72,8 @@ module.exports = function (grunt) {
       autorun: {
         options: {
           urls: [
-            'http://localhost:8083/tests/browser/bare-example/index.html',
-            'http://localhost:8083/tests/browser/common-lib/index.html'
+            'http://localhost:9999/tests/browser/bare-example/index.html',
+            'http://localhost:9999/tests/browser/common-lib/index.html'
           ],
           run: true
         }
@@ -81,7 +81,7 @@ module.exports = function (grunt) {
       explicitrun: {
         options: {
           urls: [
-            'http://localhost:8083/tests/browser/bare-answerSpace/index.html'
+            'http://localhost:9999/tests/browser/bare-answerSpace/index.html'
           ],
           run: false
         }
@@ -173,6 +173,10 @@ module.exports = function (grunt) {
       }
     },
 
+    'saucelabs-mocha': {
+      all: { options: require('./saucelabs') }
+    },
+
     compass: {
       bicv2: {
         options: {
@@ -188,13 +192,14 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-compass');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-jqlint');
   grunt.loadNpmTasks('grunt-jslint');
   grunt.loadNpmTasks('grunt-mocha');
-  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-saucelabs');
 
   grunt.registerTask('test', ['jslint', 'jqlint', 'connect:server', 'mocha']);
-  grunt.registerTask('travis', ['test']);
+  grunt.registerTask('travis', ['test', 'saucelabs-mocha']);
   grunt.registerTask('build', ['uglify', 'compass']);
   grunt.registerTask('default', ['build', 'test']);
 

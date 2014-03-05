@@ -12,6 +12,7 @@
     "grunt-contrib-watch": "~0.5",
     "grunt-jqlint": "~0.1",
     "grunt-jslint": "~1.1",
-    "grunt-mocha": "~0.4"
+    "grunt-mocha": "~0.4",
+    "grunt-saucelabs": "~5.0"
   }
 }
