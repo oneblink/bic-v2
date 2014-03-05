@@ -2,15 +2,12 @@
 /*global suite:true, test:true, suiteSetup:true, suiteTeardown:true, setup:true,
  teardown:true*/ // Mocha
 
-/*
+
 suite('', function () {
   'use strict';
 
-  suiteSetup(function () {
+  suiteSetup(function () { return true; });
 
-  });
-
-  test('', function () {});
+  test('', function () { return true; });
 
 });
-*/

@@ -69,18 +69,18 @@ module.exports = function (grunt) {
     },
 
     mocha: {
-      common: {
+      autorun: {
         options: {
           urls: [
+            'http://localhost:8083/tests/browser/bare-example/index.html',
             'http://localhost:8083/tests/browser/common-lib/index.html'
           ],
           run: true
         }
       },
-      bic: {
+      explicitrun: {
         options: {
           urls: [
-//            'http://localhost:8083/tests/browser/bare-example/index.html',
             'http://localhost:8083/tests/browser/bare-answerSpace/index.html'
           ],
           run: false
@@ -194,6 +194,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   grunt.registerTask('test', ['jslint', 'jqlint', 'connect:server', 'mocha']);
+  grunt.registerTask('travis', ['test']);
   grunt.registerTask('build', ['uglify', 'compass']);
   grunt.registerTask('default', ['build', 'test']);
 
