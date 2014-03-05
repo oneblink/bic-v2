@@ -1,5 +1,7 @@
 # Blink Intelligent Client v2
 
+[![Build Status](https://travis-ci.org/blinkmobile/bic-v2.png)](https://travis-ci.org/blinkmobile/bic-v2)
+
 ## Purpose
 
 This project is the front-end component for our mobility platform. As such, the material here may be of limited use outside of our platform.
