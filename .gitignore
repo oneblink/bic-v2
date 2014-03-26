@@ -1,6 +1,6 @@
 # third-party files
 bower_components
 node_modules
-
+/.idea/
 # build output
 .sass-cache
