@@ -20,7 +20,11 @@ Whilst modern functionality is being delivered in a production capacity by this 
 
 ## Contribution
 
-Pull requests are welcome. However, pull requests that have limited or no impact on compatibility with the existing user base are preferred.
+Pull requests are welcome. But first, familiarise yourself with our guidelines (they are short):
+
+- https://github.com/blinkmobile/docs/wiki/Process:-Git-Flow
+
+- https://github.com/blinkmobile/docs/wiki/Code-Style:-JavaScript
 
 ### Prerequisites
 
@@ -29,21 +33,3 @@ You will need [Compass](http://compass-style.org/) for CSS pre-processing, which
 You'll also need [Grunt](http://gruntjs.com/) for task automation, which means you'll need [Node.JS](http://nodejs.org/).
 
 Third-party run-time dependencies are configured via [Bower](http://bower.io/).
-
-### Git
-
-This project follows the [git flow](http://nvie.com/posts/a-successful-git-branching-model/) branching model. Tooling for this is available [on GitHub](https://github.com/nvie/gitflow).
-
-As such, the "develop" branch is the primary branch of this repository. The "master" branch is reserved for tagged releases, and always reflects the current code in production.
-
-### Code Style
-
-All new JavaScript work should comply with [JSLint](http://jslint.com/).
-
-We prefer setting JSLint options at the top of every JavaScript file so that compliance is determined in a uniform manner, regardless of IDEs or text editors used. The only options we support are:
-
-```
-/*jslint browser:true, indent:2, node:true*/
-```
-
-On a per-case basis, we may temporarily disable a JSLint option for a specific block of code. Where this is done, a comment should explain why the exception is necessary.
