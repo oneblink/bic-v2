@@ -12,6 +12,10 @@ Opening this code serves primarily to encourage understanding and discussion.
 
 An effort is underway to replace this project with a greater focus on maintainability and extensibility.
 
+## Version Numbers
+
+This project is NOT versioned according to Semantic Versioning. Rather, it is versioned according to our [Shifted Semantic Versioning](https://github.com/blinkmobile/docs/wiki/Process:-Semantic-Versioning#shifted-semantic-versioning).
+
 ## History
 
 This is a very old (and formally private) project, with roots traced back to 2009. The code base was originally built using Apple's [Dashcode](http://en.wikipedia.org/wiki/Dashcode) environment. The Apple-specific code was later exchanged for [jQuery](http://jquery.com/) to better support Android devices.
