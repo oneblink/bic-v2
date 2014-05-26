@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <link rel="stylesheet" href="../../../bower_components/mocha/mocha.css" />
+
+  <!-- BIC dependencies -->
+  <link rel="stylesheet" href="../../../bower_components/jquery-ui/themes/eggplant/jquery.ui.theme.css" />
+  <link rel="stylesheet" href="../../../css/common.css" />
+  <link rel="stylesheet" href="../../../css/ios.css" />
+  <!-- END: BIC dependencies -->
+
+  <script src="../../../bower_components/chai/chai.js"></script>
+  <script src="../../../bower_components/mocha/mocha.js"></script>
+
+  <!-- BIC dependencies -->
+  <script src="../../../bower_components/modernizr/modernizr.js"></script>
+  <script src="../../../bower_components/jquery/jquery.js"></script>
+  <!-- END: BIC dependencies -->
+</head>
+<body>
+  <a href="/tests/browser/bare-answerSpace/index.html">reload</a>
+  <div id="mocha"></div>
+
+  <!-- BIC dependencies -->
+  <header class="header"></header>
+  <div id="stackLayout">
+      <div id="bulletins"></div>
+      <div id="answerSpacesListView" class="view listing">
+          <div class="box bordered listing"></div>
+          <ul class="box"></ul>
+      </div>
+      <div id="masterCategoriesView" class="view listing">
+          <div class="box bordered listing"></div>
+          <ul class="box"></ul>
+      </div>
+      <div id="categoriesView" class="view listing">
+          <div class="box bordered listing"></div>
+          <ul class="box"></ul>
+      </div>
+      <div id="keywordListView" class="view listing">
+          <div class="box bordered listing"></div>
+          <ul class="box"></ul>
+      </div>
+      <div id="keywordView" class="view">
+          <div class="box"></div>
+      </div>
+      <div id="helpView" class="view">
+          <div class="box"></div>
+      </div>
+      <div id="answerView" class="view">
+          <div id="answerBox" class="box"></div>
+      </div>
+      <div id="answerView2" class="view">
+          <div class="box"></div>
+      </div>
+      <div id="pendingView" class="view">
+          <div class="box"></div>
+      </div>
+      <div id="loginView" class="view">
+          <div class="box"></div>
+      </div>
+      <div id="id" class="view">
+          <div class="box"></div>
+      </div>
+      <nav id="BlinkSideBar"></nav>
+  </div>
+  <footer></footer>
+  <div id="startUp" class="s-error">
+      <p id="startUpLoading">
+          <span id="startUp-loadDevice"></span>
+          <span id="startUp-loadMain"></span>
+          <span id="startUp-loadPolyFills"></span>
+          <span id="startUp-initMain"></span>
+          <span id="startUp-initDevice"></span>
+          <span id="startUp-initBlinkGap"></span>
+          <span id="startUp-initBrowser"></span>
+          <span id="startUp-initLoaded"></span>
+      </p>
+      <output></output>
+  </div>
+  <!-- END: BIC dependencies -->
+
+  <script>
+    var assert = chai.assert;
+    mocha.setup({
+      ui: 'tdd'
+    });
+  </script>
+
+  <!-- BIC dependencies -->
+  <script src="../../../bower_components/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+  <script src="../fixtures/environment.js"></script>
+  <!-- END: BIC dependencies -->
+
+  <!-- BIC code -->
+  <script src="../../../js/ios.min.js"></script>
+  <!-- END: BIC code -->
+
+  <!-- BIC dependencies -->
+  <script src="GetConfig.js"></script>
+  <!-- END: BIC dependencies -->
+
+  <script src="tests.js"></script>
+  <script>
+    $(document).one('viewShow', function () {
+      var runner = mocha.run();
+
+      var failedTests = [];
+      runner.on('end', function(){
+        window.mochaResults = runner.stats;
+        window.mochaResults.reports = failedTests;
+      });
+
+      runner.on('fail', logFailure);
+
+      function logFailure(test, err){
+
+        var flattenTitles = function(test){
+          var titles = [];
+          while (test.parent.title){
+            titles.push(test.parent.title);
+            test = test.parent;
+          }
+          return titles.reverse();
+        };
+
+        failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
+      };
+    });
+  </script>
+</body>
+</html>

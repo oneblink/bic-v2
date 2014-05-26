@@ -1,0 +1,372 @@
+body {
+	font-family: sans-serif;
+}
+
+body, nav {
+	background-color: #EEE;
+}
+
+textarea, input[type=text], input[type=password], input[type=tel] {
+	padding: .2em;
+	margin: .2em;
+	border: 1px solid #AAA;
+}
+
+/* necessary because Android doesn't like file inputs in tables */
+table input[type=file] { position: relative; }
+
+.bForm-results { font-size: smaller; }
+
+.bForm-label, .bForm-value { font-size: medium; }
+
+.dialog {
+	position: absolute;
+	left: 10%;
+	display: table;
+	max-width: 80%;
+	width: 80%;
+	padding: .2em;
+	background-color: #333;
+	border: .2em solid #EEE;
+  color: #EEE;
+	z-index: 50;
+}
+
+.dialogHeader, .dialogBody {
+	display: table-row;
+}
+
+.dialogHeader > h2, .dialogHeader > img {
+	display: table-cell;
+	vertical-align: middle;
+	padding: .5em;
+}
+
+.dialogHeader > h2 {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-weight: normal;
+}
+
+#activityIndicator img.spinner {
+	-webkit-animation-name: spinner;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear;
+}
+
+#loginStatus {
+	padding: 2px;
+}
+
+#stackLayout {
+	position: relative;
+}
+
+#bulletins {
+	position: absolute;
+}
+
+.bulletin {
+	position: relative;
+	margin: 10px;
+	font-size: smaller;
+	background-color: #ABABAB;
+	color: #FFF;
+	z-index: 10;
+	max-height: 82px;
+	overflow: hidden;
+	text-align: left;
+}
+
+.bulletin > p {
+	padding: .6em;
+}
+
+.bulletin > img {
+	float: right;
+}
+
+.bulletin > .instruction {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	font-size: smaller;
+	text-align: right;
+	color: black;
+}
+
+.welcomeBox {
+	font-weight: bold;
+}
+
+.bordered {
+	background-color: #FFF;
+}
+
+#navBoxHeader, .navBar {
+	height: 40px;
+}
+
+#navBoxHeader {
+	color: #73777F;
+  text-shadow: 1px 1px 1px #DEDEE4;
+
+	background: #FFF;
+  background: -moz-linear-gradient(top, #FFF 0%, #CCC 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF), color-stop(100%,#CCC));
+  background: -webkit-linear-gradient(top, #FFF 0%,#CCC 100%);
+  background: -o-linear-gradient(top, #FFF 0%,#CCC 100%);
+  background: linear-gradient(to bottom, #FFF 0%,#CCC 100%);
+}
+
+.navBar > .button, .navBar > .label {
+	height: 36px;
+	background-color: transparent;
+	text-align: center;
+}
+
+.navBar > .label {
+	padding: 7px 10px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #797979;
+	text-shadow: 0px 0px 2px #FFF;
+	text-align: center;
+}
+
+.navBar > .button {
+	position: relative;
+	padding: 0;
+	width: 48px;
+	border: 0;
+	font-weight: bold;
+	color: #222;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: center;
+	overflow: hidden;
+}
+
+.navBar > .button > img {
+	position: absolute;
+	top: -9px;
+	left: -7px;
+	width: 54px;
+	height: 54px;
+}
+
+#pendingButton {
+	width: auto;
+}
+
+.view {
+	display: none;
+}
+
+.view.animating {
+	position: absolute;
+	top: 0px;
+	-webkit-transition: opacity .3s linear, -webkit-transform .3s ease;
+}
+
+.view.zoomingin {
+	opacity: 0;
+	-webkit-transform: scale(2.0);
+}
+
+.view.zoomingout {
+	opacity: 0;
+	-webkit-transform: scale(0.2);
+}
+
+.view.slidetoleft { -webkit-animation: slidetoleft .3s 1; }
+.view.slidetoright { -webkit-animation: slidetoright .3s 1; }
+.view.slidefromleft { -webkit-animation: slidefromleft .3s 1; }
+.view.slidefromright { -webkit-animation: slidefromright .3s 1; }
+
+.paddedBox {
+	padding: 10px;
+}
+
+ul.box > li {
+	padding: 8px;
+	border-top: 1px solid #FFF;
+	border-bottom: 1px solid #BBB;
+	background: #FFF;
+	background-image: url(../images/android/chevron.png);
+	background-repeat: no-repeat;
+	background-position: 95% center;
+}
+
+ul.box > li > .label, ul.box > li > .description {
+	margin-right: 6%;
+}
+
+#answerSpacesList .label {
+	overflow: auto;
+	white-space: normal;
+}
+
+ul.box .label, ul.box .description {
+	margin-right: 50px;
+}
+
+#argsBox {
+	text-align: center;
+}
+
+/* MyAnswersSideBar styles */
+
+#BlinkSideBar {
+	border-right: 2px solid #CCC;
+}
+
+#BlinkSideBar > ul > li {
+	border-bottom: 1px solid #DDD;
+}
+
+#BlinkSideBar > ul > li.selected {
+	background: #CCF;
+}
+
+/* end MyAnswersSideBar styles */
+
+@-webkit-keyframes pulse {
+	from { opacity: 0; }
+	to { opacity: 0.6; }
+}
+
+@-webkit-keyframes slidetoleft {
+	from { -webkit-transform: translateX(0); visibility: visible; }
+	to { -webkit-transform: translateX(-100%); visibility: hidden; }
+}
+
+@-webkit-keyframes slidetoright {
+	from { -webkit-transform: translateX(0); visibility: visible; }
+	to { -webkit-transform: translateX(100%); visibility: hidden; }
+}
+
+@-webkit-keyframes slidefromleft {
+	from { -webkit-transform: translateX(-100%); visibility: visible; }
+	to { -webkit-transform: translateX(0); visibility: visible; }
+}
+
+@-webkit-keyframes slidefromright {
+	from { -webkit-transform: translateX(100%); visibility: visible; }
+	to { -webkit-transform: translateX(0); visibility: visible; }
+}
+
+@-webkit-keyframes zoomin {
+	from { opacity: 0.0; -webkit-transform: scale(2.0); visibility: visible; }
+	to { opacity: 1.0; -webkit-transform: scale(1.0); visibility: visible; }
+}
+
+@-webkit-keyframes zoomout {
+	from { opacity: 1.0; -webkit-transform: scale(1.0); visibility: visible; }
+	to { opacity: 0.0; -webkit-transform: scale(2.0); visibility: hidden; }
+}
+
+@-webkit-keyframes spinner {
+	from {
+		transform: rotate(0deg);
+		-webkit-transform: rotate(0deg);
+	}
+	8.32% {
+		transform: rotate(0deg);
+		-webkit-transform: rotate(0deg);
+	}
+	8.33% {
+		transform: rotate(30deg);
+		-webkit-transform: rotate(30deg);
+	}
+	16.65% {
+		transform: rotate(30deg);
+		-webkit-transform: rotate(30deg);
+	}
+	16.66% {
+		transform: rotate(60deg);
+		-webkit-transform: rotate(60deg);
+	}
+	24.99% {
+		transform: rotate(60deg);
+		-webkit-transform: rotate(60deg);
+	}
+	25% {
+		transform: rotate(90deg);
+		-webkit-transform: rotate(90deg);
+	}
+	33.32% {
+		transform: rotate(90deg);
+		-webkit-transform: rotate(90deg);
+	}
+	33.33% {
+		transform: rotate(120deg);
+		-webkit-transform: rotate(120deg);
+	}
+	41.65% {
+		transform: rotate(120deg);
+		-webkit-transform: rotate(120deg);
+	}
+	41.66% {
+		transform: rotate(150deg);
+		-webkit-transform: rotate(150deg);
+	}
+	49.99% {
+		transform: rotate(150deg);
+		-webkit-transform: rotate(150deg);
+	}
+	50% {
+		transform: rotate(180deg);
+		-webkit-transform: rotate(180deg);
+	}
+	58.32% {
+		transform: rotate(180deg);
+		-webkit-transform: rotate(180deg);
+	}
+	58.33% {
+		transform: rotate(210deg);
+		-webkit-transform: rotate(210deg);
+	}
+	66.65% {
+		transform: rotate(210deg);
+		-webkit-transform: rotate(210deg);
+	}
+	66.66% {
+		transform: rotate(240deg);
+		-webkit-transform: rotate(240deg);
+	}
+	74.99% {
+		transform: rotate(240deg);
+		-webkit-transform: rotate(240deg);
+	}
+	75% {
+		transform: rotate(270deg);
+		-webkit-transform: rotate(270deg);
+	}
+	83.32% {
+		transform: rotate(270deg);
+		-webkit-transform: rotate(270deg);
+	}
+	83.33% {
+		transform: rotate(300deg);
+		-webkit-transform: rotate(300deg);
+	}
+	91.65% {
+		transform: rotate(300deg);
+		-webkit-transform: rotate(300deg);
+	}
+	91.66% {
+		transform: rotate(330deg);
+		-webkit-transform: rotate(330deg);
+	}
+	99.99% {
+		transform: rotate(330deg);
+		-webkit-transform: rotate(330deg);
+	}
+	to {
+		transform: rotate(360deg);
+		-webkit-transform: rotate(360deg);
+	}
+}
