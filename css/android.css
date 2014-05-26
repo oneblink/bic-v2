@@ -195,7 +195,7 @@ ul.box > li {
 	border-top: 1px solid #FFF;
 	border-bottom: 1px solid #BBB;
 	background: #FFF;
-	background-image: url(/_R_/BICv2/images/android/chevron.png);
+	background-image: url(/../images/android/chevron.png);
 	background-repeat: no-repeat;
 	background-position: 95% center;
 }
