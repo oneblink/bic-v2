@@ -1,6 +1,6 @@
 {
   "name": "bic-v2",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Blink Intelligent Client",
   "repository": "git@github.com:blinkmobile/bic-v2.git",
   "dependencies": {
