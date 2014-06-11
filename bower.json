@@ -1,19 +1,20 @@
 {
   "name": "bic-v2",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Blink Intelligent Client",
   "repository": "git@github.com:blinkmobile/bic-v2.git",
   "dependencies": {
+    "es5-shim": "~3.4.0",
+    "history.js": "~1.8.0",
     "jquery": "2.0.3",
+    "jquery-migrate": "~1.2.1",
     "jquery-ui": "1.9.2",
-    "modernizr": "2.7.0"
+    "modernizr": "2.7.0",
+    "underscore": "~1.5.2"
   },
   "devDependencies": {
     "chai": "~1.8",
-    "mocha": "~1.14",
-    "es5-shim": "~2.1.0",
-    "underscore": "~1.5.2",
-    "jquery-migrate": "~1.2.1",
-    "history.js": "~1.8.0"
+    "mocha": "~1.14"
   }
 }
+

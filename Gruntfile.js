@@ -95,9 +95,8 @@ module.exports = function (grunt) {
     uglify: {
       'common-bic2': { // still needed for Forms v2 in basic-mode BIC v2
         options: {
-          sourceMapPrefix: 1, // fix ref in .js.map
-          sourceMap: 'js/common.js.map',
-          sourceMappingURL: 'common.js.map' // fix ref in .min.js
+          sourceMap: true,
+          sourceMapIncludeSources: true
         },
         files: {
           'js/common.min.js': commonjs
@@ -105,9 +104,8 @@ module.exports = function (grunt) {
       },
       'android-bic2': {
         options: {
-          sourceMapPrefix: 1, // fix ref in .js.map
-          sourceMap: 'js/android.js.map',
-          sourceMappingURL: 'android.js.map' //fix ref in .min.js
+          sourceMap: true,
+          sourceMapIncludeSources: true
         },
         files: {
           'js/android.min.js': commonjs.concat([
@@ -120,9 +118,8 @@ module.exports = function (grunt) {
       },
       'gecko-bic2': {
         options: {
-          sourceMapPrefix: 1, // fix ref in .js.map
-          sourceMap: 'js/gecko.js.map',
-          sourceMappingURL: 'gecko.js.map' // fix ref in .min.js
+          sourceMap: true,
+          sourceMapIncludeSources: true
         },
         files: {
           'js/gecko.min.js': commonjs.concat([
@@ -135,9 +132,8 @@ module.exports = function (grunt) {
       },
       'ios-bic2': {
         options: {
-          sourceMapPrefix: 1, // fix ref in .js.map
-          sourceMap: 'js/ios.js.map',
-          sourceMappingURL: 'ios.js.map' // fix ref in .min.js
+          sourceMap: true,
+          sourceMapIncludeSources: true
         },
         files: {
           'js/ios.min.js': commonjs.concat([
@@ -150,9 +146,8 @@ module.exports = function (grunt) {
       },
       'msie-bic2': {
         options: {
-          sourceMapPrefix: 1, // fix ref in .js.map
-          sourceMap: 'js/msie.js.map',
-          sourceMappingURL: 'msie.js.map' // fix ref in .min.js
+          sourceMap: true,
+          sourceMapIncludeSources: true
         },
         files: {
           'js/msie.min.js': commonjs.concat([
