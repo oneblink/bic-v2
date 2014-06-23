@@ -1,3 +1,4 @@
+/*global DOMParser, ActiveXObject*/ // Web Platform and Internet Explorer APIs
 
 /* new tests for Modernizr */
 (function(window) {
@@ -48,9 +49,27 @@
     return ret;
   });
 
-  Modernizr.addTest('xpath', function() {
-    var xml = $.parseXML('<xml />');
-    return !!window.XPathResult && !!xml.evaluate;
+  Modernizr.addTest('xpath', function () {
+    // http://developer.samsung.com/forum/board/thread/view.do?boardName=General&messageId=253999
+    var tmp, xml, result;
+    if (!window.XPathResult || !window.DOMParser) {
+      return false; // constructors for Firefox, Safari and Chrome not found
+    }
+    try {
+      tmp = new DOMParser();
+      xml = tmp.parseFromString('<book><page /></book>', 'text/xml');
+    } catch (ignore) {}
+    if (!xml || !xml.documentElement || xml.getElementsByTagName('parsererror').length) {
+      return false; // XML didn't parse correctly
+    }
+    if (!xml.evaluate) {
+      return false; // no support for `evaluate` method
+    }
+    try {
+      result = xml.evaluate('/book', xml, null, 9, null);
+      return !!(result && result.singleNodeValue);
+    } catch (ignore) {}
+    return false;
   });
 
   Modernizr.addTest('documentfragment', function() {
