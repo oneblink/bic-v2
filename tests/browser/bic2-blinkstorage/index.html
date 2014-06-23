@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="../../../bower_components/mocha/mocha.css" />
+  <script src="../../../bower_components/chai/chai.js"></script>
+  <script src="../../../bower_components/mocha/mocha.js"></script>
+  <!-- answerSpace stuff -->
+  <script src="../../../bower_components/modernizr/modernizr.js"></script>
+  <script src="../../../bower_components/jquery/jquery.js"></script>
+  <!-- END: answerSpace stuff -->
+</head>
+<body>
+<div id="mocha"></div>
+<div id="startUp" class="s-error">
+  <p id="startUpLoading" style="font-size:x-large;">
+    <span id="startUp-loadDevice">.</span>
+    <span id="startUp-loadMain">.</span>
+    <span id="startUp-loadPolyFills">.</span>
+    <span id="startUp-initMain">.</span>
+    <span id="startUp-initDevice">.</span>
+    <span id="startUp-initBlinkGap">.</span>
+    <span id="startUp-initBrowser">.</span>
+    <span id="startUp-initLoaded">.</span>
+  </p>
+</div>
+<script>
+  var assert = chai.assert;
+  mocha.setup({
+    ui: 'tdd'
+  });
+</script>
+<!-- answerSpace stuff -->
+<script src="../fixtures/environment.js"></script>
+<script src="../../../js/ios.min.js"></script>
+<!-- END: answerSpace stuff -->
+<script src="tests.js"></script>
+<script>
+    var runner = mocha.run();
+
+    var failedTests = [];
+    runner.on('end', function(){
+      window.mochaResults = runner.stats;
+      window.mochaResults.reports = failedTests;
+    });
+
+    runner.on('fail', logFailure);
+
+    function logFailure(test, err){
+
+      var flattenTitles = function(test){
+        var titles = [];
+        while (test.parent.title){
+          titles.push(test.parent.title);
+          test = test.parent;
+        }
+        return titles.reverse();
+      };
+
+      failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
+    };
+</script>
+</body>
+</html>

@@ -2586,6 +2586,20 @@ function submitAction(keyword, action) {
   return false;
 }
 
+MyAnswers.determineBlinkStorageEngine = function (userAgent) {
+  var storeEngine, userAgent;
+  userAgent = userAgent !== undefined ? userAgent : navigator.userAgent;
+  userAgent = userAgent || '';
+  storeEngine = null;
+  if (isBlinkGapDevice() || /\bchrom/i.test(userAgent)) {
+    storeEngine = null; // native application and Chrome should always auto-select
+  } else if (userAgent.indexOf('Android') !== -1) {
+    // Android has problems with persistent storage
+    storeEngine = 'sessionstorage';
+  }
+  return storeEngine;
+};
+
 // *** BEGIN APPLICATION INIT ***
 
 /* moving non-public functions into a closure for safety */
@@ -3214,15 +3228,11 @@ function submitAction(keyword, action) {
 
     // pre-configure storage system for BlinkGap if necessary
     if (isBlinkGapDevice()) {
-      storeEngine = null; // native application should always use auto-select
       if (navigator.gap_database && $.inArray('websqldatabase', BlinkStorage.prototype.available) !== -1) {
         dfrdFixWebSQL = fixWebSQL();
       } else {
         dfrdFixWebSQL = true; // will count as an instantly resolved Deferred Promise
       }
-    } else if (userAgent.indexOf('Android') !== -1) {
-      // Android has problems with persistent storage
-      storeEngine = 'sessionstorage';
     }
 
     // pre-configure domain whitelist for BlinkGap if necessary
@@ -3250,6 +3260,7 @@ function submitAction(keyword, action) {
     $.when(dfrdFixWebSQL)
     .always(function() {
       if (MyAnswers.device.persistentStorage) {
+        storeEngine = MyAnswers.determineBlinkStorageEngine();
 
           try {
             MyAnswers.store = new BlinkStorage(storeEngine, siteVars.answerSpace, 'jstore');
