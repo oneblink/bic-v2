@@ -1878,8 +1878,15 @@ function requestConfig() {
     dfrd.reject();
     return dfrd.promise();
   }
+  url += '?_asn=' + siteVars.answerSpace;
+  if (MyAnswers.isLoggedIn) {
+    if ($.type(MyAnswers.loginAccount) === 'object') {
+       url += '&_username=' + (MyAnswers.loginAccount.username);
+     }
+  }
+
   $.ajax({
-    url: url + '?_asn=' + siteVars.answerSpace,
+    url: url,
     type: 'POST',
     dataType: 'json',
     timeout: computeTimeout(40 * 1024),
@@ -1928,6 +1935,7 @@ function requestConfig() {
         if ($.type(siteVars.config) !== 'object' || items.length > 0) {
           siteVars.config = {};
         }
+
         $.each(items, function(index, id) {
           if ($.type(data[id]) === 'object') {
             siteVars.config[id] = data[id];
@@ -3572,4 +3580,3 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
 
 document.getElementById('startUp-loadMain').className = 'working success';
 MyAnswers.mainDeferred.resolve();
-
