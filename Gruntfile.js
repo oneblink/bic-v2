@@ -75,6 +75,7 @@ module.exports = function (grunt) {
             'http://localhost:9999/tests/browser/bare-example/index.html',
             'http://localhost:9999/tests/browser/common-lib/index.html',
             'http://localhost:9999/tests/browser/bic2-modernizr/index.html',
+            'http://localhost:9999/tests/browser/bic2-requestConfig/index.html',
             'http://localhost:9999/tests/browser/bic2-blinkstorage/index.html'
           ],
           run: true
