@@ -42,9 +42,7 @@ MyAnswers.isEmptySpace = false; // empty except for loginUseInteractions
 // *** BEGIN UTILS ***
 
 function isCameraPresent() {
-  var test = isBlinkGapDevice();
-  info('isBlinkGapDevice(): ' + test);
-  return test && window.device.camerapresent;
+  return isBlinkGapDevice.hasCamera();
 }
 
 function triggerScroll(event) {
@@ -774,7 +772,7 @@ function requestMoJO(mojo) {
         data: requestData,
         dataType: 'xml',
         complete: function(jqxhr, status) {
-          if (jqxhr.status === 200) {
+          if (jqxhr.status === 200 || jqxhr.status === 0) {
             $.when(MyAnswers.store.set('mojoXML:' + mojo, jqxhr.responseText))
               .fail(deferred.reject)
               .then(deferred.resolve);
@@ -1010,7 +1008,6 @@ function submitLogin() {
             //            window.location.reload();
             $.when(window.requestConfig()).always(function() {
               if (siteVars.map && siteVars.config) {
-                window.processConfig();
                 window.updateNavigationButtons();
                 // explicity do not implement loginToDefaultScreen here
               } else {
@@ -1158,7 +1155,6 @@ function initialiseAnswerFeatures($view) {
         if (MyAnswers.isLoggedIn) {
           $.when(window.requestConfig()).always(function() {
             if (siteVars.map && siteVars.config) {
-              window.processConfig();
               window.updateNavigationButtons();
               if (currentConfig.loginToDefaultScreen) {
                 MyAnswers.gotoDefaultScreen();
@@ -1804,14 +1800,14 @@ function processForms() {
         dataType: 'xml',
         complete: function(jqxhr, status) {
           var $data;
-          if (jqxhr.status === 200 && typeof jqxhr.responseText === 'string') {
+          if ((jqxhr.status === 200 || jqxhr.status === 0) && typeof jqxhr.responseText === 'string') {
             jqxhr.responseText = jqxhr.responseText.substring(jqxhr.responseText.indexOf('<formObjects>'));
             $data = $($.parseXML(jqxhr.responseText));
             // $data contains XMLDocument / <formObjects> / <formObject>s
             $data.children().children().each(formObjectFn);
     //      MyAnswers.store.set('formLastUpdated:' + form, new Date(jqxhr.getResponseHeader('Last-Modified')).getTime());
           }
-          if (jqxhr.status === 200 || jqxhr.status === 304) {
+          if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
             ajaxDeferred.resolve();
           } else {
             warn('processForms()->GetForm.XHR: failed ' + jqxhr.status);
@@ -1820,6 +1816,28 @@ function processForms() {
         },
         timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
       });
+
+    } else if (window.cordova && window.cordova.offline) {
+      cordova.offline.retrieveContent(function (data) {
+        var $data;
+        data = data || '';
+        data = data.substring(data.indexOf('<formObjects>'));
+        try {
+          $data = $($.parseXML(data));
+          // $data contains XMLDocument / <formObjects> / <formObject>s
+          $data.children().children().each(formObjectFn);
+          ajaxDeferred.resolve();
+        } catch (err) {
+          error('processForms()->GetForm.Retrieve: failed ', err);
+          ajaxDeferred.reject();
+        }
+      }, function () {
+        warn('processForms()->GetForm.Retrieve: failed ');
+        ajaxDeferred.reject();
+      }, {
+        url: '/_R_/xhr-forms/GetForm.php'
+      });
+
     } else {
       ajaxDeferred.resolve();
     }
@@ -1829,10 +1847,63 @@ function processForms() {
   .then(MyAnswers.formsDeferred.resolve);
 }
 
-function processConfig() {
-  var siteStructure,
-  config;
-  /* END: var */
+function processConfig(data) {
+  var siteStructure, config, isPersist, items;
+
+  isPersist = MyAnswers.device.persistentStorage;
+
+  if (data && typeof data === 'object') {
+    items = ['a' + siteVars.id];
+    if ($.type(data.map) === 'object') {
+      siteVars.map = data.map;
+      if (isPersist) {
+        MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
+      }
+    }
+    if ($.type(data['a' + siteVars.id]) === 'object') {
+      siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
+    }
+    if (siteVars.map) {
+      if (siteStructure === 'master categories' &&
+        siteVars.map.masterCategories.length > 0) {
+        items = items.concat($.map(siteVars.map.masterCategories,
+          function(element, index) {
+            return 'm' + element;
+          }));
+      }
+      if (siteStructure !== 'interactions only' &&
+        siteVars.map.categories.length > 0) {
+        // masterCategories or categories
+        items = items.concat($.map(siteVars.map.categories,
+          function(element, index) {
+            return 'c' + element;
+          }));
+      }
+      if (siteVars.map.interactions.length > 0) {
+        items = items.concat($.map(siteVars.map.interactions,
+          function(element, index) {
+            return 'i' + element;
+          }));
+      }
+    }
+    if ($.type(siteVars.config) !== 'object' || items.length > 0) {
+      siteVars.config = {};
+    }
+    $.each(items, function(index, id) {
+      if ($.type(data[id]) === 'object') {
+        siteVars.config[id] = data[id];
+      }
+    });
+    if (isPersist) {
+      MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
+    }
+    deviceVars.features = data.deviceFeatures;
+  }
+
+  if (!(siteVars.config && siteVars.map)) {
+    return;
+  }
+
   MyAnswers.isEmptySpace = false;
   MyAnswers.isLoginOnly = false;
   log('processConfig(): currentMasterCategory=' + currentMasterCategory + ' currentCategory=' + currentCategory + ' currentInteraction=' + currentInteraction);
@@ -1869,15 +1940,11 @@ function processConfig() {
 }
 
 function requestConfig() {
-  var now = $.now(),
-      dfrd = new $.Deferred(),
-      isPersist = MyAnswers.device.persistentStorage,
+  var dfrd, url, isAppCached;
+
+  dfrd = new $.Deferred();
       url = '/_R_/xhr/GetConfig.php';
 
-  if (!deviceVars.isOnline) {
-    dfrd.reject();
-    return dfrd.promise();
-  }
   url += '?_asn=' + siteVars.answerSpace;
   if (MyAnswers.isLoggedIn) {
     if ($.type(MyAnswers.loginAccount) === 'object') {
@@ -1885,74 +1952,61 @@ function requestConfig() {
      }
   }
 
+  isAppCached = (function () {
+    if (MyAnswers.isLoggedIn || !window.applicationCache) {
+      return false;
+    }
+    return applicationCache.status === applicationCache.IDLE;
+  }());
+
+  if (deviceVars.isOnline || isAppCached) {
   $.ajax({
     url: url,
-    type: 'POST',
+    type: 'GET',
     dataType: 'json',
     timeout: computeTimeout(40 * 1024),
-    complete: function(jqxhr, status) {
-      var data,
-          items = ['a' + siteVars.id],
-          siteStructure;
+      complete: function(jqxhr) {
+        var data;
 
-      if (jqxhr.status === 200) {
+      if (jqxhr.status === 200 || jqxhr.status === 0) {
+          try {
         data = $.parseJSON(jqxhr.responseText);
-        if ($.type(data.map) === 'object') {
-          siteVars.map = data.map;
-          if (isPersist) {
-            MyAnswers.siteStore.set('map', JSON.stringify(siteVars.map));
+          } catch (err) {
+            warn(err);
           }
         }
-        if ($.type(data['a' + siteVars.id]) === 'object') {
-          siteStructure = data['a' + siteVars.id].pertinent.siteStructure;
-          siteVars.cdnu = new _Blink.AnswerSpaceCDN(data['a' + siteVars.id].pertinent.cdnLocation);
-        }
-        if (siteVars.map) {
-          if (siteStructure === 'master categories' &&
-              siteVars.map.masterCategories.length > 0) {
-            items = items.concat($.map(siteVars.map.masterCategories,
-                                       function(element, index) {
-              return 'm' + element;
-            }));
-          }
-          if (siteStructure !== 'interactions only' &&
-              siteVars.map.categories.length > 0) {
-            // masterCategories or categories
-            items = items.concat($.map(siteVars.map.categories,
-                                       function(element, index) {
-              return 'c' + element;
-            }));
-          }
-          if (siteVars.map.interactions.length > 0) {
-            items = items.concat($.map(siteVars.map.interactions,
-                                       function(element, index) {
-              return 'i' + element;
-            }));
-          }
-        }
-      }
-      if (data) {
-        if ($.type(siteVars.config) !== 'object' || items.length > 0) {
-          siteVars.config = {};
-        }
+        processConfig(data);
 
-        $.each(items, function(index, id) {
-          if ($.type(data[id]) === 'object') {
-            siteVars.config[id] = data[id];
+        if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
+          dfrd.resolve();
+        } else {
+          dfrd.reject();
+        }
           }
         });
-        if (isPersist) {
-          MyAnswers.siteStore.set('config', JSON.stringify(siteVars.config));
-        }
-        deviceVars.features = data.deviceFeatures;
-      }
-      if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
+
+  } else if (window.cordova && window.cordova.offline) {
+    cordova.offline.retrieveContent(function (data) {
+      try {
+        data = $.parseJSON(data);
+      } catch (err) {
+        warn(err);
+          }
+      processConfig(data);
         dfrd.resolve();
+    }, function (err) {
+      warn('requestConfig.Retrieve: failed ');
+      processConfig();
+      dfrd.reject(err);
+    }, {
+      url: url
+        });
+
       } else {
+    processConfig();
         dfrd.reject();
       }
-    }
-  });
+
   return dfrd.promise();
 }
 
@@ -2635,40 +2689,30 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
    * @return {jQueryPromise}
    */
   function waitForBlinkGap() {
-    var dfrd = new $.Deferred(),
-        start = $.now(),
-        $progressDot = $('#startUp-initBlinkGap'),
-        /** @inner */
-        checkFn = function() {
-          if (window.PhoneGap) {
-            if (window.PhoneGap.available) {
-              dfrd.resolve();
-            } else {
-              $(document).on('deviceready', dfrd.resolve);
-            }
-          } else if (($.now() - start) > 10 * 1000) {
-            warn('waitForBlinkGap(): still no PhoneGap after 10 seconds');
-            dfrd.reject();
-          } else {
-            setTimeout(checkFn, 197);
-          }
-        };
-    /* END: var */
-    if (!window.isBlinkGap) {
-      log('waitForBlinkGap(): native application not detected');
-      $progressDot.remove();
-      dfrd.resolve();
-      return dfrd.promise();
-    }
-    log('waitForBlinkGap(): native application detected');
+    var dfrd, $progressDot;
+
+    $progressDot = $('#startUp-initBlinkGap');
     $progressDot.addClass('working');
-    checkFn();
-    $.when(dfrd.promise())
-    .fail(function() {
+
+    if (window.isBlinkGap || window.PhoneGap || window.cordova) {
+      log('waitForBlinkGap(): native application detected');
+      dfrd = window.BMP.waitForBlinkGap();
+
+            } else {
+      log('waitForBlinkGap(): native application not detected');
+      dfrd = new $.Deferred();
+      dfrd.resolve();
+    }
+
+    dfrd.then(function () {
+      // resolve
+      $progressDot.addClass('success');
+    }, function (error) {
+      // reject
           $progressDot.addClass('error');
-        })
-    .then(function() {
-          $progressDot.addClass('success');
+      if (window.isBlinkGap || window.PhoneGap || window.cordova) {
+        warn(error.message);
+      }
         });
     return dfrd.promise();
   }
@@ -3160,7 +3204,6 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
             $.when(requestConfig())
             .always(function() {
               if (siteVars.map && siteVars.config) {
-                processConfig();
                 displayAnswerSpace();
 
                 // hook orientation events
@@ -3171,6 +3214,9 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
                 onOrientationChange();
               } else {
                 $startup.append('error: unable to contact server, insufficient data found in local storage');
+                if (window.cordova && cordova.offline) {
+                  $startup.append('status: found cordova.offline');
+              }
               }
             });
           });
@@ -3569,7 +3615,7 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
       .then(function() {
         $('#startUp-loadPolyFills').addClass('success');
         $('#startUp-initBrowser').addClass('working');
-        setTimeout(onBrowserReady, window.device ? 2000 : 193);
+        setTimeout(onBrowserReady, isBlinkGapDevice() ? 2000 : 193);
       });
     });
   });

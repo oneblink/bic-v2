@@ -13,8 +13,10 @@ module.exports = function (grunt) {
     'js/lib/bmp-blobs.js',
     'js/lib/Modernizr-tests.js',
     'js/lib/utilities.js',
+    'js/lib/sjcl.js',
     'js/lib/BlinkDispatch.js',
     'js/lib/BMP.js',
+    'js/lib/BMP.waitForBlinkGap.js',
     'js/lib/BMP.BIC.Config.js',
     'js/lib/BlinkStorage.js'
   ];
