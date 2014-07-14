@@ -27,7 +27,9 @@ var _SERVER = {
   isBlinkGap = false,
   MyAnswers = {
     isDebug: false,
-    device: {},
+    device: {
+      persistentStorage: true
+    },
     cameraPresent: false
   },
   deviceVars = {
@@ -41,4 +43,3 @@ var _SERVER = {
     serverAppBranch: 'R',
     serverAppVersion: 3
   };
-

@@ -8,18 +8,25 @@
 
 (function (window) {
   'use strict';
-  var $ = window.jQuery,
-    Math = window.Math;
-  /* END: var */
+  var $ = window.jQuery;
 
   // detect BlinkGap / PhoneGap / Callback
   window.isBlinkGapDevice = function () {
-    return window.PhoneGap && $.type(window.device) === 'object' &&
-      window.device instanceof window.Device;
+    if (window.cordova && window.cordova.offline) {
+      return true;
+    }
+    return window.PhoneGap && $.type(window.device) === 'object' && window.device instanceof window.Device;
+  };
+
+  window.isBlinkGapDevice.hasCamera = function () {
+    return window.isBlinkGapDevice() && !!(window.Camera || navigator.camera || {}).getPicture;
+  };
+
+  window.isBlinkGapDevice.hasTouchDraw = function () {
+    return window.isBlinkGapDevice() && !!(window.BGTouchDraw || navigator.bgtouchdraw || {}).getDrawing;
   };
 
   window.computeTimeout = function (messageLength) {
-
     var lowestTransferRateConst = 1000 / (4800 / 8);
     // maxTransactionTimeout = 180 * 1000;
     return Math.floor((messageLength * lowestTransferRateConst) + 15000);
@@ -32,16 +39,14 @@
  */
 (function (window) {
   'use strict';
-  var $ = window.jQuery,
-    $document = $(window.document),
+  var $, $document, early, console, fns, initialise;
+
+  $ = window.jQuery;
+  $document = $(window.document);
     early = { // catch messages from before we are ready
       history: []
-    },
-    console,
-    fns = ['log', 'error', 'warn', 'info'],
-    /**
- * re-route messages now that we are ready
- */
+  };
+  fns = ['log', 'error', 'warn', 'info'];
     initialise = function () {
       $document.off('ready deviceready', initialise);
       setTimeout(function () { // force thread-switch for PhoneGap
@@ -85,15 +90,6 @@
         });
         /*jslint unparam:false*/
       }, 0);
-    },
-    waitForBlinkGap = function () {
-      if (window.PhoneGap && window.PhoneGap.available) {
-        if (early.history) {
-          initialise();
-        }
-      } else {
-        setTimeout(waitForBlinkGap, 197);
-      }
     };
 
   // setup routing for early messages
@@ -108,10 +104,16 @@
   /*jslint unparam:false*/
 
   // wait until we are ready to start real routing
-  if (window.isBlinkGap) {
-    waitForBlinkGap();
+  if (window.isBlinkGap || window.isBlinkGapDevice()) {
+    window.BMP.waitForBlinkGap().then(function () {
+      // resolve
+      $document.ready(initialise);
+    }, function () {
+      // reject
+      $document.ready(initialise);
+    });
   } else {
-    $document.on('ready', initialise);
+    $document.ready(initialise);
   }
 }(this));
 

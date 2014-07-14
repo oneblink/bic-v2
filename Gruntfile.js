@@ -13,8 +13,10 @@ module.exports = function (grunt) {
     'js/lib/bmp-blobs.js',
     'js/lib/Modernizr-tests.js',
     'js/lib/utilities.js',
+    'js/lib/sjcl.js',
     'js/lib/BlinkDispatch.js',
     'js/lib/BMP.js',
+    'js/lib/BMP.waitForBlinkGap.js',
     'js/lib/BMP.BIC.Config.js',
     'js/lib/BlinkStorage.js'
   ];
@@ -73,7 +75,10 @@ module.exports = function (grunt) {
         options: {
           urls: [
             'http://localhost:9999/tests/browser/bare-example/index.html',
-            'http://localhost:9999/tests/browser/common-lib/index.html'
+            'http://localhost:9999/tests/browser/common-lib/index.html',
+            'http://localhost:9999/tests/browser/bic2-modernizr/index.html',
+            'http://localhost:9999/tests/browser/bic2-requestConfig/index.html',
+            'http://localhost:9999/tests/browser/bic2-blinkstorage/index.html'
           ],
           run: true
         }
