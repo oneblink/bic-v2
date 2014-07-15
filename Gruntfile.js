@@ -93,7 +93,7 @@ module.exports = function (grunt) {
       },
       options: {
         mocha: {},
-        log: false
+        log: true
       }
     },
 

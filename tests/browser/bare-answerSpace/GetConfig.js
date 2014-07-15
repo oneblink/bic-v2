@@ -1,7 +1,10 @@
 /*jslint indent:2, maxlen:80*/
+
+/*global localStorage, openDatabase*/ // Web APIs
+
 (function (window, $) {
   'use strict';
-  var siteVars;
+  var siteVars, db;
 
   siteVars = window.siteVars;
 
@@ -55,8 +58,19 @@
     }
   };
 
+  // wipe storage
+  if (window.localStorage) {
+    window.localStorage.clear();
+  }
+  if (window.openDatabase) {
+    db = window.openDatabase('test', "1.0", 'test', 0);
+    db.transaction(function (tx) {
+      ['jstore', 'site', 'pending', 'pendingV1'].forEach(function (table) {
+        tx.executeSql('DROP TABLE IF EXISTS ' + table);
+      });
+    });
+  }
+
   $.holdReady(false);
 
 }(this, this.jQuery));
-
-
