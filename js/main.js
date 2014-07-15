@@ -1033,6 +1033,8 @@ MyAnswers.gotoDefaultScreen = function() {
   var History = window.History,
       requestUri;
 
+  log('navigating to default screen...');
+
   if (currentConfig.defaultScreen === 'login' || MyAnswers.isLoginOnly) {
     showLoginView();
     /*History.pushState({
@@ -1530,70 +1532,82 @@ function updateCurrentConfig() {
         display = currentConfig.sidebarDisplay;
       }
       log('MyAnswers.populateItemListing(): ' + level + ' ' + arrangement + ' ' + display + ' ' + type + '[' + list.join(',') + ']');
-      switch (arrangement) {
-        case 'list':
-          columns = 1;
-          break;
-        case '2 column':
-          columns = 2;
-          break;
-        case '3 column':
-          columns = 3;
-          break;
-        case '4 column':
-          columns = 4;
-          break;
-      }
-      oLength = order.length;
-      for (o = 0; o < oLength; o++) {
-        itemConfig = siteVars.config[type + order[o]];
-        if (itemConfig && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
-          name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
-          if (display !== 'text only' && itemConfig.pertinent.icon) {
-            $item = $('<img />');
-            $item.attr({
-              'class': 'v' + columns + 'col',
-              'src': itemConfig.pertinent.icon,
-              'alt': name
-            });
-            $visualBox.append($item);
-          } else {
-            $item = $('<li />');
-            $label = $('<div class="label" />');
-            $label.text(name);
-            $item.append($label);
-            if (typeof itemConfig.pertinent.description === 'string') {
-              $description = $('<div class="description" />');
-              $description.text(itemConfig.pertinent.description);
-              $item.append($description);
-            }
-            $listBox.append($item);
-          }
-          $item.attr('data-id', order[o]);
-          hook[level]($item);
+      try {
+        switch (arrangement) {
+          case 'list':
+            columns = 1;
+            break;
+          case '2 column':
+            columns = 2;
+            break;
+          case '3 column':
+            columns = 3;
+            break;
+          case '4 column':
+            columns = 4;
+            break;
         }
+        oLength = order.length;
+        for (o = 0; o < oLength; o++) {
+          itemConfig = siteVars.config[type + order[o]];
+          if (itemConfig && $.inArray(order[o], list) !== -1 && itemConfig.pertinent.display !== 'hide') {
+            name = itemConfig.pertinent.displayName || itemConfig.pertinent.name;
+            if (display !== 'text only' && itemConfig.pertinent.icon) {
+              $item = $('<img />');
+              $item.attr({
+                'class': 'v' + columns + 'col',
+                'src': itemConfig.pertinent.icon,
+                'alt': name
+              });
+              $visualBox.append($item);
+            } else {
+              $item = $('<li />');
+              $label = $('<div class="label" />');
+              $label.text(name);
+              $item.append($label);
+              if (typeof itemConfig.pertinent.description === 'string') {
+                $description = $('<div class="description" />');
+                $description.text(itemConfig.pertinent.description);
+                $item.append($description);
+              }
+              $listBox.append($item);
+            }
+            $item.attr('data-id', order[o]);
+            hook[level]($item);
+
+          } else {
+            error(type + order[o] + ' not in siteVars.config');
+          }
+
+        }
+      } catch (err) {
+        error('MyAnswers.populateItemListing: ', err);
       }
     });
     MyAnswers.dispatch.add(function() {
-      if ($visualBox.children().length > 0) {
-        $images = $visualBox.find('img');
-        if (columns === 1) {
-          $images.first().addClass('topLeft topRight');
-          $images.last().addClass('bottomLeft bottomRight');
-        } else {
-          $images.first().addClass('topLeft');
-          if ($images.length >= columns) {
-            $images.eq(columns - 1).addClass('topRight');
+      try {
+        if ($visualBox.children().length > 0) {
+          $images = $visualBox.find('img');
+          if (columns === 1) {
+            $images.first().addClass('topLeft topRight');
+            $images.last().addClass('bottomLeft bottomRight');
+          } else {
+            $images.first().addClass('topLeft');
+            if ($images.length >= columns) {
+              $images.eq(columns - 1).addClass('topRight');
+            }
+            if ($images.length % columns === 0) {
+              $images.eq(columns * -1).addClass('bottomLeft');
+              $images.last().addClass('bottomRight');
+            }
           }
-          if ($images.length % columns === 0) {
-            $images.eq(columns * -1).addClass('bottomLeft');
-            $images.last().addClass('bottomRight');
-          }
+          $visualBox.appendTo($view);
         }
-        $visualBox.appendTo($view);
-      }
-      if ($listBox.children().length > 0) {
-        $listBox.appendTo($view);
+        if ($listBox.children().length > 0) {
+          $listBox.appendTo($view);
+        }
+      } catch (err) {
+        error('MyAnswers.populateItemListing: ', err);
       }
     });
   };
@@ -1960,18 +1974,19 @@ function requestConfig() {
   }());
 
   if (deviceVars.isOnline || isAppCached) {
-  $.ajax({
-    url: url,
-    type: 'GET',
-    dataType: 'json',
-    timeout: computeTimeout(40 * 1024),
+    $.ajax({
+      url: url,
+      type: 'GET',
+      dataType: 'json',
+      timeout: computeTimeout(40 * 1024),
       complete: function(jqxhr) {
         var data;
 
-      if (jqxhr.status === 200 || jqxhr.status === 0) {
+        if (jqxhr.status === 200 || jqxhr.status === 0) {
           try {
-        data = $.parseJSON(jqxhr.responseText);
+            data = $.parseJSON(jqxhr.responseText);
           } catch (err) {
+            warn('requestConfig.parse: failed');
             warn(err);
           }
         }
@@ -1980,10 +1995,11 @@ function requestConfig() {
         if (jqxhr.status === 200 || jqxhr.status === 304 || jqxhr.status === 0) {
           dfrd.resolve();
         } else {
+          warn('requestConfig.ajax: did not succeed', jqxhr.status);
           dfrd.reject();
         }
-          }
-        });
+      }
+    });
 
   } else if (window.cordova && window.cordova.offline) {
     cordova.offline.retrieveContent(function (data) {
@@ -1991,21 +2007,22 @@ function requestConfig() {
         data = $.parseJSON(data);
       } catch (err) {
         warn(err);
-          }
+      }
       processConfig(data);
-        dfrd.resolve();
+      dfrd.resolve();
     }, function (err) {
-      warn('requestConfig.Retrieve: failed ');
+      warn('requestConfig.retrieve: failed', err);
       processConfig();
       dfrd.reject(err);
     }, {
       url: url
-        });
+    });
 
-      } else {
+  } else {
+    warn('requestConfig: no network, AppCache or Cordova');
     processConfig();
-        dfrd.reject();
-      }
+    dfrd.reject();
+  }
 
   return dfrd.promise();
 }
@@ -2389,6 +2406,7 @@ function showSecondLevelAnswerView(keyword, arg0, reverse) {
 function showKeywordListView(category, masterCategory) {
   var mainLabel,
     $view = $('#keywordListView');
+
   currentInteraction = null;
   currentCategory = category;
   if (hasMasterCategories && masterCategory) {
@@ -3139,6 +3157,8 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
             config = siteVars.config['a' + siteVars.id].pertinent,
             requestUri;
         /* END: var */
+        log('navigating to requested screen (if any)...');
+
         delete siteVars.queryParameters.keyword;
         if (interaction && ! $.isEmptyObject(siteVars.queryParameters)) {
           requestUri = '/' + siteVars.answerSpace + '/' + siteVars.config['i' + interaction].pertinent.name + '/?' + $.param(siteVars.queryParameters);
@@ -3186,6 +3206,7 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
           data = $.parseJSON(data);
         }
         if ($.type(data) === 'object') {
+          info('loading stored siteVars.config...');
           siteVars.config = data;
         }
       }).always(function() {
@@ -3195,6 +3216,7 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
             data = $.parseJSON(data);
           }
           if ($.type(data) === 'object') {
+            info('loading stored siteVars.map...');
             siteVars.map = data;
           }
         })
@@ -3430,8 +3452,9 @@ MyAnswers.determineBlinkStorageEngine = function (userAgent) {
               showKeywordListView();
             }
           }
-        } catch (error) {
+        } catch (err) {
           error('Error in onStateChange handler...');
+          error(err);
         }
         event.preventDefault();
         return false;
