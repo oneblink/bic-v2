@@ -1807,7 +1807,28 @@ function processForms() {
   promises = [libraryDeferred];
   if (MyAnswers.device.persistentStorage) {
     promises.push(ajaxDeferred.promise());
-    if (deviceVars.isOnline) {
+    if (window.cordova && window.cordova.offline) {
+      cordova.offline.retrieveContent(function (data) {
+        var $data;
+        data = data || '';
+        data = data.substring(data.indexOf('<formObjects>'));
+        try {
+          $data = $($.parseXML(data));
+          // $data contains XMLDocument / <formObjects> / <formObject>s
+          $data.children().children().each(formObjectFn);
+          ajaxDeferred.resolve();
+        } catch (err) {
+          error('processForms()->GetForm.Retrieve: failed ', err);
+          ajaxDeferred.reject();
+        }
+      }, function () {
+        warn('processForms()->GetForm.Retrieve: failed ');
+        ajaxDeferred.reject();
+      }, {
+        url: '/_R_/xhr-forms/GetForm.php'
+      });
+
+    } else if (deviceVars.isOnline) {
       $.ajax({
         // TODO: send through lastChecked time when updating forms
         url: '/_R_/xhr-forms/GetForm.php',
@@ -1829,27 +1850,6 @@ function processForms() {
           }
         },
         timeout: Math.max(currentConfig.downloadTimeout * 1000, computeTimeout(500 * 1024))
-      });
-
-    } else if (window.cordova && window.cordova.offline) {
-      cordova.offline.retrieveContent(function (data) {
-        var $data;
-        data = data || '';
-        data = data.substring(data.indexOf('<formObjects>'));
-        try {
-          $data = $($.parseXML(data));
-          // $data contains XMLDocument / <formObjects> / <formObject>s
-          $data.children().children().each(formObjectFn);
-          ajaxDeferred.resolve();
-        } catch (err) {
-          error('processForms()->GetForm.Retrieve: failed ', err);
-          ajaxDeferred.reject();
-        }
-      }, function () {
-        warn('processForms()->GetForm.Retrieve: failed ');
-        ajaxDeferred.reject();
-      }, {
-        url: '/_R_/xhr-forms/GetForm.php'
       });
 
     } else {
@@ -1973,7 +1973,24 @@ function requestConfig() {
     return applicationCache.status === applicationCache.IDLE;
   }());
 
-  if (deviceVars.isOnline || isAppCached) {
+  if (window.cordova && window.cordova.offline) {
+    cordova.offline.retrieveContent(function (data) {
+      try {
+        data = $.parseJSON(data);
+      } catch (err) {
+        warn(err);
+      }
+      processConfig(data);
+      dfrd.resolve();
+    }, function (err) {
+      warn('requestConfig.retrieve: failed', err);
+      processConfig();
+      dfrd.reject(err);
+    }, {
+      url: url
+    });
+
+  } else if (deviceVars.isOnline || isAppCached) {
     $.ajax({
       url: url,
       type: 'GET',
@@ -1999,23 +2016,6 @@ function requestConfig() {
           dfrd.reject();
         }
       }
-    });
-
-  } else if (window.cordova && window.cordova.offline) {
-    cordova.offline.retrieveContent(function (data) {
-      try {
-        data = $.parseJSON(data);
-      } catch (err) {
-        warn(err);
-      }
-      processConfig(data);
-      dfrd.resolve();
-    }, function (err) {
-      warn('requestConfig.retrieve: failed', err);
-      processConfig();
-      dfrd.reject(err);
-    }, {
-      url: url
     });
 
   } else {
