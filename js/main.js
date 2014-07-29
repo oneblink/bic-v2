@@ -1825,13 +1825,13 @@ function processForms() {
         warn('processForms()->GetForm.Retrieve: failed ');
         ajaxDeferred.reject();
       }, {
-        url: '/_R_/xhr-forms/GetForm.php'
+        url: '/_R_/xhr-forms/GetForm.php?_asid=' + siteVars.id
       });
 
     } else if (deviceVars.isOnline) {
       $.ajax({
         // TODO: send through lastChecked time when updating forms
-        url: '/_R_/xhr-forms/GetForm.php',
+        url: '/_R_/xhr-forms/GetForm.php?_asid=' + siteVars.id,
         dataType: 'xml',
         complete: function(jqxhr, status) {
           var $data;
